@@ -1,0 +1,12 @@
+import type {Metadata} from 'next';
+
+import Link from 'next/link';
+
+import Image from 'next/image';
+
+import './globals.css';
+
+export const metadata: Metadata={metadataBase:new URL('https://yourneighborhoodserviceguy.com'),openGraph:{type:'website',siteName:'Your Neighborhood Service Guy',images:[{url:'/logo.jpg',width:1536,height:1024,alt:'Your Neighborhood Service Guy — Home & Yard'}]},twitter:{card:'summary_large_image',images:['/logo.jpg']},title:{default:'Your Neighborhood Service Guy | Home & Yard',template:'%s | Your Neighborhood Service Guy'},description:'Practical help with everyday jobs around your home and yard in DeKalb, Sycamore, and Cortland, Illinois.',robots:{index:false,follow:false}};
+
+export default function Layout({children}:{children:React.ReactNode}){return <html lang="en"><body><a className="skip" href="#main">Skip to content</a><div className="topline"><div className="wrap"><span>DEKALB · SYCAMORE · CORTLAND, ILLINOIS</span><a href="tel:+17706302094">Call · 770-630-2094</a></div></div><header><div className="wrap header"><Link href="/" aria-label="Your Neighborhood Service Guy home"><Image src="/logo.jpg" width={1536} height={1024} className="header-logo" alt="Your Neighborhood Service Guy — Home & Yard. We're Here to Help." priority/></Link><nav aria-label="Main navigation"><a className="mobile-call" href="tel:+17706302094">Call Us · 770-630-2094</a><Link href="/services">Services</Link><Link href="/pricing">Pricing</Link><Link href="/about">About</Link><Link className="button small" href="/request">Request service <span aria-hidden="true">↗</span></Link></nav></div></header><main id="main">{children}</main><footer><div className="wrap footer-grid"><div><p className="footer-name">Your Neighborhood<br/>Service Guy.</p><p>HOME & YARD · WE’RE HERE TO HELP.</p><p>DeKalb · Sycamore · Cortland, Illinois</p></div><div><h2>Let’s talk about your to-do list.</h2><a className="footer-phone" href="tel:+17706302094">770-630-2094</a><p><a href="sms:+17706302094">Text us</a> <span aria-hidden="true"> · </span><a href="tel:+17706302094">Call us</a></p></div></div><div className="wrap footer-bottom"><span>© {new Date().getFullYear()} Your Neighborhood Service Guy</span><div><Link href="/privacy">Privacy</Link><Link href="/terms">Website terms</Link><Link href="/service-agreement">Service agreement</Link><Link href="/accessibility">Accessibility</Link></div></div></footer></body></html>}
+
