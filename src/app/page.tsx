@@ -1,11 +1,54 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Check, Phone } from 'lucide-react';
+import { ArrowUpRight, Phone } from 'lucide-react';
 import { RequestForm } from '@/components/request-form';
-const services=[['Lawn & yard','Mowing, edging, garden-bed weeding, mulch, leaves, and other ground-level outdoor jobs.'],['Snow clearing','Residential drives, walks, and accessible entries. We review the areas and conditions first.'],['Help around the home','Assembly, organizing, manageable moving, and small cosmetic jobs within our limits.'],['Something else','Tell us what is on your list. We will let you know honestly if it is work we can take on.']];
-export default function Home(){return <>
-<section className="hero"><div className="container hero-inner"><div className="hero-copy"><p className="eyebrow">DEKALB · SYCAMORE · CORTLAND</p><div className="audience-pill"><span aria-hidden="true">🇺🇸</span> Community Rate for the neighbors we especially serve</div><h1>Got a few jobs on your list?</h1><p className="hero-answer">Let’s see if we can help.</p><p className="lead">We especially work for seniors, veterans, single moms, and people with disabilities. You may have things around the house or yard that do not call for a contractor. Tell us what needs doing, and we will talk through what we can do, what it will cost, and when we can come by.</p><div className="actions"><Link className="button button-primary" href="#request">Tell us what you need <ArrowRight size={18}/></Link><a className="button button-secondary" href="tel:+17706302094"><Phone size={18}/> Call 770-630-2094</a></div><p className="quiet">Serving DeKalb, Sycamore, and Cortland, Illinois.</p></div><div className="hero-card"><div className="hero-card-top"><span>HOME &amp; YARD HELP</span><span aria-hidden="true">✦</span></div><h2>What is on your list?</h2><p>One or two jobs, or a handful of small things that have been waiting.</p><div className="mini-list">{['Lawn and yard','Snow clearing','Help around the home','Something else'].map(item=><div key={item}><Check size={18}/><span>{item}</span></div>)}</div></div></div></section>
-<section className="section" aria-labelledby="services-heading"><div className="container"><p className="eyebrow green">PRACTICAL HELP CLOSE TO HOME</p><h2 id="services-heading">A few ways we may be able to help.</h2><p className="section-intro">Choose the closest fit. If your job does not fit neatly in a box, choose Something else and describe it.</p><div className="service-grid">{services.map(([title,text],i)=><article className="service-card" key={title}><span className="service-index">0{i+1}</span><h3>{title}</h3><p>{text}</p><Link href="/request">Tell us about this <ArrowRight size={17}/></Link></article>)}</div></div></section>
-<section className="section band" aria-labelledby="steps-heading"><div className="container"><p className="eyebrow green">NO SURPRISES</p><h2 id="steps-heading">We talk first. Then we schedule.</h2><div className="steps"><div><span>1</span><h3>Tell us what needs doing.</h3><p>Give us the basics by form, phone, or text. No account is needed.</p></div><div><span>2</span><h3>We go over the work.</h3><p>We confirm whether it fits, what is included, and the cost before setting a time.</p></div><div><span>3</span><h3>We come by when agreed.</h3><p>You know the plan before work begins. A request is not a booking.</p></div></div></div></section>
-<section className="rate"><div className="container rate-inner"><div><p className="eyebrow">🇺🇸 COMMUNITY RATE</p><h2>Built with our neighbors in mind.</h2><p>Our Community Rate is for <strong>seniors 70+, veterans, single moms, and people with disabilities</strong>. It is <strong>$45 an hour</strong>, with a two-hour minimum. No proof, paperwork, income details, or diagnosis is required.</p><p>We also take requests from other neighbors when the work fits. This rate is here for the neighbors who may need more room in the budget.</p></div><Link className="button button-light" href="/pricing">See the rates <ArrowRight size={18}/></Link></div></section>
-<RequestForm />
-</>;}
+import { HeroGallery } from '@/components/hero-gallery';
+import { services } from '@/lib/services';
+
+export const metadata: Metadata = {
+  title: 'Home and yard help in DeKalb, Sycamore & Cortland',
+  description: 'Need a hand around the house or yard? Ask about lawn care, garden beds, snow clearing, assembly and other everyday jobs in DeKalb, Sycamore and Cortland, Illinois.',
+  alternates: { canonical: '/' },
+};
+
+export default function Home() {
+  return <>
+    <section className="hero" aria-labelledby="home-title">
+      <div className="container hero-grid">
+        <div className="hero-main">
+          <p className="eyebrow">Your Neighborhood Service Guy · Home &amp; Yard</p>
+          <h1 id="home-title">Need a hand around the house or yard?</h1>
+          <p className="hero-lead">Maybe the garden beds need weeding, the lawn needs mowing, or a few small jobs inside keep getting pushed back. Tell us about it. We’ll let you know if we can help.</p>
+          <div className="hero-actions">
+            <Link className="button button-primary" href="#request">Send a request <ArrowUpRight size={20} aria-hidden="true" /></Link>
+            <a className="button button-outline" href="tel:+17706302094"><Phone size={19} aria-hidden="true" /> Call 770-630-2094</a>
+          </div>
+          <p className="hero-local">Here in DeKalb, Sycamore &amp; Cortland, Illinois.</p>
+        </div>
+        <HeroGallery />
+      </div>
+    </section>
+
+    <section className="community-strip" aria-label="Community Rate"><div className="container community-strip-inner"><span className="flag-mark" role="img" aria-label="American flag">🇺🇸</span><p><strong>Especially here for seniors, veterans, single moms, and people with disabilities.</strong> A Community Rate is available for qualifying hourly work.</p><Link href="/pricing">See the rates <ArrowUpRight size={18} aria-hidden="true" /></Link></div></section>
+
+    <section className="section services-section" id="services" aria-labelledby="services-title">
+      <div className="container">
+        <div className="section-heading"><p className="eyebrow">Home &amp; yard</p><h2 id="services-title">What can we help with?</h2><p>Choose a place to start. If your job isn’t listed, tell us about it anyway.</p></div>
+        <div className="service-list">
+          {services.map((service, index) => <Link className="service-row" href={`/request?service=${encodeURIComponent(service.title)}`} key={service.slug}>
+            <span className="service-number">0{index + 1}</span><span className="service-name">{service.title}</span><span className="service-description">{service.short}</span><ArrowUpRight size={24} aria-hidden="true" />
+          </Link>)}
+          <Link className="service-row service-other" href="/request?service=Something%20else"><span className="service-number">05</span><span className="service-name">Something else?</span><span className="service-description">Tell us about it. We’ll be honest about whether it’s a fit.</span><ArrowUpRight size={24} aria-hidden="true" /></Link>
+        </div>
+        <p className="services-footnote">A few examples: pulling weeds by hand, spreading mulch, mowing, snow clearing, putting furniture together, and help organizing at home. <Link href="/services">See the full service list and limits.</Link></p>
+      </div>
+    </section>
+
+    <section className="section approach-section" aria-labelledby="approach-title"><div className="container approach-grid">
+      <div><p className="eyebrow">How it works</p><h2 id="approach-title">Just tell us what you have in mind.</h2></div>
+      <div className="approach-copy"><p>You can call, text, or send the short form below. We’ll look at the job and follow up if we have a question. Before we put anything on the calendar, we’ll agree on the work and what it will cost.</p><p>If it needs a licensed trade or falls outside the work we do, we’ll tell you plainly.</p></div>
+    </div></section>
+
+    <RequestForm />
+  </>;
+}

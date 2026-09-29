@@ -1,7 +1,18 @@
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import {notFound} from 'next/navigation';
-import {ArrowLeft,ArrowRight,Check} from 'lucide-react';
-import {findService,exclusions} from '@/lib/services';
-export async function generateMetadata({params}:{params:Promise<{slug:string}>}):Promise<Metadata>{const {slug}=await params;return {title:findService(slug)?.title??'Services'}}
-export default async function Service({params}:{params:Promise<{slug:string}>}){const {slug}=await params;const s=findService(slug);if(!s)notFound();return <div className="container inner detail"><Link href="/services" className="text-link"><ArrowLeft size={18}/> All services</Link><p className="overline green">HOME &amp; YARD / {s.title.toUpperCase()}</p><h1>{s.title}</h1><p className="page-lead">{s.description}</p><div className="detail-grid"><div><h2>Common requests</h2><ul className="check-list">{s.tasks.map(task=><li key={task}><Check size={19}/>{task}</li>)}</ul></div><div className="callout"><h2>Ready to ask?</h2><p>Share a few details and we’ll review the job before quoting or scheduling.</p><Link href={`/request?service=${s.category}`} className="btn btn-navy">Request this service <ArrowRight size={18}/></Link></div></div><p className="scope"><strong>Our boundaries:</strong> {exclusions}</p></div>}
+import { notFound } from 'next/navigation';
+import { ArrowLeft, ArrowUpRight } from 'lucide-react';
+import { findService, exclusions } from '@/lib/services';
+
+type Props = { params: Promise<{ slug: string }> };
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const service = findService(slug);
+  return { title: service?.title ?? 'Services', description: service?.description, alternates: { canonical: `/services/${slug}` } };
+}
+export default async function ServicePage({ params }: Props) {
+  const { slug } = await params;
+  const service = findService(slug);
+  if (!service) notFound();
+  return <><section className="page-hero service-detail-hero"><div className="container"><Link href="/services" className="back-link"><ArrowLeft size={18} aria-hidden="true" /> All services</Link><p className="eyebrow">Home &amp; yard</p><h1>{service.title}</h1><p>{service.description}</p><Link className="button button-primary" href={`/request?service=${encodeURIComponent(service.title)}`}>Ask about {service.title.toLowerCase()} <ArrowUpRight size={18} aria-hidden="true" /></Link></div></section><section className="section"><div className="container detail-grid"><div><p className="eyebrow">Common requests</p><h2>Here are a few examples.</h2></div><ul>{service.tasks.map(task => <li key={task}>{task}</li>)}</ul></div></section><section className="boundary-section"><div className="container boundary-grid"><h2>What falls outside our work</h2><p>{exclusions}</p></div></section></>;
+}
