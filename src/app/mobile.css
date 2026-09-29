@@ -1,3 +1,0 @@
-@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
-:focus-visible{outline:3px solid #d9a527;outline-offset:3px}
-@media (max-width:800px){.header-inner{min-height:72px}.header-logo img{width:126px;height:64px}.mobile-menu summary{min-width:48px;min-height:48px;display:grid;place-items:center;cursor:pointer}.mobile-menu a{padding:10px 4px}.service-card a,.text-link{min-height:44px}.hero-card{width:100%}}
