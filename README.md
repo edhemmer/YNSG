@@ -1,6 +1,6 @@
 # Your Neighborhood Service Guy website
 
-The public site is a small HTML, CSS and JavaScript project. `site/pages/*.html` contains the page bodies; `scripts/build.mjs` combines them with shared navigation and metadata into `dist/`. `site/main.css` and `site/main.js` provide the interaction. The Vercel function `api/requests.js` emails requests to the owner through Resend. There is no customer account, appointment booking, payment collection or CRM in this release.
+The public site is a small HTML, CSS and JavaScript project. `site/pages/*.html` contains the page bodies; `scripts/build.mjs` combines them with shared navigation and metadata into `dist/`. `site/main.css` and `site/main.js` provide the interaction. The Vercel function `api/requests.js` emails requests to the owner through authenticated Gmail SMTP. There is no customer account, appointment booking, payment collection or CRM in this release.
 
 ## Local build
 
@@ -10,7 +10,7 @@ npm run check
 npm run build
 ```
 
-Serve `dist/` with any static server to review pages. Vercel uses the build command in `vercel.json` and publishes `dist/`; `/api/requests` is a Node.js function. Set `RESEND_API_KEY` and `REQUEST_FROM_EMAIL` in Vercel for the request endpoint. An existing production secret named `RESEND_API_Key` is accepted as a compatibility fallback; new configurations should use `RESEND_API_KEY`. The sender address must be verified with the email provider. Never put secrets in the repository or browser code.
+Serve `dist/` with any static server to review pages. Vercel uses the build command in `vercel.json` and publishes `dist/`; `/api/requests` is a Node.js function. The request email is sent to and from `edhemmer@gmail.com` over authenticated Gmail SMTP. Set `GMAIL_APP_PASSWORD` as a Production secret in Vercel, using an app password generated in that Google Account with 2-Step Verification enabled. Do not use the normal Google password. Redeploy after adding the secret. Never put secrets in the repository or browser code.
 
 ## Content and interaction
 

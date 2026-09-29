@@ -6,5 +6,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "check": "node --check site/main.js && node --check api/requests.js && node --check scripts/build.mjs"
+  },
+  "dependencies": {
+    "nodemailer": "^7.0.13"
   }
 }
