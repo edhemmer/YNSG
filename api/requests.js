@@ -17,7 +17,10 @@ export default async function handler(req,res){
   if(data.website)return res.status(200).json({ok:true});
   const apiKey=process.env.RESEND_API_KEY;
   const from=process.env.REQUEST_FROM_EMAIL;
-  if(!apiKey||!from)return fail(res,503,'The form is temporarily unavailable. Please call or text 770-630-2094.');
+  if(!apiKey||!from){
+    console.error('Missing request email configuration', {apiKeyConfigured:Boolean(apiKey),senderConfigured:Boolean(from)});
+    return fail(res,503,'The form is temporarily unavailable. Please call or text 770-630-2094.');
+  }
   const id=randomUUID();
   const fields=[['Request ID',id],['Received',new Date().toISOString()],['Service',data.service],['Selected job',data.task||'Not selected'],['Job details',data.description],['Name',data.name],['Phone',data.phone],['Email',data.email||'Not provided'],['Address',`${data.street}, ${data.city}, IL`],['Preferred time',data.preferredTime||'Not specified'],['Community Rate inquiry',data.communityRate]];
   try{
