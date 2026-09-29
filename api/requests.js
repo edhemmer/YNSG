@@ -26,7 +26,11 @@ export default async function handler(req,res){
   const fields=[['Request ID',id],['Received',new Date().toISOString()],['Service',data.service],['Selected job',data.task||'Not selected'],['Job details',data.description],['Name',data.name],['Phone',data.phone],['Email',data.email||'Not provided'],['Address',`${data.street}, ${data.city}, IL`],['Preferred time',data.preferredTime||'Not specified'],['Community Rate inquiry',data.communityRate]];
   try{
     const sent=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},body:JSON.stringify({from,to:['edhemmer@gmail.com'],...(data.email?{reply_to:data.email}:{}),subject:'Your Neighborhood Service Guy New Request',text:fields.map(([label,value])=>`${label}: ${value}`).join('\n\n')})});
-    if(!sent.ok){console.error('Request email provider status',sent.status);return fail(res,502,'The form could not send your request. Please call or text 770-630-2094.');}
+    if(!sent.ok){
+      const detail=await sent.json().catch(()=>({}));
+      console.error('Request email provider rejected request', {status:sent.status,code:String(detail.name||'unknown').slice(0,80),message:String(detail.message||'').slice(0,300)});
+      return fail(res,502,'The form could not send your request. Please call or text 770-630-2094.');
+    }
     return res.status(200).json({ok:true,id});
   }catch{console.error('Request email provider unavailable');return fail(res,502,'The form could not send your request. Please call or text 770-630-2094.');}
 }
