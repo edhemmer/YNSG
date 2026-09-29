@@ -10,7 +10,7 @@ await cp(join(source,'main.css'), join(output,'main.css'));
 await cp(join(source,'main.js'), join(output,'main.js'));
 const form = await readFile(join(source,'pages','form.html'),'utf8');
 const pages = {
-  '': ['Home & Yard Help in DeKalb, Sycamore & Cortland', 'Practical home and yard help in DeKalb, Sycamore and Cortland. We especially serve seniors 70+, veterans, single moms and people with disabilities.', 'home'],
+  '': ['Home & Yard Help in DeKalb, Sycamore & Cortland', 'Small home and yard jobs in DeKalb, Sycamore and Cortland. Especially serving seniors 70+, veterans, single moms and people with disabilities.', 'home'],
   services: ['Home & Yard Services', 'Lawn care, yard and garden help, concrete pressure washing, residential snow clearing and small jobs around the home in DeKalb, Sycamore and Cortland.', 'services'],
   pricing: ['Pricing & Community Rate', 'Clear hourly home and yard labor rates and a Community Rate for seniors, veterans, single moms and people with disabilities.', 'pricing'],
   about: ['About Your Neighborhood Service Guy', 'Why we started a local service for the small home and yard jobs that keep getting pushed back.', 'about'],
