@@ -48,6 +48,7 @@ if(form){
     button.disabled=true;
     button.firstChild.textContent='Sending… ';
     message.textContent='';
+    document.querySelector('#email-fallback').hidden=true;
     try{
       const response=await fetch('/api/requests',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
       const result=await response.json();
@@ -56,7 +57,15 @@ if(form){
       document.querySelector('#form-success').hidden=false;
       document.querySelector('#form-success h3').setAttribute('tabindex','-1');
       document.querySelector('#form-success h3').focus();
-    }catch(error){message.textContent=error.message || 'We could not send your request. Please call or text 770-630-2094.';message.focus();}
+    }catch(error){
+      message.textContent=error.message || 'We could not send your request. Please call or text 770-630-2094.';
+      const fallback=document.querySelector('#email-fallback');
+      const subject='Your Neighborhood Service Guy New Request';
+      const body=[`Service: ${data.service}`,`Job: ${data.task || 'Not selected'}`,`Details: ${data.description}`,`Name: ${data.name}`,`Phone: ${data.phone}`,`Email: ${data.email || 'Not provided'}`,`Address: ${data.street}, ${data.city}, IL`,`Preferred time: ${data.preferredTime || 'Not specified'}`,`Community Rate inquiry: ${data.communityRate}`].join('\n\n');
+      fallback.querySelector('a').href=`mailto:edhemmer@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.slice(0,2500))}`;
+      fallback.hidden=false;
+      message.focus();
+    }
     finally{button.disabled=false;button.firstChild.textContent='Send service request ';}
   });
 }
