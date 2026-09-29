@@ -14,6 +14,6 @@ Serve `dist/` with any static server to review pages. Vercel uses the build comm
 
 ## Content and interaction
 
-The governing business and technology plans live outside this public repository. This release follows their published service scope and pricing. The expandable service menu passes a category and job into the single request form. JavaScript enhances the home page to keep visitors there; ordinary links to `/request/` remain as the fallback. The form does not imply a booking or quote. Calls use `tel:+17706302094`.
+The governing business and technology plans live outside this public repository. This release follows their published pricing and core service boundaries. At the owner’s September 29 direction, it also lists narrow ground-level residential concrete pressure washing as a review-first service; customer-supplied water and runoff review are stated on the site. The governing business plan should be updated to reflect that new service. The expandable service menu passes a category and job into the single request form. JavaScript enhances the home page to keep visitors there; ordinary links to `/request/` remain as the fallback. The form does not imply a booking or quote. Calls use `tel:+17706302094`.
 
 The site uses the approved logo and CSS/SVG decoration, no customer photography. Motion is limited to decorative elements and turns off with `prefers-reduced-motion`. Any future CRM should accept the same validated request model and add durable spam controls, idempotency, access rules and retention before storing customer records.

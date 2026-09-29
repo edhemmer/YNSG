@@ -1,8 +1,9 @@
 const tasks = {
   'Help around the home':['Furniture assembly','Shelving and organizing','Household product setup','Lightweight hanging','Small drywall patch','Moving manageable items','Several small jobs'],
-  'Lawn care':['Mowing','Trimming and edging','Mow, trim and blow-off','Recurring lawn care'],
-  'Yard & garden':['Pulling weeds by hand','Spreading mulch','Basic planting','Leaf cleanup','Small bush trimming','Garden-bed cleanup','Moving yard materials'],
+  'Lawn care':['Mowing','Trimming and edging','Mow, trim and blow-off','Leaf management','Recurring lawn care'],
+  'Yard & garden':['Pulling weeds by hand','Spreading mulch','Planting small bushes','Planting flowers','Small bush trimming','Garden-bed cleanup','Moving yard materials'],
   'Snow clearing':['Residential driveway','Sidewalks and walkways','Accessible entry','Driveway and walks'],
+  'Concrete pressure washing':['Concrete driveway','Concrete walks','Concrete patio'],
   'Something else':[]
 };
 const form = document.querySelector('#request-form');
@@ -20,6 +21,7 @@ if(form){
     task.replaceChildren(new Option('Choose a job or describe it below',''));
     for(const name of tasks[selected] || []) task.add(new Option(name,name));
     task.disabled = !selected || selected === 'Something else';
+    document.querySelector('#water-note').hidden = selected !== 'Concrete pressure washing';
   };
   service.addEventListener('change',()=>{fillTasks(service.value);suggest('');});
   task.addEventListener('change',()=>suggest(task.value));

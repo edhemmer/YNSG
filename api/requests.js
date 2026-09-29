@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-const services = new Set(['Lawn care','Yard & garden','Snow clearing','Help around the home','Something else']);
+const services = new Set(['Lawn care','Yard & garden','Snow clearing','Help around the home','Concrete pressure washing','Something else']);
 const cities = new Set(['DeKalb','Sycamore','Cortland']);
 const fail = (res,status,error) => res.status(status).json({error});
 const clean = (value,max) => typeof value === 'string' ? value.trim().slice(0,max+1) : '';
