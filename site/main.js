@@ -9,17 +9,25 @@ const form = document.querySelector('#request-form');
 if(form){
   const service = form.elements.service;
   const task = form.elements.task;
+  const description = form.elements.description;
+  let suggestedDescription = '';
+  const suggest = job => {
+    if(description.value.trim() && description.value !== suggestedDescription) return;
+    suggestedDescription = job ? `I'd like help with ${job.toLowerCase()}.` : '';
+    description.value = suggestedDescription;
+  };
   const fillTasks = selected => {
     task.replaceChildren(new Option('Choose a job or describe it below',''));
     for(const name of tasks[selected] || []) task.add(new Option(name,name));
     task.disabled = !selected || selected === 'Something else';
   };
-  service.addEventListener('change',()=>fillTasks(service.value));
+  service.addEventListener('change',()=>{fillTasks(service.value);suggest('');});
+  task.addEventListener('change',()=>suggest(task.value));
   const choose = (selected, job='') => {
     if(!(selected in tasks)) return;
     service.value=selected;
     fillTasks(selected);
-    if(job && tasks[selected].includes(job)) task.value=job;
+    if(job && tasks[selected].includes(job)){task.value=job;suggest(job);}
   };
   const params = new URLSearchParams(location.search);
   choose(params.get('service') || '',params.get('task') || '');
