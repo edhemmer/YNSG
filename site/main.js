@@ -63,7 +63,7 @@ if(form){
       message.textContent=error.message || 'We could not send your request. Please call or text 770-630-2094.';
       const fallback=document.querySelector('#email-fallback');
       const subject='Your Neighborhood Service Guy New Request';
-      const body=[`Service: ${data.service}`,`Job: ${data.task || 'Not selected'}`,`Details: ${data.description}`,`Name: ${data.name}`,`Phone: ${data.phone}`,`Email: ${data.email || 'Not provided'}`,`Address: ${data.street}, ${data.city}, IL`,`Preferred time: ${data.preferredTime || 'Not specified'}`,`Community Rate inquiry: ${data.communityRate}`].join('\n\n');
+      const body=[`Service: ${data.service}`,`Job: ${data.task || 'Not selected'}`,`Details: ${data.description}`,`Name: ${data.name}`,`Phone: ${data.phone}`,`Email: ${data.email}`,`Address: ${data.street}, ${data.city}, IL`,`Preferred time: ${data.preferredTime || 'Not specified'}`,`Community Rate inquiry: ${data.communityRate}`].join('\n\n');
       fallback.querySelector('a').href=`mailto:edhemmer@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.slice(0,2500))}`;
       fallback.hidden=false;
       message.focus();
