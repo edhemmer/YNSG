@@ -57,7 +57,7 @@ if(form){
       document.querySelector('#form-success h3').setAttribute('tabindex','-1');
       document.querySelector('#form-success h3').focus();
     }catch(error){message.textContent=error.message || 'We could not send your request. Please call or text 770-630-2094.';message.focus();}
-    finally{button.disabled=false;button.firstChild.textContent='Send request ';}
+    finally{button.disabled=false;button.firstChild.textContent='Send service request ';}
   });
 }
 const motion=matchMedia('(prefers-reduced-motion: reduce)');
