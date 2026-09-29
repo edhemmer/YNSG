@@ -15,7 +15,8 @@ export default async function handler(req,res){
   const data={service:clean(raw.service,80),task:clean(raw.task,120),description:clean(raw.description,3000),name:clean(raw.name,120),phone:clean(raw.phone,35),email:clean(raw.email,254),street:clean(raw.street,200),city:clean(raw.city,80),preferredTime:clean(raw.preferredTime,180),communityRate:clean(raw.communityRate,10),website:clean(raw.website,200)};
   if(!services.has(data.service)||!cities.has(data.city)||data.description.length<10||data.description.length>3000||data.name.length<2||data.name.length>120||data.phone.length<7||data.phone.length>35||data.street.length<5||data.street.length>200||data.email.length>254||data.task.length>120||data.preferredTime.length>180||!['Yes','No'].includes(data.communityRate)||data.website.length>200||(data.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)))return fail(res,400,'Please check the required fields and try again.');
   if(data.website)return res.status(200).json({ok:true});
-  const apiKey=process.env.RESEND_API_KEY;
+  // The production secret was saved with this capitalization before launch.
+  const apiKey=process.env.RESEND_API_KEY||process.env.RESEND_API_Key;
   const from=process.env.REQUEST_FROM_EMAIL;
   if(!apiKey||!from){
     console.error('Missing request email configuration', {apiKeyConfigured:Boolean(apiKey),senderConfigured:Boolean(from)});

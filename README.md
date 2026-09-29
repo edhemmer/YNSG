@@ -10,7 +10,7 @@ npm run check
 npm run build
 ```
 
-Serve `dist/` with any static server to review pages. Vercel uses the build command in `vercel.json` and publishes `dist/`; `/api/requests` is a Node.js function. Set `RESEND_API_KEY` and `REQUEST_FROM_EMAIL` in Vercel for the request endpoint. The sender address must be verified with the email provider. Never put secrets in the repository or browser code.
+Serve `dist/` with any static server to review pages. Vercel uses the build command in `vercel.json` and publishes `dist/`; `/api/requests` is a Node.js function. Set `RESEND_API_KEY` and `REQUEST_FROM_EMAIL` in Vercel for the request endpoint. An existing production secret named `RESEND_API_Key` is accepted as a compatibility fallback; new configurations should use `RESEND_API_KEY`. The sender address must be verified with the email provider. Never put secrets in the repository or browser code.
 
 ## Content and interaction
 
