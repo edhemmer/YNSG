@@ -83,4 +83,21 @@ do $$begin begin
  exception when raise_exception then if sqlerrm<>'APPOINTMENT_CAPACITY_REQUIRED' then raise;end if;end;
 end$$;
 select 'PASS: selection, overlap, resources, proposal, approval, reminder, replacement, expiry, legacy bypass and ambiguous-send assertions' as evidence;
+-- Minute-precision horizon: evaluate with a synthetic clock, never wall-clock weekday assumptions.
+insert into public.configuration_versions(organization_id,version,settings)
+select organization_id,3,jsonb_set(settings,'{scheduling}',((settings->'scheduling')-'horizonDays')||'{"leadMinutes":1440,"horizonMinutes":2160}')
+from public.configuration_versions where organization_id='20000000-0000-4000-8000-000000000001' and version=2;
+do $$declare fact uuid;begin
+ fact:=pg_temp.fact(0);
+ update private.schedule_evidence set configuration_version=3,valid_until=pg_temp.future_start()+interval '1 hour' where id=fact;
+ perform private.assert_schedule_evidence('20000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001',fact,pg_temp.future_start()-interval '30 hours');
+ begin
+  perform private.assert_schedule_evidence('20000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001',fact,pg_temp.future_start()-interval '37 hours');
+  raise exception 'TEST FAILED beyond 36-hour horizon';
+ exception when raise_exception then if sqlerrm<>'OUTSIDE_BOOKING_WINDOW' then raise;end if;end;
+ begin
+  perform private.assert_schedule_evidence('20000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001',fact,pg_temp.future_start()-interval '23 hours');
+  raise exception 'TEST FAILED below 24-hour notice';
+ exception when raise_exception then if sqlerrm<>'OUTSIDE_BOOKING_WINDOW' then raise;end if;end;
+end$$;
 rollback;

@@ -42,8 +42,12 @@ export const schedulingPolicy = z
     selectionMinutes: z.number().int().min(1).max(60),
     proposalMinutes: z.number().int().min(1).max(10080),
     leadMinutes: z.number().int().min(0),
-    horizonDays: z.number().int().min(1).max(366),
+    horizonMinutes: z.number().int().min(1).max(527040),
     pendingLimit: z.number().int().min(1).max(5),
     bufferMinutes: z.number().int().min(0).max(180),
   })
-  .strict();
+  .strict()
+  .refine((value) => value.horizonMinutes > value.leadMinutes, {
+    message: "Booking horizon must extend beyond minimum notice.",
+    path: ["horizonMinutes"],
+  });
