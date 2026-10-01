@@ -13,6 +13,12 @@ export const GOOGLE_SCOPES = [
   "https://www.googleapis.com/auth/calendar.freebusy",
 ] as const;
 export const CALLBACK_PATH = "/api/google/callback";
+export function googleRefreshFailure(error: unknown) {
+  const code = (error as { response?: { data?: { error?: string } } } | null)?.response?.data?.error;
+  if (code === 'invalid_grant') return 'RECONNECT_REQUIRED';
+  if (code === 'invalid_client' || code === 'unauthorized_client') return 'GOOGLE_CLIENT_CONFIGURATION_REQUIRED';
+  return 'GOOGLE_REFRESH_UNAVAILABLE';
+}
 export function callbackUri(origin: string) {
   const u = new URL(origin);
   if (

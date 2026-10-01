@@ -10,6 +10,8 @@ type Connection = {
 };
 type Calendar = { id: string; summary: string; timeZone?: string };
 const messages: Record<string, string> = {
+  GOOGLE_REFRESH_UNAVAILABLE: 'Google could not refresh access right now. The connection is retained; try again later.',
+  GOOGLE_CLIENT_CONFIGURATION_REQUIRED: 'Check the Google OAuth client ID and secret in this deployment environment.',
   OWNER_MFA_REQUIRED:
     "Owner or administrator access with two-step verification is required.",
   GOOGLE_SETUP_REQUIRED:

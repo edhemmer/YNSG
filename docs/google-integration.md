@@ -10,7 +10,7 @@ Gmail adapter: MIME encoding, header validation, send-only scope, no automatic s
 
 ## Missing configuration (not missing code)
 
-Google OAuth client ID and secret; Supabase server key. These belong directly in Vercel, never chat or Git. Live Google consent, calendar access, token refresh/revocation and test-message receipt cannot be verified until configured. CRM owner membership/MFA and auth-email delivery also need real setup; the database currently has no live organizations.
+Google OAuth client ID and secret are absent. The Supabase server key exists in Production only and is missing from the active CRM Preview. These belong directly in Vercel, never chat or Git. Live Google consent, calendar access, token refresh/revocation and test-message receipt cannot be verified until configured. CRM owner membership/MFA and auth-email delivery also need real setup; the database currently has no live organizations. See integration-setup-audit.md for the latest full presence audit and unfinished activation/setup workflows.
 
 Configured on the isolated Vercel project ynsg-repo, Preview branch codex/crm-workflow: APP_ORIGIN (stable branch alias), SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, GOOGLE_TOKEN_ENCRYPTION_KEY (generated securely and submitted directly). No secret values in this document.
 

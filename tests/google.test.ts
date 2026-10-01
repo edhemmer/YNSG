@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {seal,unseal,callbackUri,busyTimes,ownedCalendars,emailRaw,sendEmail,GoogleFailure} from '../apps/web/lib/google-core.ts';
+import {seal,unseal,callbackUri,busyTimes,ownedCalendars,emailRaw,sendEmail,GoogleFailure,googleRefreshFailure} from '../apps/web/lib/google-core.ts';
+test('Google refresh distinguishes revoked consent, client setup and temporary outages',()=>{
+ assert.equal(googleRefreshFailure({response:{data:{error:'invalid_grant'}}}),'RECONNECT_REQUIRED');
+ assert.equal(googleRefreshFailure({response:{data:{error:'invalid_client'}}}),'GOOGLE_CLIENT_CONFIGURATION_REQUIRED');
+ assert.equal(googleRefreshFailure(new Error('synthetic timeout')),'GOOGLE_REFRESH_UNAVAILABLE');
+});
 import {projectEvent,eventId,type Projection} from '../apps/web/lib/google-calendar.ts';
 test('Google tokens are authenticated, tenant-bound ciphertext',()=>{
  const key=Buffer.alloc(32,7).toString('base64'),encrypted=seal({refresh_token:'synthetic'},key,'tokens:one');

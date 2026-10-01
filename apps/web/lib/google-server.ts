@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { OAuth2Client, type Credentials } from "google-auth-library";
+import { OAuth2Client, CodeChallengeMethod, type Credentials } from "google-auth-library";
 import { randomBytes } from "node:crypto";
 import { authenticated, authClient } from "./session";
 import {
@@ -9,6 +9,7 @@ import {
   seal,
   unseal,
   GoogleFailure,
+  googleRefreshFailure,
 } from "./google-core";
 export type Account = {
   organization_id: string;
@@ -140,7 +141,7 @@ export async function startGoogle(org: string) {
     scope: [...GOOGLE_SCOPES],
     state,
     code_challenge: codeChallenge,
-    code_challenge_method: "S256" as never,
+    code_challenge_method: CodeChallengeMethod.S256,
   });
   return { url, state, nonce };
 }
@@ -223,12 +224,13 @@ export async function accessToken(org: string) {
         refresh_token:
           refreshed.credentials.refresh_token || tokens.refresh_token,
       };
-    } catch {
+    } catch (error) {
+      const code = googleRefreshFailure(error);
       await store(org, "health", {
         revision: account.revision,
-        health: "reconnect_required",
+        health: code.toLowerCase(),
       });
-      throw new GoogleFailure("RECONNECT_REQUIRED");
+      throw new GoogleFailure(code);
     }
     account = await store(org, "tokens", {
       revision: account.revision,
