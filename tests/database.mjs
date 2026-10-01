@@ -1,6 +1,7 @@
 import { PGlite } from '@electric-sql/pglite';
+import { btree_gist } from '@electric-sql/pglite/contrib/btree_gist';
 import {readFile,readdir} from 'node:fs/promises';
-const db=await PGlite.create();
+const db=await PGlite.create({extensions:{btree_gist}});
 try {
  await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
  create schema auth;
@@ -15,5 +16,6 @@ try {
  const foundation=await readFile('tests/foundation.sql','utf8');
  await db.exec(foundation);
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/commercial.sql','utf8'));
- console.log('PASS: empty-schema migrations and foundation PostgreSQL integration assertions (PGlite); hosted Supabase auth still requires separate evidence.');
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/scheduler.sql','utf8'));
+ console.log('PASS: empty-schema migrations plus foundation, commercial, and scheduler PostgreSQL integration assertions (PGlite). Live auth, provider delivery, and multi-connection races require separate evidence.');
 }finally{await db.close();}

@@ -1,4 +1,16 @@
-# Build checkpoint — September 30, 2026
+# Build checkpoint — October 1, 2026
+
+This checkpoint supersedes the historical notes below. CRM remains incomplete and is not production-ready.
+
+Scheduler source tracked in docs/scheduler-upgrade.md. Resource exclusion and deferred capacity checks, selection/proposal/owner decisions, retained-original replacement, 48-hour reminder intents and uncertain-send recovery are implemented. Migration 20261001122819_scheduler_upgrade_integrity.sql applied to YNSG jvigtwjlkmeyavzbxjzl. Hosted scheduler rollback assertions passed; security advisor returned no lints. Synthetic fixtures rolled back. No real organization or appointments activated.
+
+Local verification: empty-schema migrations plus foundation/commercial/scheduler SQL assertions, seven domain tests, TypeScript and Next.js production build pass. Static build produces nine pages. This does not establish concurrent-session races, live auth/providers, accessibility or recovery.
+
+Deployment correction: dpl_8d1sYQR7DeBo3u69Z28DwnBxFg5S deployed the static site, not apps/web. Separate ynsg-repo review project is now configured for apps/web. Public ynsg project and custom domain unchanged.
+
+Remaining implementation: recurrence, customer calendar and guest capabilities, provider adapters/workers, setup commands, portal/delegation, private uploads, reports, closeout expansion, native iOS and full workflow verification. Owner policy choices and real provider connections also remain required. No paid upgrades authorized.
+
+## Historical September 30 checkpoint (superseded above)
 
 Branch codex/crm-workflow from remote main 4f34df9. Website baseline inspected; no public content or form behavior changed. CRM not production-ready.
 
