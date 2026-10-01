@@ -6,15 +6,15 @@ Status vocabulary: planned / implemented / verified-local / verified-staging / d
 |---|---|---|---|---|
 | R01 | MP1,2; BP3,12 | D01 preservation | site/, api/requests.js, scripts/build.mjs; compare baseline public hashes, build and endpoint regression | planned |
 | R02 | MP1,16,18 | Governance and checkpoints | docs/*; requirement coverage and resumable build state | implemented |
-| R03 | MP3,3.1,6,15 | Tenant identity, MFA, delegation, entitlements | supabase, packages/server; two-tenant/customer, revoked membership/session, assigned technician tests | planned |
+| R03 | MP3,3.1,6,15 | Tenant identity, MFA, delegation, entitlements | supabase foundation migration, apps/web session/MFA routes; two-tenant/customer, revoked membership/session tests | implemented / verified-local |
 | R04 | MP3.1 | Versioned configuration / onboarding | publish/rollback commands, contrast and asset ownership; historical identity snapshot and second-company tests | planned |
-| R05 | MP7; TP4 | Guest durable intake | original payload, idempotency fingerprint, throttle, request+audit+outbox transaction; provider failure preserves request | planned |
+| R05 | MP7; TP4 | Guest durable intake | Supabase `submit_service_request`, private idempotency/throttle, request+audit+outbox transaction; PGlite + hosted SQL retry/isolation evidence | implemented / verified-local |
 | R06 | MP6 | CRM, property/contact/household and portal | authorized relationship links, import preview, export/deletion; no email-string auto-claim | planned |
-| R07 | MP9; BP5,8 | Pricing/quotes/approvals | integer cents, exact quote version, scope compliance, policies; 120/90 and 180/135 fixtures; stale approvals rejected | planned |
-| R08 | MP8,8.1; BP9 | Scheduling and travel | atomic reservation/holds, neighbor travel, pickup, DST, recurrence, overrun and override; concurrent capacity test | planned |
+| R07 | MP9; BP5,8 | Pricing/quotes/approvals | versioned quote/approval functions, integer-cent domain rules; 120/90 and 180/135 fixtures; stale approvals rejected | implemented / verified-local |
+| R08 | MP8,8.1; BP9 | Scheduling and travel | atomic reservation schema plus deterministic travel/time rules; unit evidence; provider and concurrent hosted reservation remain | implemented / verified-local |
 | R09 | MP8.2 | Required Calendar | OAuth, busy facts, event projections, controlled moves, ETags, token reset/repair; live test with private calendar | planned |
-| R10 | MP9,10 | Jobs and invoice | time/change approval, CompleteAndInvoice transaction, frozen document and numbering; retry produces one invoice | planned |
-| R11 | MP10,12 | Payments and ledger | confirmed manual payment, allocations/reversals, balanced journals; partial/unconfirmed/duplicate tests | planned |
+| R10 | MP9,10 | Jobs and invoice | quote/job/invoice tables and CompleteAndInvoice command with immutable snapshot/ledger; retry produces one invoice | implemented / verified-local |
+| R11 | MP10,12 | Payments and ledger | confirmed cash/Zelle command and balanced journal; partial/unconfirmed/duplicate tests | implemented / verified-local |
 | R12 | MP11 | Gmail / communication outbox | leases, attempts, unknown-send reconciliation, provider health; independent mailbox and crash tests | planned |
 | R13 | MP11.1 | Receipt/thank-you/review | one payment milestone intent; no partial/writeoff/reversal/historical blast; configured URL only | planned |
 | R14 | MP12 | Expenses/mileage/reports/taxes | transaction drilldown, cash/accrual exports, official versioned tax fixtures and missing inputs | planned |
