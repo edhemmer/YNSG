@@ -3,8 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.25.0",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "check": "node --check site/main.js && node --check api/requests.js && node --check scripts/build.mjs"
-  }
+    "check": "node --check site/main.js && node --check api/requests.js && node --check scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "test:db": "node tests/database.mjs"
+  },
+  "dependencies": {"@supabase/supabase-js": "2.117.2", "zod": "4.6.5"},
+  "devDependencies": {"typescript": "7.0.2", "tsx": "4.20.6", "@types/node": "22.19.15", "@electric-sql/pglite": "0.3.14"}
 }
