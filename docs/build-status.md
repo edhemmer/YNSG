@@ -1,5 +1,7 @@
 # Build checkpoint — October 1, 2026
 
+Google update: owner controls, encrypted OAuth + refresh/disconnect, owned calendars, free/busy, event projection/reconciliation queue, bounded worker endpoint, Gmail self-test and disabled outbox adapter added. Google migrations and expanded rollback SQL pass hosted; 15 domain/adapter tests and synthetic mobile UI controls pass. See docs/google-integration.md for exact deployed callback, configuration gaps and unfinished broader workflows. Existing public email unchanged. Google client credentials and Supabase server key pending; live consent/delivery unverified.
+
 This checkpoint supersedes the historical notes below. CRM remains incomplete and is not production-ready.
 
 Scheduler source tracked in docs/scheduler-upgrade.md. Resource exclusion and deferred capacity checks, selection/proposal/owner decisions, retained-original replacement, 48-hour reminder intents and uncertain-send recovery are implemented. Migration 20261001122819_scheduler_upgrade_integrity.sql applied to YNSG jvigtwjlkmeyavzbxjzl. Hosted scheduler rollback assertions passed; security advisor returned no lints. Synthetic fixtures rolled back. No real organization or appointments activated.

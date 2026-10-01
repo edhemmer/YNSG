@@ -12,10 +12,10 @@ Status vocabulary: planned / implemented / verified-local / verified-staging / d
 | R06 | MP6 | CRM, property/contact/household and portal | authorized relationship links, import preview, export/deletion; no email-string auto-claim | planned |
 | R07 | MP9; BP5,8 | Pricing/quotes/approvals | versioned quote/approval functions, integer-cent domain rules; 120/90 and 180/135 fixtures; stale approvals rejected | implemented / verified-local |
 | R08 | MP8,8.1; BP9; scheduler S01–S05 | Scheduling and travel | resource exclusion, hold/proposal/approval/replacement lifecycle; local and hosted rollback SQL pass; concurrent sessions and providers unverified | partial / verified-staging subset |
-| R09 | MP8.2 | Required Calendar | OAuth, busy facts, event projections, controlled moves, ETags, token reset/repair; live test with private calendar | planned |
+| R09 | MP8.2 | Required Calendar | OAuth/refresh/disconnect, owned calendar selection, busy facts, idempotent projections, ETag conflicts, bounded manual/background worker; Google tests and hosted queue tests; live consent and external-change apply workflow remain | implemented subset / verified-local + hosted SQL; live blocked |
 | R10 | MP9,10 | Jobs and invoice | quote/job/invoice tables and CompleteAndInvoice command with immutable snapshot/ledger; retry produces one invoice | implemented / verified-local |
 | R11 | MP10,12 | Payments and ledger | confirmed cash/Zelle command and balanced journal; partial/unconfirmed/duplicate tests | implemented / verified-local |
-| R12 | MP11 | Gmail / communication outbox | leases, attempts, unknown-send reconciliation, provider health; independent mailbox and crash tests | planned |
+| R12 | MP11 | Gmail / communication outbox | encrypted Google OAuth, send-only API, idempotent self-test UI, guarded outbox adapter and ambiguity handling; live receipt and customer action-link templates/cutover remain | implemented subset / verified-local + hosted SQL; delivery disabled |
 | R13 | MP11.1 | Receipt/thank-you/review | one payment milestone intent; no partial/writeoff/reversal/historical blast; configured URL only | planned |
 | R14 | MP12 | Expenses/mileage/reports/taxes | transaction drilldown, cash/accrual exports, official versioned tax fixtures and missing inputs | planned |
 | R15 | MP13 | Daily assistant | permission-scoped evidence queries, typed confirmed commands, deterministic fallback; injection/outage tests | planned |

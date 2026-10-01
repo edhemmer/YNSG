@@ -1,0 +1,38 @@
+-- Uses rolled-back foundation fixture prefix. No live OAuth tokens.
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select pg_temp.assert_true(public.google_access('20000000-0000-4000-8000-000000000001'),'owner may manage own Google connection');
+select pg_temp.assert_true(not public.google_access('20000000-0000-4000-8000-000000000002'),'other tenant forbidden');
+do $$begin begin perform public.google_store('20000000-0000-4000-8000-000000000001','read','{}');raise exception 'TEST FAILED token store exposed';exception when insufficient_privilege then null;end;end$$;
+reset role;
+set local role service_role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+select public.google_store('20000000-0000-4000-8000-000000000001','read','{}');
+select public.google_store('20000000-0000-4000-8000-000000000001','state_put',jsonb_build_object('hash',repeat('a',64),'ciphertext','synthetic'));
+select pg_temp.assert_true(public.google_store(null,'state_take',jsonb_build_object('hash',repeat('a',64))) is not null,'OAuth state consumed once');
+select pg_temp.assert_true(public.google_store(null,'state_take',jsonb_build_object('hash',repeat('a',64))) is null,'OAuth replay denied');
+select public.google_store('20000000-0000-4000-8000-000000000001','connect','{"revision":0,"ciphertext":"encrypted-test-only","email":"test@example.invalid","subject":"synthetic","scopes":["test"],"actor":"00000000-0000-4000-8000-000000000001"}');
+select public.google_store('20000000-0000-4000-8000-000000000001','test_begin','{"revision":1,"key":"60000000-0000-4000-8000-000000000001"}');
+select pg_temp.assert_true((public.google_store('20000000-0000-4000-8000-000000000001','test_begin','{"revision":2,"key":"60000000-0000-4000-8000-000000000001"}')->>'replay')::boolean,'same Gmail test is not sent twice');
+select public.google_store('20000000-0000-4000-8000-000000000001','disconnect','{"revision":2,"actor":"00000000-0000-4000-8000-000000000001"}');
+do $$begin begin perform public.google_store('20000000-0000-4000-8000-000000000001','tokens','{"revision":2,"ciphertext":"stale-refresh"}');raise exception 'TEST FAILED disconnect resurrected';exception when raise_exception then if sqlerrm<>'STALE_CONNECTION' then raise;end if;end;end$$;
+select pg_temp.assert_true(public.google_store('20000000-0000-4000-8000-000000000001','read','{}')->>'encrypted_tokens' is null,'disconnect removes stored tokens');
+select public.google_store('20000000-0000-4000-8000-000000000001','connect','{"revision":3,"ciphertext":"encrypted-test-only","email":"test@example.invalid","subject":"synthetic","scopes":[],"actor":"00000000-0000-4000-8000-000000000001"}');
+select public.google_store('20000000-0000-4000-8000-000000000001','calendar','{"revision":4,"calendarId":"synthetic-calendar","actor":"00000000-0000-4000-8000-000000000001"}');
+reset role;
+insert into public.appointments(organization_id,id,start_at,end_at,arrival_at,timezone,status) values('20000000-0000-4000-8000-000000000001','70000000-0000-4000-8000-000000000001',now()+interval '1 day',now()+interval '26 hours',now()+interval '1 day','America/Chicago','canceled');
+insert into public.outbox(organization_id,event_key,kind,object_id,payload) values('20000000-0000-4000-8000-000000000001','synthetic-calendar-remove','calendar.remove','70000000-0000-4000-8000-000000000001','{"appointmentRevision":1}');
+set local role service_role;
+do $$declare claimed jsonb;begin
+ claimed:=public.google_store('20000000-0000-4000-8000-000000000001','projection_claim','{}');
+ perform pg_temp.assert_true(claimed->>'calendar'='synthetic-calendar','queue targets selected calendar');
+ perform public.google_store('20000000-0000-4000-8000-000000000001','projection_finish',jsonb_build_object('id',claimed->'item'->>'id','lease',claimed->'item'->>'lease_token','connectionRevision',5,'result','synced','eventId','synthetic-event','etag','synthetic-etag'));
+ perform pg_temp.assert_true(jsonb_array_length(public.google_store('20000000-0000-4000-8000-000000000001','sync_status','{}'))=1,'projection recorded');
+ perform public.google_store('20000000-0000-4000-8000-000000000001','reconcile_queue','{}');
+ claimed:=public.google_store('20000000-0000-4000-8000-000000000001','projection_claim','{}');
+ perform public.google_store('20000000-0000-4000-8000-000000000001','projection_finish',jsonb_build_object('id',claimed->'item'->>'id','lease',claimed->'item'->>'lease_token','connectionRevision',5,'result','needs_review','eventId','synthetic-event','etag','external-change','reason','Synthetic external change'));
+end$$;
+reset role;
+select pg_temp.assert_true(not exists(select 1 from public.integration_connections where status='active'),'Google setup does not activate customer email');
+select 'PASS: Google owner access, tenant isolation, private credentials, OAuth replay, test retry and disconnect fencing' as evidence;
+rollback;

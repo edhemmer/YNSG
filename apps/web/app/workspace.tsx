@@ -1,4 +1,5 @@
 "use client";
+import GoogleControls from './google-controls';
 import { useEffect, useRef, useState, type FormEvent } from "react";
 type Membership = { organization_id: string; role: string };
 type RequestRecord = {
@@ -108,7 +109,9 @@ export default function Workspace({ configured }: { configured: boolean }) {
     try {
       const s = await api("/api/session");
       setSession(s);
-      setOrg((o: string) => o || s.memberships[0]?.organization_id || "");
+      const googleOrg = new URLSearchParams(window.location.search).get('googleOrganization');
+      setOrg((o: string) => o || s.memberships.find((m: Membership)=>m.organization_id===googleOrg)?.organization_id || s.memberships[0]?.organization_id || "");
+      if(new URLSearchParams(window.location.search).has('google'))setSection('More');
     } catch {
       setSession(null);
     } finally {
@@ -235,6 +238,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
           {data?.company.display_name || "Service workspace"}
           <small>Requests, work and the next step.</small>
         </div>
+        <a href="/google-setup">Google setup guide</a>
         {session && (
           <button
             className="secondary"
@@ -773,6 +777,8 @@ export default function Workspace({ configured }: { configured: boolean }) {
                       </>
                     )}
                     {section === "More" && (
+                      <>
+                      {["owner","admin"].includes(role||"")&&<GoogleControls key={org} organization={org}/>}
                       <div className="card">
                         <h2>Company readiness</h2>
                         <p className="badge">{data.company.status}</p>
@@ -801,7 +807,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
                           No review destination has been activated. No customer
                           emails are sent by this screen.
                         </p>
-                      </div>
+                      </div></>
                     )}
                   </>
                 )}
