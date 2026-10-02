@@ -21,10 +21,12 @@ export default async function handler(req,res){
   const raw=req.body;
   if(!raw || typeof raw!=='object' || Array.isArray(raw))return fail(res,400,'Please check the form and try again.');
   const data={service:clean(raw.service,80),task:clean(raw.task,120),description:clean(raw.description,3000),name:clean(raw.name,120),phone:clean(raw.phone,35),email:clean(raw.email,254),street:clean(raw.street,200),city:clean(raw.city,80),preferredTime:clean(raw.preferredTime,180),communityRate:clean(raw.communityRate,10),website:clean(raw.website,200)};
-  const selections=Array.isArray(raw.services) ? raw.services : [{service:data.service,task:data.task}];
+  const hasServices=Object.hasOwn(raw,'services');
+  const selections=hasServices ? raw.services : [{service:data.service,task:data.task}];
+  if(!Array.isArray(selections))return fail(res,400,'Please choose at least one job.');
   const validSelections=selections.length>=1 && selections.length<=15 && selections.every(item=>item && typeof item==='object' && !Array.isArray(item) && typeof item.service==='string' && typeof item.task==='string' && services.has(item.service) && (tasks[item.service].includes(item.task) || (item.task==='Not sure yet' && item.service!=='Something else') || (!Array.isArray(raw.services) && item.task==='')) && item.service.length<=80 && item.task.length<=120);
   const normalized=selections.map(item=>({service:item.service,task:item.task || 'Not sure yet'}));
-  if(!validSelections || new Set(normalized.map(item=>`${item.service}::${item.task}`)).size!==normalized.length || (normalized.some(item=>item.service==='Something else') && data.description.length<10) || !cities.has(data.city)||data.description.length>3000||data.name.length<2||data.name.length>120||data.phone.length<7||data.phone.length>35||data.street.length<5||data.street.length>200||data.email.length>254||data.preferredTime.length>180||!['Yes','No'].includes(data.communityRate)||data.website.length>200||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))return fail(res,400,'Please check the required fields and try again.');
+  if(!validSelections || new Set(normalized.map(item=>`${item.service}::${item.task}`)).size!==normalized.length || ((normalized.some(item=>item.service==='Something else') || !hasServices) && data.description.length<10) || !cities.has(data.city)||data.description.length>3000||data.name.length<2||data.name.length>120||data.phone.length<7||data.phone.length>35||data.street.length<5||data.street.length>200||data.email.length>254||data.preferredTime.length>180||!['Yes','No'].includes(data.communityRate)||data.website.length>200||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))return fail(res,400,'Please check the required fields and try again.');
   if(data.website)return res.status(200).json({ok:true});
   const apiKey=process.env.RESEND_API_KEY||process.env.RESEND_API_Key;
   if(!apiKey){
