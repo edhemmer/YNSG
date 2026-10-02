@@ -26,3 +26,11 @@ Preserve official public website/logo/copy/email until full CRM cutover is verif
 The customer page currently accepts preferred replacement times for owner review. It does not yet present the required feasible availability calendar or create a customer-selected tentative slot. Existing owner-reviewed proposal/replacement commands remain the only booking path. Do not mark the full scheduler complete.
 
 Background dispatch is implemented through a secret-protected endpoint and fair company leases. It still requires an approved recurring trigger, production environment and live Google consent/receipt. The global delivery switch remains disabled. No real customer emails were sent.
+
+## Hosted checkpoint evidence
+
+Commit `ee22af93457dd2fe0138252c9aa6baaf153db345` deployed READY as `dpl_Ax673xYvyNSUe1QVsZ3YvrHpKZ2k`. The customer page returned HTTP 200 with noindex/no-referrer metadata. GET `/api/customer-request` returned 405; an unauthenticated worker GET returned 401. These read-only checks do not establish signed-in browser, email-scanner JavaScript execution or real-device accessibility coverage.
+
+Hosted migrations `customer_request_actions` and `verified_mail_dispatch` applied successfully. Privilege checks verify server-only customer actions and worker company selection; the server role cannot authorize company mail delivery, and ordinary clients cannot read the link table. Hosted customers, appointments and enabled mail-control counts remain zero. No real customer notices were sent.
+
+The database advisor identified 17 app-owned foreign-key index gaps and three caller-ID RLS evaluation warnings. An additive follow-up migration covers those relationships plus the preference queue and preserves the exact policy predicates. Empty-schema migrations and all PostgreSQL fixture suites pass with those changes. Its hosted results must be recorded after application. Leaked-password protection remains a separate existing Auth configuration warning requiring resolution before the applicable production authentication release.
