@@ -1,3 +1,11 @@
+# October 2 active CRM update
+
+Owner approved production_workflows; applied and permissions verified. PR #3 merged into codex/crm-workflow at 902259fa1cde1e318797b8c84e375adcad6ea150; Vercel dpl_6fT1eeqdQrMzRtkB6Zs4Pu7VsfJ2 READY. Supersedes the earlier migration-blocked checkpoint below.
+
+Next scheduling batch adds a protected read-only resource/reservation/block snapshot and owner calendar-check panel. It identifies open times for review using current Google free/busy, all selected resources, buffers, exact published minute policy and company timezone. It does not issue scheduling evidence, create a hold, approve a time or activate customer booking. Missing owner sign-in/configuration/Google consent remains visible. See evidence/availability-2026-10-02.md for tests and deployment status.
+
+Required next: trusted feasibility reviews binding exact scope, request/configuration/schedule revision, route/resource/pickup facts and Google connection freshness; connect canonical hold/submit/approve without client-supplied verification booleans. Then guest-scoped customer selection and retained-original rescheduling, durable notifications/reminders and recurrence. Full production checklist remains release-blocked.
+
 # October 2 production-completion review branch
 
 See evidence/production-completion-2026-10-02.md. This batch is prepared on codex/production-completion; the active CRM branch/public site remain untouched by its review deployment. Multi-service hosted migration applied; broader production_workflows application blocked by auto-review and requires explicit approval. New feature readiness guards prevent using unapplied commands. Full CRM remains incomplete; do not claim release readiness.

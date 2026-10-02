@@ -2,6 +2,7 @@
 import GoogleControls from './google-controls';
 import OwnerSetup from './owner-setup';
 import CompanySettingsPanel from './company-settings';
+import AvailabilityPanel from './availability-panel';
 import {sessionFetch,SessionApiError} from '../lib/session-fetch';
 import { useEffect, useRef, useState, type FormEvent } from "react";
 type Membership = { organization_id: string; role: string };
@@ -568,6 +569,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
                     {(section === "Today" || section === "Work") && (
                       <section aria-labelledby="appointment-heading">
                         <h2 id="appointment-heading">Appointments and proposed times</h2>
+                        {["owner","admin"].includes(role || "") && <AvailabilityPanel organization={org}/>}
                         {!data.appointments.length && <div className="card"><p>No appointments are available in this view. Customer booking will open after scheduling setup and calendar checks are verified.</p></div>}
                         {data.appointments.map(a => {
                           const request = data.requests.find(r => r.id === a.request_id);
