@@ -120,6 +120,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
     }
   }
   useEffect(() => {
+    if(new URLSearchParams(window.location.search).get('auth')==='failed')setError('This sign-in link is expired, already used, or was opened in a different browser. Request a new email here and open its newest link in this browser.');
     if (configured) void loadSession();
   }, [configured]);
   async function refresh(selected = org) {
@@ -289,7 +290,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
             <p className="eyebrow">Welcome back</p>
             <h1>One place for your work.</h1>
             <p>
-              Sign in with an email code. Staff also complete authenticator
+              Sign in with an email link or code. Staff also complete authenticator
               verification before opening business records.
             </p>
             <label htmlFor="email">Email address</label>
@@ -303,7 +304,8 @@ export default function Workspace({ configured }: { configured: boolean }) {
             />
             {sent && (
               <>
-                <label htmlFor="code">Email code</label>
+                <p>Open the newest email link in this browser. If the email contains a code instead, enter it below.</p>
+                <label htmlFor="code">Email code (if provided)</label>
                 <input
                   id="code"
                   inputMode="numeric"
@@ -320,7 +322,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
                   ? "Please wait…"
                   : sent
                     ? "Sign in"
-                    : "Email me a code"}
+                    : "Email me a sign-in link"}
               </button>
               {sent && (
                 <button
@@ -331,7 +333,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
                     setCode("");
                   }}
                 >
-                  Request another code
+                  Request another email
                 </button>
               )}
             </div>

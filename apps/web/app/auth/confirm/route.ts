@@ -1,29 +1,21 @@
-import { NextResponse } from "next/server";
-import { authClient, saveSession } from "../../../lib/session";
+import {NextResponse} from 'next/server';
+import {emailClient,saveEmailVerifier} from '../../../lib/email-auth';
+import {saveSession} from '../../../lib/session';
 
-export const dynamic = "force-dynamic";
-
-export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const code = url.searchParams.get("code");
-  const tokenHash = url.searchParams.get("token_hash");
-  const type = url.searchParams.get("type") || "email";
-  const redirectTo = new URL("/", url.origin);
-  try {
-    const client = authClient();
-    const result = code
-      ? await client.auth.exchangeCodeForSession(code)
-      : tokenHash
-        ? await client.auth.verifyOtp({ token_hash: tokenHash, type: type as "email" })
-        : { data: { session: null }, error: new Error("MISSING_CONFIRMATION") };
-    if (result.error || !result.data.session) {
-      redirectTo.searchParams.set("auth", "failed");
-      return NextResponse.redirect(redirectTo);
-    }
-    const response = NextResponse.redirect(redirectTo);
-    return saveSession(response, result.data.session);
-  } catch {
-    redirectTo.searchParams.set("auth", "failed");
-    return NextResponse.redirect(redirectTo);
-  }
+export const dynamic='force-dynamic';
+export async function GET(request:Request){
+ const code=new URL(request.url).searchParams.get('code');
+ const origin=process.env.APP_ORIGIN;
+ if(!origin)return new NextResponse('Sign-in is not configured.',{status:503,headers:{'Cache-Control':'no-store'}});
+ const redirect=(failed:boolean)=>NextResponse.redirect(origin+(failed?'/?auth=failed#':'/#'),{headers:{'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});
+ // Default Supabase email verification returns a single-use PKCE code.
+ // Arbitrary redirect targets and unbound token_hash links are not accepted.
+ if(!code||code.length>2048)return redirect(true);
+ try{
+  const auth=await emailClient();
+  if(!auth.currentVerifier())return redirect(true);
+  const {data,error}=await auth.client.auth.exchangeCodeForSession(code);
+  if(error||!data.session)return saveEmailVerifier(redirect(true),null);
+  return saveEmailVerifier(saveSession(redirect(false),data.session),null);
+ }catch{return saveEmailVerifier(redirect(true),null);}
 }
