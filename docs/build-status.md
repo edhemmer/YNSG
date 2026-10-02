@@ -1,5 +1,7 @@
 # Build checkpoint — October 1, 2026
 
+October 2 update: protected owner invitation/claim and MFA onboarding implemented and tested locally, in hosted rollback SQL and synthetic mobile browser flows. See evidence/owner-setup-2026-10-02.md. Google credentials and server key now exist in Preview metadata; owner sign-in/consent and live provider tests remain pending. Notifications stay disabled.
+
 Google update: owner controls, encrypted OAuth + refresh/disconnect, owned calendars, free/busy, event projection/reconciliation queue, bounded worker endpoint, Gmail self-test and disabled outbox adapter added. Google migrations and expanded rollback SQL pass hosted; 15 domain/adapter tests and synthetic mobile UI controls pass. See docs/google-integration.md for exact deployed callback, configuration gaps and unfinished broader workflows. Existing public email unchanged. Google client credentials and Supabase server key pending; live consent/delivery unverified.
 
 This checkpoint supersedes the historical notes below. CRM remains incomplete and is not production-ready.

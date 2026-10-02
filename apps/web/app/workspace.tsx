@@ -1,5 +1,6 @@
 "use client";
 import GoogleControls from './google-controls';
+import OwnerSetup from './owner-setup';
 import { useEffect, useRef, useState, type FormEvent } from "react";
 type Membership = { organization_id: string; role: string };
 type RequestRecord = {
@@ -339,14 +340,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
           <>
             <p className="eyebrow">{session.email}</p>
             {!session.memberships.length ? (
-              <div className="card">
-                <h1>Your account is verified.</h1>
-                <p>
-                  No company or customer records have been shared with this
-                  account yet. An authorized owner must grant access. Matching
-                  an email address alone does not expose customer history.
-                </p>
-              </div>
+              <OwnerSetup onComplete={loadSession}/>
             ) : (
               <>
                 <label htmlFor="company">Company</label>
