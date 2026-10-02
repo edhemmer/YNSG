@@ -12,7 +12,10 @@ export async function POST(request:Request){
   if(value.action==='send'){
    const emailAuth=await emailClient();
    const {error}=await emailAuth.client.auth.signInWithOtp({email:value.email,options:{shouldCreateUser:true,emailRedirectTo:process.env.APP_ORIGIN+'/auth/confirm'}});
-   if(error)return NextResponse.json({error:'Email sign-in is unavailable. Check workspace email setup or try again later.'},{status:503});
+   if(error){
+    const limited=error.status===429||error.code==='over_email_send_rate_limit'||error.code==='over_request_rate_limit';
+    return NextResponse.json({error:limited?'The email provider has temporarily limited sign-in emails. Check your inbox for the newest message already sent and open its link in the browser where you requested it. If it has expired, wait before requesting another email.':'Email sign-in is unavailable. Check workspace email setup or try again later.',code:limited?'EMAIL_RATE_LIMITED':'EMAIL_UNAVAILABLE'},{status:limited?429:503,headers:{'Cache-Control':'no-store'}});
+   }
    return saveEmailVerifier(NextResponse.json({ok:true,message:'Open the newest email link in this same browser. If your email includes a numeric code, you can enter it here instead.'}),emailAuth.currentVerifier());
   }
   if(value.action==='verify'){
