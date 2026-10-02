@@ -18,7 +18,7 @@ try{
   const action=r.request().postDataJSON().action;actions.push(action);
   return r.fulfill({json:action==='prepare'?{factorId:org,enrolled:true}:{ok:true}});
  });
- await page.route('**/api/workspace?*',r=>r.fulfill({json:{company:{id:org,display_name:'Synthetic',timezone:'America/Chicago',status:'setup'},requests:[],customers:[],quotes:[],jobs:[],invoices:[],outbox:[],appointments:[]}}));
+ await page.route('**/api/workspace?*',r=>r.fulfill({json:{company:{id:org,display_name:'Synthetic',timezone:'America/Chicago',status:'setup'},requests:[],customers:[],quotes:[],jobs:[],invoices:[],outbox:[],appointments:[],pagination:{page:0,hasMore:false,appointmentFrom:new Date().toISOString()}}}));
  await page.goto(process.env.TEST_BASE_URL||'http://127.0.0.1:3011');
  await page.getByRole('button',{name:'Set up or verify owner authenticator',exact:true}).click();
  await page.getByLabel('Six-digit authenticator code').fill('123456');

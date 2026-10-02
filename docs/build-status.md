@@ -1,3 +1,7 @@
+# October 2 production-completion review branch
+
+See evidence/production-completion-2026-10-02.md. This batch is prepared on codex/production-completion; the active CRM branch/public site remain untouched by its review deployment. Multi-service hosted migration applied; broader production_workflows application blocked by auto-review and requires explicit approval. New feature readiness guards prevent using unapplied commands. Full CRM remains incomplete; do not claim release readiness.
+
 # Build checkpoint — October 1, 2026
 
 October 2 update: protected owner invitation/claim and MFA onboarding implemented and tested locally, in hosted rollback SQL and synthetic mobile browser flows. See evidence/owner-setup-2026-10-02.md. Google credentials and server key now exist in Preview metadata; owner sign-in/consent and live provider tests remain pending. Notifications stay disabled.

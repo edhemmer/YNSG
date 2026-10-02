@@ -58,6 +58,10 @@ export async function authorizeGoogle(org: string) {
   if (error || data !== true) throw new GoogleFailure("OWNER_MFA_REQUIRED");
   return session;
 }
+export function serverDatabase(){
+  if(!process.env.SUPABASE_SERVICE_ROLE_KEY||!process.env.SUPABASE_URL)throw new GoogleFailure('GOOGLE_SETUP_REQUIRED');
+  return createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+}
 export async function store<T = Account>(
   org: string | null,
   action: string,

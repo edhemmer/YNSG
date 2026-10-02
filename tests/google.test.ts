@@ -40,3 +40,11 @@ test('Missing previously mapped events require review; unknown insert retries re
  let posted:Record<string,unknown>|null=null;const transport=(async(_url,init)=>{if(!init?.method)return new Response('',{status:404});posted=JSON.parse(String(init.body));return Response.json({id:eventId(projection),etag:'new'});}) as typeof fetch;
  assert.equal((await projectEvent('synthetic',projection,{etag:null,eventId:null},transport)).state,'synced');assert.equal((posted as Record<string,unknown>|null)?.id,eventId(projection));
 });
+test('Calendar projection carries reviewed contact details and a protected order URL',async()=>{
+ let event:Record<string,unknown>|null=null;
+ const p={...projection,customer:{name:'Synthetic Neighbor',address:'100 Test Street, DeKalb',phone:'5550000000',services:['Lawn care: Leaf management','Yard & garden: Mulch'],orderUrl:'https://crm.example.invalid/?request=synthetic'}};
+ const transport=(async(_url,init)=>{if(!init?.method)return new Response('',{status:404});event=JSON.parse(String(init.body));return Response.json({id:eventId(p),etag:'new'});}) as typeof fetch;
+ assert.equal((await projectEvent('synthetic',p,{etag:null,eventId:null},transport)).state,'synced');
+ const sent=event as Record<string,unknown>|null;
+ assert.match(String(sent?.summary),/Synthetic Neighbor/);assert.match(String(sent?.summary),/Leaf management/);assert.equal(sent?.location,p.customer.address);assert.match(String(sent?.description),/5550000000/);assert.match(String(sent?.description),/request=synthetic/);assert.equal(sent?.visibility,'private');
+});

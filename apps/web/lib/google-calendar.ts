@@ -8,11 +8,13 @@ export type Projection = {
   timezone: string;
   status: string;
   calendar: string;
+  customer?:{name:string;address:string;phone:string;services:string[];orderUrl:string};
 };
 type Event = {
   id: string;
   etag: string;
   summary?: string;
+  location?:string;description?:string;
   status?: string;
   start?: { dateTime?: string };
   end?: { dateTime?: string };
@@ -30,10 +32,11 @@ export function eventId(p: Projection) {
 function desired(p: Projection) {
   return {
     id: eventId(p),
-    summary:
+    summary: (p.customer ? p.customer.name+' — '+p.customer.services.join(', ')+' — ' : '') + (
       p.status === "reserved"
         ? "Your Neighborhood Service Guy — Confirmed"
-        : "Your Neighborhood Service Guy — Awaiting Confirmation",
+        : "Your Neighborhood Service Guy — Awaiting Confirmation"),
+    ...(p.customer?{location:p.customer.address,description:'Phone: '+p.customer.phone+'\nServices: '+p.customer.services.join('; ')+'\nService order: '+p.customer.orderUrl}:{}),
     status: p.status === "reserved" ? "confirmed" : "tentative",
     start: { dateTime: p.start, timeZone: p.timezone },
     end: { dateTime: p.end, timeZone: p.timezone },
@@ -53,6 +56,7 @@ function same(e: Event, p: Projection) {
   const d = desired(p);
   return (
     e.summary === d.summary &&
+    (!p.customer||(e.location===d.location&&e.description===d.description)) &&
     e.status === d.status &&
     Date.parse(e.start?.dateTime || "") === Date.parse(p.start) &&
     Date.parse(e.end?.dateTime || "") === Date.parse(p.end) &&

@@ -1,10 +1,11 @@
-import { accessToken, store } from "./google-server";
+import { accessToken, store,serverDatabase } from "./google-server";
 import { projectEvent } from "./google-calendar";
 type Claim = {
   suppressed?: boolean;
   item: { id: string; lease_token: string };
   appointment: {
     id: string;
+    request_id: string;
     revision: number;
     start_at: string;
     end_at: string;
@@ -31,6 +32,11 @@ export async function syncGoogleCalendar(org: string) {
     const a = c.appointment;
     let result;
     try {
+      const request=await serverDatabase().from('service_requests').select('id,original_submission').eq('organization_id',org).eq('id',a.request_id).single();
+      if(request.error)throw new Error('REQUEST_DETAILS_REQUIRED');
+      const submission=request.data.original_submission;
+      const services=Array.isArray(submission.services)?submission.services.map((s:{service:string;task:string})=>s.service+(s.task?': '+s.task:'')):[submission.service||'Service'];
+      const orderUrl=new URL('/',process.env.APP_ORIGIN!);orderUrl.searchParams.set('googleOrganization',org);orderUrl.searchParams.set('request',request.data.id);
       result = await projectEvent(
         token,
         {
@@ -47,6 +53,7 @@ export async function syncGoogleCalendar(org: string) {
               ? "expired"
               : a.status,
           calendar: c.calendar,
+          customer:{name:submission.name||'Customer',address:[submission.street,submission.city].filter(Boolean).join(', '),phone:submission.phone||'Not recorded',services,orderUrl:orderUrl.toString()},
         },
         {
           etag: c.projection?.etag || null,

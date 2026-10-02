@@ -19,5 +19,6 @@ try {
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/scheduler.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/google.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/owner-setup.sql','utf8'));
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/operations.sql','utf8'));
  console.log('PASS: empty-schema migrations plus foundation, commercial, and scheduler PostgreSQL integration assertions (PGlite). Live auth, provider delivery, and multi-connection races require separate evidence.');
 }finally{await db.close();}
