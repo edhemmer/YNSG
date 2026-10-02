@@ -7,7 +7,7 @@ type RequestRecord = {
   status: string;
   revision: number;
   created_at: string;
-  original_submission: Record<string, string>;
+  original_submission: {name:string;phone:string;email:string;street:string;city:string;service?:string;task?:string;description?:string;services?:{service:string;task:string}[]};
 };
 type Quote = {
   id: string;
@@ -62,6 +62,9 @@ type Data = {
   outbox: { id: string; kind: string; status: string; created_at: string }[];
   appointments: Appointment[];
 };
+const requestServices = (request: RequestRecord) => request.original_submission.services?.length
+  ? request.original_submission.services.map(item => `${item.service}: ${item.task || 'Not sure yet'}`)
+  : [`${request.original_submission.service || 'Service'}: ${request.original_submission.task || 'Not sure yet'}`];
 const usd = (v: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
     v / 100,
@@ -540,7 +543,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
                           return <article className="card" key={a.id}>
                             <span className="badge">{a.status === "proposal" ? "Awaiting owner approval" : a.status === "reserved" ? "Confirmed appointment" : a.status.replaceAll("_"," ")}</span>
                             <h3>{request?.original_submission.name || "Service appointment"}</h3>
-                            <p>{request?.original_submission.service}<br/>{request?.original_submission.street}, {request?.original_submission.city}</p>
+                            <p>{request ? requestServices(request).join(', ') : 'Service'}<br/>{request?.original_submission.street}, {request?.original_submission.city}</p>
                             <p><strong>Customer arrival:</strong> {date(a.arrival_at)}<br/><strong>Reserved work time:</strong> {date(a.start_at)} – {date(a.end_at)}<br/>{data.company.timezone}</p>
                             {a.expires_at && ["held","proposal"].includes(a.status) && <p>Decision deadline: {date(a.expires_at)}</p>}
                             {a.replaces_id && <p className="note">This is a proposed replacement. The original appointment remains booked until this replacement is approved.</p>}
@@ -597,8 +600,8 @@ export default function Workspace({ configured }: { configured: boolean }) {
                             <span className="badge">{r.status}</span>
                             <h2>{r.original_submission.name}</h2>
                             <p>
-                              <strong>{r.original_submission.service}</strong> ·{" "}
-                              {r.original_submission.task}
+                              <strong>Requested work</strong><br/>
+                              {requestServices(r).map((item, index) => <span key={index}>{item}<br/></span>)}
                             </p>
                             <p>{r.original_submission.description}</p>
                             <p>
@@ -864,7 +867,7 @@ function QuoteForm({
             required
             minLength={10}
             maxLength={5000}
-            defaultValue={request.original_submission.description}
+            defaultValue={[...requestServices(request), request.original_submission.description || ''].filter(Boolean).join('\n')}
           />
         </label>
         <label>
