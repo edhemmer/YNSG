@@ -3,6 +3,7 @@ import GoogleControls from './google-controls';
 import OwnerSetup from './owner-setup';
 import CompanySettingsPanel from './company-settings';
 import AvailabilityPanel from './availability-panel';
+import SchedulingReviewPanel from './scheduling-review-panel';
 import {sessionFetch,SessionApiError} from '../lib/session-fetch';
 import { useEffect, useRef, useState, type FormEvent } from "react";
 type Membership = { organization_id: string; role: string };
@@ -583,8 +584,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
                             {a.replaces_id && <p className="note">This is a proposed replacement. The original appointment remains booked until this replacement is approved.</p>}
                             {a.status === "reserved" && <p>Customer response: {a.customer_response === "awaiting" ? "Not yet reconfirmed. Appointment remains booked." : a.customer_response.replaceAll("_"," ")}</p>}
                             {a.status === "proposal" && ["owner","admin"].includes(role || "") && <>
-                              <p className="note">Approval requires refreshed Google calendar, route and equipment checks. The provider connection is not yet activated.</p>
-                              <button disabled>Approve after feasibility checks</button>
+                              <SchedulingReviewPanel organization={org} requestId={a.request_id} appointmentId={a.id} completed={()=>void refresh()}/>
                               <form onSubmit={e => {e.preventDefault();const fields = new FormData(e.currentTarget);void decideTime({action:fields.get("decision"),id:a.id,revision:a.revision,reason:fields.get("reason")});}}>
                                 <label>Decision<select name="decision"><option value="decline_time">Decline this time — keep the request</option><option value="decline_service">Decline the service — do not invite another time</option></select></label>
                                 <label>Reason<textarea name="reason" required minLength={2} maxLength={1000}/></label>
@@ -675,6 +675,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
                                   submit={act}
                                 />
                               )}
+                            {["owner","admin"].includes(role || "") && ["reviewing","quoted"].includes(r.status) && <SchedulingReviewPanel organization={org} requestId={r.id} completed={()=>void refresh()}/>}
                           </article>
                         ))}
                         <h2>Quotes and approvals</h2>
