@@ -1,0 +1,9 @@
+# R03 returning-session fix — October 2, 2026
+
+Problem: refresh credentials were stored but the browser did not use the refresh endpoint. An expired access cookie led directly to the email sign-in screen. A failed session check also treated temporary connectivity errors as sign-out.
+
+Implemented a shared fetch layer across workspace, owner setup and Google controls. After an authentication-only 401, it checks the session, refreshes once and retries with the identical body/key. Concurrent calls share renewal; browser Web Locks serialize cross-tab refreshes and recheck cookies before rotation. Forbidden/conflict/server-error responses never trigger mutation retries. Logout waits for renewal, fences stale requests and clears local UI state. Google endpoints now expose authentication failure as 401 so this recovery applies to Google controls too; owner/MFA authorization remains 403.
+
+Returning visits and window focus check the saved session. A temporary refresh/provider failure preserves credentials and offers connection recovery without another email. Definitively rejected refresh credentials clear cookies and require sign-in. Existing seven-day refresh-cookie lifetime is retained and renewed on successful session refresh; this is not a promise of indefinite access, and Supabase session revocation/expiry still applies. Session responses are no-store; tokens remain Secure/HttpOnly/Strict cookies. No email is sent by recovery and no customer notification flags were enabled.
+
+Passed: six session-fetch tests covering concurrent renewal, valid return, no retry on ambiguous mutations, identical-body retry after 401, temporary outage and logout race; TypeScript and Next production build; synthetic mobile browser tests for expired-session restoration, reload, outage recovery, explicit logout, existing Google controls and owner MFA flow. Real-user email completion and provider integrations remain separate live checks. No test requested a real email.

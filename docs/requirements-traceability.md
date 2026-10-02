@@ -6,7 +6,7 @@ Status vocabulary: planned / implemented / verified-local / verified-staging / d
 |---|---|---|---|---|
 | R01 | MP1,2; BP3,12 | D01 preservation | site/, api/requests.js, scripts/build.mjs; compare baseline public hashes, build and endpoint regression | planned |
 | R02 | MP1,16,18 | Governance and checkpoints | docs/*; requirement coverage and resumable build state | implemented |
-| R03 | MP3,3.1,6,15 | Tenant identity, MFA, delegation, entitlements | supabase foundation migration, apps/web session/MFA routes; two-tenant/customer, revoked membership/session tests | implemented / verified-local |
+| R03 | MP3,3.1,6,15 | Tenant identity, MFA, delegation, entitlements | foundation and owner setup migrations; email PKCE; session renewal/logout; two-tenant/customer, revoked membership/session, synthetic mobile recovery tests; evidence/session-renewal-2026-10-02.md | partial / local and hosted fixtures verified; live owner sign-in pending |
 | R04 | MP3.1 | Versioned configuration / onboarding | publish/rollback commands, contrast and asset ownership; historical identity snapshot and second-company tests | planned |
 | R05 | MP7; TP4 | Guest durable intake | Supabase `submit_service_request`, private idempotency/throttle, request+audit+outbox transaction; PGlite + hosted SQL retry/isolation evidence | implemented / verified-local |
 | R06 | MP6 | CRM, property/contact/household and portal | authorized relationship links, import preview, export/deletion; no email-string auto-claim | planned |

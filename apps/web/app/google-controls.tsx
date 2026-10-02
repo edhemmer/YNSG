@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import {sessionFetch} from '../lib/session-fetch';
 type Connection = {
   connected: boolean;
   email: string | null;
@@ -47,7 +48,7 @@ export default function GoogleControls({
   async function load() {
     const gen = ++generation.current;
     try {
-      const r = await fetch(
+      const r = await sessionFetch(
           "/api/google?organization=" + encodeURIComponent(organization),
           { cache: "no-store" },
         ),
@@ -87,7 +88,7 @@ export default function GoogleControls({
     setMessage("");
     const gen = generation.current;
     try {
-      const r = await fetch("/api/google", {
+      const r = await sessionFetch("/api/google", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action, organization, ...extra }),

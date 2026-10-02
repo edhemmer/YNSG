@@ -48,6 +48,7 @@ function json(value: unknown, status = 200) {
   });
 }
 function failed(error: unknown) {
+  if(error instanceof Error&&error.message==='UNAUTHORIZED')return json({error:'UNAUTHORIZED'},401);
   const code =
     error instanceof GoogleFailure ? error.code : "GOOGLE_ACTION_FAILED";
   return json({ error: code }, code === "OWNER_MFA_REQUIRED" ? 403 : 400);

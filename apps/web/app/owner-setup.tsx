@@ -1,8 +1,9 @@
 "use client";
 import {useEffect,useState,type FormEvent} from 'react';
+import {sessionFetch} from '../lib/session-fetch';
 type Factor={factorId:string;enrolled:boolean;qr?:string;secret?:string};
 async function call(path:string,body?:unknown){
- const response=await fetch(path,{cache:'no-store',...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});
+ const response=await sessionFetch(path,{cache:'no-store',...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});
  const data=await response.json();if(!response.ok)throw new Error(data.error||'Setup could not be completed.');return data;
 }
 export default function OwnerSetup({onComplete}:{onComplete:()=>Promise<void>}){

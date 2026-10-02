@@ -25,7 +25,13 @@ export async function POST(request:Request){
   }
   if(value.action==='refresh'){
    const refresh=(await cookies()).get('ynsg-refresh')?.value;if(!refresh)throw new Error('UNAUTHORIZED');
-   const {data,error}=await db.auth.refreshSession({refresh_token:refresh});if(error||!data.session)throw new Error('UNAUTHORIZED');
+   const {data,error}=await db.auth.refreshSession({refresh_token:refresh});
+   if(error||!data.session){
+    const rejected=!error||[400,401,403].includes(error.status||0);
+    const response=NextResponse.json({error:rejected?'Your saved sign-in has expired. Sign in once to continue.':'Your sign-in could not be renewed right now. Please try again; no new email is needed.',code:rejected?'UNAUTHORIZED':'SESSION_TEMPORARILY_UNAVAILABLE'},{status:rejected?401:503,headers:{'Cache-Control':'no-store'}});
+    if(rejected){response.cookies.delete('ynsg-access');response.cookies.delete('ynsg-refresh');}
+    return response;
+   }
    return saveSession(NextResponse.json({ok:true}),data.session);
   }
   const jar=await cookies();const access=jar.get('ynsg-access')?.value,refresh=jar.get('ynsg-refresh')?.value;

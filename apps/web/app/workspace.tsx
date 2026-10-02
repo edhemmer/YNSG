@@ -1,6 +1,7 @@
 "use client";
 import GoogleControls from './google-controls';
 import OwnerSetup from './owner-setup';
+import {sessionFetch,SessionApiError} from '../lib/session-fetch';
 import { useEffect, useRef, useState, type FormEvent } from "react";
 type Membership = { organization_id: string; role: string };
 type RequestRecord = {
@@ -68,7 +69,7 @@ const usd = (v: number) =>
     v / 100,
   );
 async function api(path: string, value?: unknown) {
-  const res = await fetch(path, {
+  const res = await sessionFetch(path, {
     ...(value
       ? {
           method: "POST",
@@ -79,11 +80,13 @@ async function api(path: string, value?: unknown) {
     cache: "no-store",
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Unable to complete this action.");
+  if (!res.ok) throw new SessionApiError(data.error || "Unable to complete this action.",res.status);
   return data;
 }
 export default function Workspace({ configured }: { configured: boolean }) {
   const reloadSequence = useRef(0);
+  const sessionSequence = useRef(0);
+  const [sessionUnavailable,setSessionUnavailable]=useState(false);
   const retryKeys = useRef(new Map<string, string>());
   const [session, setSession] = useState<{
       email: string;
@@ -107,22 +110,37 @@ export default function Workspace({ configured }: { configured: boolean }) {
     } | null>(null),
     [mfaCode, setMfaCode] = useState("");
   async function loadSession() {
+    const sequence=++sessionSequence.current;
     try {
       const s = await api("/api/session");
+      if(sequence!==sessionSequence.current)return;
+      setSessionUnavailable(false);
+      setError(previous=>previous.startsWith('We could not check your saved sign-in.')?'':previous);
       setSession(s);
       const googleOrg = new URLSearchParams(window.location.search).get('googleOrganization');
       setOrg((o: string) => o || s.memberships.find((m: Membership)=>m.organization_id===googleOrg)?.organization_id || s.memberships[0]?.organization_id || "");
       if(new URLSearchParams(window.location.search).has('google'))setSection('More');
-    } catch {
-      setSession(null);
+    } catch (e) {
+      if(sequence!==sessionSequence.current)return;
+      if(e instanceof SessionApiError&&e.status===401){
+        setSession(null);setOrg('');setData(null);setFactor(null);setSessionUnavailable(false);
+      }else{
+        setSessionUnavailable(true);setError('We could not check your saved sign-in. Try again when your connection is available; you do not need another email.');
+      }
     } finally {
-      setChecking(false);
+      if(sequence===sessionSequence.current)setChecking(false);
     }
   }
   useEffect(() => {
     if(new URLSearchParams(window.location.search).get('auth')==='failed')setError('This sign-in link is expired, already used, or was opened in a different browser. Request a new email here and open its newest link in this browser.');
     if (configured) void loadSession();
   }, [configured]);
+  useEffect(()=>{
+    if(!configured)return;
+    const resume=()=>{if(document.visibilityState==='visible')void loadSession();};
+    window.addEventListener('focus',resume);
+    return()=>window.removeEventListener('focus',resume);
+  },[configured]);
   async function refresh(selected = org) {
     if (!selected) return;
     const sequence = ++reloadSequence.current;
@@ -246,8 +264,11 @@ export default function Workspace({ configured }: { configured: boolean }) {
             className="secondary"
             onClick={async () => {
               try {
+                sessionSequence.current++;
                 await api("/api/session", { action: "logout" });
+                sessionSequence.current++;
                 setSession(null);
+                setSessionUnavailable(false);
                 reloadSequence.current++;
                 retryKeys.current.clear();
                 setData(null);
@@ -285,6 +306,8 @@ export default function Workspace({ configured }: { configured: boolean }) {
           <p className="loading" role="status">
             Checking your session…
           </p>
+        ) : sessionUnavailable && !session ? (
+          <div className="auth card"><h1>Reconnect to your workspace</h1><p>Your saved sign-in could not be checked. You do not need to request another email.</p><button onClick={()=>{setChecking(true);void loadSession();}}>Try saved sign-in again</button></div>
         ) : !session ? (
           <form className="auth card" onSubmit={login}>
             <p className="eyebrow">Welcome back</p>
@@ -293,6 +316,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
               Sign in with an email link or code. Staff also complete authenticator
               verification before opening business records.
             </p>
+            <p>On this device, your sign-in renews automatically as you use the workspace. Sign out when using a shared device.</p>
             <label htmlFor="email">Email address</label>
             <input
               id="email"

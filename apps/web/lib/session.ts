@@ -16,6 +16,7 @@ export async function authenticated(){
  return {db,user:data.user,access};
 }
 export function saveSession(response:NextResponse,session:{access_token:string;refresh_token:string;expires_in:number}){
+ response.headers.set('Cache-Control','no-store');
  const opts={httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'strict' as const,path:'/'};
  response.cookies.set('ynsg-access',session.access_token,{...opts,maxAge:session.expires_in});
  response.cookies.set('ynsg-refresh',session.refresh_token,{...opts,maxAge:60*60*24*7});
