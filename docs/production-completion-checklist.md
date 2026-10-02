@@ -14,7 +14,7 @@ Authority: latest owner directions, business/technology governance, master promp
 | Field operations | Start/pause/resume, recorded time/materials, closeout, load readiness | In progress |
 | Finance | Approved totals, immutable invoices, delivery, actual payments, balanced ledger and corrections | Partial |
 | Communications | Verified Gmail; durable automatic worker; receipt/thank-you/review exactly once per milestone | Scoped appointment notices, explicit test-receipt authorization and tenant worker implemented; live activation/trigger and financial notices pending |
-| Customer relationships | Portal, history, properties, family permissions, preferences, photos and concerns | Pending |
+| Customer relationships | Portal, history, properties, family permissions, preferences, photos and concerns | Password/history screens and verified invitations implemented; automatic intake linking, repeat request/calendar, delegates and live email pending |
 | Business management | Reconciled reports, expenses/mileage, tax inputs and integrations | Pending |
 | Company product | Branding/catalog/policies, historical snapshots, entitlement isolation and second tenant | Partial |
 | Assistant | Source-linked proposals, explicit consequential commands, injection/outage fallback | Pending |
@@ -44,3 +44,5 @@ Secure customer links now open an isolated appointment page for attendance confi
 Evidence: 42 unit tests; all PostgreSQL fixture suites; root TypeScript; Next.js production build; hosted narrow privilege checks; customer-page HTTP 200, customer API GET 405 and worker unauthenticated GET 401. Source commit `ee22af93457dd2fe0138252c9aa6baaf153db345` deployed READY. Both workflow migrations applied. No customers/appointments/mail authorizations are present in the hosted database. Browser/device, live delivery, multi-connection concurrency and full production release remain unverified.
 
 Database optimization migration applied: 17 foreign-key covering indexes plus the preference queue index; three access policies keep the same predicates while evaluating caller ID once per statement. Hosted advisors report no remaining missing-FK-index or RLS caller-ID findings. The private invitation default-deny policy is explicit. Existing leaked-password-protection configuration warning remains; see https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection. No paid configuration change was made.
+
+October 2 owner expansion: customer accounts and private owner blocks precede iOS. See `account-owner-acceptance.md`. Half-hour website pricing is removed; 10–60 minute overrun is one full hour. Treatment of 1–9 minutes remains unconfigured. Invoice waivers must preserve performed work and a documented zero charge. Platform administrators manage owner accounts/subscriptions separately and receive no tenant customer-data rights.

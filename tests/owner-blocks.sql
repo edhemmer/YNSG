@@ -1,0 +1,16 @@
+insert into public.entitlements values('20000000-0000-4000-8000-000000000001','scheduling',true);
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select public.manage_calendar_block('20000000-0000-4000-8000-000000000001',null,null,now()+interval '10 days',now()+interval '11 days',false,'owner-block-test-key-01');
+select public.manage_calendar_block('20000000-0000-4000-8000-000000000001',null,null,now()+interval '10 days',now()+interval '11 days',false,'owner-block-test-key-01');
+select pg_temp.assert_true(jsonb_array_length(public.owner_calendar_blocks('20000000-0000-4000-8000-000000000001'))=1,'block retry creates one row');
+select pg_temp.assert_true(not (public.owner_calendar_blocks('20000000-0000-4000-8000-000000000001')->0 ? 'reason'),'block API never returns reasons');
+do $$begin begin perform public.owner_calendar_blocks('20000000-0000-4000-8000-000000000002');raise exception 'TEST FAILED cross tenant blocks';exception when insufficient_privilege then null;end;end$$;
+select public.manage_calendar_block('20000000-0000-4000-8000-000000000001',(public.owner_calendar_blocks('20000000-0000-4000-8000-000000000001')->0->>'id')::uuid,1,null,null,true,'owner-block-test-key-02');
+select pg_temp.assert_true(jsonb_array_length(public.owner_calendar_blocks('20000000-0000-4000-8000-000000000001'))=0,'owner can release blocked time');
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000003","session_id":"10000000-0000-4000-8000-000000000003","aal":"aal1"}',true);
+do $$begin begin perform public.owner_calendar_blocks('20000000-0000-4000-8000-000000000001');raise exception 'TEST FAILED customer reads blocks';exception when insufficient_privilege then null;end;end$$;
+reset role;
+select pg_temp.assert_true((select count(*)=2 from public.audit_events),'block save and release audited once');
+select pg_temp.assert_true((select revision=3 from private.schedule_state where organization_id='20000000-0000-4000-8000-000000000001'),'blocks invalidate stale scheduling reviews');
+rollback;

@@ -1,6 +1,9 @@
 "use client";
 import GoogleControls from './google-controls';
 import OwnerSetup from './owner-setup';
+import InvoiceDraft from './invoice-draft';
+import CustomerInvite from './customer-invite';
+import CalendarBlocks from './calendar-blocks';
 import CompanySettingsPanel from './company-settings';
 import AvailabilityPanel from './availability-panel';
 import SchedulingReviewPanel from './scheduling-review-panel';
@@ -498,6 +501,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
                       </button>
                     </div>
                     <div className="actions" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1}. Agenda shows appointments from the last day onward.</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>
+                    {section === "More" && ['owner','admin'].includes(role||'') && <CalendarBlocks organization={org} timezone={data.company.timezone}/> }
                     {section === "More" && ['owner','admin'].includes(role||'') && <CompanySettingsPanel organization={org} name={data.company.display_name}/>}
                     {['Today','Work'].includes(section)&&data.schedulingPreferences.length>0&&<section className="card" aria-labelledby="reschedule-heading"><h2 id="reschedule-heading">Customers requesting another time</h2>{data.schedulingPreferences.map(p=><article key={p.id} className="card"><p><strong>{data.requests.find(r=>r.id===p.request_id)?.original_submission.name||'Service request'}</strong></p><p>{p.preferred_local_start?.replace('T',' at ')} {p.preferred_local_start&&`(${p.timezone})`}</p><p>{p.note}</p><p className="note">Review this on the same request. A confirmed original stays booked until you approve its replacement.</p><button type="button" className="secondary" onClick={()=>{window.location.assign('/?request='+encodeURIComponent(p.request_id));}}>Open service request</button></article>)}</section>}
                     {section === "Today" && (
@@ -603,7 +607,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
                         {data.customers.length ? (
                           data.customers.map((c) => (
                             <div className="row" key={c.id}>
-                              <strong>{c.display_name}</strong>
+                              <strong>{c.display_name}</strong>{["owner","admin"].includes(role||"")&&<CustomerInvite organization={org} customer={c.id}/>}
                               <p className="tiny muted">{c.id}</p>
                             </div>
                           ))
@@ -750,6 +754,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
                               {j.status==='working'&&<button disabled={pending} onClick={()=>void fieldAction(j,'pause')}>Pause work</button>}
                               {j.status==='paused'&&<button disabled={pending} onClick={()=>void fieldAction(j,'resume')}>Resume work</button>}
                             </div>}
+                            {["working","paused"].includes(j.status)&&["owner","admin"].includes(role||"")&&<InvoiceDraft organization={org} job={j.id} revision={j.revision} saved={()=>void refresh()}/>}
                             {["working", "paused"].includes(j.status) &&
                             ["owner", "admin"].includes(role || "") ? (
                               <button
