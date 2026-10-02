@@ -19,7 +19,7 @@ declare a public.appointments;raw jsonb;start_time timestamptz;
 begin
  if appointment is not null then select * into a from public.appointments where id=appointment;end if;
  start_time:=coalesce(a.start_at,pg_temp.future_start());
- raw:=jsonb_build_object('organizationId','20000000-0000-4000-8000-000000000001','requestId','50000000-0000-4000-8000-000000000001','requestRevision',1,'configurationVersion',2,'scheduleRevision',(select revision from private.schedule_state where organization_id='20000000-0000-4000-8000-000000000001'),
+ raw:=jsonb_build_object('organizationId','20000000-0000-4000-8000-000000000001','requestId','50000000-0000-4000-8000-000000000001','requestRevision',1,'configurationVersion',(select max(version) from public.configuration_versions where organization_id='20000000-0000-4000-8000-000000000001'),'scheduleRevision',(select revision from private.schedule_state where organization_id='20000000-0000-4000-8000-000000000001'),
  'appointmentId',a.id,'appointmentRevision',a.revision,'resources',jsonb_build_array('40000000-0000-4000-8000-000000000001'),'travelBeforeMinutes',0,'travelAfterMinutes',0,'scopeReviewed',true,'equipmentReviewed',true,'pickupReviewed',true,'reviewNote','Synthetic verified owner route review');
  return raw||jsonb_build_object('startAt',start_time,'endAt',start_time+interval '2 hours','arrivalAt',start_time,'commandInput',raw);
 end$$;
@@ -49,6 +49,12 @@ select public.commit_reviewed_schedule('20000000-0000-4000-8000-000000000001',(s
 select pg_temp.assert_true((select count(*)=1 from public.appointments where status='proposal' and revision=2),'one submitted proposal, no abandoned intermediate hold');
 select pg_temp.assert_true((select count(*)=1 from public.resource_reservations where active),'one operator reservation');
 reset role;
+-- Approval honors the original selection clock, even when the lead boundary has passed.
+update public.appointments set created_at=clock_timestamp()-interval '90 minutes';
+insert into public.configuration_versions(organization_id,version,settings)
+ select organization_id,3,jsonb_set(settings,'{scheduling,leadMinutes}',to_jsonb(floor(extract(epoch from(pg_temp.future_start()-clock_timestamp()))/60)::integer+30))
+ from public.configuration_versions where organization_id='20000000-0000-4000-8000-000000000001' and version=2;
+select pg_temp.assert_true(pg_temp.future_start()<clock_timestamp()+make_interval(mins=>(select (settings->'scheduling'->>'leadMinutes')::integer from public.configuration_versions where version=3)),'new selection would be outside lead policy');
 truncate pg_temp.review_results;
 set local role service_role;
 select set_config('request.jwt.claims','{"role":"service_role"}',true);

@@ -32,3 +32,7 @@ Owner/admin review now records request/configuration/calendar revisions, MFA ses
 Company Settings now loads and edits the company's actual catalog, scopes, exclusions, compliance and pricing modes. It preserves existing service names/identities and offers Held for retiring services. YNSG data is used only through the explicitly selected YNSG template. Logo assets, template configuration, branded workspace rendering, rollback and full second-company acceptance remain incomplete.
 
 Local evidence: 39 unit tests, PostgreSQL fixture assertions including reviewed proposal/approval/retry, root TypeScript check and Next.js production build. This does not establish real Google delivery, multi-connection races, accessibility or native-device readiness.
+
+Deployment evidence: commit `953c3b5a22aaa15a8513439352732f95ec573cce` deployed READY as `dpl_EpiArKstmFM1SCwGJkgmjps9bjRQ`; preview homepage returned HTTP 200. Hosted `trusted_scheduling_reviews` migration applied successfully. Privilege checks confirm authenticated clients cannot mint review evidence, anonymous clients cannot commit reviewed schedules, and the server role can record verified evidence. Hosted customer and appointment counts remain zero. No live provider consent, customer email or calendar event was tested.
+
+A further PostgreSQL regression checks that owner approval honors the original proposal selection clock after the advance-notice boundary has passed, while a new selection at that point is outside the configured lead policy.
