@@ -9,6 +9,7 @@ type Connection = {
   checkedAt: string | null;
   gmailTest: string;
 };
+type Delivery={enabled:boolean;testKey:string|null;configurationVersion:number|null;connectionRevision:number|null;receiptConfirmedAt:string|null;senderMatches:boolean};
 type Calendar = { id: string; summary: string; timeZone?: string };
 const messages: Record<string, string> = {
   GOOGLE_REFRESH_UNAVAILABLE: 'Google could not refresh access right now. The connection is retained; try again later.',
@@ -43,10 +44,12 @@ export default function GoogleControls({
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
     [redirect, setRedirect] = useState<string | null>(null);
+  const [delivery,setDelivery]=useState<Delivery|null>(null),[dispatcherEnabled,setDispatcherEnabled]=useState(false),[received,setReceived]=useState(false);
+  const deliveryKey=useRef<string|null>(null);
   const generation = useRef(0),
     testKey = useRef<string | null>(null);
-  async function load() {
-    const gen = ++generation.current;
+  async function load(advance=true) {
+    const gen = advance?++generation.current:generation.current;
     try {
       const r = await sessionFetch(
           "/api/google?organization=" + encodeURIComponent(organization),
@@ -55,6 +58,7 @@ export default function GoogleControls({
         v = await r.json();
       if (gen !== generation.current) return;
       if (!r.ok) throw new Error(v.error);
+      setDelivery(v.delivery);setDispatcherEnabled(v.dispatcherEnabled===true);deliveryKey.current=null;
       setMissing(v.missing);
       setConnection(v.connection);
       setRedirect(v.redirectUri);
@@ -68,7 +72,7 @@ export default function GoogleControls({
     }
   }
   useEffect(() => {
-    setConnection(null);
+    setConnection(null);setDelivery(null);setReceived(false);deliveryKey.current=null;
     setCalendars([]);
     testKey.current = null;
     void load();
@@ -83,7 +87,7 @@ export default function GoogleControls({
       generation.current++;
     };
   }, [organization]);
-  async function act(action: string, extra: Record<string, string> = {}) {
+  async function act(action: string, extra: Record<string, unknown> = {}) {
     setBusy(true);
     setMessage("");
     const gen = generation.current;
@@ -112,6 +116,8 @@ export default function GoogleControls({
         );
       if (v.calendars) setCalendars(v.calendars);
       if (v.connection) setConnection(v.connection);
+      if(v.delivery){setDelivery(v.delivery);setDispatcherEnabled(v.dispatcherEnabled===true);deliveryKey.current=null;setReceived(false);setMessage(v.delivery.enabled?'CRM email delivery authorized for this company. The dispatcher must also be enabled and scheduled.':'CRM email delivery paused for this company.');}
+      if(action==='send_pending')setMessage('Processed '+v.deliveries.length+' queued communication(s). Provider acceptance is shown separately from delivery.');
       if (action === "disconnect") {
         setCalendars([]);
         setCalendar("");
@@ -136,6 +142,7 @@ export default function GoogleControls({
         setMessage(
           "Connection checked. Gmail delivery requires the separate test below.",
         );
+      if(['test_email','calendar','health'].includes(action))await load(false);
     } catch (e) {
       setMessage(
         messages[(e as Error).message] ||
@@ -272,6 +279,9 @@ export default function GoogleControls({
           >
             Send Gmail test to myself
           </button>
+          <section aria-labelledby="mail-activation"><h3 id="mail-activation">CRM email delivery</h3><p>Company authorization: {delivery?.enabled?'enabled':'off'}. Background dispatcher: {dispatcherEnabled?'enabled':'paused'}.</p>
+          {delivery?.enabled?<><button type="button" disabled={busy} onClick={()=>{deliveryKey.current??=crypto.randomUUID();void act('disable_delivery',{key:deliveryKey.current});}}>Pause CRM email delivery</button><button type="button" disabled={busy||!dispatcherEnabled} onClick={()=>void act('send_pending')}>Process pending CRM notices now</button></>:<><p>Verify the test arrived and that the configured sender matches this Gmail account before authorizing queued customer and owner notices. The website's current request email remains separate.</p><label><input type="checkbox" checked={received} disabled={busy||connection.gmailTest!=='accepted'} onChange={e=>setReceived(e.target.checked)}/>I received the Gmail test and reviewed the company sender.</label><button type="button" disabled={busy||!received||connection.gmailTest!=='accepted'||!delivery?.senderMatches||!delivery.testKey} onClick={()=>{deliveryKey.current??=crypto.randomUUID();void act('enable_delivery',{revision:delivery!.connectionRevision,configurationVersion:delivery!.configurationVersion,testKey:delivery!.testKey,receiptConfirmed:true,key:deliveryKey.current});}}>Authorize CRM email delivery</button></>}
+          {!dispatcherEnabled&&<p>The server delivery switch and an approved recurring worker still need setup. Authorizing this company alone will not send messages.</p>}</section>
           <details>
             <summary>Disconnect Google</summary>
             <p>

@@ -1,6 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { accessToken } from "./google-server";
-import { emailRaw, sendEmail, GoogleFailure } from "./google-core";
+import { emailRaw, sendEmail, GoogleFailure, hash } from "./google-core";
+import { customerLinkToken, customerLinkUrl } from "./customer-links";
+import {
+  appointmentMessage,
+  type AppointmentMessageInput,
+} from "./appointment-message";
 type Intent = {
   id: string;
   object_id: string;
@@ -36,14 +41,25 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
     let to: string, subject: string, body: string;
     if (item.kind === "request.owner_notification") {
       to = config.data.settings.notificationRecipient;
-      subject = "Your Neighborhood Service Guy New Request";
+      subject = config.data.settings.displayName + " New Request";
       body =
         "A new service request is saved in your CRM. Sign in to review it.\n" +
         process.env.APP_ORIGIN;
     } else {
+      const supported = [
+        "appointment.owner_approval",
+        "appointment.confirmation",
+        "appointment.reminder",
+        "appointment.declined_time",
+        "appointment.declined_service",
+        "appointment.reschedule_requested",
+      ];
+      if (!supported.includes(item.kind)) continue;
       const appointment = await db
         .from("appointments")
-        .select("request_id,arrival_at,timezone,status")
+        .select(
+          "request_id,arrival_at,timezone,status,revision,response_version",
+        )
         .eq("organization_id", org)
         .eq("id", item.object_id)
         .single();
@@ -55,37 +71,74 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
         .eq("id", appointment.data.request_id)
         .single();
       if (request.error) continue;
-      const when = new Intl.DateTimeFormat("en-US", {
-        dateStyle: "full",
-        timeStyle: "short",
-        timeZone: appointment.data.timezone,
-      }).format(new Date(appointment.data.arrival_at));
-      if (item.kind === "appointment.owner_approval") {
-        to = config.data.settings.notificationRecipient;
-        subject = "Your Neighborhood Service Guy New Request";
-        body =
-          "A proposed appointment needs your approval: " +
-          when +
-          ". Review the current request and expiry in the CRM.\n" +
-          process.env.APP_ORIGIN;
-      } else if (item.kind === "appointment.confirmation") {
-        to = request.data.original_submission.email;
-        subject = "Your appointment is confirmed";
-        body =
-          "Your Neighborhood Service Guy has confirmed your appointment for " +
-          when +
-          ". Call or text 770-630-2094 if you need assistance.";
-      } else if (item.kind === "appointment.declined_time") {
-        to = request.data.original_submission.email;
-        subject = "Please choose another appointment time";
-        body =
-          "The requested time is unavailable. Your service request remains open. Please call or text 770-630-2094 to choose another time.";
-      } else if (item.kind === "appointment.declined_service") {
-        to = request.data.original_submission.email;
-        subject = "Update on your service request";
-        body =
-          "We cannot accept the proposed service appointment. Please call or text 770-630-2094 with questions.";
-      } else continue; // Reminder action links depend on the separate customer capability workflow.
+      let link:
+        | { manageUrl: string; confirmUrl: string; rescheduleUrl: string }
+        | undefined;
+      let recipient = request.data.original_submission.email;
+      if (
+        ![
+          "appointment.owner_approval",
+          "appointment.reschedule_requested",
+        ].includes(item.kind)
+      ) {
+        const tokenValue = customerLinkToken(
+          org,
+          item.id,
+          appointment.data.revision,
+          process.env.GOOGLE_TOKEN_ENCRYPTION_KEY || "",
+        );
+        const issued = await db.rpc("issue_customer_request_link", {
+          p_org: org,
+          p_outbox: item.id,
+          p_lease: item.lease_token,
+          p_hash: hash(tokenValue),
+        });
+        if (issued.error) continue;
+        recipient = issued.data.recipient;
+        link = {
+          manageUrl: customerLinkUrl(process.env.APP_ORIGIN!, tokenValue),
+          confirmUrl: customerLinkUrl(
+            process.env.APP_ORIGIN!,
+            tokenValue,
+            "confirm",
+          ),
+          rescheduleUrl: customerLinkUrl(
+            process.env.APP_ORIGIN!,
+            tokenValue,
+            "reschedule",
+          ),
+        };
+      }
+      let preference: AppointmentMessageInput["preference"];
+      if (item.kind === "appointment.reschedule_requested") {
+        const saved = await db
+          .from("customer_schedule_preferences")
+          .select("preferred_local_start,note")
+          .eq("organization_id", org)
+          .eq("id", item.payload.preferenceId)
+          .eq("status", "pending")
+          .maybeSingle();
+        if (saved.error || !saved.data) continue;
+        preference = saved.data;
+      }
+      const ownerUrl = new URL(process.env.APP_ORIGIN!);
+      ownerUrl.searchParams.set("request", appointment.data.request_id);
+      const rendered = appointmentMessage({
+        kind: item.kind as AppointmentMessageInput["kind"],
+        company: config.data.settings.displayName,
+        recipient,
+        notificationRecipient: config.data.settings.notificationRecipient,
+        request: request.data.original_submission,
+        arrivalAt: appointment.data.arrival_at,
+        timezone: appointment.data.timezone,
+        ownerUrl: ownerUrl.toString(),
+        ...(link || {}),
+        ...(preference ? { preference } : {}),
+        ...(typeof item.payload.reason === "string"
+          ? { reason: item.payload.reason }
+          : {}),
+      });
+      ({ to, subject, body } = rendered);
     }
     let raw: string;
     try {

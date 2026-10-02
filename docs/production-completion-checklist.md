@@ -9,11 +9,11 @@ Authority: latest owner directions, business/technology governance, master promp
 | Tenant setup | Invited verified owner + MFA; audited configuration; no first-user-wins or cross-tenant grants | Live owner completion required |
 | Intake | One durable request, every service, one notification; idempotency and tenant tests | Multi-service integration in progress |
 | Scheduling | Website/manual atomic capacity, travel/resources, fresh Google facts, holds and owner decisions | Partial; full customer flow pending |
-| Customer actions | Same-request decline/reschedule, original retention, 48-hour links and scanner safety | Pending |
+| Customer actions | Same-request decline/reschedule, original retention, 48-hour links and scanner safety | Scoped attendance/preference actions implemented; customer availability/hold flow pending |
 | Recurrence | Stable occurrences, horizon, exceptions, per-visit reminders, controlled series edits | Pending |
 | Field operations | Start/pause/resume, recorded time/materials, closeout, load readiness | In progress |
 | Finance | Approved totals, immutable invoices, delivery, actual payments, balanced ledger and corrections | Partial |
-| Communications | Verified Gmail; durable automatic worker; receipt/thank-you/review exactly once per milestone | Disabled pending implementation/live checks |
+| Communications | Verified Gmail; durable automatic worker; receipt/thank-you/review exactly once per milestone | Scoped appointment notices, explicit test-receipt authorization and tenant worker implemented; live activation/trigger and financial notices pending |
 | Customer relationships | Portal, history, properties, family permissions, preferences, photos and concerns | Pending |
 | Business management | Reconciled reports, expenses/mileage, tax inputs and integrations | Pending |
 | Company product | Branding/catalog/policies, historical snapshots, entitlement isolation and second tenant | Partial |

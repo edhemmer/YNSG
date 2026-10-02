@@ -61,6 +61,7 @@ export async function GET(request: Request) {
         .gte("end_at",appointmentFrom)
         .order("start_at").order("id")
         .range(from,to),
+      db.from('customer_schedule_preferences').select('id,request_id,appointment_id,appointment_revision,response_version,preferred_local_start,timezone,note,status,created_at').eq('organization_id',org).eq('status','pending').order('created_at',{ascending:false}).order('id').range(from,to),
     ]);
     if (results.some((r) => r.error)) throw new Error("FAILED");
     if (!results[0]!.data)
@@ -86,6 +87,7 @@ export async function GET(request: Request) {
         invoices: results[5]!.data,
         outbox: results[6]!.data,
         appointments: results[7]!.data,
+        schedulingPreferences: results[8]!.data,
       },
       { headers: { "Cache-Control": "no-store" } },
     );

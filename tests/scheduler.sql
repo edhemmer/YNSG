@@ -2,7 +2,7 @@
 insert into public.entitlements values('20000000-0000-4000-8000-000000000001','scheduling',true);
 insert into private.schedule_state values('20000000-0000-4000-8000-000000000001',1);
 insert into public.configuration_versions(organization_id,version,settings) values('20000000-0000-4000-8000-000000000001',2,
- '{"timezone":"America/Chicago","notificationRecipient":"owner@example.invalid","scheduling":{"weekdays":[1,2,3,4,5],"earliestStart":480,"latestStart":900,"endOfDay":1020,"bufferMinutes":15,"leadMinutes":0,"horizonDays":90,"selectionMinutes":10,"proposalMinutes":120,"pendingLimit":2}}');
+ '{"timezone":"America/Chicago","notificationRecipient":"owner@example.invalid","sender":"owner@example.invalid","scheduling":{"weekdays":[1,2,3,4,5],"earliestStart":480,"latestStart":900,"endOfDay":1020,"bufferMinutes":15,"leadMinutes":0,"horizonDays":90,"selectionMinutes":10,"proposalMinutes":120,"pendingLimit":2}}');
 insert into public.resources(organization_id,id,name,kind) values
  ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','Synthetic operator','operator'),
  ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','Synthetic second operator','operator');
@@ -62,6 +62,9 @@ do $$begin begin
 end$$;
 select pg_temp.assert_true((select count(*)=0 from public.claim_outbox('20000000-0000-4000-8000-000000000001',25)),'disabled provider leases no work');
 reset role;
+update public.organizations set status='active' where id='20000000-0000-4000-8000-000000000001';
+insert into private.google_accounts(organization_id,revision,encrypted_tokens,email,subject,scopes,gmail_test,test_key) values('20000000-0000-4000-8000-000000000001',1,'synthetic-not-real','owner@example.invalid','synthetic-subject',array['https://www.googleapis.com/auth/gmail.send'],'accepted','90000000-0000-4000-8000-000000000001');
+insert into private.mail_delivery_controls(organization_id,enabled,account_subject,test_key,configuration_version,receipt_confirmed_at,receipt_confirmed_by) values('20000000-0000-4000-8000-000000000001',true,'synthetic-subject','90000000-0000-4000-8000-000000000001',2,now(),'00000000-0000-4000-8000-000000000001');
 insert into public.integration_connections(organization_id,provider,status,secret_ref) values('20000000-0000-4000-8000-000000000001','gmail','active','synthetic-not-a-real-secret');
 set local role authenticated;
 select id from public.claim_outbox('20000000-0000-4000-8000-000000000001',25);

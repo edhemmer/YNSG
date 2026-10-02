@@ -40,6 +40,8 @@ const input = z.discriminatedUnion("action", [
   }),
   z.object({ action: z.literal("sync"), organization: z.uuid() }),
   z.object({ action: z.literal("send_pending"), organization: z.uuid() }),
+  z.object({action:z.literal('enable_delivery'),organization:z.uuid(),revision:z.number().int().positive(),configurationVersion:z.number().int().positive(),testKey:z.uuid(),receiptConfirmed:z.literal(true),key:z.string().min(16).max(128)}).strict(),
+  z.object({action:z.literal('disable_delivery'),organization:z.uuid(),key:z.string().min(16).max(128)}).strict(),
 ]);
 function json(value: unknown, status = 200) {
   return NextResponse.json(value, {
@@ -58,10 +60,12 @@ export async function GET(request: Request) {
     const org = z
       .uuid()
       .parse(new URL(request.url).searchParams.get("organization"));
-    await authorizeGoogle(org);
+    const {db}=await authorizeGoogle(org);
     const missing = missingGoogleConfiguration();
     return json({
       missing,
+      delivery:(await db.rpc('mail_delivery_status',{p_org:org})).data,
+      dispatcherEnabled:process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true',
       redirectUri: process.env.APP_ORIGIN
         ? callbackUri(process.env.APP_ORIGIN)
         : null,
@@ -84,6 +88,12 @@ export async function POST(request: Request) {
     const value = input.parse(JSON.parse(body)),
       org = value.organization,
       { user, db } = await authorizeGoogle(org);
+    if(value.action==='enable_delivery'||value.action==='disable_delivery'){
+      const enabled=value.action==='enable_delivery';
+      const result=await db.rpc('configure_mail_delivery',{p_org:org,p_enable:enabled,p_revision:enabled?value.revision:null,p_test:enabled?value.testKey:null,p_configuration:enabled?value.configurationVersion:null,p_key:value.key});
+      if(result.error)return json({error:['STALE_CONNECTION','RECEIPT_REVIEW_REQUIRED','SETUP_REQUIRED'].includes(result.error.message)?result.error.message:'DELIVERY_SETUP_FAILED'},409);
+      return json({delivery:(await db.rpc('mail_delivery_status',{p_org:org})).data,dispatcherEnabled:process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true'});
+    }
     if (value.action === "connect") {
       const result = await startGoogle(org),
         response = json({ url: result.url });
@@ -175,7 +185,7 @@ export async function POST(request: Request) {
           emailRaw(
             account.email!,
             account.email!,
-            "YNSG Gmail connection test",
+            "CRM Gmail connection test",
             "This message tests the CRM Gmail connection. Your existing website email has not been changed.",
             "ynsg-test-" + value.key,
           ),
