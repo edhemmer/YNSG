@@ -8,9 +8,9 @@ const tasks = {
 };
 const form = document.querySelector('#request-form');
 if(form){
-  const category = form.querySelector('#service');
-  const choices = form.querySelector('#task-choices');
-  const fieldset = form.querySelector('#service-choices');
+  const groups = form.querySelector('#service-groups');
+  const categoryGroups = new Map();
+  const checkboxes = new Map();
   const list = form.querySelector('#selected-service-list');
   const summary = form.querySelector('#selected-services');
   const description = form.querySelector('#description');
@@ -28,47 +28,55 @@ if(form){
       remove.className = 'remove-service';
       remove.textContent = 'Remove';
       remove.setAttribute('aria-label',`Remove ${label.textContent}`);
-      remove.addEventListener('click',()=>{selected.delete(key(service,task));render();});
+      remove.addEventListener('click',()=>{selected.delete(key(service,task));refresh();form.querySelector('#service-count').focus();});
       item.append(label,remove);
       list.append(item);
     }
     summary.hidden = selected.size === 0;
+    for(const [id,checkbox] of checkboxes) checkbox.checked=selected.has(id);
+    for(const [service,group] of categoryGroups){
+      const count=[...selected.values()].filter(item=>item.service===service).length;
+      group.querySelector('.category-count').textContent=count ? `${count} selected` : 'View jobs';
+    }
+    form.querySelector('#service-count').textContent=selected.size ? `${selected.size} ${selected.size===1?'job':'jobs'} selected. You can add jobs from any section.` : 'No jobs selected yet.';
     description.required = [...selected.values()].some(x=>x.service === 'Something else');
     description.minLength = description.required ? 10 : 0;
     description.placeholder = description.required ? 'Tell us what you need done.' : 'A short note is fine.';
     form.querySelector('#water-note').hidden = ![...selected.values()].some(x=>x.service === 'Concrete pressure washing');
   };
-  const render = () => {
-    choices.replaceChildren();
-    const service = category.value;
-    fieldset.hidden = !service;
-    for(const task of tasks[service] || []){
-      const label = document.createElement('label');
-      label.className = 'service-option';
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = selected.has(key(service,task));
+  const names={'Help around the home':'Home jobs','Lawn care':'Lawn care','Yard & garden':'Yard & garden','Snow clearing':'Snow clearing','Concrete pressure washing':'Concrete pressure washing','Something else':'Something else'};
+  for(const [service,jobs] of Object.entries(tasks)){
+    const group=document.createElement('details');
+    group.className='request-category';
+    const heading=document.createElement('summary');
+    const title=document.createElement('strong');title.textContent=names[service];
+    const count=document.createElement('span');count.className='category-count';count.textContent='View jobs';
+    heading.append(title,count);
+    const choices=document.createElement('div');choices.className='request-category-jobs';
+    for(const task of jobs){
+      const label=document.createElement('label');label.className='service-option';
+      const checkbox=document.createElement('input');checkbox.type='checkbox';
+      checkboxes.set(key(service,task),checkbox);
       checkbox.addEventListener('change',()=>{
         if(checkbox.checked){
-          if(selected.size >= 15){checkbox.checked=false;message.textContent='Please choose up to 15 jobs. You can add more in the note below.';message.focus();return;}
+          if(selected.size>=15){checkbox.checked=false;message.textContent='Please choose up to 15 jobs. You can add more in the note below.';message.focus();return;}
           selected.set(key(service,task),{service,task});
         }else selected.delete(key(service,task));
-        message.textContent='';
-        refresh();
+        message.textContent='';refresh();
       });
-      label.append(checkbox,document.createTextNode(service === 'Something else' ? 'Something else (describe below)' : task));
-      choices.append(label);
+      label.append(checkbox,document.createTextNode(service==='Something else'?'Describe another job below':task));choices.append(label);
     }
+    group.append(heading,choices);groups.append(group);categoryGroups.set(service,group);
+  }
+  form.querySelector('#service-count').tabIndex=-1;
+  const choose=(service,task='')=>{
+    if(!Object.hasOwn(tasks,service))return;
+    categoryGroups.get(service).open=true;
+    const chosen=task && tasks[service].includes(task) ? task : (service==='Something else'?'Describe below':'');
+    if(chosen && selected.size<15)selected.set(key(service,chosen),{service,task:chosen});
     refresh();
   };
-  const choose = (service, task='') => {
-    if(!Object.hasOwn(tasks,service)) return;
-    category.value=service;
-    const chosen=task && tasks[service].includes(task) ? task : (!task ? (service === 'Something else' ? 'Describe below' : 'Not sure yet') : '');
-    if(chosen && selected.size < 15) selected.set(key(service,chosen),{service,task:chosen});
-    render();
-  };
-  category.addEventListener('change',render);
+  refresh();
   const params=new URLSearchParams(location.search);
   choose(params.get('service') || '',params.get('task') || '');
   document.querySelectorAll('[data-service]').forEach(link=>link.addEventListener('click',event=>{
@@ -77,11 +85,11 @@ if(form){
     event.preventDefault();
     choose(link.dataset.service,link.dataset.task || '');
     section.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
-    setTimeout(()=>category.focus({preventScroll:true}),350);
+    setTimeout(()=>categoryGroups.get(link.dataset.service)?.querySelector('summary').focus({preventScroll:true}),350);
   }));
   form.addEventListener('submit',async event=>{
     event.preventDefault();
-    if(!selected.size){message.textContent='Please choose at least one job, or choose Something else and tell us about it.';category.focus();return;}
+    if(!selected.size){message.textContent='Please choose at least one job, or choose Something else and tell us about it.';groups.querySelector('summary').focus();return;}
     if(!form.reportValidity()) return;
     const button=form.querySelector('button[type=submit]');
     const data=Object.fromEntries(new FormData(form));
