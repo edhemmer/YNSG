@@ -803,7 +803,9 @@ export default function Workspace({ configured }: { configured: boolean }) {
                           return (
                             <article className="card" key={i.id}>
                               <span className="badge">
-                                {balance === 0
+                                {i.total_cents === 0
+                                  ? "No charge"
+                                  : balance === 0
                                   ? "Paid"
                                   : balance < i.total_cents
                                     ? "Partially paid"

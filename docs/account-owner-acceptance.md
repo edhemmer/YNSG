@@ -11,12 +11,12 @@ Authority: owner directions October 2, 2026; business and technical governance. 
 | Owner private blocks | MFA, lock, conflicts, retries, audit, availability exclusion | PostgreSQL fixtures pass; live owner flow pending |
 | Owner operations | Recurrence, closeout, expenses, reports, communications and settings | Partial |
 | Invoice waivers | Record work and explicit zero charge/reason; no rewriting issued invoices | Labor drafts and immutable issuance implemented; reduced/zero fixtures pass; PDF/delivery pending |
-| Billing revision | Remove half-hour website pricing; 10–60 minute overrun full hour | Copy changed; canonical policy pending |
+| Billing revision | Remove half-hour website pricing; owner controls final charges | Copy changed; canonical policy pending |
 | SaaS administrator | Owner accounts/subscriptions only; no customer data/impersonation | Isolated read module implemented; subscription mutations/activation pending |
 | Owner contracts | Versioned subscription agreement and policy acceptance | Pending |
 | Website account connection | Header sign-in and request-success offer on public eligible host | Pending |
 
-Do not infer treatment of 1–9 minute overruns. Accepted quotes and invoices retain their terms. Paid SaaS remains disabled until pricing and agreements are reviewed. Platform subscription administration uses separate roles and narrow commands, without tenant staff membership or customer-table read rights.
+Accepted quotes and invoices retain their terms. Paid SaaS remains disabled until pricing and agreements are reviewed. Platform subscription administration uses separate roles and narrow commands, without tenant staff membership or customer-table read rights.
 
 ## Account release configuration
 

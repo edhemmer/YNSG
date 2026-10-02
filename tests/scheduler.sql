@@ -38,7 +38,7 @@ select public.scheduling_command('20000000-0000-4000-8000-000000000001','submit'
 select pg_temp.assert_true((select count(*)=1 from public.appointment_tasks where kind='owner_approval'),'submit retry one approval task');
 select public.scheduling_command('20000000-0000-4000-8000-000000000001','approve',jsonb_build_object('id',(select id from public.appointments where status='proposal'),'revision',2,'evidenceId',pg_temp.fact(0)),'scheduler-approve-01');
 select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='appointment.reminder'),'one reminder');
-select pg_temp.assert_true((select next_attempt_at=pg_temp.future_start()-interval '48 hours' from public.outbox where kind='appointment.reminder'),'48 elapsed hours before arrival');
+select pg_temp.assert_true((select next_attempt_at=pg_temp.future_start()-interval '24 hours' from public.outbox where kind='appointment.reminder'),'24 elapsed hours before arrival');
 select pg_temp.hold(240,'scheduler-alternative',(select id from public.appointments where status='reserved'));
 select pg_temp.assert_true((select count(*)=2 from public.resource_reservations where active),'alternative retains original capacity');
 select public.scheduling_command('20000000-0000-4000-8000-000000000001','submit',jsonb_build_object('id',(select id from public.appointments where status='held'),'revision',1),'scheduler-submit-02');

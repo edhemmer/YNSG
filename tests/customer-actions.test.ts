@@ -62,7 +62,7 @@ test("limited customer contract rejects tenant, price, booking and scope changes
       }),
     );
 });
-test("reminder and under-48h confirmation carry intentional actions and correct local arrival", () => {
+test("reminder and under-24h confirmation carry intentional actions and correct local arrival", () => {
   const base = {
     company: "Your Neighborhood Service Guy",
     recipient: "customer@example.invalid",
@@ -95,6 +95,7 @@ test("reminder and under-48h confirmation carry intentional actions and correct 
     assert.ok(v.body.includes(base.rescheduleUrl));
     assert.match(v.body, /Nothing changes until/);
     assert.match(v.body, /stays booked/);
+    if(kind === "appointment.reminder")assert.match(v.body,/email .* immediately if you need to reschedule/);
   }
   assert.equal(
     appointmentMessage({ ...base, kind: "appointment.owner_approval" }).subject,

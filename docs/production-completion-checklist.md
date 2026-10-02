@@ -9,7 +9,7 @@ Authority: latest owner directions, business/technology governance, master promp
 | Tenant setup | Invited verified owner + MFA; audited configuration; no first-user-wins or cross-tenant grants | Live owner completion required |
 | Intake | One durable request, every service, one notification; idempotency and tenant tests | Multi-service integration in progress |
 | Scheduling | Website/manual atomic capacity, travel/resources, fresh Google facts, holds and owner decisions | Partial; full customer flow pending |
-| Customer actions | Same-request decline/reschedule, original retention, 48-hour links and scanner safety | Scoped attendance/preference actions implemented; customer availability/hold flow pending |
+| Customer actions | Same-request decline/reschedule, original retention, 24-hour links and scanner safety | Scoped attendance/preference actions implemented; customer availability/hold flow pending |
 | Recurrence | Stable occurrences, horizon, exceptions, per-visit reminders, controlled series edits | Pending |
 | Field operations | Start/pause/resume, recorded time/materials, closeout, load readiness | In progress |
 | Finance | Approved totals, immutable invoices, delivery, actual payments, balanced ledger and corrections | Partial |
@@ -45,4 +45,4 @@ Evidence: 42 unit tests; all PostgreSQL fixture suites; root TypeScript; Next.js
 
 Database optimization migration applied: 17 foreign-key covering indexes plus the preference queue index; three access policies keep the same predicates while evaluating caller ID once per statement. Hosted advisors report no remaining missing-FK-index or RLS caller-ID findings. The private invitation default-deny policy is explicit. Existing leaked-password-protection configuration warning remains; see https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection. No paid configuration change was made.
 
-October 2 owner expansion: customer accounts and private owner blocks precede iOS. See `account-owner-acceptance.md`. Half-hour website pricing is removed; 10–60 minute overrun is one full hour. Treatment of 1–9 minutes remains unconfigured. Invoice waivers must preserve performed work and a documented zero charge. Platform administrators manage owner accounts/subscriptions separately and receive no tenant customer-data rights.
+October 2 owner expansion: customer accounts and private owner blocks precede iOS. See `account-owner-acceptance.md`. Half-hour website pricing is removed; owner controls final charges. Invoice waivers must preserve performed work and a documented zero charge. Platform administrators manage owner accounts/subscriptions separately and receive no tenant customer-data rights.

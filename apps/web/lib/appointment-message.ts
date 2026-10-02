@@ -68,7 +68,7 @@ export function appointmentMessage(v: AppointmentMessageInput) {
       subject: reminder
         ? "Reminder: your service appointment"
         : "Your appointment is confirmed",
-      body: `Hi ${v.request.name || "there"},\n\n${reminder ? "A reminder of your appointment with" : "Your appointment is confirmed with"} ${v.company}.\n\nArrival: ${when}\n${work}\n\nPlease let us know you plan to be there:\n${v.confirmUrl}\n\nNeed another time?\n${v.rescheduleUrl}\nYour current appointment stays booked until a replacement is approved.\n\nThese links open your appointment. Nothing changes until you choose an action on the page. They do not approve a quote or extra work.\n\nReply to this email if you need to reach us.`,
+      body: `Hi ${v.request.name || "there"},\n\n${reminder ? "A reminder of your appointment with" : "Your appointment is confirmed with"} ${v.company}.\n\nArrival: ${when}\n${work}\n\nPlease let us know you plan to be there:\n${v.confirmUrl}\n\nNeed another time?\n${v.rescheduleUrl}\nYour current appointment stays booked until a replacement is approved.\n\nThese links open your appointment. Nothing changes until you choose an action on the page. They do not approve a quote or extra work.\n\n${reminder ? "Please email "+v.notificationRecipient+" immediately if you need to reschedule." : "Reply to this email if you need to reach us."}`,
     };
   }
   const declinedTime = v.kind === "appointment.declined_time";
