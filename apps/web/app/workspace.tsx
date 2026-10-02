@@ -1,6 +1,7 @@
 "use client";
 import GoogleControls from './google-controls';
 import OwnerSetup from './owner-setup';
+import CompanySettingsPanel from './company-settings';
 import {sessionFetch,SessionApiError} from '../lib/session-fetch';
 import { useEffect, useRef, useState, type FormEvent } from "react";
 type Membership = { organization_id: string; role: string };
@@ -9,7 +10,7 @@ type RequestRecord = {
   status: string;
   revision: number;
   created_at: string;
-  original_submission: Record<string, string>;
+  original_submission: {name:string;phone:string;email:string;street:string;city:string;service?:string;task?:string;description?:string;services?:{service:string;task:string}[]};
 };
 type Quote = {
   id: string;
@@ -63,7 +64,12 @@ type Data = {
   invoices: Invoice[];
   outbox: { id: string; kind: string; status: string; created_at: string }[];
   appointments: Appointment[];
+  pagination:{page:number;hasMore:boolean;appointmentFrom:string};
+  features?:{productionWorkflows:boolean};
 };
+const requestServices = (request: RequestRecord) => request.original_submission.services?.length
+  ? request.original_submission.services.map(item => `${item.service}: ${item.task || 'Not sure yet'}`)
+  : [`${request.original_submission.service || 'Service'}: ${request.original_submission.task || 'Not sure yet'}`];
 const usd = (v: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
     v / 100,
@@ -102,6 +108,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
   const [org, setOrg] = useState(""),
     [data, setData] = useState<Data | null>(null),
     [section, setSection] = useState("Today");
+  const [page,setPage]=useState(0);
   const [factor, setFactor] = useState<{
       factorId: string;
       enrolled: boolean;
@@ -120,6 +127,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
       const googleOrg = new URLSearchParams(window.location.search).get('googleOrganization');
       setOrg((o: string) => o || s.memberships.find((m: Membership)=>m.organization_id===googleOrg)?.organization_id || s.memberships[0]?.organization_id || "");
       if(new URLSearchParams(window.location.search).has('google'))setSection('More');
+      if(new URLSearchParams(window.location.search).has('request'))setSection('Work');
     } catch (e) {
       if(sequence!==sessionSequence.current)return;
       if(e instanceof SessionApiError&&e.status===401){
@@ -147,7 +155,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
     setError("");
     try {
       const next = await api(
-        `/api/workspace?organization=${encodeURIComponent(selected)}`,
+        `/api/workspace?organization=${encodeURIComponent(selected)}&page=${page}&request=${encodeURIComponent(new URLSearchParams(window.location.search).get('request')||'')}`,
       );
       if (sequence === reloadSequence.current) setData(next);
     } catch (e) {
@@ -160,7 +168,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
   useEffect(() => {
     setData(null);
     if (org) void refresh(org);
-  }, [org]);
+  }, [org,page]);
   async function login(event: FormEvent) {
     event.preventDefault();
     setPending(true);
@@ -243,6 +251,11 @@ export default function Workspace({ configured }: { configured: boolean }) {
     } finally {
       setPending(false);
     }
+  }
+  async function fieldAction(j:Job,action:'start'|'pause'|'resume') {
+    setPending(true);setError('');const value={organizationId:org,id:j.id,revision:j.revision,action,note:''};const fingerprint=JSON.stringify(value);
+    if(!retryKeys.current.has(fingerprint))retryKeys.current.set(fingerprint,crypto.randomUUID());
+    try{await api('/api/jobs',{...value,key:retryKeys.current.get(fingerprint)});setMessage('Job and time record saved.');await refresh();}catch(e){setError((e as Error).message);}finally{setPending(false);}
   }
   const role = session?.memberships.find(
     (m) => m.organization_id === org,
@@ -481,6 +494,8 @@ export default function Workspace({ configured }: { configured: boolean }) {
                         Refresh
                       </button>
                     </div>
+                    <div className="actions" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1}. Agenda shows appointments from the last day onward.</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>
+                    {section === "More" && ['owner','admin'].includes(role||'') && <CompanySettingsPanel organization={org} name={data.company.display_name}/>}
                     {section === "Today" && (
                       <>
                         <p className="muted">
@@ -560,7 +575,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
                           return <article className="card" key={a.id}>
                             <span className="badge">{a.status === "proposal" ? "Awaiting owner approval" : a.status === "reserved" ? "Confirmed appointment" : a.status.replaceAll("_"," ")}</span>
                             <h3>{request?.original_submission.name || "Service appointment"}</h3>
-                            <p>{request?.original_submission.service}<br/>{request?.original_submission.street}, {request?.original_submission.city}</p>
+                            <p>{request ? requestServices(request).join(', ') : 'Service'}<br/>{request?.original_submission.street}, {request?.original_submission.city}</p>
                             <p><strong>Customer arrival:</strong> {date(a.arrival_at)}<br/><strong>Reserved work time:</strong> {date(a.start_at)} – {date(a.end_at)}<br/>{data.company.timezone}</p>
                             {a.expires_at && ["held","proposal"].includes(a.status) && <p>Decision deadline: {date(a.expires_at)}</p>}
                             {a.replaces_id && <p className="note">This is a proposed replacement. The original appointment remains booked until this replacement is approved.</p>}
@@ -613,12 +628,12 @@ export default function Workspace({ configured }: { configured: boolean }) {
                           </div>
                         )}
                         {data.requests.map((r) => (
-                          <article className="card" key={r.id}>
+                          <article className="card" key={r.id} id={"request-"+r.id}>
                             <span className="badge">{r.status}</span>
                             <h2>{r.original_submission.name}</h2>
                             <p>
-                              <strong>{r.original_submission.service}</strong> ·{" "}
-                              {r.original_submission.task}
+                              <strong>Requested work</strong><br/>
+                              {requestServices(r).map((item, index) => <span key={index}>{item}<br/></span>)}
                             </p>
                             <p>{r.original_submission.description}</p>
                             <p>
@@ -725,6 +740,11 @@ export default function Workspace({ configured }: { configured: boolean }) {
                               {j.status.replaceAll("_", " ")}
                             </span>
                             <h3>{customerName(j.customer_id)}</h3>
+                            {data.features?.productionWorkflows&&['owner','admin','technician'].includes(role||'') && <div className="actions">
+                              {['approved','scheduled','en_route','arrived'].includes(j.status)&&<button disabled={pending} onClick={()=>void fieldAction(j,'start')}>Start work</button>}
+                              {j.status==='working'&&<button disabled={pending} onClick={()=>void fieldAction(j,'pause')}>Pause work</button>}
+                              {j.status==='paused'&&<button disabled={pending} onClick={()=>void fieldAction(j,'resume')}>Resume work</button>}
+                            </div>}
                             {["working", "paused"].includes(j.status) &&
                             ["owner", "admin"].includes(role || "") ? (
                               <button
@@ -884,7 +904,7 @@ function QuoteForm({
             required
             minLength={10}
             maxLength={5000}
-            defaultValue={request.original_submission.description}
+            defaultValue={[...requestServices(request), request.original_submission.description || ''].filter(Boolean).join('\n')}
           />
         </label>
         <label>

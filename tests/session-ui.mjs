@@ -19,7 +19,7 @@ try{
   }
   return route.fulfill(valid?{json:{email:'synthetic@example.invalid',memberships:[{organization_id:org,role:'owner'}]}}:{status:401,json:{error:'Sign in to continue.'}});
  });
- await page.route('**/api/workspace?*',route=>route.fulfill({json:{company:{id:org,display_name:'Synthetic business',timezone:'America/Chicago',status:'setup'},requests:[],customers:[],quotes:[],jobs:[],invoices:[],outbox:[],appointments:[]}}));
+ await page.route('**/api/workspace?*',route=>route.fulfill({json:{company:{id:org,display_name:'Synthetic business',timezone:'America/Chicago',status:'setup'},requests:[],customers:[],quotes:[],jobs:[],invoices:[],outbox:[],appointments:[],pagination:{page:0,hasMore:false,appointmentFrom:new Date().toISOString()}}}));
  await page.goto(process.env.TEST_BASE_URL||'http://127.0.0.1:3011');
  await page.getByRole('button',{name:'More',exact:true}).waitFor();
  assert.deepEqual(actions,['refresh']);

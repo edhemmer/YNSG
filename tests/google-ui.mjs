@@ -9,7 +9,7 @@ try{
  page.on('pageerror',e=>errors.push(e.message));
  const org='20000000-0000-4000-8000-000000000001';let connection=null;const actions=[];
  await page.route('**/api/session',r=>r.fulfill({json:{email:'synthetic@example.invalid',memberships:[{organization_id:org,role:'owner'}]}}));
- await page.route('**/api/workspace?*',r=>r.fulfill({json:{company:{id:org,display_name:'Synthetic test company',timezone:'America/Chicago',status:'setup'},requests:[],customers:[],quotes:[],jobs:[],invoices:[],outbox:[],appointments:[]}}));
+ await page.route('**/api/workspace?*',r=>r.fulfill({json:{company:{id:org,display_name:'Synthetic test company',timezone:'America/Chicago',status:'setup'},requests:[],customers:[],quotes:[],jobs:[],invoices:[],outbox:[],appointments:[],pagination:{page:0,hasMore:false,appointmentFrom:new Date().toISOString()}}}));
  await page.route('**/api/google*',async r=>{
   if(r.request().method()==='GET')return r.fulfill({json:{missing:[],redirectUri:'https://synthetic.example.invalid/api/google/callback',connection}});
   const value=r.request().postDataJSON();actions.push(value.action);assert.equal(value.organization,org);
