@@ -1,6 +1,6 @@
 # Website and CRM production audit
 
-Checkpoint: October 3, 2026. Latest owner instruction removes mandatory 2FA; verified email and live company permissions remain required. Source baseline: CRM e927b8b; public website 2899334. This is an open acceptance worklist, not a production-readiness certificate.
+Checkpoint: October 3, 2026. Latest owner instruction removes mandatory 2FA; verified email and live company permissions remain required. Current audited CRM branch includes owner access, intake bridge, notes, decline notices and both 24-hour reminders; public website baseline f7ab04b. This is an open acceptance worklist, not a production-readiness certificate.
 
 ## Required acceptance constraints
 
@@ -11,10 +11,10 @@ Checkpoint: October 3, 2026. Latest owner instruction removes mandatory 2FA; ver
 | Rates $60/hour standard and $45/hour community, one two-hour minimum; no public overrun rule or half-hour pricing | Public wording corrected; commercial engine reconciliation pending |
 | Mulch bulk/bags pickup, delivery and application; supplier prepayment and pickup-start labor; leaf management, weeds, small plants, patio washing and customer water | Source present; full mobile content review pending |
 | No rejected services, invented guarantees, customer photos or AI marketing metadata | Continued full release review required |
-| Passwordless Ed login; verified identity and tenant isolation | Login implementation passes build; live owner setup incomplete |
+| Passwordless Ed login; verified identity and tenant isolation | Login build passes; active verified owner membership observed; full sign-in/logout device acceptance pending |
 | Website-to-CRM durable intake and backup email | FAIL: public endpoint currently email-only |
 | No double booking; owner approval/decline; Google synchronization | Database tests pass; live Google integration and concurrency tests pending |
-| Customer and owner reminders at 24 hours, independent of an open browser | Partial: customer template/timing built; deployment trigger and owner notice incomplete |
+| Customer and owner reminders at 24 hours, independent of an open browser | Both templates/timing built; recurring trigger and actual inbox receipts unverified |
 | Invoice owner review and approval before delivery; actual paid/unpaid balances, waived work recorded | Partial: deterministic ledger and labor customization built; delivery/PDF incomplete |
 | Owner daily route, previous-evening packing, verified weather workflow | FAIL: not completed |
 | Configurable SaaS branding and platform administration without customer-data access | Partial foundation; not a completed SaaS product |
@@ -25,7 +25,7 @@ Completed below means component checks passed, not that the whole live journey p
 
 | ID | Classification | Finding and completion test |
 |---|---|---|
-| A01 | Blocked live setup | Ed's verified email identity exists, but has zero staff memberships and has not claimed the invitation. Finish email sign-in and invited owner claim; dashboard must open with owner permissions. Invitation expires October 9 at 7:19 AM Chicago time. |
+| A01 | Owner claim verified | October 3 hosted read confirms one company and an active owner membership tied to verified edhemmer@gmail.com. Owner has reached settings in the provided screenshot. No database impersonation or administrative claim was performed. |
 | A02 | Deployed; live identity test pending | Dedicated /owner entry prefills edhemmer@gmail.com, requires no account password, and grants no permissions merely from that email. Build passes; deployed /owner returned HTTP 200 with the prefilled email. Live email return remains pending. |
 | A03 | Implemented; activation/live test pending | Public endpoint now supports server-bound durable CRM intake with all selections, stable retry key, HMAC abuse-control digest and atomic owner outbox intent. Existing Resend mode remains active until owner/company/Gmail worker setup is verified. See website-crm-intake.md for exact variables and acceptance. |
 | A04 | Missing website functionality | Header account/login, optional account creation after submission and saved-contact repeat requests are not connected to public intake. Test guest and signed-in journeys on a phone. |
@@ -37,7 +37,7 @@ Completed below means component checks passed, not that the whole live journey p
 | A10 | Both reminders implemented; recurring/live execution pending | Approval now queues separate customer and owner notices at 24 elapsed hours. Owner notice includes contact, address, every selected task and CRM link without customer capabilities. Stale revisions suppress notices at lease and dispatch. Real worker trigger and inbox receipt remain unverified. |
 | A11 | Conversation notes implemented; broader timeline partial | Owner/admin can append internal request notes and customer notes with retry protection. Customer history includes explicitly linked request notes; no auto-match by email. Private records deny customer and platform-only access. Full email/service activity timeline remains unfinished; live owner UI acceptance pending. |
 | A12 | Not completed | Recurring appointments and exceptions need capacity reservations per occurrence, revisions, reminders and cancellation/reschedule workflows. |
-| A13 | Not completed | Day-of in-app briefing, full route list, printable daily calls and navigation from current location need implementation and mobile verification. |
+| A13 | Daily call sheet implemented; live acceptance and automatic briefing pending | Owner/admin daily sheet independently loads the selected local day, retains every cross-category task, shows contact/address, confirmed and needs-review status, and links to the correct company order. Printing and Maps navigation controls are built. Exact-count checks refuse truncated data. Date/DST/URL tests pass; real owner data, phone, printed output and navigation still need acceptance. Automated day-of briefing remains unbuilt. |
 | A14 | Not completed | Previous-evening packing list needs approved service-to-tool mapping, consolidated quantities and unknown-equipment flags. |
 | A15 | Not completed | Location-verified weather rescheduling needs source, timestamp, condition and policy evidence; affected outdoor jobs only; documented cancellation, capacity release and customer emails. No AI-generated weather facts. |
 | A16 | Partial invoices | Labor drafts, waivers, immutable issued totals and balanced ledger are implemented. Add owner review/approval then customer email/PDF delivery, delivery receipts and retry handling. Current mail dispatcher does not deliver invoice.issued or invoice.paid. |
@@ -56,7 +56,7 @@ A25 — Fixed in source: malformed service entries (including null) were normali
 
 ## Verified checks at this checkpoint
 
-- 50 unit tests passed, including malformed public intake validation, CRM bridge failures and real-handler retry behavior.
+- 54 unit tests passed, including malformed public intake validation, CRM bridge failures and real-handler retry behavior.
 - Local database migration and integration suites passed, including capacity, customer actions, owner blocks, invitations, platform isolation and invoice waivers.
 - CRM optimized Next.js production build and TypeScript passed after the owner-entry change.
 - Public website built nine HTML pages. Checked 268 internal links: no missing targets, missing fragments or duplicate IDs.
@@ -92,3 +92,7 @@ Do not test unbuilt features as though they are ready. Provider consent and owne
 5. A22–A24: production hardening and full acceptance; native iOS remains last.
 
 For each item: inspect source, implement, run relevant automated checks, record deployed commit and live evidence, then change its status. Keep failures on this list until reproduced and resolved. The release gate remains closed while mandatory website/CRM workflows fail or remain unverified.
+
+## October 3 settings usability correction
+
+Owner-facing setup now says Business name, including confirmation and commercial instructions. Clock-time selectors replace minutes after midnight; named weekday checkboxes and explicit duration units preserve canonical values. Tax status is separated and defaults to Not reviewed yet. Settings controls are disabled during publishing; loading and validation errors are clearer. Mobile fields stack vertically. Rendered owner/device acceptance remains pending.

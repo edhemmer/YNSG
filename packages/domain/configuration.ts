@@ -9,4 +9,4 @@ export function validateConfiguration(value:unknown):CompanySettings {
  if(c.scheduling.earliestStart>c.scheduling.latestStart||c.scheduling.latestStart+120>c.scheduling.endOfDay)throw new DomainError('VALIDATION','Last start must allow the minimum reservation');
  return c;
 }
-export function releaseGates(c:CompanySettings):string[]{return [!c.sellerVerified&&'Verify seller identity',!c.invoiceTerms&&'Approve invoice terms',!c.taxTreatmentVerified&&'Verify invoice tax treatment',c.hourly.partialExtension===null&&'Choose partial-extension billing policy',c.scheduling.bufferMinutes===null&&'Choose travel buffer'].filter((v):v is string=>typeof v==='string');}
+export function releaseGates(c:CompanySettings):string[]{return [!c.sellerVerified&&'Confirm business name',!c.invoiceTerms&&'Approve invoice terms',!c.taxTreatmentVerified&&'Verify invoice tax treatment',c.hourly.partialExtension===null&&'Choose partial-extension billing policy',c.scheduling.bufferMinutes===null&&'Choose travel buffer'].filter((v):v is string=>typeof v==='string');}

@@ -131,6 +131,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       }
       const ownerUrl = new URL(process.env.APP_ORIGIN!);
       ownerUrl.searchParams.set("request", appointment.data.request_id);
+      ownerUrl.searchParams.set("organization", org);
       const rendered = appointmentMessage({
         kind: item.kind as AppointmentMessageInput["kind"],
         company: config.data.settings.displayName,

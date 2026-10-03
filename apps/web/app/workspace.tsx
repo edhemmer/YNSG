@@ -6,6 +6,7 @@ import CustomerInvite from './customer-invite';
 import RelationshipNotes from './relationship-notes';
 import CalendarBlocks from './calendar-blocks';
 import CompanySettingsPanel from './company-settings';
+import DailyCallSheet from './day-plan';
 import AvailabilityPanel from './availability-panel';
 import SchedulingReviewPanel from './scheduling-review-panel';
 import {sessionFetch,SessionApiError} from '../lib/session-fetch';
@@ -124,7 +125,8 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
       setSessionUnavailable(false);
       setError(previous=>previous.startsWith('We could not check your saved sign-in.')?'':previous);
       setSession(s);
-      const googleOrg = new URLSearchParams(window.location.search).get('googleOrganization');
+      const locationParams = new URLSearchParams(window.location.search);
+      const googleOrg = locationParams.get('googleOrganization') || locationParams.get('organization');
       setOrg((o: string) => o || s.memberships.find((m: Membership)=>m.organization_id===googleOrg)?.organization_id || s.memberships[0]?.organization_id || "");
       if(new URLSearchParams(window.location.search).has('google'))setSection('More');
       if(new URLSearchParams(window.location.search).has('request'))setSection('Work');
@@ -419,6 +421,7 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
                     {section === "More" && ['owner','admin'].includes(role||'') && <CalendarBlocks organization={org} timezone={data.company.timezone}/> }
                     {section === "More" && ['owner','admin'].includes(role||'') && <CompanySettingsPanel organization={org} name={data.company.display_name}/>}
                     {['Today','Work'].includes(section)&&data.schedulingPreferences.length>0&&<section className="card" aria-labelledby="reschedule-heading"><h2 id="reschedule-heading">Customers requesting another time</h2>{data.schedulingPreferences.map(p=><article key={p.id} className="card"><p><strong>{data.requests.find(r=>r.id===p.request_id)?.original_submission.name||'Service request'}</strong></p><p>{p.preferred_local_start?.replace('T',' at ')} {p.preferred_local_start&&`(${p.timezone})`}</p><p>{p.note}</p><p className="note">Review this on the same request. A confirmed original stays booked until you approve its replacement.</p><button type="button" className="secondary" onClick={()=>{window.location.assign('/?request='+encodeURIComponent(p.request_id));}}>Open service request</button></article>)}</section>}
+                    {section === "Today" && ['owner','admin'].includes(role||'') && <DailyCallSheet key={org} organization={org} timezone={data.company.timezone}/>}
                     {section === "Today" && (
                       <>
                         <p className="muted">
@@ -714,7 +717,7 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
                             <h2>No issued invoices</h2>
                             <p>
                               Complete approved work to create an invoice after
-                              seller identity, payment terms and tax treatment
+                              business name, payment terms and tax treatment
                               are configured.
                             </p>
                           </div>
@@ -765,7 +768,7 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
                         </p>
                         <ul>
                           <li>
-                            Verify seller identity, compliance, tax treatment
+                            Confirm business name, compliance, tax treatment
                             and invoice terms.
                           </li>
                           <li>Set travel buffer, holidays and territory.</li>
