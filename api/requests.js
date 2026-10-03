@@ -1,3 +1,4 @@
+import {ownerRequestEmail} from '../lib/owner-request-email.js';
 import { randomUUID } from 'node:crypto';
 import { saveCrmRequest, IntakeFailure } from '../lib/public-intake.js';
 const services = new Set(['Lawn care','Yard & garden','Snow clearing','Help around the home','Concrete pressure washing','Something else']);
@@ -48,9 +49,9 @@ export default async function handler(req,res){
     console.error('Missing Resend API key configuration');
     return fail(res,503,'The form is temporarily unavailable. Please call or text 770-630-2094.');
   }
-  const fields=[['Request ID',id],['Jobs requested',normalized.map(item=>`${item.service}: ${item.task}`).join('\n')],['Job details',data.description||'Not specified'],['Name',data.name],['Phone',data.phone],['Email',data.email],['Address',`${data.street}, ${data.city}, IL`],['Preferred time',data.preferredTime||'Not specified'],['Community Rate inquiry',data.communityRate]];
+  const message=ownerRequestEmail(data,normalized,id);
   try{
-    const sent=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json','Idempotency-Key':`ynsg-request-${id}`},body:JSON.stringify({from:'Your Neighborhood Service Guy <onboarding@resend.dev>',to:['edhemmer@gmail.com'],reply_to:data.email,subject:'Your Neighborhood Service Guy New Request',text:fields.map(([label,value])=>`${label}: ${value}`).join('\n\n')}),signal:AbortSignal.timeout(10000)});
+    const sent=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json','Idempotency-Key':`ynsg-request-${id}`},body:JSON.stringify({from:'Your Neighborhood Service Guy <onboarding@resend.dev>',to:['edhemmer@gmail.com'],reply_to:data.email,subject:'Your Neighborhood Service Guy New Request',text:message.text,html:message.html}),signal:AbortSignal.timeout(10000)});
     if(!sent.ok){
       const detail=await sent.json().catch(()=>({}));
       console.error('Request email provider rejected request',{status:sent.status,code:String(detail.name||'unknown').slice(0,80)});

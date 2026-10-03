@@ -48,7 +48,7 @@ test('real public handler retains legacy email with identical payload and provid
   for(let i=0;i<2;i++){const res=resultCollector();await handler({method:'POST',headers:{host:'synthetic.invalid'},body:{...data,requestKey:key}},res);assert.equal(res.code,200);}
   assert.equal(sent.length,2);assert.equal(sent[0]!.body,sent[1]!.body);
   assert.equal((sent[0]!.headers as Record<string,string>)['Idempotency-Key'],`ynsg-request-${key}`);
-  const email=JSON.parse(String(sent[0]!.body));assert.equal(email.subject,'Your Neighborhood Service Guy New Request');assert.deepEqual(email.to,['edhemmer@gmail.com']);assert.equal(email.reply_to,data.email);
+  const email=JSON.parse(String(sent[0]!.body));assert.equal(email.subject,'Your Neighborhood Service Guy New Request');assert.deepEqual(email.to,['edhemmer@gmail.com']);assert.equal(email.reply_to,data.email);assert.ok(email.html.indexOf('Call customer')<email.html.indexOf('Work requested'));assert.ok(email.html.includes('Leaf management'));assert.ok(email.html.includes('Planting flowers'));assert.ok(email.text.endsWith('Request ID: '+key));
 });
 test('real CRM handler returns only committed success and never falls back to email after a database failure',async(t)=>{
   configure(t,{...env,CRM_INTAKE_ENABLED:'true'});
