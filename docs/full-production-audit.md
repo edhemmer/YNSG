@@ -26,7 +26,7 @@ Completed below means component checks passed, not that the whole live journey p
 | ID | Classification | Finding and completion test |
 |---|---|---|
 | A01 | Blocked live setup | Ed's verified email identity exists, but has zero staff memberships and zero verified MFA factors. Finish email sign-in, authenticator setup and invited owner claim; dashboard must open with owner permissions. Invitation expires October 9 at 7:19 AM Chicago time. |
-| A02 | Implemented; deploy pending | Dedicated /owner entry prefills edhemmer@gmail.com, requires no account password, and grants no permissions merely from that email. Build passes; verify deployed route and live email return. |
+| A02 | Deployed; live identity test pending | Dedicated /owner entry prefills edhemmer@gmail.com, requires no account password, and grants no permissions merely from that email. Build passes; deployed /owner returned HTTP 200 with the prefilled email. Live email return remains pending. |
 | A03 | Not connected | Public api/requests.js sends email without durable CRM intake. Replace through authorized tenant intake with idempotent commit, selected services and an outbox notification; prove one request after retries. Preserve existing working email flow until replacement is verified. |
 | A04 | Missing website functionality | Header account/login, optional account creation after submission and saved-contact repeat requests are not connected to public intake. Test guest and signed-in journeys on a phone. |
 | A05 | Not connected | No Google accounts are connected. Owner must consent, select an owned calendar and verify Gmail sender. Prove contact/address/order-link event fields, moves, conflicts, retries and disconnect behavior. |
@@ -50,9 +50,13 @@ Completed below means component checks passed, not that the whole live journey p
 | A23 | Deferred | Native iOS is last. Shared tenant authorization and APIs form groundwork; native app, signing, accessibility and Apple review are not complete. |
 | A24 | Live review pending | Full desktop/mobile usability, screen reader, keyboard, reduced motion, contrast, copy repetition, SEO and external links need real rendered review. Structural link checks alone do not prove usability. |
 
+## Additional debug finding
+
+A25 — Fixed in source: malformed service entries (including null) were normalized before validation returned, which could throw instead of returning HTTP 400. Validation now rejects these entries before normalization; regression checks passed (HTTP 400 for null, boolean, missing-field and invalid-task entries).
+
 ## Verified checks at this checkpoint
 
-- 42 unit tests passed.
+- 43 unit tests passed, including malformed public intake validation.
 - Local database migration and integration suites passed, including capacity, customer actions, owner blocks, invitations, platform isolation and invoice waivers.
 - CRM optimized Next.js production build and TypeScript passed after the owner-entry change.
 - Public website built nine HTML pages. Checked 268 internal links: no missing targets, missing fragments or duplicate IDs.

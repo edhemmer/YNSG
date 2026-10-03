@@ -1,3 +1,5 @@
+> Historical snapshot: these October 1 presence and implementation findings are superseded by [the current production audit](full-production-audit.md). Do not use the missing-credential or missing-callback statements below as current setup instructions.
+
 # YNSG integration setup audit — October 1, 2026
 
 Audited branch: codex/crm-workflow. Presence checks never reveal values. The active CRM is Vercel project ynsg-repo, Preview branch codex/crm-workflow. The public website is the separate ynsg Production project.
