@@ -589,6 +589,13 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
                                 </button>
                               </div>
                             )}
+                            {["owner", "admin"].includes(role || "") && ["submitted", "reviewing"].includes(r.status) && (
+                              <details>
+                                <summary>Unable to take this request?</summary>
+                                <p>Declining closes this request and queues an email to the customer. If an appointment is active, use its calendar decision controls first.</p>
+                                <button disabled={pending} onClick={() => void act({command: "ReviewRequest", id: r.id, revision: r.revision, status: "declined"})}>Decline request and notify customer</button>
+                              </details>
+                            )}
                             {operational &&
                               ["reviewing", "quoted"].includes(r.status) && (
                                 <QuoteForm

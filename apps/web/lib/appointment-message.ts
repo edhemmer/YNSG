@@ -13,6 +13,7 @@ export type AppointmentMessageInput = {
     | "appointment.owner_approval"
     | "appointment.confirmation"
     | "appointment.reminder"
+    | "appointment.owner_reminder"
     | "appointment.declined_time"
     | "appointment.declined_service"
     | "appointment.reschedule_requested";
@@ -48,6 +49,12 @@ export function appointmentMessage(v: AppointmentMessageInput) {
       to: v.notificationRecipient,
       subject: ownerSubject,
       body: `A proposed appointment needs your review.\n\n${v.request.name}\n${address}\nPhone: ${v.request.phone}\nEmail: ${v.request.email}\nArrival: ${when}\n\n${services}\n\nReview the current request, pickup details, duration and expiry before deciding:\n${v.ownerUrl}`,
+    };
+  if (v.kind === "appointment.owner_reminder")
+    return {
+      to: v.notificationRecipient,
+      subject: "Tomorrow’s service appointment",
+      body: `Your confirmed appointment with ${v.request.name || "the customer"} is in 24 hours.\n\nArrival: ${when} (${v.timezone})\n${work}\nPhone: ${v.request.phone || "See service order"}\nEmail: ${v.request.email || "See service order"}\n\nReview the current order, pickup details and equipment before loading:\n${v.ownerUrl}\n\nCheck the current calendar before heading out; this appointment may change.`,
     };
   if (v.kind === "appointment.reschedule_requested")
     return {

@@ -33,8 +33,8 @@ Completed below means component checks passed, not that the whole live journey p
 | A06 | Not connected | No tenant mail controls are enabled; recurring worker activation is not verified. Require sender self-test receipt and explicit owner activation; prove retries and delivery with dashboard closed. |
 | A07 | Broken production topology | CRM project production branch lacks its apps/web root; working CRM is a protected preview. Set correct production branch/domain/environment only after acceptance; public customer routes must not require Vercel sign-in. |
 | A08 | Corrected; live customer test pending | Appointment RLS now follows explicit request/customer or job/customer relationships. Portal independently paginates appointments. Database fixtures prove past/future pre-job access, unrelated-customer and tenant isolation, and immediate revocation. |
-| A09 | Partial decisions | Appointment approve/time-decline templates exist; manual service-request decline does not create equivalent customer notification. Every decision needs a durable, distinct template and audit record. |
-| A10 | Partial reminders | Customer reminder changed to 24 hours. Add separate owner notice and verified recurring execution; include immediate email rescheduling instruction; suppress stale/cancelled reminders. |
+| A09 | Implemented; live delivery pending | Manual request decline now commits one customer notification with its state change and audit. Owner UI exposes the action; active appointments require calendar decisions instead. Duplicate commands, stale notices and tenant denial pass database tests. Gmail receipt acceptance remains pending. |
+| A10 | Both reminders implemented; recurring/live execution pending | Approval now queues separate customer and owner notices at 24 elapsed hours. Owner notice includes contact, address, every selected task and CRM link without customer capabilities. Stale revisions suppress notices at lease and dispatch. Real worker trigger and inbox receipt remain unverified. |
 | A11 | Conversation notes implemented; broader timeline partial | Owner/admin can append internal request notes and customer notes with retry protection. Customer history includes explicitly linked request notes; no auto-match by email. Private records deny customer and platform-only access. Full email/service activity timeline remains unfinished; live owner UI acceptance pending. |
 | A12 | Not completed | Recurring appointments and exceptions need capacity reservations per occurrence, revisions, reminders and cancellation/reschedule workflows. |
 | A13 | Not completed | Day-of in-app briefing, full route list, printable daily calls and navigation from current location need implementation and mobile verification. |
@@ -56,7 +56,7 @@ A25 — Fixed in source: malformed service entries (including null) were normali
 
 ## Verified checks at this checkpoint
 
-- 48 unit tests passed, including malformed public intake validation, CRM bridge failures and real-handler retry behavior.
+- 50 unit tests passed, including malformed public intake validation, CRM bridge failures and real-handler retry behavior.
 - Local database migration and integration suites passed, including capacity, customer actions, owner blocks, invitations, platform isolation and invoice waivers.
 - CRM optimized Next.js production build and TypeScript passed after the owner-entry change.
 - Public website built nine HTML pages. Checked 268 internal links: no missing targets, missing fragments or duplicate IDs.

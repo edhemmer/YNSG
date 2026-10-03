@@ -38,6 +38,8 @@ select public.scheduling_command('20000000-0000-4000-8000-000000000001','submit'
 select pg_temp.assert_true((select count(*)=1 from public.appointment_tasks where kind='owner_approval'),'submit retry one approval task');
 select public.scheduling_command('20000000-0000-4000-8000-000000000001','approve',jsonb_build_object('id',(select id from public.appointments where status='proposal'),'revision',2,'evidenceId',pg_temp.fact(0)),'scheduler-approve-01');
 select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='appointment.reminder'),'one reminder');
+select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='appointment.owner_reminder'),'one separate owner reminder');
+select pg_temp.assert_true((select next_attempt_at=pg_temp.future_start()-interval '24 hours' from public.outbox where kind='appointment.owner_reminder'),'owner reminder 24 elapsed hours before arrival');
 select pg_temp.assert_true((select next_attempt_at=pg_temp.future_start()-interval '24 hours' from public.outbox where kind='appointment.reminder'),'24 elapsed hours before arrival');
 select pg_temp.hold(240,'scheduler-alternative',(select id from public.appointments where status='reserved'));
 select pg_temp.assert_true((select count(*)=2 from public.resource_reservations where active),'alternative retains original capacity');
@@ -45,6 +47,7 @@ select public.scheduling_command('20000000-0000-4000-8000-000000000001','submit'
 select public.scheduling_command('20000000-0000-4000-8000-000000000001','approve',jsonb_build_object('id',(select id from public.appointments where status='proposal'),'revision',2,'evidenceId',pg_temp.fact(240)),'scheduler-approve-02');
 select pg_temp.assert_true((select count(*)=1 from public.resource_reservations where active),'replacement swaps reservations');
 select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='appointment.reminder' and status='suppressed'),'old reminder suppressed');
+select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='appointment.owner_reminder' and status='suppressed'),'old owner reminder suppressed');
 select pg_temp.assert_true((select count(*)=1 from public.appointments where status='reserved'),'one confirmed appointment');
 do $$begin begin
  perform public.scheduling_command('20000000-0000-4000-8000-000000000001','decline_time',jsonb_build_object('id',(select id from public.appointments where status='reserved'),'revision',2,'reason','Stale owner link'),'scheduler-stale-01');raise exception 'TEST FAILED stale revision';exception when raise_exception then if sqlerrm<>'STALE_REVISION' then raise;end if;end;
@@ -66,8 +69,17 @@ update public.organizations set status='active' where id='20000000-0000-4000-800
 insert into private.google_accounts(organization_id,revision,encrypted_tokens,email,subject,scopes,gmail_test,test_key) values('20000000-0000-4000-8000-000000000001',1,'synthetic-not-real','owner@example.invalid','synthetic-subject',array['https://www.googleapis.com/auth/gmail.send'],'accepted','90000000-0000-4000-8000-000000000001');
 insert into private.mail_delivery_controls(organization_id,enabled,account_subject,test_key,configuration_version,receipt_confirmed_at,receipt_confirmed_by) values('20000000-0000-4000-8000-000000000001',true,'synthetic-subject','90000000-0000-4000-8000-000000000001',2,now(),'00000000-0000-4000-8000-000000000001');
 insert into public.integration_connections(organization_id,provider,status,secret_ref) values('20000000-0000-4000-8000-000000000001','gmail','active','synthetic-not-a-real-secret');
+-- Synthetic clock makes the future owner reminder due; no external message is sent.
+update public.outbox set next_attempt_at=now() where kind='appointment.owner_reminder' and status='pending';
 set local role authenticated;
 select id from public.claim_outbox('20000000-0000-4000-8000-000000000001',25);
+select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='appointment.owner_reminder' and status='leased'),'due owner reminder can be leased separately');
+reset role;
+-- State can change between claim and send. Dispatch checks again.
+update public.outbox set payload=jsonb_set(payload,'{appointmentRevision}','999') where kind='appointment.owner_reminder' and status='leased';
+set local role authenticated;
+select public.begin_delivery('20000000-0000-4000-8000-000000000001',id,lease_token) from public.outbox where kind='appointment.owner_reminder' and status='leased';
+select pg_temp.assert_true((select count(*)=2 from public.outbox where kind='appointment.owner_reminder' and status='suppressed'),'stale owner notice suppressed before send');
 select public.begin_delivery('20000000-0000-4000-8000-000000000001',id,lease_token) from public.outbox where status='leased';
 reset role;
 -- Simulate remote acceptance followed by process crash: no safe evidence of delivery available.

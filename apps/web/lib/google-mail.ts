@@ -6,6 +6,7 @@ import {
   appointmentMessage,
   type AppointmentMessageInput,
 } from "./appointment-message";
+import { requestDeclinedMessage } from "./request-message";
 type Intent = {
   id: string;
   object_id: string;
@@ -45,11 +46,17 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       body =
         "A new service request is saved in your CRM. Sign in to review it.\n" +
         process.env.APP_ORIGIN;
+    } else if (item.kind === "request.declined") {
+      const request = await db.from("service_requests").select("original_submission")
+        .eq("organization_id", org).eq("id", item.object_id).single();
+      if (request.error || request.data.original_submission.email !== item.payload.recipient) continue;
+      ({ to, subject, body } = requestDeclinedMessage(config.data.settings.displayName, request.data.original_submission));
     } else {
       const supported = [
         "appointment.owner_approval",
         "appointment.confirmation",
         "appointment.reminder",
+        "appointment.owner_reminder",
         "appointment.declined_time",
         "appointment.declined_service",
         "appointment.reschedule_requested",
@@ -78,6 +85,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       if (
         ![
           "appointment.owner_approval",
+          "appointment.owner_reminder",
           "appointment.reschedule_requested",
         ].includes(item.kind)
       ) {
