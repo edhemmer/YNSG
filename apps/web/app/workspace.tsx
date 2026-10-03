@@ -1,5 +1,6 @@
 "use client";
 import {companyTheme} from "../lib/company-brand";
+import NotificationAttention from "./notification-attention";
 import GoogleControls from './google-controls';
 import OwnerSetup from './owner-setup';
 import InvoiceDraft from './invoice-draft';
@@ -485,25 +486,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                             </button>
                           </div>
                         </div>
-                        <div className="card">
-                          <h2>Delivery needs attention</h2>
-                          {data.outbox.length ? (
-                            data.outbox.map((o) => (
-                              <div className="row" key={o.id}>
-                                <strong>{o.kind.replaceAll(".", " · ")}</strong>{" "}
-                                <span className="badge">
-                                  {o.status.replaceAll("_", " ")}
-                                </span>
-                              </div>
-                            ))
-                          ) : (
-                            <p>No queued communications are visible.</p>
-                          )}
-                          <p className="note">
-                            Notification delivery remains inactive until the
-                            Gmail connection and worker are tested.
-                          </p>
-                        </div>
+                        {["owner","admin"].includes(role || "") && <NotificationAttention organization={org}/>}
                       </>
                     )}
                     {(section === "Today" || section === "Work") && (
