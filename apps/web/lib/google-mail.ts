@@ -6,6 +6,8 @@ import {
   appointmentMessage,
   type AppointmentMessageInput,
 } from "./appointment-message";
+import { invoiceDocument } from "./invoice-document";
+import { invoiceMessage } from "./invoice-message";
 import { requestDeclinedMessage } from "./request-message";
 import { ownerRequestEmail } from "../../../lib/owner-request-email.js";
 type Intent = {
@@ -59,6 +61,15 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       body = rendered.text;
       html = rendered.html;
       replyTo = submission.email;
+    } else if (item.kind === "invoice.delivery") {
+      const invoice = await db.from("invoices").select("number,issued_at,total_cents,snapshot,payments(cents)")
+        .eq("organization_id", org).eq("id", item.object_id).single();
+      if(invoice.error) continue;
+      try {
+        const rendered = invoiceMessage(invoiceDocument(invoice.data));
+        if(rendered.to !== item.payload.recipient) continue;
+        ({to,subject,body,html} = rendered);
+      } catch { continue; }
     } else if (item.kind === "request.declined") {
       const request = await db.from("service_requests").select("original_submission")
         .eq("organization_id", org).eq("id", item.object_id).single();

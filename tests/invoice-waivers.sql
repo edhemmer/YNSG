@@ -33,6 +33,27 @@ select public.save_invoice_labor('20000000-0000-4000-8000-000000000001',(select 
 select public.complete_service_call('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),3,'complete-service-test-key');
 select public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),4,4500,true,'approved-invoice-key');
 select pg_temp.assert_true((select total_cents=4500 from public.invoices),'invoice uses reviewed reduced labor');
+do $$begin begin perform public.request_invoice_delivery('20000000-0000-4000-8000-000000000001',(select id from public.invoices limit 1),true,'invoice-send-disabled');raise exception 'TEST FAILED unverified email queued';exception when raise_exception then if sqlerrm<>'GMAIL_RECEIPT_REQUIRED' then raise;end if;end;end$$;
+reset role;
+update public.organizations set status='active' where id='20000000-0000-4000-8000-000000000001';
+insert into private.google_accounts(organization_id,revision,encrypted_tokens,email,subject,scopes,gmail_test,test_key) values('20000000-0000-4000-8000-000000000001',1,'synthetic-ciphertext','owner@example.invalid','synthetic-account',array['https://www.googleapis.com/auth/gmail.send'],'accepted','90000000-0000-4000-8000-000000000001');
+-- Explicit synthetic fixture only; no provider requests or real receipts.
+insert into public.configuration_versions(organization_id,version,settings) select organization_id,3,settings||'{"sender":"owner@example.invalid"}'::jsonb from public.configuration_versions where version=2;
+set local role authenticated;
+select public.configure_mail_delivery('20000000-0000-4000-8000-000000000001',true,1,'90000000-0000-4000-8000-000000000001',3,'invoice-mail-enable-key');
+select public.request_invoice_delivery('20000000-0000-4000-8000-000000000001',(select id from public.invoices limit 1),true,'invoice-send-key-one');
+select public.request_invoice_delivery('20000000-0000-4000-8000-000000000001',(select id from public.invoices limit 1),true,'invoice-send-key-one');
+select public.request_invoice_delivery('20000000-0000-4000-8000-000000000001',(select id from public.invoices limit 1),true,'invoice-send-key-two');
+select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='invoice.delivery'),'retries and repeat send clicks create one logical invoice email');
+select pg_temp.assert_true((select count(*)=1 from public.audit_events where action='invoice.delivery_requested'),'one delivery request audit');
+do $$begin begin perform public.request_invoice_delivery('20000000-0000-4000-8000-000000000001',(select id from public.invoices limit 1),false,'invoice-send-unreviewed');raise exception 'TEST FAILED unreviewed invoice queued';exception when raise_exception then if sqlerrm<>'INVOICE_REVIEW_REQUIRED' then raise;end if;end;end$$;
+select * from public.claim_outbox('20000000-0000-4000-8000-000000000001',25);
+select pg_temp.assert_true((select status='leased' from public.outbox where kind='invoice.delivery'),'explicit invoice delivery is leased');
+select pg_temp.assert_true((select status='pending' from public.outbox where kind='invoice.issued'),'issuance alone is never leased');
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
+do $$begin begin perform public.request_invoice_delivery('20000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000000',true,'invoice-cross-tenant-key');raise exception 'TEST FAILED cross-company send allowed';exception when insufficient_privilege then null;end;end$$;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+
 select pg_temp.assert_true((select snapshot->'recordedWork'->1->>'chargedCents'='0' from public.invoices),'unbilled work remains recorded');
 select pg_temp.assert_true((select snapshot->>'approvedLaborCents'='13500' from public.invoices),'original approved labor retained');
 select pg_temp.assert_true((select sum(debit_cents::bigint-credit_cents)=0 from public.journal_lines),'waiver invoice ledger balances');

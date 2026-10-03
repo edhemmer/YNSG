@@ -3,6 +3,7 @@ import {companyTheme} from "../lib/company-brand";
 import GoogleControls from './google-controls';
 import OwnerSetup from './owner-setup';
 import InvoiceDraft from './invoice-draft';
+import InvoiceDelivery from './invoice-delivery';
 import CustomerInvite from './customer-invite';
 import RelationshipNotes from './relationship-notes';
 import CalendarBlocks from './calendar-blocks';
@@ -755,6 +756,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                                 {usd(balance)} outstanding
                               </p>
                               <p>Issued total {usd(i.total_cents)}</p>
+                              {["owner","admin"].includes(role||"")&&<InvoiceDelivery organization={org} invoice={i.id}/>}
                               {finance && balance > 0 && (
                                 <PaymentForm
                                   invoice={i}

@@ -125,7 +125,7 @@ export default function InvoiceDraft({
       if (!response.ok) throw Error(data.error);
       retry.current = null;
       setMessage(
-        "Invoice approved and issued. Customer email delivery is not connected yet.",
+        "Invoice approved and issued. Open Money to review the invoice and separately request email delivery.",
       );
       saved();
     } catch (error) {
