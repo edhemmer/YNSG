@@ -739,6 +739,7 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
                                     : "Unpaid"}
                               </span>
                               <h2>Invoice {i.number}</h2>
+                              <a href={"/invoice?"+new URLSearchParams({organization:org,invoice:i.id})}>View / print invoice</a>
                               <p className="amount">
                                 {usd(balance)} outstanding
                               </p>
