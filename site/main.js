@@ -6,6 +6,14 @@ const tasks = {
   'Concrete pressure washing':['Concrete driveway','Concrete walks','Concrete patio'],
   'Something else':['Describe below']
 };
+// getRandomValues supports older iPhone browsers that do not yet expose randomUUID.
+function newRequestKey(){
+  if(typeof crypto.randomUUID==='function')return crypto.randomUUID();
+  const bytes=crypto.getRandomValues(new Uint8Array(16));
+  bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
+  const value=[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');
+  return `${value.slice(0,8)}-${value.slice(8,12)}-${value.slice(12,16)}-${value.slice(16,20)}-${value.slice(20)}`;
+}
 const form = document.querySelector('#request-form');
 if(form){
   const groups = form.querySelector('#service-groups');
@@ -87,6 +95,7 @@ if(form){
     section.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
     setTimeout(()=>categoryGroups.get(link.dataset.service)?.querySelector('summary').focus({preventScroll:true}),350);
   }));
+  let requestKey='', requestFingerprint='';
   form.addEventListener('submit',async event=>{
     event.preventDefault();
     if(!selected.size){message.textContent='Please choose at least one job, or choose Something else and tell us about it.';groups.querySelector('summary').focus();return;}
@@ -94,6 +103,9 @@ if(form){
     const button=form.querySelector('button[type=submit]');
     const data=Object.fromEntries(new FormData(form));
     data.services=[...selected.values()];
+    const fingerprint=JSON.stringify(data);
+    if(fingerprint!==requestFingerprint){requestKey=newRequestKey();requestFingerprint=fingerprint;}
+    data.requestKey=requestKey;
     button.disabled=true;
     button.firstChild.textContent='Sending… ';
     message.textContent='';

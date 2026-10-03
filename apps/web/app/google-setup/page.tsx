@@ -76,8 +76,8 @@ export default function GoogleSetup() {
         </p>
         <h2>After configuration</h2>
         <p>
-          Sign in to the CRM as an owner or administrator, complete two-step
-          verification, and open More → Google Calendar & Gmail. Connect Google,
+          Sign in to the CRM as an owner or administrator and open More →
+          Google Calendar & Gmail. Connect Google,
           select a calendar you own, check connection health, then send the test
           message to yourself.
         </p>

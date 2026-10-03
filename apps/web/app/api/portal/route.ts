@@ -72,19 +72,16 @@ export async function GET(request: Request) {
         .range(from, from + 20),
     ]);
     if (results.some((r) => r.error)) throw new Error("FAILED");
-    const jobs = (results[3].data || []).slice(0, 20).map((j) => j.id);
-    const appts = jobs.length
-      ? await db
-          .from("appointments")
-          .select(
-            "id,start_at,end_at,arrival_at,status,timezone,customer_response",
-          )
-          .eq("organization_id", org)
-          .in("job_id", jobs)
-          .order("start_at", { ascending: false })
-      : { data: [], error: null };
+    // RLS checks live customer relationships through request/job, including appointments before a job exists.
+    const appts = await db
+      .from("appointments")
+      .select("id,start_at,end_at,arrival_at,status,timezone,customer_response")
+      .eq("organization_id", org)
+      .order("start_at", { ascending: false })
+      .order("id")
+      .range(from, from + 20);
     if (appts.error) throw appts.error;
-    const hasMore = results.slice(2).some((r) => (r.data?.length || 0) > 20);
+    const hasMore = results.slice(2).some((r) => (r.data?.length || 0) > 20) || (appts.data?.length || 0) > 20;
     return NextResponse.json(
       {
         company: companies.data.find((c) => c.id === org),
@@ -93,7 +90,7 @@ export async function GET(request: Request) {
         requests: results[2].data?.slice(0, 20),
         jobs: results[3].data?.slice(0, 20),
         invoices: results[4].data?.slice(0, 20),
-        appointments: appts.data,
+        appointments: appts.data?.slice(0, 20),
         page,
         hasMore,
       },

@@ -27,12 +27,12 @@ Completed below means component checks passed, not that the whole live journey p
 |---|---|---|
 | A01 | Blocked live setup | Ed's verified email identity exists, but has zero staff memberships and has not claimed the invitation. Finish email sign-in and invited owner claim; dashboard must open with owner permissions. Invitation expires October 9 at 7:19 AM Chicago time. |
 | A02 | Deployed; live identity test pending | Dedicated /owner entry prefills edhemmer@gmail.com, requires no account password, and grants no permissions merely from that email. Build passes; deployed /owner returned HTTP 200 with the prefilled email. Live email return remains pending. |
-| A03 | Not connected | Public api/requests.js sends email without durable CRM intake. Replace through authorized tenant intake with idempotent commit, selected services and an outbox notification; prove one request after retries. Preserve existing working email flow until replacement is verified. |
+| A03 | Implemented; activation/live test pending | Public endpoint now supports server-bound durable CRM intake with all selections, stable retry key, HMAC abuse-control digest and atomic owner outbox intent. Existing Resend mode remains active until owner/company/Gmail worker setup is verified. See website-crm-intake.md for exact variables and acceptance. |
 | A04 | Missing website functionality | Header account/login, optional account creation after submission and saved-contact repeat requests are not connected to public intake. Test guest and signed-in journeys on a phone. |
 | A05 | Not connected | No Google accounts are connected. Owner must consent, select an owned calendar and verify Gmail sender. Prove contact/address/order-link event fields, moves, conflicts, retries and disconnect behavior. |
 | A06 | Not connected | No tenant mail controls are enabled; recurring worker activation is not verified. Require sender self-test receipt and explicit owner activation; prove retries and delivery with dashboard closed. |
 | A07 | Broken production topology | CRM project production branch lacks its apps/web root; working CRM is a protected preview. Set correct production branch/domain/environment only after acceptance; public customer routes must not require Vercel sign-in. |
-| A08 | Partial customer history | Portal appointments derive from paginated jobs, omitting pre-job requests and unrelated pages. Correct authorization and pagination at both database and API levels; test past/current/future appointments and tenant isolation. |
+| A08 | Corrected; live customer test pending | Appointment RLS now follows explicit request/customer or job/customer relationships. Portal independently paginates appointments. Database fixtures prove past/future pre-job access, unrelated-customer and tenant isolation, and immediate revocation. |
 | A09 | Partial decisions | Appointment approve/time-decline templates exist; manual service-request decline does not create equivalent customer notification. Every decision needs a durable, distinct template and audit record. |
 | A10 | Partial reminders | Customer reminder changed to 24 hours. Add separate owner notice and verified recurring execution; include immediate email rescheduling instruction; suppress stale/cancelled reminders. |
 | A11 | Not started as complete workflow | Customer/account notes and contact timeline need full owner editing/history and explicit customer-visible boundaries. |
@@ -56,7 +56,7 @@ A25 — Fixed in source: malformed service entries (including null) were normali
 
 ## Verified checks at this checkpoint
 
-- 43 unit tests passed, including malformed public intake validation.
+- 48 unit tests passed, including malformed public intake validation, CRM bridge failures and real-handler retry behavior.
 - Local database migration and integration suites passed, including capacity, customer actions, owner blocks, invitations, platform isolation and invoice waivers.
 - CRM optimized Next.js production build and TypeScript passed after the owner-entry change.
 - Public website built nine HTML pages. Checked 268 internal links: no missing targets, missing fragments or duplicate IDs.
