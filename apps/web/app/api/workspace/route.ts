@@ -67,8 +67,8 @@ export async function GET(request: Request) {
     if (!results[0]!.data)
       return NextResponse.json(
         {
-          error: "Complete staff verification or select an authorized company.",
-          code: "MFA_OR_ACCESS_REQUIRED",
+          error: "Select a company you have permission to manage.",
+          code: "ACCESS_REQUIRED",
         },
         { status: 403 },
       );

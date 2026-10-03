@@ -12,13 +12,13 @@ update public.organizations set status='active' where id='20000000-0000-4000-800
 insert into private.google_accounts(organization_id,revision,encrypted_tokens,email,subject,scopes,gmail_test,test_key) values('20000000-0000-4000-8000-000000000001',1,'synthetic-not-real','owner@example.invalid','synthetic-subject',array['https://www.googleapis.com/auth/gmail.send'],'accepted','90000000-0000-4000-8000-000000000001');
 insert into private.mail_delivery_controls(organization_id,enabled,account_subject,test_key,configuration_version,receipt_confirmed_at,receipt_confirmed_by) values('20000000-0000-4000-8000-000000000001',true,'synthetic-subject','90000000-0000-4000-8000-000000000001',2,now(),'00000000-0000-4000-8000-000000000001');
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select public.issue_customer_request_link('20000000-0000-4000-8000-000000000001','70000000-0000-4000-8000-000000000001','80000000-0000-4000-8000-000000000001',repeat('a',64));
 select public.issue_customer_request_link('20000000-0000-4000-8000-000000000001','70000000-0000-4000-8000-000000000001','80000000-0000-4000-8000-000000000001',repeat('a',64));
 select pg_temp.assert_true(not has_function_privilege('anon','public.customer_request_action(text,jsonb,text)','EXECUTE'),'anonymous cannot call action bridge');
 select pg_temp.assert_true(not has_function_privilege('authenticated','public.customer_request_context(text)','EXECUTE'),'ordinary client cannot read request bearer context directly');
 select pg_temp.assert_true(not has_table_privilege('authenticated','private.customer_request_links','SELECT'),'hashed link table remains private');
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
 do $$begin begin perform public.issue_customer_request_link('20000000-0000-4000-8000-000000000001','70000000-0000-4000-8000-000000000001','80000000-0000-4000-8000-000000000001',repeat('b',64));raise exception 'TEST FAILED other owner issued link';exception when insufficient_privilege then null;end;end$$;
 reset role;
 select pg_temp.assert_true((select count(*)=1 from private.customer_request_links),'issuer retry creates one grant');
@@ -59,7 +59,7 @@ insert into public.appointments(organization_id,id,request_id,start_at,end_at,ar
 update public.appointments set replaces_id='60000000-0000-4000-8000-000000000001' where id='60000000-0000-4000-8000-000000000002';
 insert into public.outbox(organization_id,id,kind,event_key,object_id,payload,status,lease_token,lease_until) values('20000000-0000-4000-8000-000000000001','70000000-0000-4000-8000-000000000002','appointment.declined_time','synthetic-declined-time','60000000-0000-4000-8000-000000000002','{"appointmentRevision":2,"reason":"That time is unavailable."}','leased','80000000-0000-4000-8000-000000000002',now()+interval '5 minutes');
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select public.issue_customer_request_link('20000000-0000-4000-8000-000000000001','70000000-0000-4000-8000-000000000002','80000000-0000-4000-8000-000000000002',repeat('c',64));
 reset role;
 set local role service_role;

@@ -1,6 +1,6 @@
 # Website and CRM production audit
 
-Checkpoint: October 3, 2026. Source baseline: CRM e927b8b; public website 2899334. This is an open acceptance worklist, not a production-readiness certificate.
+Checkpoint: October 3, 2026. Latest owner instruction removes mandatory 2FA; verified email and live company permissions remain required. Source baseline: CRM e927b8b; public website 2899334. This is an open acceptance worklist, not a production-readiness certificate.
 
 ## Required acceptance constraints
 
@@ -25,7 +25,7 @@ Completed below means component checks passed, not that the whole live journey p
 
 | ID | Classification | Finding and completion test |
 |---|---|---|
-| A01 | Blocked live setup | Ed's verified email identity exists, but has zero staff memberships and zero verified MFA factors. Finish email sign-in, authenticator setup and invited owner claim; dashboard must open with owner permissions. Invitation expires October 9 at 7:19 AM Chicago time. |
+| A01 | Blocked live setup | Ed's verified email identity exists, but has zero staff memberships and has not claimed the invitation. Finish email sign-in and invited owner claim; dashboard must open with owner permissions. Invitation expires October 9 at 7:19 AM Chicago time. |
 | A02 | Deployed; live identity test pending | Dedicated /owner entry prefills edhemmer@gmail.com, requires no account password, and grants no permissions merely from that email. Build passes; deployed /owner returned HTTP 200 with the prefilled email. Live email return remains pending. |
 | A03 | Not connected | Public api/requests.js sends email without durable CRM intake. Replace through authorized tenant intake with idempotent commit, selected services and an outbox notification; prove one request after retries. Preserve existing working email flow until replacement is verified. |
 | A04 | Missing website functionality | Header account/login, optional account creation after submission and saved-contact repeat requests are not connected to public intake. Test guest and signed-in journeys on a phone. |
@@ -70,11 +70,11 @@ These checks do not establish provider delivery, real-browser accessibility, dep
 
 CRM preview: https://ynsg-repo-git-codex-crm-workflow-edhemmer-5018s-projects.vercel.app
 
-Until /owner is deployed, the root page already offers passwordless email sign-in. Enter edhemmer@gmail.com, select the email sign-in link option and open the newest email in the same browser. If Vercel shows a protection screen, use your Vercel account. Owner setup currently requires an authenticator verification, not an account password. Finish the invited owner claim before business records can open.
+The deployed /owner page offers passwordless email sign-in. Enter edhemmer@gmail.com, select the email sign-in link option and open the newest email in the same browser. If Vercel shows a protection screen, use your Vercel account. Owner setup no longer requires an authenticator or an account password. Finish the invited owner claim before business records can open.
 
 Only owner-controlled verification is needed for:
 
-1. Actual sign-in email delivery and same-browser return, authenticator setup, owner dashboard and logout.
+1. Actual sign-in email delivery and same-browser return, owner setup, owner dashboard and logout.
 2. Google consent, owned-calendar selection and Gmail sender self-test. Configure company details before enabling customer mail.
 3. A designated test customer email and address, then approval/decline and real event/email delivery after the intake connection is implemented.
 4. Browser-closed reminder delivery after worker scheduling and both reminder paths are completed.

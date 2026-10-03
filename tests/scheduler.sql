@@ -25,7 +25,7 @@ create function pg_temp.hold(shift_minutes integer,key_text text,replaces uuid d
  select public.scheduling_command('20000000-0000-4000-8000-000000000001','hold',jsonb_build_object('requestId','50000000-0000-4000-8000-000000000001','evidenceId',pg_temp.fact(shift_minutes,resource_number),'replacesId',replaces),key_text)
 $$;
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select pg_temp.hold(0,'scheduler-first-hold');
 select pg_temp.assert_true((select count(*)=1 from public.resource_reservations where active),'hold reserves physical capacity');
 do $$begin begin perform pg_temp.hold(30,'scheduler-overlap-01');raise exception 'TEST FAILED overlap allowed';exception when exclusion_violation then null;end;end$$;

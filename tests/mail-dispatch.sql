@@ -4,7 +4,7 @@ insert into public.configuration_versions(organization_id,version,settings) valu
 insert into private.google_accounts(organization_id,revision,encrypted_tokens,email,subject,scopes,gmail_test,test_key) values('20000000-0000-4000-8000-000000000001',1,'synthetic-ciphertext','owner@example.invalid','synthetic-account',array['https://www.googleapis.com/auth/gmail.send'],'accepted','90000000-0000-4000-8000-000000000001');
 insert into public.outbox(organization_id,id,kind,event_key,object_id,payload) values('20000000-0000-4000-8000-000000000001','70000000-0000-4000-8000-000000000001','request.owner_notification','synthetic-request-notice','50000000-0000-4000-8000-000000000001','{}');
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select pg_temp.assert_true(public.mail_delivery_status('20000000-0000-4000-8000-000000000001')->>'enabled'='false','accepted provider test alone does not authorize delivery');
 select pg_temp.assert_true((select count(*)=0 from public.claim_outbox('20000000-0000-4000-8000-000000000001',5)),'accepted provider test alone leases nothing');
 do $$begin begin perform public.configure_mail_delivery('20000000-0000-4000-8000-000000000001',true,1,'90000000-0000-4000-8000-000000000002',2,'mail-invalid-test-0001');raise exception 'TEST FAILED wrong receipt test';exception when raise_exception then if sqlerrm<>'STALE_CONNECTION' then raise;end if;end;end$$;
@@ -12,7 +12,7 @@ select public.configure_mail_delivery('20000000-0000-4000-8000-000000000001',tru
 select public.configure_mail_delivery('20000000-0000-4000-8000-000000000001',true,1,'90000000-0000-4000-8000-000000000001',2,'mail-enable-key-0001');
 select pg_temp.assert_true(public.mail_delivery_status('20000000-0000-4000-8000-000000000001')->>'enabled'='true','verified owner receipt activates company permission');
 select pg_temp.assert_true(not has_function_privilege('authenticated','public.claim_mail_company()','EXECUTE'),'ordinary clients cannot run the tenant worker selector');
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
 do $$begin begin perform public.configure_mail_delivery('20000000-0000-4000-8000-000000000001',false,null,null,null,'mail-cross-tenant-0001');raise exception 'TEST FAILED cross-tenant disable';exception when insufficient_privilege then null;end;end$$;
 reset role;
 select pg_temp.assert_true((select count(*)=1 from public.audit_events where action='gmail.receipt_confirmed_and_enabled'),'one authorization audit on retry');
@@ -33,7 +33,7 @@ select public.begin_delivery('20000000-0000-4000-8000-000000000001',(select id f
 -- An operator pauses delivery while a provider call is in flight. Its result can still be recorded.
 reset role;
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select public.configure_mail_delivery('20000000-0000-4000-8000-000000000001',false,null,null,null,'mail-disable-key-001');
 reset role;
 set local role service_role;
@@ -46,7 +46,7 @@ select pg_temp.assert_true((select count(*)=1 from public.outbox where status='n
 select pg_temp.assert_true((select count(*)=1 from public.delivery_attempts where status='unknown'),'one uncertain provider attempt');
 -- Token/health refresh preserve authorization; a new account identity invalidates it.
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select public.configure_mail_delivery('20000000-0000-4000-8000-000000000001',true,1,'90000000-0000-4000-8000-000000000001',2,'mail-enable-key-0002');
 reset role;
 set local role service_role;
@@ -55,12 +55,12 @@ select public.google_store('20000000-0000-4000-8000-000000000001','tokens','{"re
 select pg_temp.assert_true((select count(*)=0 from public.claim_outbox('20000000-0000-4000-8000-000000000001',5)),'unknown send is never blindly retried');
 reset role;
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select pg_temp.assert_true(public.mail_delivery_status('20000000-0000-4000-8000-000000000001')->>'enabled'='true','token refresh retains authorization');
 reset role;
 update private.google_accounts set subject='different-account';
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select pg_temp.assert_true(public.mail_delivery_status('20000000-0000-4000-8000-000000000001')->>'enabled'='false','different account invalidates previous receipt');
 reset role;
 rollback;

@@ -115,13 +115,6 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
     [data, setData] = useState<Data | null>(null),
     [section, setSection] = useState("Today");
   const [page,setPage]=useState(0);
-  const [factor, setFactor] = useState<{
-      factorId: string;
-      enrolled: boolean;
-      qr?: string;
-      secret?: string;
-    } | null>(null),
-    [mfaCode, setMfaCode] = useState("");
   async function loadSession() {
     const sequence=++sessionSequence.current;
     try {
@@ -137,7 +130,7 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
     } catch (e) {
       if(sequence!==sessionSequence.current)return;
       if(e instanceof SessionApiError&&e.status===401){
-        setSession(null);setOrg('');setData(null);setFactor(null);setSessionUnavailable(false);
+        setSession(null);setOrg('');setData(null);setSessionUnavailable(false);
       }else{
         setSessionUnavailable(true);setError('We could not check your saved sign-in. Try again when your connection is available; you do not need another email.');
       }
@@ -188,25 +181,6 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
         setSent(true);
         setMessage(r.message);
       }
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setPending(false);
-    }
-  }
-  async function verifyMfa(event: FormEvent) {
-    event.preventDefault();
-    setPending(true);
-    setError("");
-    try {
-      await api("/api/mfa", {
-        action: "verify",
-        factorId: factor!.factorId,
-        code: mfaCode,
-      });
-      setFactor(null);
-      setMfaCode("");
-      await refresh();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -292,7 +266,6 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
                 retryKeys.current.clear();
                 setData(null);
                 setOrg("");
-                setFactor(null);
                 setEmail("");
                 setCode("");
                 setSent(false);
@@ -332,7 +305,7 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
             <p className="eyebrow">Welcome back</p>
             <h1>One place for your work.</h1>
             <p>
-              No password is needed. We’ll email you a sign-in link. Open it in this browser. Owner setup then verifies your authenticator before opening business records.
+              No password is needed. We’ll email you a sign-in link. Open it in this browser. Your verified email opens the companies you have permission to manage.
             </p>
             <p>On this device, your sign-in renews automatically as you use the workspace. Sign out when using a shared device.</p>
             <label htmlFor="email">Email address</label>
@@ -396,7 +369,6 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
                     reloadSequence.current++;
                     retryKeys.current.clear();
                     setData(null);
-                    setFactor(null);
                     setMessage("");
                   }}
                 >
@@ -411,67 +383,10 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
                 </select>
                 {!data && (
                   <div className="card">
-                    <h2>Verify staff access</h2>
-                    <p>
-                      Use your authenticator app to protect customer and
-                      financial records.
-                    </p>
-                    <button
-                      disabled={pending}
-                      onClick={async () => {
-                        setPending(true);
-                        setError("");
-                        try {
-                          setFactor(
-                            await api("/api/mfa", { action: "prepare" }),
-                          );
-                        } catch (e) {
-                          setError((e as Error).message);
-                        } finally {
-                          setPending(false);
-                        }
-                      }}
-                    >
-                      Set up or verify authenticator
-                    </button>
+                    <h2>Open your workspace</h2>
+                    <p>Your email sign-in is complete. If your workspace has not loaded, try again.</p>
+                    <button disabled={pending} onClick={() => void refresh()}>Reload workspace</button>
                   </div>
-                )}
-                {factor && (
-                  <form className="card" onSubmit={verifyMfa}>
-                    <h2>Authenticator verification</h2>
-                    {!factor.enrolled && (
-                      <>
-                        <p>
-                          Scan this code in your authenticator app, then enter
-                          its six-digit code. Keep this setup key private.
-                        </p>
-                        {factor.qr && (
-                          <img
-                            className="qr"
-                            alt="Authenticator setup QR code"
-                            src={`data:image/svg+xml;base64,${btoa(factor.qr)}`}
-                          />
-                        )}
-                        <details>
-                          <summary>Enter the key manually</summary>
-                          <code>{factor.secret}</code>
-                        </details>
-                      </>
-                    )}
-                    <label htmlFor="mfa">Six-digit code</label>
-                    <input
-                      id="mfa"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      pattern="[0-9]{6}"
-                      required
-                      value={mfaCode}
-                      onChange={(e) => setMfaCode(e.target.value)}
-                    />
-                    <div className="actions">
-                      <button disabled={pending}>Verify</button>
-                    </div>
-                  </form>
                 )}
                 {data && (
                   <>

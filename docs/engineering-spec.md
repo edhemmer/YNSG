@@ -37,15 +37,15 @@ Consolidation: operational photos and receipts reference private_files rather th
 
 | Role | Operational reads | Commercial writes | Money | Configuration |
 |---|---|---|---|---|
-| Owner/Admin (MFA) | org-scoped | approved commands | scoped records; tax Owner only | org configuration; no entitlement escalation |
-| Dispatcher (MFA) | customers/schedule | quote/schedule permissions only | no tax/private finance | no membership changes |
-| Technician (MFA) | assigned jobs and minimum brief | time/notes/permitted job transition | no general ledger/tax | none |
-| Bookkeeper (MFA) | billing contacts | no scope/schedule changes | invoice/payment/expense permissions | no membership changes |
-| Read-only/Support (MFA) | explicitly allowed operational records | none | explicit permission only | none |
+| Owner/Admin | org-scoped | approved commands | scoped records; tax Owner only | org configuration; no entitlement escalation |
+| Dispatcher | customers/schedule | quote/schedule permissions only | no tax/private finance | no membership changes |
+| Technician | assigned jobs and minimum brief | time/notes/permitted job transition | no general ledger/tax | none |
+| Bookkeeper | billing contacts | no scope/schedule changes | invoice/payment/expense permissions | no membership changes |
+| Read-only/Support | explicitly allowed operational records | none | explicit permission only | none |
 | Customer | explicit customer_access scope | own request/approval/reschedule request | shared invoices/receipts | own account only |
 | Platform Admin | operational platform health only | no hidden customer impersonation | software subscription only | platform entitlements, audited |
 
-Policies query current membership/access, not editable user metadata. Sensitive staff paths require aal2 and current session. Private Storage paths are org/file IDs with authorized lookup, no public bucket. Revocation checked on commands and reads. Views use security_invoker. SECURITY DEFINER only narrow command/helper functions with locked search_path, explicit actor/session checks and restricted EXECUTE. No generic user-supplied SQL/table name.
+Policies query current membership/access, not editable user metadata. Sensitive staff paths require verified email identity and a current session. Private Storage paths are org/file IDs with authorized lookup, no public bucket. Revocation checked on commands and reads. Views use security_invoker. SECURITY DEFINER only narrow command/helper functions with locked search_path, explicit actor/session checks and restricted EXECUTE. No generic user-supplied SQL/table name.
 
 ## Providers / topology
 

@@ -1,6 +1,6 @@
 insert into public.entitlements values('20000000-0000-4000-8000-000000000001','scheduling',true);
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select public.manage_calendar_block('20000000-0000-4000-8000-000000000001',null,null,now()+interval '10 days',now()+interval '11 days',false,'owner-block-test-key-01');
 select public.manage_calendar_block('20000000-0000-4000-8000-000000000001',null,null,now()+interval '10 days',now()+interval '11 days',false,'owner-block-test-key-01');
 select pg_temp.assert_true(jsonb_array_length(public.owner_calendar_blocks('20000000-0000-4000-8000-000000000001'))=1,'block retry creates one row');

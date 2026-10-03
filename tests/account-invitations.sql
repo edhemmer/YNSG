@@ -3,7 +3,7 @@ update auth.users set email='primary@example.invalid' where id='00000000-0000-40
 delete from public.customer_access where user_id='00000000-0000-4000-8000-000000000003';
 insert into public.contacts(organization_id,customer_id,name,email,relationship) values('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','Customer One','primary@example.invalid','requester');
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select public.invite_customer_account('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','primary@example.invalid',repeat('a',64));
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000004","session_id":"10000000-0000-4000-8000-000000000004","aal":"aal1"}',true);
 do $$begin begin perform public.claim_customer_account(repeat('a',64));raise exception 'TEST FAILED wrong email claim';exception when insufficient_privilege then null;end;end$$;

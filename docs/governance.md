@@ -1,3 +1,5 @@
+> October 3 owner directive: required 2FA is removed. Owner login uses verified email with live session, active invitation and stored company permissions. This supersedes prior authenticator requirements; tenant isolation and provider verification still apply.
+
 # Governing baseline and amendments
 
 Build authorization: owner, September 30, 2026; CRM master prompt revision 4.

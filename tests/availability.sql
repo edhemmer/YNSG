@@ -10,7 +10,7 @@ insert into public.resource_reservations(organization_id,appointment_id,resource
  select organization_id,id,'60000000-0000-4000-8000-000000000001',tstzrange(start_at,end_at,'[)'),true from public.appointments;
 set constraints all immediate;
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select pg_temp.assert_true(jsonb_array_length(public.scheduling_snapshot('20000000-0000-4000-8000-000000000001')->'resources')=1,'snapshot resources tenant scoped');
 select pg_temp.assert_true(jsonb_array_length(public.scheduling_snapshot('20000000-0000-4000-8000-000000000001')->'reservations')=0,'expired holds do not masquerade as availability blocks');
 do $$begin begin perform public.scheduling_snapshot('20000000-0000-4000-8000-000000000002');raise exception 'TEST FAILED tenant snapshot';exception when insufficient_privilege then null;end;end$$;

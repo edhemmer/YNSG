@@ -14,18 +14,13 @@ try{
   if(r.request().method()==='POST'){actions.push('claim');claimed=true;}
   return r.fulfill({json:{eligible:true,claimed,organization:claimed?org:null}});
  });
- await page.route('**/api/mfa',r=>{
-  const action=r.request().postDataJSON().action;actions.push(action);
-  return r.fulfill({json:action==='prepare'?{factorId:org,enrolled:true}:{ok:true}});
- });
+ await page.route('**/api/mfa', () => { throw new Error('Owner setup must not request an authenticator'); });
  await page.route('**/api/workspace?*',r=>r.fulfill({json:{company:{id:org,display_name:'Synthetic',timezone:'America/Chicago',status:'setup'},requests:[],customers:[],quotes:[],jobs:[],invoices:[],outbox:[],appointments:[],pagination:{page:0,hasMore:false,appointmentFrom:new Date().toISOString()}}}));
  await page.goto(process.env.TEST_BASE_URL||'http://127.0.0.1:3011');
- await page.getByRole('button',{name:'Set up or verify owner authenticator',exact:true}).click();
- await page.getByLabel('Six-digit authenticator code').fill('123456');
- await page.getByRole('button',{name:'Verify and finish owner setup',exact:true}).click();
+ await page.getByRole('button',{name:'Finish owner setup',exact:true}).click();
  await page.getByRole('button',{name:'More',exact:true}).waitFor();
- assert.deepEqual(actions,['prepare','verify','claim']);
+ assert.deepEqual(actions,['claim']);
  assert.deepEqual(errors,[]);
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
- console.log('PASS: owner setup requires MFA before claim, reloads membership, and renders on mobile without errors.');
+ console.log('PASS: verified email owner claims without an authenticator, reloads membership, and renders on mobile without errors.');
 }finally{await browser.close();}

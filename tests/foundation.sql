@@ -5,8 +5,8 @@ insert into auth.users(id,email_confirmed_at) values
  ('00000000-0000-4000-8000-000000000001',now()),('00000000-0000-4000-8000-000000000002',now()),
  ('00000000-0000-4000-8000-000000000003',now()),('00000000-0000-4000-8000-000000000004',now());
 insert into auth.sessions(id,user_id,aal) values
- ('10000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','aal2'),
- ('10000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000002','aal2'),
+ ('10000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','aal1'),
+ ('10000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000002','aal1'),
  ('10000000-0000-4000-8000-000000000003','00000000-0000-4000-8000-000000000003','aal1'),
  ('10000000-0000-4000-8000-000000000004','00000000-0000-4000-8000-000000000004','aal1');
 insert into public.organizations(id,slug,display_name,timezone) values
@@ -45,7 +45,7 @@ select pg_temp.assert_true((select count(*)=1 from public.audit_events),'one aud
 select pg_temp.assert_true((select count(*)=0 from public.memberships where user_id='00000000-0000-4000-8000-000000000003'),'guest does not acquire staff identity');
 
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select pg_temp.assert_true((select count(*)=1 from public.organizations),'owner cannot see other tenant');
 select pg_temp.assert_true((select count(*)=2 from public.customers),'owner sees only own customers');
 select public.review_service_request('20000000-0000-4000-8000-000000000001',(select id from public.service_requests limit 1),1,'reviewing','test-review-key-0001');
@@ -64,7 +64,7 @@ select pg_temp.assert_true((select count(*)=0 from public.outbox),'customer cann
 reset role;
 update public.memberships set revoked_at=now() where user_id='00000000-0000-4000-8000-000000000001';
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select pg_temp.assert_true((select count(*)=0 from public.customers),'stale token cannot bypass revoked membership');
 reset role;
 delete from auth.sessions where id='10000000-0000-4000-8000-000000000003';

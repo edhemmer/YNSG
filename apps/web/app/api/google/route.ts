@@ -53,7 +53,7 @@ function failed(error: unknown) {
   if(error instanceof Error&&error.message==='UNAUTHORIZED')return json({error:'UNAUTHORIZED'},401);
   const code =
     error instanceof GoogleFailure ? error.code : "GOOGLE_ACTION_FAILED";
-  return json({ error: code }, code === "OWNER_MFA_REQUIRED" ? 403 : 400);
+  return json({ error: code }, code === "OWNER_ACCESS_REQUIRED" ? 403 : 400);
 }
 export async function GET(request: Request) {
   try {

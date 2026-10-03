@@ -57,7 +57,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     if (error instanceof Error && error.message === 'UNAUTHORIZED') return json({ error: 'Sign in to check times.' }, 401);
-    if (error instanceof GoogleFailure) return json({ error: 'Connect an authorized Google calendar before checking times.', code: error.code }, error.code === 'OWNER_MFA_REQUIRED' ? 403 : 409);
+    if (error instanceof GoogleFailure) return json({ error: 'Connect an authorized Google calendar before checking times.', code: error.code }, error.code === 'OWNER_ACCESS_REQUIRED' ? 403 : 409);
     if (error instanceof DomainError) return json({ error: error.message, code: error.code }, 409);
     if (error instanceof z.ZodError) return json({ error: 'Review the scheduling settings and selected resources.', code: 'VALIDATION' }, 400);
     return json({ error: 'Times could not be checked. No appointment was created.', code: 'CHECK_FAILED' }, 503);

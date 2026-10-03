@@ -35,7 +35,7 @@ async function context(db:Awaited<ReturnType<typeof authorizeGoogle>>['db'],org:
  if(r.error)throw new Error(r.error.message);return r.data;
 }
 function failed(e:unknown){
- if(e instanceof GoogleFailure)return json({error:e.code==='GOOGLE_EVENT_CHANGED'?'The Google event changed. Resolve its sync issue before approval.':'A current authorized Google calendar check is required.',code:e.code},e.code==='OWNER_MFA_REQUIRED'?403:409);
+ if(e instanceof GoogleFailure)return json({error:e.code==='GOOGLE_EVENT_CHANGED'?'The Google event changed. Resolve its sync issue before approval.':'A current authorized Google calendar check is required.',code:e.code},e.code==='OWNER_ACCESS_REQUIRED'?403:409);
  if(e instanceof DomainError)return json({error:e.message,code:e.code},409);
  if(e instanceof z.ZodError)return json({error:'Complete the scheduling review and choose valid resources and times.',code:'VALIDATION'},400);
  const code=e instanceof Error?e.message:'FAILED';
@@ -64,9 +64,9 @@ export async function POST(request:Request){
   }
   const buffer=ctx.settings.scheduling.bufferMinutes;if(buffer===null)throw new Error('SETUP_REQUIRED');
   const busy=await reviewedBusy(token,account.calendar_id,new Date(start-(buffer+input.travelBeforeMinutes)*60000).toISOString(),new Date(end+(buffer+input.travelAfterMinutes)*60000).toISOString(),ctx.settings.timezone,own);
-  // getUser + owner/MFA RPC have validated this JWT before extracting its session identifier.
+  // getUser + owner-access RPC have validated this JWT before extracting its session identifier.
   const claims=JSON.parse(Buffer.from(access.split('.')[1]!,'base64url').toString('utf8'));
-  const session=z.uuid().parse(claims.session_id);if(claims.aal!=='aal2')throw new Error('FORBIDDEN');
+  const session=z.uuid().parse(claims.session_id);
   const normalized={...input,startAt:new Date(start).toISOString(),endAt:new Date(end).toISOString(),arrivalAt:new Date(start+input.arrivalOffsetMinutes*60000).toISOString(),commandInput:input};
   const review=await serverDatabase().rpc('record_scheduling_review',{p_org:input.organizationId,p_actor:user.id,p_session:session,p_key:hash(input.key+':facts:'+busy.checkedAt),p_input:normalized,p_provider:{...busy,connectionRevision:account.revision,windowStart:new Date(start-(buffer+input.travelBeforeMinutes)*60000).toISOString(),windowEnd:new Date(end+(buffer+input.travelAfterMinutes)*60000).toISOString()}});
   if(review.error)throw new Error(review.error.message);

@@ -1,6 +1,6 @@
 -- Uses rolled-back foundation fixture prefix. No live OAuth tokens.
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select pg_temp.assert_true(public.google_access('20000000-0000-4000-8000-000000000001'),'owner may manage own Google connection');
 select pg_temp.assert_true(not public.google_access('20000000-0000-4000-8000-000000000002'),'other tenant forbidden');
 do $$begin begin perform public.google_store('20000000-0000-4000-8000-000000000001','read','{}');raise exception 'TEST FAILED token store exposed';exception when insufficient_privilege then null;end;end$$;

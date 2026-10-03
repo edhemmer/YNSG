@@ -5,7 +5,7 @@ async function setup(claim:boolean){
  try {
   const {db}=await authenticated();
   const {data,error}=await db.rpc('owner_setup',{p_claim:claim});
-  if(error)return NextResponse.json({error:'Owner setup requires an active invitation and authenticator verification.'},{status:403,headers:{'Cache-Control':'no-store'}});
+  if(error)return NextResponse.json({error:'Owner setup requires a verified email sign-in and an active invitation.'},{status:403,headers:{'Cache-Control':'no-store'}});
   return NextResponse.json(data,{headers:{'Cache-Control':'no-store'}});
  }catch(error){return failure(error);}
 }

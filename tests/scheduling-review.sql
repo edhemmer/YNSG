@@ -28,7 +28,7 @@ create function pg_temp.provider_input() returns jsonb language sql as $$select 
 create table pg_temp.review_results(value jsonb,input jsonb);
 grant all on pg_temp.review_results to authenticated,service_role;
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select pg_temp.assert_true(public.scheduling_review_context('20000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001',null)->>'requestRevision'='1','owner receives current request context');
 select pg_temp.assert_true(not has_function_privilege('authenticated','public.record_scheduling_review(uuid,uuid,uuid,text,jsonb,jsonb)','EXECUTE'),'browser cannot mint trusted provider facts');
 reset role;
@@ -43,7 +43,7 @@ select public.record_scheduling_review('20000000-0000-4000-8000-000000000001','0
 reset role;
 select pg_temp.assert_true((select count(*)=1 from private.scheduling_reviews),'one trusted review on retry');
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select public.commit_reviewed_schedule('20000000-0000-4000-8000-000000000001',(select input from pg_temp.review_results),'review-complete-proposal',(select (value->>'evidenceId')::uuid from pg_temp.review_results));
 select public.commit_reviewed_schedule('20000000-0000-4000-8000-000000000001',(select input from pg_temp.review_results),'review-complete-proposal',null);
 select pg_temp.assert_true((select count(*)=1 from public.appointments where status='proposal' and revision=2),'one submitted proposal, no abandoned intermediate hold');
@@ -61,7 +61,7 @@ select set_config('request.jwt.claims','{"role":"service_role"}',true);
 insert into pg_temp.review_results select public.record_scheduling_review('20000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','review-approve-proposal',pg_temp.review_input(pg_temp.appointment_id()),pg_temp.provider_input()),pg_temp.review_input(pg_temp.appointment_id())->'commandInput';
 reset role;
 set local role authenticated;
-select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select public.commit_reviewed_schedule('20000000-0000-4000-8000-000000000001',(select input from pg_temp.review_results),'review-complete-approval',(select (value->>'evidenceId')::uuid from pg_temp.review_results));
 select pg_temp.assert_true((select count(*)=1 from public.appointments where status='reserved' and revision=3),'owner confirmation converts same reservation');
 select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='appointment.confirmation'),'one confirmation intent');

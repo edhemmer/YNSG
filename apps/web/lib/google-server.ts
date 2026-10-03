@@ -55,7 +55,7 @@ export function oauth() {
 export async function authorizeGoogle(org: string) {
   const session = await authenticated();
   const { data, error } = await session.db.rpc("google_access", { p_org: org });
-  if (error || data !== true) throw new GoogleFailure("OWNER_MFA_REQUIRED");
+  if (error || data !== true) throw new GoogleFailure("OWNER_ACCESS_REQUIRED");
   return session;
 }
 export function serverDatabase(){
@@ -176,7 +176,7 @@ export async function finishGoogle(state: string, nonce: string, code: string) {
     access.error ||
     access.data !== true
   )
-    throw new GoogleFailure("OWNER_MFA_REQUIRED");
+    throw new GoogleFailure("OWNER_ACCESS_REQUIRED");
   const client = oauth();
   const { tokens } = await client.getToken({
     code,
