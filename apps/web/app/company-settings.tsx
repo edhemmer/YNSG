@@ -429,6 +429,13 @@ export default function CompanySettingsPanel({
             </label>
           </fieldset>
           <fieldset disabled={pending}>
+            <legend>After an invoice is paid</legend>
+            <p>A thank-you email queues when confirmed payments cover the full invoice. Sending requires your verified Google connection and enabled email delivery.</p>
+            <label className="check"><input type="checkbox" checked={draft.review.enabled} onChange={e=>change({review:{...draft.review,enabled:e.target.checked}})} />Include a review request in the thank-you email</label>
+            <label>Review page link (optional until enabled)<input type="url" placeholder="https://" required={draft.review.enabled} value={draft.review.url||''} onChange={e=>change({review:{...draft.review,url:e.target.value||null}})} /></label>
+            <p>Use the HTTPS link where customers can leave a review. Leave this off until your review page is ready.</p>
+          </fieldset>
+          <fieldset disabled={pending}>
             <legend>Rates and invoices</legend>
             <label>
               Standard hourly rate ($)

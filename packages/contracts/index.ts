@@ -26,7 +26,7 @@ export const companySettings = z.object({
   hourly:z.object({standardCents:money.refine(v=>v>0),communityCents:money.refine(v=>v>0),minimumMinutes:z.literal(120),incrementMinutes:z.literal(30),partialExtension:z.enum(['ceil','exact']).nullable()}).strict(),
   scheduling:z.object({weekdays:z.array(z.number().int().min(1).max(7)).min(1).max(7),earliestStart:z.number().int().min(0).max(1439),latestStart:z.number().int().min(0).max(1439),endOfDay:z.number().int().min(0).max(1440),bufferMinutes:z.number().int().min(0).max(180).nullable(),selectionMinutes:z.number().int().min(1).max(60),proposalMinutes:z.number().int().min(1).max(10080),leadMinutes:z.number().int().min(0).max(527040),horizonMinutes:z.number().int().min(1).max(527040),pendingLimit:z.number().int().min(1).max(5)}).strict().refine(v=>v.horizonMinutes>v.leadMinutes,{message:'Booking horizon must exceed minimum notice'}),
   sellerLegalName:z.string().min(2).max(160),sellerVerified:z.boolean(),invoiceTerms:z.string().min(1).max(4000).nullable(),taxTreatmentVerified:z.boolean(),laborTaxTreatment:z.enum(['unreviewed','reviewed_non_taxable']),
-  review:z.object({enabled:z.boolean(),url:z.url().refine(v=>new URL(v).protocol==='https:').nullable()}).strict(),
+  review:z.object({enabled:z.boolean(),url:z.url().refine(v=>{const u=new URL(v);return u.protocol==='https:'&&!u.username&&!u.password;}).nullable()}).strict(),
 }).strict().refine(v=>!v.review.enabled||v.review.url!==null,{message:'Review URL required',path:['review','url']});
 export type CompanySettings = z.infer<typeof companySettings>;
 export type ErrorCode='VALIDATION'|'FORBIDDEN'|'UNAUTHORIZED'|'STALE_REVISION'|'IDEMPOTENCY_CONFLICT'|'TRANSITION'|'SETUP_REQUIRED'|'CAPACITY_CONFLICT'|'PROVIDER_UNAVAILABLE';

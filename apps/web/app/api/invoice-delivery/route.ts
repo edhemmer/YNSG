@@ -9,7 +9,8 @@ export async function GET(request:Request){try{
  const permission=await db.rpc('mail_delivery_status',{p_org:organization});if(permission.error)throw permission.error;
  const record=await db.from('invoices').select('snapshot').eq('organization_id',organization).eq('id',invoice).maybeSingle();if(record.error)throw record.error;if(!record.data)return NextResponse.json({error:'Invoice unavailable.'},{status:404,headers});
  const delivery=await db.from('outbox').select('status').eq('organization_id',organization).eq('event_key',`invoice:${invoice}:delivery`).maybeSingle();if(delivery.error)throw delivery.error;
- return NextResponse.json({enabled:process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true'&&permission.data?.enabled===true,recipient:record.data.snapshot?.recipient?.email||null,status:delivery.data?.status||'not_requested'},{headers});
+ const paid=await db.from('outbox').select('status,payload').eq('organization_id',organization).eq('event_key',`invoice:${invoice}:paid`).maybeSingle();if(paid.error)throw paid.error;
+ return NextResponse.json({paidStatus:paid.data?.payload?.schemaVersion===2?paid.data.status:'not_queued',enabled:process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true'&&permission.data?.enabled===true,recipient:record.data.snapshot?.recipient?.email||null,status:delivery.data?.status||'not_requested'},{headers});
 }catch(e){return failure(e)}}
 export async function POST(request:Request){
  if(!sameOrigin(request))return NextResponse.json({error:'Request not accepted.'},{status:403,headers});

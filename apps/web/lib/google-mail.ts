@@ -8,6 +8,7 @@ import {
 } from "./appointment-message";
 import { invoicePdf } from "./invoice-pdf";
 import { invoiceDocument } from "./invoice-document";
+import { paidInvoiceMessage } from "./paid-invoice-message";
 import { invoiceMessage } from "./invoice-message";
 import { requestDeclinedMessage } from "./request-message";
 import { ownerRequestEmail } from "../../../lib/owner-request-email.js";
@@ -63,16 +64,16 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       body = rendered.text;
       html = rendered.html;
       replyTo = submission.email;
-    } else if (item.kind === "invoice.delivery") {
+    } else if (item.kind === "invoice.delivery" || item.kind === "invoice.paid") {
       const invoice = await db.from("invoices").select("number,issued_at,total_cents,snapshot,payments(cents)")
         .eq("organization_id", org).eq("id", item.object_id).single();
       if(invoice.error) continue;
       try {
         const document = invoiceDocument(invoice.data);
-        const rendered = invoiceMessage(document);
+        const rendered = item.kind === "invoice.paid" ? paidInvoiceMessage(document,item.payload.review) : invoiceMessage(document);
         if(rendered.to !== item.payload.recipient) continue;
         ({to,subject,body,html} = rendered);
-        attachment = {filename:`invoice-${document.number}.pdf`,bytes:await invoicePdf(document)};
+        if(item.kind === "invoice.delivery") attachment = {filename:`invoice-${document.number}.pdf`,bytes:await invoicePdf(document)};
       } catch { continue; }
     } else if (item.kind === "request.declined") {
       const request = await db.from("service_requests").select("original_submission")

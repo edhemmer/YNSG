@@ -2,7 +2,7 @@
 update public.catalog_services set compliance='approved',pricing_mode='hourly';
 insert into public.entitlements values('20000000-0000-4000-8000-000000000001','finance',true);
 insert into public.configuration_versions(organization_id,version,settings) values('20000000-0000-4000-8000-000000000001',2,
- '{"intakeEnabled":true,"cities":["DeKalb"],"region":"IL","privacyVersion":"test-only","notificationRecipient":"owner@example.invalid","hourly":{"standardCents":6000,"communityCents":4500},"policyVersion":"synthetic-1","sellerVerified":true,"sellerLegalName":"SYNTHETIC TEST ONLY","taxTreatmentVerified":true,"laborTaxTreatment":"reviewed_non_taxable","invoiceTerms":"Synthetic test only"}');
+ '{"intakeEnabled":true,"cities":["DeKalb"],"region":"IL","privacyVersion":"test-only","notificationRecipient":"owner@example.invalid","hourly":{"standardCents":6000,"communityCents":4500},"policyVersion":"synthetic-1","sellerVerified":true,"sellerLegalName":"SYNTHETIC TEST ONLY","taxTreatmentVerified":true,"laborTaxTreatment":"reviewed_non_taxable","invoiceTerms":"Synthetic test only","displayName":"Synthetic Company","sender":"owner@example.invalid","review":{"enabled":true,"url":"https://example.invalid/review"}}');
 set local role service_role;
 select set_config('request.jwt.claims','{"role":"service_role"}',true);
 select public.submit_service_request('20000000-0000-4000-8000-000000000001','test-commercial-01',repeat('a',64),'{"service":"Lawn care","name":"Synthetic Test","phone":"5550000000","email":"test@example.invalid","street":"100 Test Street","city":"DeKalb","description":"Synthetic integration request","communityRate":"Yes"}');
@@ -47,5 +47,35 @@ reset role;
 set constraints all immediate;
 do $$begin begin update public.invoices set total_cents=1;raise exception 'TEST FAILED invoice mutable';exception when raise_exception then if sqlerrm<>'IMMUTABLE_RECORD' then raise;end if;end;end$$;
 do $$begin begin insert into public.journal_entries(organization_id,source_kind,source_id) values('20000000-0000-4000-8000-000000000001','expense',gen_random_uuid());raise exception 'TEST FAILED unbalanced journal accepted';exception when raise_exception then if sqlerrm<>'UNBALANCED_JOURNAL' then raise;end if;end;end$$;
+
+select pg_temp.assert_true((select payload->>'schemaVersion'='2' and payload->>'recipient'='test@example.invalid' and payload->'review'->>'url'='https://example.invalid/review' from public.outbox where kind='invoice.paid'),'paid event freezes recipient and reviewed destination');
+select pg_temp.assert_true((select private.paid_notice_current(organization_id,id) from public.outbox where kind='invoice.paid'),'settled owner-approved invoice is current');
+select pg_temp.assert_true(not has_function_privilege('authenticated','private.paid_notice_current(uuid,uuid)','EXECUTE'),'no direct paid-state privileged API');
+update public.organizations set status='active';
+insert into private.google_accounts(organization_id,revision,encrypted_tokens,email,subject,scopes,gmail_test,test_key) values('20000000-0000-4000-8000-000000000001',1,'synthetic-ciphertext','owner@example.invalid','synthetic-account',array['https://www.googleapis.com/auth/gmail.send'],'accepted','90000000-0000-4000-8000-000000000001');
+insert into public.outbox(organization_id,event_key,kind,object_id,payload) select organization_id,'legacy-paid-test','invoice.paid',object_id,'{"schemaVersion":1}' from public.outbox where kind='invoice.paid';
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select public.configure_mail_delivery('20000000-0000-4000-8000-000000000001',true,1,'90000000-0000-4000-8000-000000000001',2,'paid-mail-enable-test');
+select * from public.claim_outbox('20000000-0000-4000-8000-000000000001',25);
+reset role;
+select pg_temp.assert_true((select status='pending' from public.outbox where event_key='legacy-paid-test'),'legacy event never leased');
+select pg_temp.assert_true((select status='leased' from public.outbox where kind='invoice.paid' and payload->>'schemaVersion'='2'),'new settled paid event leased');
+-- Corrupt event recipient after lease; dispatch must stop instead of sending to a different address.
+update public.outbox set payload=jsonb_set(payload,'{recipient}','"different@example.invalid"') where kind='invoice.paid' and payload->>'schemaVersion'='2';
+set local role authenticated;
+select pg_temp.assert_true(public.begin_delivery('20000000-0000-4000-8000-000000000001',(select id from public.outbox where kind='invoice.paid' and payload->>'schemaVersion'='2'),(select lease_token from public.outbox where kind='invoice.paid' and payload->>'schemaVersion'='2'))->>'status'='suppressed','invalid recipient suppressed at final dispatch boundary');
+reset role;
+
+update public.outbox set payload=jsonb_set(payload,'{recipient}','"test@example.invalid"'),status='pending',lease_until=null,lease_token=null where kind='invoice.paid' and payload->>'schemaVersion'='2';
+set local role authenticated;
+select * from public.claim_outbox('20000000-0000-4000-8000-000000000001',25);
+select pg_temp.assert_true(public.begin_delivery('20000000-0000-4000-8000-000000000001',(select id from public.outbox where kind='invoice.paid' and payload->>'schemaVersion'='2'),(select lease_token from public.outbox where kind='invoice.paid' and payload->>'schemaVersion'='2'))->>'status'='sending','valid paid event enters delivery');
+select public.finish_delivery('20000000-0000-4000-8000-000000000001',(select id from public.outbox where kind='invoice.paid' and payload->>'schemaVersion'='2'),(select lease_token from public.outbox where kind='invoice.paid' and payload->>'schemaVersion'='2'),'needs_reconciliation',null,'synthetic timeout');
+select * from public.claim_outbox('20000000-0000-4000-8000-000000000001',25);
+select pg_temp.assert_true((select status='needs_reconciliation' from public.outbox where kind='invoice.paid' and payload->>'schemaVersion'='2'),'uncertain paid thank-you never blindly retried');
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
+do $$begin begin perform public.claim_outbox('20000000-0000-4000-8000-000000000001',25);raise exception 'TEST FAILED cross-company mail';exception when insufficient_privilege then null;end;end$$;
+reset role;
 select 'PASS: versioned quote, approval, invoice, manual payment and ledger assertions; rollback' as evidence;
 rollback;
