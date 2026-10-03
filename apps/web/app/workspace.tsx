@@ -1,4 +1,5 @@
 "use client";
+import {companyTheme} from "../lib/company-brand";
 import GoogleControls from './google-controls';
 import OwnerSetup from './owner-setup';
 import InvoiceDraft from './invoice-draft';
@@ -60,6 +61,7 @@ type Appointment = {
   customer_response: string;
 };
 type Data = {
+  brand: {navy:string;forest:string;gold:string;cream:string}|null;
   company: {
     id: string;
     display_name: string;
@@ -251,7 +253,7 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
   const customerName = (id: string) =>
     data?.customers.find((c) => c.id === id)?.display_name || "Customer record";
   return (
-    <>
+    <div className="company-workspace" style={companyTheme(data?.brand)}>
       <header className="top">
         <div className="brand">
           {data?.company.display_name || "Service workspace"}
@@ -806,7 +808,7 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
           </p>
         )}
       </main>
-    </>
+    </div>
   );
 }
 function QuoteForm({

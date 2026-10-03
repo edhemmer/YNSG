@@ -83,6 +83,10 @@ Only owner-controlled verification is needed for:
 
 Do not test unbuilt features as though they are ready. Provider consent and owner identity setup cannot be replaced by a database grant or fabricated test receipt.
 
+## Architecture and advertising amendment
+
+See platform-and-launch-checklist.md. Independent CRM deployment and per-business website configuration are now explicit build requirements. Company colors must control the owner workspace with actual-surface contrast checks. Website advertising acceptance requires a real phone submission and owner receipt; it does not certify unfinished CRM scheduling, notifications or invoicing. Domain mapping, auth origins, all-channel logo assets and multi-company onboarding remain open.
+
 ## Execution order and release gate
 
 1. A01–A02: owner entry and identity setup.
