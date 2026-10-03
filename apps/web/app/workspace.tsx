@@ -33,6 +33,7 @@ type Quote = {
 };
 type Job = {
   id: string;
+  invoices: {id:string;number:number}[];
   customer_id: string;
   quote_id: string;
   status: string;
@@ -40,6 +41,7 @@ type Job = {
 };
 type Invoice = {
   id: string;
+  job_id: string;
   number: number;
   total_cents: number;
   issued_at: string;
@@ -98,6 +100,7 @@ async function api(path: string, value?: unknown) {
   return data;
 }
 export default function Workspace({ configured, initialEmail = "" }: { configured: boolean; initialEmail?: string }) {
+  const [invoiceBusy, setInvoiceBusy] = useState(false);
   const reloadSequence = useRef(0);
   const sessionSequence = useRef(0);
   const [sessionUnavailable,setSessionUnavailable]=useState(false);
@@ -676,30 +679,28 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
                             </span>
                             <h3>{customerName(j.customer_id)}</h3>
                             {data.features?.productionWorkflows&&['owner','admin','technician'].includes(role||'') && <div className="actions">
-                              {['approved','scheduled','en_route','arrived'].includes(j.status)&&<button disabled={pending} onClick={()=>void fieldAction(j,'start')}>Start work</button>}
-                              {j.status==='working'&&<button disabled={pending} onClick={()=>void fieldAction(j,'pause')}>Pause work</button>}
-                              {j.status==='paused'&&<button disabled={pending} onClick={()=>void fieldAction(j,'resume')}>Resume work</button>}
+                              {['approved','scheduled','en_route','arrived'].includes(j.status)&&<button disabled={pending || invoiceBusy} onClick={()=>void fieldAction(j,'start')}>Start work</button>}
+                              {j.status==='working'&&<button disabled={pending || invoiceBusy} onClick={()=>void fieldAction(j,'pause')}>Pause work</button>}
+                              {j.status==='paused'&&<button disabled={pending || invoiceBusy} onClick={()=>void fieldAction(j,'resume')}>Resume work</button>}
                             </div>}
-                            {["working","paused"].includes(j.status)&&["owner","admin"].includes(role||"")&&<InvoiceDraft organization={org} job={j.id} revision={j.revision} saved={()=>void refresh()}/>}
+                            {["working","paused","completed"].includes(j.status)&&j.invoices.length === 0&&["owner","admin"].includes(role||"")&&<InvoiceDraft organization={org} job={j.id} revision={j.revision} completed={j.status==="completed"} blocked={pending || invoiceBusy} onBusy={setInvoiceBusy} saved={()=>void refresh()}/>}
                             {["working", "paused"].includes(j.status) &&
                             ["owner", "admin"].includes(role || "") ? (
                               <button
-                                disabled={pending}
+                                disabled={pending || invoiceBusy}
                                 onClick={() =>
                                   void act({
-                                    command: "CompleteAndInvoice",
+                                    command: "CompleteServiceCall",
                                     id: j.id,
                                     revision: j.revision,
                                   })
                                 }
                               >
-                                Complete &amp; Invoice
+                                Complete service call
                               </button>
                             ) : (
                               <p>
-                                Scheduling and field actions are being
-                                integrated. This record has not been marked as
-                                completed.
+                                {j.status === "completed" ? (j.invoices.length > 0 ? "Service call completed. The approved invoice is in Money." : "Service call completed. Review and approve the invoice draft when ready. Nothing has been emailed.") : j.status === "canceled" ? "This service call was canceled." : "Start work when you arrive. Complete the service call before approving its invoice."}
                               </p>
                             )}
                           </article>

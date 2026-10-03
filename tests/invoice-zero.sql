@@ -21,7 +21,7 @@ select public.approve_quote('20000000-0000-4000-8000-000000000001',(select id fr
 select public.approve_quote('20000000-0000-4000-8000-000000000001',(select id from public.quotes limit 1),2,'Synthetic recorded approval for test only');
 select pg_temp.assert_true((select count(*)=1 from public.jobs),'approval retry creates one job');
 do $$begin begin
- perform public.complete_and_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),1);raise exception 'TEST FAILED premature completion';
+ perform public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),1,0,true,'premature-invoice-key');raise exception 'TEST FAILED premature completion';
  exception when raise_exception then if sqlerrm<>'TRANSITION' then raise;end if;end;end$$;
 reset role;
 -- Scheduling/execution not under test here; explicit fixture establishes their precondition.
@@ -30,7 +30,8 @@ set local role authenticated;
 
 select public.save_invoice_labor('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),2,'[{"description":"Recorded garden work","recordedMinutes":120,"chargedCents":0,"waiverReason":"Courtesy"},{"description":"Small extra task","recordedMinutes":15,"chargedCents":0,"waiverReason":"Courtesy"}]','invoice-draft-test-key01');
 select public.save_invoice_labor('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),2,'[{"description":"Recorded garden work","recordedMinutes":120,"chargedCents":0,"waiverReason":"Courtesy"},{"description":"Small extra task","recordedMinutes":15,"chargedCents":0,"waiverReason":"Courtesy"}]','invoice-draft-test-key01');
-select public.complete_and_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),3);
+select public.complete_service_call('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),3,'complete-service-test-key');
+select public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),4,0,true,'approved-invoice-key');
 select pg_temp.assert_true((select total_cents=0 from public.invoices),'invoice uses reviewed reduced labor');
 select pg_temp.assert_true((select snapshot->'recordedWork'->1->>'chargedCents'='0' from public.invoices),'unbilled work remains recorded');
 select pg_temp.assert_true((select snapshot->>'approvedLaborCents'='13500' from public.invoices),'original approved labor retained');

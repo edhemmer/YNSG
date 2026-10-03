@@ -1,15 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { authenticated, sameOrigin, failure } from "../../../lib/session";
-const line = z
-  .object({
-    description: z.string().trim().min(2).max(1000),
-    recordedMinutes: z.number().int().min(0).max(1440),
-    chargedCents: z.number().int().min(0).max(999999999),
-    waiverReason: z.string().max(1000),
-  })
-  .strict()
-  .refine((v) => v.chargedCents > 0 || v.waiverReason.trim().length >= 2);
+import { parseInvoiceDraft } from "../../../lib/invoice-draft-input";
 export async function GET(request: Request) {
   try {
     const q = new URL(request.url).searchParams;
@@ -34,16 +26,7 @@ export async function POST(request: Request) {
       { status: 403 },
     );
   try {
-    const v = z
-      .object({
-        organization: z.uuid(),
-        job: z.uuid(),
-        revision: z.number().int().positive(),
-        lines: z.array(line).min(1).max(50),
-        key: z.string().min(16).max(128),
-      })
-      .strict()
-      .parse(await request.json());
+    const v = parseInvoiceDraft(await request.text());
     const { db } = await authenticated();
     const r = await db.rpc("save_invoice_labor", {
       p_org: v.organization,
@@ -67,6 +50,12 @@ export async function POST(request: Request) {
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e) {
+    if (e instanceof z.ZodError || e instanceof SyntaxError ||
+        (e instanceof Error && e.message === "DRAFT_TOO_LARGE")) {
+      return NextResponse.json({ error: "Check the work descriptions, whole minutes, charges and reasons for no charge. The draft was not saved." },
+        { status: e instanceof Error && e.message === "DRAFT_TOO_LARGE" ? 413 : 400,
+          headers: { "Cache-Control": "no-store" } });
+    }
     return failure(e);
   }
 }

@@ -36,13 +36,13 @@ export async function GET(request: Request) {
         .range(from,to),
       db
         .from("jobs")
-        .select("id,customer_id,quote_id,status,revision")
+        .select("id,customer_id,quote_id,status,revision,invoices(id,number)")
         .eq("organization_id", org)
         .order("id")
         .range(from,to),
       db
         .from("invoices")
-        .select("id,number,total_cents,issued_at,payments(cents)")
+        .select("id,job_id,number,total_cents,issued_at,payments(cents)")
         .eq("organization_id", org)
         .order("id")
         .range(from,to),

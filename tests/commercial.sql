@@ -21,14 +21,16 @@ select public.approve_quote('20000000-0000-4000-8000-000000000001',(select id fr
 select public.approve_quote('20000000-0000-4000-8000-000000000001',(select id from public.quotes limit 1),2,'Synthetic recorded approval for test only');
 select pg_temp.assert_true((select count(*)=1 from public.jobs),'approval retry creates one job');
 do $$begin begin
- perform public.complete_and_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),1);raise exception 'TEST FAILED premature completion';
+ perform public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),1,0,true,'premature-invoice-key');raise exception 'TEST FAILED premature completion';
  exception when raise_exception then if sqlerrm<>'TRANSITION' then raise;end if;end;end$$;
 reset role;
 -- Scheduling/execution not under test here; explicit fixture establishes their precondition.
 update public.jobs set status='working',revision=2;
 set local role authenticated;
-select public.complete_and_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),2);
-select public.complete_and_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),2);
+select public.complete_service_call('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),2,'complete-service-test-key');
+select public.save_invoice_labor('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),3,'[{"description":"Synthetic recorded work","recordedMinutes":120,"chargedCents":13500,"waiverReason":""}]','saved-approval-draft-key');
+select public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),4,13500,true,'approved-invoice-key');
+select public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),4,13500,true,'approved-invoice-key');
 select pg_temp.assert_true((select count(*)=1 from public.invoices),'one authoritative invoice');
 select pg_temp.assert_true((select total_cents=13500 from public.invoices limit 1),'invoice matches accepted version');
 do $$begin begin

@@ -31,8 +31,37 @@ select pg_temp.assert_true((select count(*)=1 from public.work_sessions),'start 
 select public.job_action('20000000-0000-4000-8000-000000000001',(select id from public.jobs),2,'pause','','operations-pause-01');
 select pg_temp.assert_true((select count(*)=0 from public.work_sessions where ended_at is null),'pause closes active time');
 select public.job_action('20000000-0000-4000-8000-000000000001',(select id from public.jobs),3,'resume','','operations-resume-01');
-select public.complete_and_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs),4);
-select public.complete_and_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs),4);
+select public.complete_service_call('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),4,'complete-service-test-key');
+select public.complete_service_call('20000000-0000-4000-8000-000000000001',(select id from public.jobs),4,'complete-service-test-key');
+select pg_temp.assert_true((select count(*)=0 from public.invoices),'completion does not issue invoice');
+select pg_temp.assert_true((select count(*)=0 from public.outbox where kind like 'invoice.%'),'completion queues no invoice mail');
+select pg_temp.assert_true((select count(*)=0 from public.work_sessions where ended_at is null),'completion closes timer before invoice');
+select pg_temp.assert_true((select count(*)=1 from public.audit_events where action='job.completed'),'completion retry records one audit');
+do $$begin begin
+ perform public.complete_service_call('20000000-0000-4000-8000-000000000001',(select id from public.jobs),5,'complete-service-test-key');raise exception 'TEST FAILED changed completion retry';
+ exception when raise_exception then if sqlerrm<>'IDEMPOTENCY_CONFLICT' then raise;end if;end;end$$;
+do $$begin begin
+ perform public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs),5,12000,false,'no-review-approval-key');raise exception 'TEST FAILED missing review';
+ exception when raise_exception then if sqlerrm<>'INVOICE_REVIEW_REQUIRED' then raise;end if;end;end$$;
+do $$begin begin
+ perform public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs),5,12000,true,'no-draft-approval-key');raise exception 'TEST FAILED missing draft';
+ exception when raise_exception then if sqlerrm<>'INVOICE_DRAFT_REQUIRED' then raise;end if;end;end$$;
+select pg_temp.assert_true(not has_function_privilege('authenticated','public.complete_and_invoice(uuid,uuid,integer)','execute'),'old combined RPC closed');
+select pg_temp.assert_true(not has_function_privilege('service_role','public.approve_invoice(uuid,uuid,integer,integer,boolean,text)','execute'),'generic worker cannot approve');
+select pg_temp.assert_true(not has_function_privilege('anon','public.complete_service_call(uuid,uuid,integer,text)','execute'),'anonymous completion denied');
+select public.save_invoice_labor('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),5,'[{"description":"Synthetic recorded work","recordedMinutes":120,"chargedCents":12000,"waiverReason":""}]','saved-approval-draft-key');
+do $$begin begin
+ perform public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs),5,12000,true,'stale-draft-approval-key');raise exception 'TEST FAILED stale approval';
+ exception when raise_exception then if sqlerrm<>'STALE_REVISION' then raise;end if;end;end$$;
+do $$begin begin
+ perform public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs),6,1,true,'wrong-total-approval-key');raise exception 'TEST FAILED changed total';
+ exception when raise_exception then if sqlerrm<>'INVOICE_TOTAL_CHANGED' then raise;end if;end;end$$;
+select public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs),6,12000,true,'approved-invoice-key');
+select public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs),6,12000,true,'approved-invoice-key');
+do $$begin begin
+ perform public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs),6,1,true,'approved-invoice-key');raise exception 'TEST FAILED changed approval retry';
+ exception when raise_exception then if sqlerrm<>'IDEMPOTENCY_CONFLICT' then raise;end if;end;end$$;
+select pg_temp.assert_true((select count(*)=1 from public.audit_events where action='invoice.owner_approved'),'approval retry has one audit');
 select pg_temp.assert_true((select count(*)=1 from public.invoices),'closeout retry one invoice');
 select pg_temp.assert_true((select count(*)=0 from public.work_sessions where ended_at is null),'completion closes active time');
 reset role;
@@ -40,5 +69,19 @@ set local role authenticated;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
 select pg_temp.assert_true((select count(*)=0 from public.work_sessions),'time records tenant isolation');
 do $$begin begin perform public.job_action('20000000-0000-4000-8000-000000000001',gen_random_uuid(),1,'start','','operations-forbidden');raise exception 'TEST FAILED cross tenant command';exception when insufficient_privilege then null;end;end$$;
+do $$begin begin perform public.approve_invoice('20000000-0000-4000-8000-000000000001',gen_random_uuid(),1,0,true,'other-company-approval');raise exception 'TEST FAILED other company approval';exception when insufficient_privilege then null;end;end$$;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000003","session_id":"10000000-0000-4000-8000-000000000003"}',true);
+do $$begin begin perform public.complete_service_call('20000000-0000-4000-8000-000000000001',gen_random_uuid(),1,'customer-completion-key');raise exception 'TEST FAILED customer completion';exception when insufficient_privilege then null;end;end$$;
+do $$begin begin perform public.approve_invoice('20000000-0000-4000-8000-000000000001',gen_random_uuid(),1,0,true,'customer-approval-key');raise exception 'TEST FAILED customer approval';exception when insufficient_privilege then null;end;end$$;
+reset role;
+update public.memberships set revoked_at=now() where user_id='00000000-0000-4000-8000-000000000001';
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001"}',true);
+do $$begin begin perform public.approve_invoice('20000000-0000-4000-8000-000000000001',gen_random_uuid(),6,12000,true,'approved-invoice-key');raise exception 'TEST FAILED revoked owner replay';exception when insufficient_privilege then null;end;end$$;
+reset role;
+update public.memberships set revoked_at=null where user_id='00000000-0000-4000-8000-000000000001';
+update auth.sessions set not_after=now()-interval '1 second' where user_id='00000000-0000-4000-8000-000000000001';
+set local role authenticated;
+do $$begin begin perform public.complete_service_call('20000000-0000-4000-8000-000000000001',gen_random_uuid(),4,'complete-service-test-key');raise exception 'TEST FAILED expired completion replay';exception when insufficient_privilege then null;end;end$$;
 reset role;
 rollback;
