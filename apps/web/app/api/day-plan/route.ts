@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import {
+  buildPackingPlan,
+  workKey,
+  type PackingRule,
+} from "../../../lib/packing-plan";
 import { authenticated, failure } from "../../../lib/session";
 import {
   daySearchBounds,
@@ -41,7 +46,7 @@ export async function GET(request: Request) {
     const appointments = await db
       .from("appointments")
       .select(
-        "id,request_id,arrival_at,end_at,status,customer_response,request:service_requests!appointments_organization_id_request_id_fkey(original_submission)",
+        "id,request_id,start_at,arrival_at,end_at,status,customer_response,request:service_requests!appointments_organization_id_request_id_fkey(original_submission)",
         { count: "exact" },
       )
       .eq("organization_id", org)
@@ -53,7 +58,10 @@ export async function GET(request: Request) {
       .range(0, 1000);
     if (appointments.error) throw appointments.error;
     if (appointments.count === null) throw Error("INCOMPLETE_COUNT");
-    if ((appointments.count ?? appointments.data.length) > 1000)
+    if (
+      appointments.count > 1000 ||
+      appointments.count !== appointments.data.length
+    )
       return NextResponse.json(
         {
           error:
@@ -73,6 +81,7 @@ export async function GET(request: Request) {
         return {
           id: a.id,
           requestId: a.request_id,
+          startAt: a.start_at,
           arrivalAt: a.arrival_at,
           endAt: a.end_at,
           status: a.status,
@@ -82,11 +91,49 @@ export async function GET(request: Request) {
           email: r.email || "",
           address: [r.street, r.city].filter(Boolean).join(", "),
           tasks: requestedTasks(r),
+          workItems: r.services?.length
+            ? r.services.map((item: { service: string; task?: string }) => ({
+                service: item.service,
+                task: item.task || "",
+              }))
+            : r.service
+              ? [{ service: r.service, task: r.task || "" }]
+              : [],
           description: r.description || "",
         };
       });
+    const selectedWork = [
+      ...new Map(
+        calls
+          .flatMap((call) => call.workItems)
+          .map((work) => [workKey(work), work]),
+      ).values(),
+    ];
+    const rules = await db.rpc("read_packing_rules", {
+      p_org: org,
+      p_work: selectedWork,
+    });
+    const packingRulesAvailable =
+      !rules.error &&
+      rules.data?.complete === true &&
+      Array.isArray(rules.data.rules);
+    const packingRules = packingRulesAvailable
+      ? (rules.data.rules as PackingRule[])
+      : [];
     return NextResponse.json(
       {
+        packing: packingRulesAvailable
+          ? buildPackingPlan(calls, packingRules)
+          : {
+              items: [],
+              unmapped: [],
+              warnings: [
+                "Equipment rules could not be loaded. Refresh before using the packing list.",
+              ],
+              complete: false,
+            },
+        packingRules,
+        packingRulesAvailable,
         date,
         timezone: company.data.timezone,
         company: company.data.display_name,

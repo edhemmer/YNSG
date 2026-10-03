@@ -1,7 +1,14 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { sessionFetch } from "../lib/session-fetch";
-import { localDate, navigationUrl, type DayPlan } from "../lib/day-plan";
+import {
+  localDate,
+  shiftLocalDate,
+  navigationUrl,
+  type DayPlan,
+} from "../lib/day-plan";
+import PackingRuleEditor from "./packing-rule-editor";
+import { workKey } from "../lib/packing-plan";
 export default function DailyCallSheet({
   organization,
   timezone,
@@ -13,7 +20,8 @@ export default function DailyCallSheet({
     [plan, setPlan] = useState<DayPlan | null>(null),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(false),
-    [reload, setReload] = useState(0);
+    [reload, setReload] = useState(0),
+    [savingRule, setSavingRule] = useState(false);
   const sequence = useRef(0);
   useEffect(() => {
     setDate(localDate(new Date(), timezone));
@@ -63,6 +71,7 @@ export default function DailyCallSheet({
             type="date"
             required
             value={date}
+            disabled={savingRule}
             onChange={(e) => {
               if (e.target.value) setDate(e.target.value);
             }}
@@ -70,7 +79,7 @@ export default function DailyCallSheet({
         </label>
         <button
           type="button"
-          disabled={loading}
+          disabled={loading || savingRule}
           onClick={() => setReload((v) => v + 1)}
         >
           Refresh call sheet
@@ -78,10 +87,33 @@ export default function DailyCallSheet({
         <button
           type="button"
           className="secondary"
-          disabled={loading || !plan || plan.date !== date}
+          disabled={loading || savingRule || !plan || plan.date !== date}
           onClick={() => window.print()}
         >
           Print call sheet
+        </button>
+      </div>
+      <div className="actions day-plan-controls">
+        <button
+          type="button"
+          disabled={savingRule}
+          className="secondary"
+          onClick={() => {
+            setDate(localDate(new Date(), timezone));
+            setReload((v) => v + 1);
+          }}
+        >
+          Today
+        </button>
+        <button
+          type="button"
+          disabled={savingRule}
+          className="secondary"
+          onClick={() =>
+            setDate(shiftLocalDate(localDate(new Date(), timezone), 1))
+          }
+        >
+          Tomorrow
         </button>
       </div>
       <p>
@@ -110,6 +142,92 @@ export default function DailyCallSheet({
               date.
             </p>
           )}
+          <section
+            className="packing-summary"
+            aria-labelledby="packing-heading"
+          >
+            <h3 id="packing-heading">What to bring</h3>
+            <p>
+              {plan.packing.complete
+                ? "All scheduled tasks have approved equipment lists. Review supplies and pickup details before loading."
+                : "Packing needs review. Check the flagged tasks and appointments before loading."}
+            </p>
+            {plan.packing.warnings.length > 0 && (
+              <ul className="note">
+                {plan.packing.warnings.map((warning, i) => (
+                  <li key={i}>{warning}</li>
+                ))}
+              </ul>
+            )}
+            {plan.packing.items.length > 0 ? (
+              <ul className="packing-checklist">
+                {plan.packing.items.map((item) => (
+                  <li key={item.name}>
+                    <label>
+                      <input type="checkbox" />
+                      <span>
+                        {item.quantity} {item.unit} — {item.name}
+                        {item.consumed ? " (supply)" : ""}
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>
+                {!plan.packingRulesAvailable
+                  ? "Equipment details are unavailable. Refresh before loading."
+                  : plan.calls.length
+                    ? "No equipment has been listed for this day."
+                    : "No appointments to pack for."}
+              </p>
+            )}
+            {plan.packing.unmapped.length > 0 && (
+              <>
+                <h4>Equipment not set yet</h4>
+                <ul>
+                  {plan.packing.unmapped.map((work) => (
+                    <li key={workKey(work)}>
+                      {work.service}
+                      {work.task ? ": " + work.task : ""}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            <p className="tiny">
+              Packing checkmarks are temporary and clear when the sheet reloads.
+              Customer-prepaid materials, pickups and quantities still need
+              order review; they are not estimated here.
+            </p>
+            {plan.packingRulesAvailable && (
+              <div className="day-plan-controls">
+                {[
+                  ...new Map(
+                    plan.calls
+                      .filter((call) => call.status === "reserved")
+                      .flatMap((call) => call.workItems)
+                      .map((work) => [workKey(work), work]),
+                  ).values(),
+                ].map((work) => {
+                  const rule = plan.packingRules.find(
+                    (r) => workKey(r) === workKey(work),
+                  );
+                  return (
+                    <PackingRuleEditor
+                      key={workKey(work) + ":" + (rule?.revision || 0)}
+                      organization={organization}
+                      work={work}
+                      rule={rule}
+                      locked={savingRule}
+                      busy={setSavingRule}
+                      saved={() => setReload((v) => v + 1)}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </section>
           {plan.calls.map((call, index) => {
             const navigation = navigationUrl(call.address);
             return (
@@ -160,7 +278,9 @@ export default function DailyCallSheet({
                   {call.phone && (
                     <a href={`tel:${call.phone}`}>Call customer</a>
                   )}
-                  <a href={`/?organization=${encodeURIComponent(organization)}&request=${encodeURIComponent(call.requestId)}`}>
+                  <a
+                    href={`/?organization=${encodeURIComponent(organization)}&request=${encodeURIComponent(call.requestId)}`}
+                  >
                     Open service order
                   </a>
                 </div>

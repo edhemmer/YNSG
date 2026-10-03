@@ -38,7 +38,7 @@ Completed below means component checks passed, not that the whole live journey p
 | A11 | Conversation notes implemented; broader timeline partial | Owner/admin can append internal request notes and customer notes with retry protection. Customer history includes explicitly linked request notes; no auto-match by email. Private records deny customer and platform-only access. Full email/service activity timeline remains unfinished; live owner UI acceptance pending. |
 | A12 | Not completed | Recurring appointments and exceptions need capacity reservations per occurrence, revisions, reminders and cancellation/reschedule workflows. |
 | A13 | Daily call sheet implemented; live acceptance and automatic briefing pending | Owner/admin daily sheet independently loads the selected local day, retains every cross-category task, shows contact/address, confirmed and needs-review status, and links to the correct company order. Printing and Maps navigation controls are built. Exact-count checks refuse truncated data. Date/DST/URL tests pass; real owner data, phone, printed output and navigation still need acceptance. Automated day-of briefing remains unbuilt. |
-| A14 | Not completed | Previous-evening packing list needs approved service-to-tool mapping, consolidated quantities and unknown-equipment flags. |
+| A14 | Packing workflow implemented; live acceptance and evening delivery pending | Today/Tomorrow call sheet now builds a packing list from owner-approved exact-task rules. Reusable quantities use the largest requirement for sequential visits; consumables sum. Missing rules, incompatible units, overlapping crews and scheduling review are flagged. Rules retain immutable versions, guarded revisions, retry receipts and rule-linked audits. Unknown or unavailable rules never look complete. Checklist and warnings print with calls. Real equipment review, phone/print acceptance and unattended evening delivery remain open. |
 | A15 | Not completed | Location-verified weather rescheduling needs source, timestamp, condition and policy evidence; affected outdoor jobs only; documented cancellation, capacity release and customer emails. No AI-generated weather facts. |
 | A16 | Partial invoices | Labor drafts, waivers, immutable issued totals and balanced ledger are implemented. Add owner review/approval then customer email/PDF delivery, delivery receipts and retry handling. Current mail dispatcher does not deliver invoice.issued or invoice.paid. |
 | A17 | Missing automation | Paid-invoice thank-you and review request need templates, confirmed payment transition and duplicate prevention. Review destination remains owner-configurable. |
@@ -56,7 +56,7 @@ A25 — Fixed in source: malformed service entries (including null) were normali
 
 ## Verified checks at this checkpoint
 
-- 54 unit tests passed, including malformed public intake validation, CRM bridge failures and real-handler retry behavior.
+- 61 unit tests passed, including malformed public intake validation, CRM bridge failures and real-handler retry behavior.
 - Local database migration and integration suites passed, including capacity, customer actions, owner blocks, invitations, platform isolation and invoice waivers.
 - CRM optimized Next.js production build and TypeScript passed after the owner-entry change.
 - Public website built nine HTML pages. Checked 268 internal links: no missing targets, missing fragments or duplicate IDs.
@@ -70,7 +70,7 @@ These checks do not establish provider delivery, real-browser accessibility, dep
 
 CRM preview: https://ynsg-repo-git-codex-crm-workflow-edhemmer-5018s-projects.vercel.app
 
-The deployed /owner page offers passwordless email sign-in. Enter edhemmer@gmail.com, select the email sign-in link option and open the newest email in the same browser. If Vercel shows a protection screen, use your Vercel account. Owner setup no longer requires an authenticator or an account password. Finish the invited owner claim before business records can open.
+The deployed /owner page offers passwordless email sign-in. Enter edhemmer@gmail.com, select the email sign-in link option and open the newest email in the same browser. If Vercel shows a protection screen, use your Vercel account. Owner setup no longer requires an authenticator or an account password. The owner claim is now verified; repeat sign-in and logout acceptance remains a separate device check.
 
 Only owner-controlled verification is needed for:
 
@@ -96,3 +96,7 @@ For each item: inspect source, implement, run relevant automated checks, record 
 ## October 3 settings usability correction
 
 Owner-facing setup now says Business name, including confirmation and commercial instructions. Clock-time selectors replace minutes after midnight; named weekday checkboxes and explicit duration units preserve canonical values. Tax status is separated and defaults to Not reviewed yet. Settings controls are disabled during publishing; loading and validation errors are clearer. Mobile fields stack vertically. Rendered owner/device acceptance remains pending.
+
+## October 3 packing and call-sheet checks
+
+Approved task equipment rules remain private to each company and require a live owner/admin membership. Hosted checks confirm RLS, no direct client read, no anonymous approval and no generic worker approval grant. Local database fixtures prove retry/stale conflicts, rule history, customer/tenant/platform denial and immediate session/membership revocation. No real equipment rules were seeded or approved on behalf of the owner. A partial appointment query is now rejected even when a lower server cap causes the mismatch. Equipment-read failure leaves complete call details usable with a packing warning. Printing hides unrelated dashboard elements without reserving their page height. Real rendered print/mobile acceptance is still required.
