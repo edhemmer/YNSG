@@ -35,7 +35,7 @@ Completed below means component checks passed, not that the whole live journey p
 | A08 | Corrected; live customer test pending | Appointment RLS now follows explicit request/customer or job/customer relationships. Portal independently paginates appointments. Database fixtures prove past/future pre-job access, unrelated-customer and tenant isolation, and immediate revocation. |
 | A09 | Partial decisions | Appointment approve/time-decline templates exist; manual service-request decline does not create equivalent customer notification. Every decision needs a durable, distinct template and audit record. |
 | A10 | Partial reminders | Customer reminder changed to 24 hours. Add separate owner notice and verified recurring execution; include immediate email rescheduling instruction; suppress stale/cancelled reminders. |
-| A11 | Not started as complete workflow | Customer/account notes and contact timeline need full owner editing/history and explicit customer-visible boundaries. |
+| A11 | Conversation notes implemented; broader timeline partial | Owner/admin can append internal request notes and customer notes with retry protection. Customer history includes explicitly linked request notes; no auto-match by email. Private records deny customer and platform-only access. Full email/service activity timeline remains unfinished; live owner UI acceptance pending. |
 | A12 | Not completed | Recurring appointments and exceptions need capacity reservations per occurrence, revisions, reminders and cancellation/reschedule workflows. |
 | A13 | Not completed | Day-of in-app briefing, full route list, printable daily calls and navigation from current location need implementation and mobile verification. |
 | A14 | Not completed | Previous-evening packing list needs approved service-to-tool mapping, consolidated quantities and unknown-equipment flags. |
@@ -62,7 +62,7 @@ A25 — Fixed in source: malformed service entries (including null) were normali
 - Public website built nine HTML pages. Checked 268 internal links: no missing targets, missing fragments or duplicate IDs.
 - Required name, phone, email, street and city controls present on both request entry pages.
 - Website JavaScript, request endpoint and build-script syntax checks passed; root TypeScript passed.
-- Hosted security advisor reported leaked-password protection disabled. This is still unresolved.
+- Hosted security advisor reported [leaked-password protection disabled](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection). This existing customer-password warning is unresolved; no new database security findings were introduced by these migrations.
 
 These checks do not establish provider delivery, real-browser accessibility, deployed worker execution or production customer availability.
 

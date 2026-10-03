@@ -3,6 +3,7 @@ import GoogleControls from './google-controls';
 import OwnerSetup from './owner-setup';
 import InvoiceDraft from './invoice-draft';
 import CustomerInvite from './customer-invite';
+import RelationshipNotes from './relationship-notes';
 import CalendarBlocks from './calendar-blocks';
 import CompanySettingsPanel from './company-settings';
 import AvailabilityPanel from './availability-panel';
@@ -522,7 +523,7 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
                           data.customers.map((c) => (
                             <div className="row" key={c.id}>
                               <strong>{c.display_name}</strong>{["owner","admin"].includes(role||"")&&<CustomerInvite organization={org} customer={c.id}/>}
-                              <p className="tiny muted">{c.id}</p>
+                              <p className="tiny muted">{c.id}</p>{["owner","admin"].includes(role||"")&&<RelationshipNotes organization={org} type="customer" target={c.id} timezone={data.company.timezone}/>}
                             </div>
                           ))
                         ) : (
@@ -570,6 +571,7 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
                                 Email customer
                               </a>
                             </div>
+                            {["owner","admin"].includes(role||"")&&<RelationshipNotes organization={org} type="request" target={r.id} timezone={data.company.timezone}/>}
                             {operational && r.status === "submitted" && (
                               <div className="actions">
                                 <button
