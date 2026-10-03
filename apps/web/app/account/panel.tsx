@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { sessionFetch } from "../../lib/session-fetch";
+import RepeatRequest from "./repeat-request";
 type RecordRow = { id: string; status: string; created_at?: string };
 type Portal = {
   company: { display_name: string };
@@ -39,6 +40,7 @@ export default function Account() {
   >([]);
   const [org, setOrg] = useState("");
   const [page, setPage] = useState(0);
+  const [refresh, setRefresh] = useState(0);
   const [data, setData] = useState<Portal | null>(null);
   async function load() {
     const r = await sessionFetch("/api/portal");
@@ -85,7 +87,7 @@ export default function Account() {
     return () => {
       current = false;
     };
-  }, [org, page]);
+  }, [org, page, refresh]);
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
@@ -125,7 +127,6 @@ export default function Account() {
     <main id="main" className="account-shell">
       <header className="account-header">
         <a href="/account">My account</a>
-        <a href="/">Owner workspace</a>
         {signed && (
           <button
             disabled={busy}
@@ -315,6 +316,7 @@ export default function Account() {
           </select>
         </label>
       )}
+      {signed && org && <RepeatRequest organization={org} onSaved={()=>{setPage(0);setRefresh(n=>n+1);}}/>}
       {data && (
         <>
           <h2>{data.company.display_name}</h2>
@@ -366,6 +368,7 @@ export default function Account() {
               data.invoices.map((i) => (
                 <div key={i.id}>
                   <strong>Invoice {i.number}</strong>
+                  <p><a href={"/invoice?"+new URLSearchParams({organization:org,invoice:i.id,return:"account"})}>Open invoice and download PDF</a></p>
                   <p>
                     Total{" "}
                     {(i.total_cents / 100).toLocaleString("en-US", {
