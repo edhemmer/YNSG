@@ -95,7 +95,7 @@ async function api(path: string, value?: unknown) {
   if (!res.ok) throw new SessionApiError(data.error || "Unable to complete this action.",res.status);
   return data;
 }
-export default function Workspace({ configured }: { configured: boolean }) {
+export default function Workspace({ configured, initialEmail = "" }: { configured: boolean; initialEmail?: string }) {
   const reloadSequence = useRef(0);
   const sessionSequence = useRef(0);
   const [sessionUnavailable,setSessionUnavailable]=useState(false);
@@ -107,7 +107,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
     [checking, setChecking] = useState(configured),
     [error, setError] = useState(""),
     [message, setMessage] = useState("");
-  const [email, setEmail] = useState(""),
+  const [email, setEmail] = useState(initialEmail),
     [code, setCode] = useState(""),
     [sent, setSent] = useState(false),
     [pending, setPending] = useState(false);
@@ -332,8 +332,7 @@ export default function Workspace({ configured }: { configured: boolean }) {
             <p className="eyebrow">Welcome back</p>
             <h1>One place for your work.</h1>
             <p>
-              Sign in with an email link or code. Staff also complete authenticator
-              verification before opening business records.
+              No password is needed. We’ll email you a sign-in link. Open it in this browser. Owner setup then verifies your authenticator before opening business records.
             </p>
             <p>On this device, your sign-in renews automatically as you use the workspace. Sign out when using a shared device.</p>
             <label htmlFor="email">Email address</label>
