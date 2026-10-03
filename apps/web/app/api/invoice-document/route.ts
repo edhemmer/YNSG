@@ -1,6 +1,7 @@
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
 import {authenticated,failure} from '../../../lib/session';
+import {invoicePdf} from '../../../lib/invoice-pdf';
 import {invoiceDocument} from '../../../lib/invoice-document';
 export async function GET(request:Request){try{
  const q=new URL(request.url).searchParams;
@@ -9,5 +10,7 @@ export async function GET(request:Request){try{
  const r=await db.from('invoices').select('number,issued_at,total_cents,snapshot,payments(cents)').eq('organization_id',organization).eq('id',id).maybeSingle();
  if(r.error)throw r.error;
  if(!r.data)return NextResponse.json({error:'This invoice is unavailable to your account.'},{status:404,headers:{'Cache-Control':'no-store'}});
- return NextResponse.json({invoice:invoiceDocument(r.data)},{headers:{'Cache-Control':'no-store'}});
+ const document=invoiceDocument(r.data);
+ if(q.get("format")==="pdf"){const bytes=await invoicePdf(document);return new Response(new Uint8Array(bytes),{headers:{"Content-Type":"application/pdf","Content-Disposition":`attachment; filename="invoice-${document.number}.pdf"`,"Cache-Control":"private, no-store"}});}
+ return NextResponse.json({invoice:document},{headers:{'Cache-Control':'no-store'}});
 }catch(e){return failure(e)}}

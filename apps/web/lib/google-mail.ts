@@ -6,6 +6,7 @@ import {
   appointmentMessage,
   type AppointmentMessageInput,
 } from "./appointment-message";
+import { invoicePdf } from "./invoice-pdf";
 import { invoiceDocument } from "./invoice-document";
 import { invoiceMessage } from "./invoice-message";
 import { requestDeclinedMessage } from "./request-message";
@@ -44,6 +45,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
   for (const item of (data || []) as Intent[]) {
     let to: string, subject: string, body: string;
     let html: string | undefined, replyTo: string | undefined;
+    let attachment: {filename:string;bytes:Uint8Array} | undefined;
     if (item.kind === "request.owner_notification") {
       to = config.data.settings.notificationRecipient;
       subject = config.data.settings.displayName + " New Request";
@@ -66,9 +68,11 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
         .eq("organization_id", org).eq("id", item.object_id).single();
       if(invoice.error) continue;
       try {
-        const rendered = invoiceMessage(invoiceDocument(invoice.data));
+        const document = invoiceDocument(invoice.data);
+        const rendered = invoiceMessage(document);
         if(rendered.to !== item.payload.recipient) continue;
         ({to,subject,body,html} = rendered);
+        attachment = {filename:`invoice-${document.number}.pdf`,bytes:await invoicePdf(document)};
       } catch { continue; }
     } else if (item.kind === "request.declined") {
       const request = await db.from("service_requests").select("original_submission")
@@ -178,6 +182,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       raw = emailRaw(account.email!, to, subject, body, "ynsg-" + item.id, {
         ...(html === undefined ? {} : { html }),
         ...(replyTo === undefined ? {} : { replyTo }),
+        ...(attachment === undefined ? {} : { attachment }),
       });
     } catch {
       continue;
