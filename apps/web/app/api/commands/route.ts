@@ -52,6 +52,19 @@ const command = z.discriminatedUnion("command", [
     receivedAt: z.iso.datetime(),
     confirmed: z.literal(true),
   }),
+  z.object({
+    ...base, command: z.literal("RecordBusinessExpense"),
+    date: z.iso.date(), vendor: z.string().trim().min(2).max(160),
+    category: z.enum(["tools","fuel","supplies","vehicle","insurance","marketing","software","other"]),
+    description: z.string().trim().min(3).max(500),
+    cents: z.number().int().positive().max(999999999),
+    method: z.enum(["cash","zelle","external_card","external_transfer","other"]),
+    reference: z.string().trim().min(1).max(160), confirmed: z.literal(true),
+  }),
+  z.object({
+    ...base, command: z.literal("ReverseBusinessExpense"),
+    id: z.uuid(), reason: z.string().trim().min(5).max(500),
+  }),
 ]);
 const messages: Record<string, string> = {
   INVOICE_REVIEW_REQUIRED: "Review the saved invoice before approving it.",
@@ -73,6 +86,7 @@ const messages: Record<string, string> = {
   OVERPAYMENT_REQUIRES_REVIEW: "This amount exceeds the outstanding balance.",
   IDEMPOTENCY_CONFLICT:
     "This retry contains different information. Refresh before continuing.",
+  ALREADY_REVERSED: "This expense has already been reversed. Refresh the report.",
 };
 export async function POST(request: Request) {
   if (!sameOrigin(request))
@@ -159,6 +173,14 @@ export async function POST(request: Request) {
           p_confirmed: c.confirmed,
           p_key: c.key,
         };
+        break;
+      case "RecordBusinessExpense":
+        name = "record_business_expense";
+        args = {p_org:c.organizationId,p_date:c.date,p_vendor:c.vendor,p_category:c.category,p_description:c.description,p_cents:c.cents,p_method:c.method,p_reference:c.reference,p_confirmed:c.confirmed,p_key:c.key};
+        break;
+      case "ReverseBusinessExpense":
+        name = "reverse_business_expense";
+        args = {p_org:c.organizationId,p_expense:c.id,p_reason:c.reason,p_key:c.key};
         break;
     }
     const { data, error } = await db.rpc(name, args);

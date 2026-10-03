@@ -1,6 +1,7 @@
 "use client";
 import {companyTheme} from "../lib/company-brand";
 import NotificationAttention from "./notification-attention";
+import FinanceActivity from './finance-activity';
 import GoogleControls from './google-controls';
 import OwnerSetup from './owner-setup';
 import InvoiceDraft from './invoice-draft';
@@ -704,6 +705,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                     )}
                     {section === "Money" && (
                       <>
+                        {finance && <FinanceActivity key={org} organization={org} companyName={data.company.display_name}/>}
                         <p>
                           Issued amounts remain fixed. Payment status comes from
                           confirmed receipts.
