@@ -37,4 +37,9 @@ select pg_temp.assert_true((select snapshot->'recordedWork'->1->>'chargedCents'=
 select pg_temp.assert_true((select snapshot->>'approvedLaborCents'='13500' from public.invoices),'original approved labor retained');
 select pg_temp.assert_true((select sum(debit_cents::bigint-credit_cents)=0 from public.journal_lines),'waiver invoice ledger balances');
 do $$begin begin perform public.save_invoice_labor('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),4,'[{"description":"Changed issued work","recordedMinutes":120,"chargedCents":0,"waiverReason":"Changed"}]','invoice-draft-test-key02');raise exception 'TEST FAILED issued invoice changed';exception when raise_exception then if sqlerrm<>'TRANSITION' then raise;end if;end;end$$;
-reset role;set constraints all immediate;rollback;
+select pg_temp.assert_true((select snapshot->'recipient'->>'name'='Synthetic Test' and snapshot->'recipient'->>'street'='100 Test Street' from public.invoices),'invoice snapshots linked recipient and address');
+reset role;
+update public.service_requests set original_submission=original_submission||'{"name":"Later changed name","email":"later@example.invalid"}'::jsonb;
+update public.properties set street='Later changed street';
+select pg_temp.assert_true((select snapshot->'recipient'->>'name'='Synthetic Test' and snapshot->'recipient'->>'street'='100 Test Street' from public.invoices),'issued customer snapshot does not change with account edits');
+set constraints all immediate;rollback;
