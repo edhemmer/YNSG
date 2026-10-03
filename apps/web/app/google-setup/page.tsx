@@ -17,7 +17,9 @@ export default function GoogleSetup() {
           The existing website email stays active. Google customer delivery is
           not enabled by connecting an account.
         </p>
-        <h2>Google Cloud settings</h2>
+        <h2>Owner Google sign-in</h2>
+        <p>In Supabase Authentication → Sign In / Providers → Google, enable Google and configure the OAuth client. Add the callback URL shown there to Google Cloud's Authorized redirect URIs. Also allow your CRM /auth/confirm URL in Supabase Authentication's redirect URL list. This login setup is separate from the Calendar/Gmail callback below. Existing verified owner memberships still control company access.</p>
+        <h2>Google Cloud settings for Calendar &amp; Gmail</h2>
         <ol>
           <li>
             Enable Gmail API and Google Calendar API in one Google Cloud

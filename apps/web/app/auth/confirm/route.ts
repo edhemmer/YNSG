@@ -14,14 +14,21 @@ export async function GET(request: Request) {
     });
   const destination = (await cookies()).get("ynsg-auth-destination")?.value;
   const target =
-    destination === "password"
-      ? "/account?password=change"
-      : destination === "account"
-        ? "/account"
-        : "/";
+    destination === "google-owner"
+      ? "/owner?setup=google"
+      : destination === "password"
+        ? "/account?password=change"
+        : destination === "account"
+          ? "/account"
+          : "/";
   const redirect = (failed: boolean) =>
     NextResponse.redirect(
-      origin + (failed ? "/account?auth=failed#" : target + "#"),
+      origin +
+        (failed
+          ? destination === "google-owner"
+            ? "/owner?auth=failed#"
+            : "/account?auth=failed#"
+          : target + "#"),
       {
         headers: {
           "Cache-Control": "no-store",

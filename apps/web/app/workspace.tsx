@@ -101,7 +101,7 @@ async function api(path: string, value?: unknown) {
   if (!res.ok) throw new SessionApiError(data.error || "Unable to complete this action.",res.status);
   return data;
 }
-export default function Workspace({ configured, initialEmail = "" }: { configured: boolean; initialEmail?: string }) {
+export default function Workspace({ configured, initialEmail = "", ownerGoogle }: { configured: boolean; initialEmail?: string; ownerGoogle?: {enabled:boolean} }) {
   const [invoiceBusy, setInvoiceBusy] = useState(false);
   const reloadSequence = useRef(0);
   const sessionSequence = useRef(0);
@@ -147,6 +147,7 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
     }
   }
   useEffect(() => {
+    if(new URLSearchParams(window.location.search).get("setup")==="google")setSection("More");
     if(new URLSearchParams(window.location.search).get('auth')==='failed')setError('This sign-in link is expired, already used, or was opened in a different browser. Request a new email here and open its newest link in this browser.');
     if (configured) void loadSession();
   }, [configured]);
@@ -316,6 +317,14 @@ export default function Workspace({ configured, initialEmail = "" }: { configure
               No password is needed. We’ll email you a sign-in link. Open it in this browser. Your verified email opens the companies you have permission to manage.
             </p>
             <p>On this device, your sign-in renews automatically as you use the workspace. Sign out when using a shared device.</p>
+            {ownerGoogle && <div>
+              <button type="button" disabled={pending || !ownerGoogle.enabled} onClick={async()=>{
+                setPending(true);setError("");
+                try{const result=await api("/api/owner-google",{});window.location.assign(result.url);}
+                catch(e){setError((e as Error).message);setPending(false);}
+              }}>Continue with Google</button>
+              <p>{ownerGoogle.enabled ? "Sign in with Google, then connect Calendar and Gmail in your owner workspace." : "Google sign-in needs setup in Supabase Authentication. You can still use the email link below."} <a href="/google-setup">Connection setup</a></p>
+            </div>}
             <label htmlFor="email">Email address</label>
             <input
               id="email"
