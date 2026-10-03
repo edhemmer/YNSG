@@ -104,3 +104,9 @@ Owner-facing setup now says Business name, including confirmation and commercial
 ## October 3 packing and call-sheet checks
 
 Approved task equipment rules remain private to each company and require a live owner/admin membership. Hosted checks confirm RLS, no direct client read, no anonymous approval and no generic worker approval grant. Local database fixtures prove retry/stale conflicts, rule history, customer/tenant/platform denial and immediate session/membership revocation. No real equipment rules were seeded or approved on behalf of the owner. A partial appointment query is now rejected even when a lower server cap causes the mismatch. Equipment-read failure leaves complete call details usable with a packing warning. Printing hides unrelated dashboard elements without reserving their page height. Real rendered print/mobile acceptance is still required.
+
+## October 3 owner notification readability
+
+Public website email template deployed at main 5f0b79763f246d52f4e9a8dee9d1fa8e1086e1dc (public Vercel production READY). Customer contacts and call/email/map actions now appear first, tasks are grouped by category, and full request ID is at the bottom. Subject, recipient, customer Reply-To and stable provider retry key are retained. No new real-customer mail was sent for verification.
+
+The CRM owner-request notification now reuses that formatter with its own company name and tenant-bound service request. It includes an authenticated request link, customer Reply-To, HTML and plain-text MIME alternatives. Sender-consent/test guards, delivery lease, begin/finish state and ambiguous-send reconciliation remain in place. Google live connection, receipt and iPhone/dark-mode acceptance remain open under A05/A06/A24; this template change does not enable integrations or certify production readiness.

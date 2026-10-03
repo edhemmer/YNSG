@@ -205,19 +205,20 @@ export function emailRaw(
   subject: string,
   body: string,
   messageId: string,
+  options: { html?: string; replyTo?: string } = {},
 ) {
-  for (const address of [from, to])
+  for (const address of [from, to, ...(options.replyTo ? [options.replyTo] : [])])
     if (!/^[^\s<>@\r\n]+@[^\s<>@\r\n]+\.[^\s<>@\r\n]+$/.test(address))
       throw new GoogleFailure("INVALID_EMAIL");
   if (/[\r\n]/.test(subject) || !/^[a-z0-9-]+$/.test(messageId))
     throw new GoogleFailure("INVALID_HEADER");
-  const encoded =
-    Buffer.from(body, "utf8")
-      .toString("base64")
-      .match(/.{1,76}/g)
-      ?.join("\r\n") || "";
+  const encode = (value: string) => Buffer.from(value, "utf8").toString("base64").match(/.{1,76}/g)?.join("\r\n") || "";
+  const boundary = "ynsg-alt-" + messageId;
+  const content = options.html === undefined
+    ? `Content-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n${encode(body)}`
+    : `Content-Type: multipart/alternative; boundary="${boundary}"\r\n\r\n--${boundary}\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n${encode(body)}\r\n--${boundary}\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n${encode(options.html)}\r\n--${boundary}--\r\n`;
   return Buffer.from(
-    `From: ${from}\r\nTo: ${to}\r\nSubject: =?UTF-8?B?${Buffer.from(subject).toString("base64")}?=\r\nMessage-ID: <${messageId}@ynsg.invalid>\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n${encoded}`,
+    `From: ${from}\r\nTo: ${to}\r\n${options.replyTo ? `Reply-To: ${options.replyTo}\r\n` : ""}Subject: =?UTF-8?B?${Buffer.from(subject).toString("base64")}?=\r\nMessage-ID: <${messageId}@ynsg.invalid>\r\nMIME-Version: 1.0\r\n${content}`,
   ).toString("base64url");
 }
 export async function sendEmail(

@@ -7,6 +7,7 @@ import {
   type AppointmentMessageInput,
 } from "./appointment-message";
 import { requestDeclinedMessage } from "./request-message";
+import { ownerRequestEmail } from "../../../lib/owner-request-email.js";
 type Intent = {
   id: string;
   object_id: string;
@@ -40,12 +41,24 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
   const results = [];
   for (const item of (data || []) as Intent[]) {
     let to: string, subject: string, body: string;
+    let html: string | undefined, replyTo: string | undefined;
     if (item.kind === "request.owner_notification") {
       to = config.data.settings.notificationRecipient;
       subject = config.data.settings.displayName + " New Request";
-      body =
-        "A new service request is saved in your CRM. Sign in to review it.\n" +
-        process.env.APP_ORIGIN;
+      const request = await db.from("service_requests").select("original_submission")
+        .eq("organization_id", org).eq("id", item.object_id).single();
+      if (request.error || !request.data?.original_submission) continue;
+      const submission = request.data.original_submission;
+      const selections = submission.services?.length ? submission.services
+        : [{ service: submission.service || "Work details require review", task: submission.task || "Not sure yet" }];
+      const ownerUrl = new URL(process.env.APP_ORIGIN!);
+      ownerUrl.searchParams.set("request", item.object_id);
+      ownerUrl.searchParams.set("organization", org);
+      const rendered = ownerRequestEmail(submission, selections, item.object_id,
+        config.data.settings.displayName, "", ownerUrl.toString());
+      body = rendered.text;
+      html = rendered.html;
+      replyTo = submission.email;
     } else if (item.kind === "request.declined") {
       const request = await db.from("service_requests").select("original_submission")
         .eq("organization_id", org).eq("id", item.object_id).single();
@@ -151,7 +164,10 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
     }
     let raw: string;
     try {
-      raw = emailRaw(account.email!, to, subject, body, "ynsg-" + item.id);
+      raw = emailRaw(account.email!, to, subject, body, "ynsg-" + item.id, {
+        ...(html === undefined ? {} : { html }),
+        ...(replyTo === undefined ? {} : { replyTo }),
+      });
     } catch {
       continue;
     }
