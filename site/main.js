@@ -44,7 +44,7 @@ if(form){
     for(const [id,checkbox] of checkboxes) checkbox.checked=selected.has(id);
     for(const [service,group] of categoryGroups){
       const count=[...selected.values()].filter(item=>item.service===service).length;
-      group.querySelector('.category-count').textContent=count ? `${count} selected` : 'View jobs';
+      group.querySelector('.category-count').textContent=count ? `${count} selected` : '';
     }
     form.querySelector('#service-count').textContent=selected.size ? `${selected.size} ${selected.size===1?'job':'jobs'} selected. You can add jobs from any section.` : 'No jobs selected yet.';
     description.required = [...selected.values()].some(x=>x.service === 'Something else');
@@ -58,8 +58,10 @@ if(form){
     group.className='request-category';
     const heading=document.createElement('summary');
     const title=document.createElement('strong');title.textContent=names[service];
-    const count=document.createElement('span');count.className='category-count';count.textContent='View jobs';
-    heading.append(title,count);
+    const count=document.createElement('span');count.className='category-count';count.textContent='';
+    const action=document.createElement('span');action.className='category-action';action.textContent='Press or click to see jobs';
+    heading.append(title,count,action);
+    group.addEventListener('toggle',()=>{action.textContent=group.open?'Press or click to close':'Press or click to see jobs';});
     const choices=document.createElement('div');choices.className='request-category-jobs';
     for(const task of jobs){
       const label=document.createElement('label');label.className='service-option';
@@ -143,3 +145,5 @@ if(!motion.matches && document.querySelector('.hero')){
   window.addEventListener('scroll',()=>{if(!queued){queued=true;requestAnimationFrame(update)}},{passive:true});
   motion.addEventListener('change',()=>{if(motion.matches){document.documentElement.style.removeProperty('--scroll-shift');document.documentElement.style.removeProperty('--art-shift');}});
 }
+
+document.querySelectorAll(".service-category").forEach(category=>{const action=category.querySelector(".home-category-action");if(!action)return;const update=()=>{action.textContent=category.open?"Press or click to close":"Press or click to see jobs";};category.addEventListener("toggle",update);update();});
