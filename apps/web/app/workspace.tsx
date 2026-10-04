@@ -192,7 +192,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
         await api("/api/session", { action: "verify", email, code });
         await loadSession();
       } else {
-        const r = await api("/api/session", { action: "send", email });
+        const r = await api("/api/session", { action: "send", email, destination: "owner" });
         setSent(true);
         setMessage(r.message);
       }

@@ -36,6 +36,8 @@ export default function Account() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [signed, setSigned] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [sessionUnavailable, setSessionUnavailable] = useState(false);
   const [companies, setCompanies] = useState<
     { id: string; display_name: string }[]
   >([]);
@@ -44,22 +46,34 @@ export default function Account() {
   const [refresh, setRefresh] = useState(0);
   const [data, setData] = useState<Portal | null>(null);
   async function load() {
-    const r = await sessionFetch("/api/portal");
-    if (!r.ok) return;
-    const d = await r.json();
-    const pending = await sessionFetch("/api/account-link");
-    if (pending.ok && (await pending.json()).pending)
-      setInvitation((i) => i || "pending");
-    setSigned(true);
-    setEmail(d.email || "");
-    const allowed = new Set(
-      d.access.map((a: { organization_id: string }) => a.organization_id),
-    );
-    const c = d.companies.filter((a: { id: string }) => allowed.has(a.id));
-    setCompanies(c);
-    if (c.length === 1) setOrg(c[0].id);
+    setChecking(true);
+    setSessionUnavailable(false);
+    try {
+      const r = await sessionFetch("/api/portal");
+      if (r.status === 401) { setSigned(false); return; }
+      if (!r.ok) throw Error('Account unavailable');
+      const d = await r.json();
+      const pending = await sessionFetch("/api/account-link");
+      if (pending.ok && (await pending.json()).pending)
+        setInvitation((i) => i || "pending");
+      setSigned(true);
+      setEmail(d.email || "");
+      const allowed = new Set(
+        d.access.map((a: { organization_id: string }) => a.organization_id),
+      );
+      const c = d.companies.filter((a: { id: string }) => allowed.has(a.id));
+      setCompanies(c);
+      if (c.length === 1) setOrg(c[0].id);
+    } catch (error) {
+      setSessionUnavailable(true);
+      throw error;
+    } finally {
+      setChecking(false);
+    }
   }
   useEffect(() => {
+    if (new URLSearchParams(location.search).get('auth') === 'failed')
+      setMessage('This sign-in link is expired, already used, or was opened in a different browser. Request a new email and open its newest link in the browser where you requested it.');
     const token = new URLSearchParams(location.hash.slice(1)).get("invite");
     if (token && /^[A-Za-z0-9_-]{43}$/.test(token)) {
       setInvitation(token);
@@ -156,7 +170,9 @@ export default function Account() {
         )}
       </header>
       <h1>
-        {signed
+        {checking
+          ? "Checking your account"
+          : signed
           ? "Your service history"
           : mode === "signup"
             ? "Create your account"
@@ -170,7 +186,9 @@ export default function Account() {
           {message}
         </p>
       )}
-      {(!signed || mode === "set-password") && (
+      {checking && <p role="status">Checking your saved sign-in…</p>}
+      {!checking && sessionUnavailable && <button type="button" onClick={() => void load().catch(() => setMessage('Could not check your saved sign-in. Please try again.'))}>Try again</button>}
+      {!checking && !sessionUnavailable && (!signed || mode === "set-password") && (
         <form onSubmit={submit} className="account-card">
           {mode !== "set-password" && (
             <label>

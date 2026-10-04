@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { emailClient, saveEmailVerifier } from "../../../lib/email-auth";
-import { saveSession } from "../../../lib/session";
+import { signInTarget } from "../../../lib/sign-in-target";
+import { authClient, saveSession } from "../../../lib/session";
 
 export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
@@ -13,21 +14,14 @@ export async function GET(request: Request) {
       headers: { "Cache-Control": "no-store" },
     });
   const destination = (await cookies()).get("ynsg-auth-destination")?.value;
-  const target =
-    destination === "google-owner"
-      ? "/owner?setup=google"
-      : destination === "password"
-        ? "/account?password=change"
-        : destination === "account"
-          ? "/account"
-          : "/";
+  let target = signInTarget(destination, []);
   const redirect = (failed: boolean) =>
     NextResponse.redirect(
       origin +
         (failed
-          ? destination === "google-owner"
-            ? "/owner?auth=failed#"
-            : "/account?auth=failed#"
+          ? ["account", "password"].includes(destination || "")
+            ? "/account?auth=failed#"
+            : "/owner?auth=failed#"
           : target + "#"),
       {
         headers: {
@@ -44,6 +38,11 @@ export async function GET(request: Request) {
     if (!auth.currentVerifier()) return redirect(true);
     const { data, error } = await auth.client.auth.exchangeCodeForSession(code);
     if (error || !data.session) return saveEmailVerifier(redirect(true), null);
+    if (!destination) {
+      const membership = await authClient(data.session.access_token).from('memberships')
+        .select('role,revoked_at').eq('user_id', data.session.user.id);
+      target = signInTarget(undefined, membership.error ? [] : membership.data || []);
+    }
     const response = saveEmailVerifier(
       saveSession(redirect(false), data.session),
       null,

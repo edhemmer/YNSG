@@ -11,7 +11,7 @@ import {
 import { emailClient, saveEmailVerifier } from "../../../lib/email-auth";
 import { recordOwnerSessionIp } from "../../../lib/owner-security";
 const input = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("send"), email: z.email().max(254) }),
+  z.object({ action: z.literal("send"), email: z.email().max(254), destination: z.enum(["owner", "account"]).optional() }),
   z.object({
     action: z.literal("verify"),
     email: z.email().max(254),
@@ -160,7 +160,10 @@ export async function POST(request: Request) {
         }),
         emailAuth.currentVerifier(),
       );
-      response.cookies.delete("ynsg-auth-destination");
+      response.cookies.set("ynsg-auth-destination", value.destination || "owner", {
+        httpOnly: true, secure: process.env.NODE_ENV === "production",
+        sameSite: "lax", path: "/", maxAge: 3600,
+      });
       return response;
     }
     if (value.action === "verify") {
