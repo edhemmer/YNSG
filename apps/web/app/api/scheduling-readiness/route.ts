@@ -24,6 +24,11 @@ export async function GET(request:Request){
    {label:'Gmail test sent successfully',complete:account?.gmail_test==='accepted',action:'Send a Gmail test in Google settings.'},
    {label:'Email notifications approved and enabled',complete:delivery.data?.enabled===true&&process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true',action:'Confirm the test arrived, review the sender and enable email notifications in Google settings.'},
   ];
-  return NextResponse.json({checks,publicAvailabilityConfigured:process.env.PUBLIC_AVAILABILITY_ENABLED==='true'&&process.env.PUBLIC_SCHEDULING_ORGANIZATION_ID===org,recurringReservationsReady:false},{headers:{'Cache-Control':'private, no-store'}});
+  return NextResponse.json({checks,publicAvailabilityConfigured:process.env.PUBLIC_AVAILABILITY_ENABLED==='true'&&process.env.PUBLIC_SCHEDULING_ORGANIZATION_ID===org,recurringReservationsReady:false,background:{
+    workerCredentialReady:Boolean(process.env.GOOGLE_WORKER_SECRET&&process.env.GOOGLE_WORKER_SECRET.length>=32),
+    mailSwitchEnabled:process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true',
+    calendarSwitchEnabled:process.env.GOOGLE_CALENDAR_WORKER_ENABLED==='true',
+    calendarCompanyMatches:process.env.GOOGLE_WORKER_ORGANIZATION_ID===org,
+   }},{headers:{'Cache-Control':'private, no-store'}});
  }catch{return NextResponse.json({error:'Sign in as the business owner to check scheduling setup.'},{status:403,headers:{'Cache-Control':'private, no-store'}});}
 }
