@@ -35,3 +35,11 @@ Live YNSG configuration count is zero. There is one available operator. Existing
 3. Complete guest atomic hold/proposal lifecycle and 12-month occurrence generation/approval with conflicts handled before any series commits. Connect that workflow to website intake, account requests and manual owner entry; currently the pattern is request information only.
 4. Verify customer/owner notification and calendar sync for recurring changes, pauses, cancellation and rescheduling; do not create an unbounded Google recurrence as a substitute for individually recorded appointments.
 5. Actual live calendar/browser/mobile selection and concurrent customer/provider tests remain release gates. No owner settings or approvals were fabricated.
+
+## Follow-up: owner weekly review
+
+- Corrected the new-company scheduling template from 36 hours to 30 days (43200 minutes), with a days-based setting. Existing published company settings are never silently overwritten.
+- Added a private owner-only weekly preview alongside request scheduling. The server checks every calendar-date occurrence for 12 calendar months against live Google free/busy, tenant-scoped owner blocks and reservations for every selected resource. Missing resources, truncated responses, stale or malformed provider results fail closed.
+- The same local time is converted separately for each date; daylight-saving transitions do not shift the requested local hour. The first date is constrained to 30 local days; later dates are reviewed beyond the one-time horizon. Operating hours, lead time, duration and travel buffers still apply.
+- Preview is explicitly advisory and creates no appointments, reservations, calendar events, invoice records or notifications. Atomic recurring approvals and individual per-visit job lifecycles remain required implementation work.
+- Live setup checked: Google connected with calendar selected; scheduling entitlement enabled; no published configuration; Gmail test not yet verified. Vercel environment-variable listing is denied by the connector (403), so availability bridge activation was not verified.

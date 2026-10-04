@@ -1,4 +1,5 @@
 'use client';
+import RecurringPreviewPanel from './recurring-preview-panel';
 import { publicError } from "../lib/public-errors";
 import { useEffect, useRef, useState } from 'react';
 import { sessionFetch } from '../lib/session-fetch';
@@ -39,6 +40,7 @@ export default function SchedulingReviewPanel({organization,requestId,appointmen
     <label>Review evidence<textarea name="note" minLength={10} maxLength={3000} required placeholder="Record how you verified the route, scope, resources and any pickup."/></label>
     <button disabled={pending||!selected.length}>{pending?'Checking and saving…':appointmentId?'Approve reviewed appointment':'Save proposed time'}</button>
    </form>}
+   {context&&!appointmentId&&<RecurringPreviewPanel key={selected.join(",")} organization={organization} requestId={requestId} resources={selected}/> }
   </div>}
  </div>;
 }

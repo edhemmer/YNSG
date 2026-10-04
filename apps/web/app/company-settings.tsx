@@ -117,7 +117,7 @@ function template(name: string, organization: string): CompanySettings {
       selectionMinutes: 10,
       proposalMinutes: 120,
       leadMinutes: 1440,
-      horizonMinutes: 2160,
+      horizonMinutes: 43200,
       pendingLimit: 1,
     },
     sellerLegalName: "",
@@ -233,7 +233,7 @@ export default function CompanySettingsPanel({
       | "proposalMinutes"
       | "leadMinutes"
       | "horizonMinutes",
-    unit: "minutes" | "hours",
+    unit: "minutes" | "hours" | "days",
     help: string,
   ) => (
     <label key={key}>
@@ -248,11 +248,11 @@ export default function CompanySettingsPanel({
               ? 1 / 60
               : 1
         }
-        step={unit === "hours" ? "any" : 1}
+        step={unit === "minutes" ? 1 : "any"}
         value={
           draft!.scheduling[key] === null
             ? ""
-            : draft!.scheduling[key]! / (unit === "hours" ? 60 : 1)
+            : draft!.scheduling[key]! / (unit === "days" ? 1440 : unit === "hours" ? 60 : 1)
         }
         onChange={(e) =>
           change({
@@ -262,7 +262,7 @@ export default function CompanySettingsPanel({
                 e.target.value === ""
                   ? null
                   : Math.round(
-                      Number(e.target.value) * (unit === "hours" ? 60 : 1),
+                      Number(e.target.value) * (unit === "days" ? 1440 : unit === "hours" ? 60 : 1),
                     ),
             },
           })
@@ -629,8 +629,8 @@ export default function CompanySettingsPanel({
               {duration(
                 "How far ahead customers can book",
                 "horizonMinutes",
-                "hours",
-                "The furthest appointment time offered from now.",
+                "days",
+                "Use 30 days for one-time visits and the first visit in a weekly schedule.",
               )}
               <label>
                 Pending alternatives per request
@@ -656,9 +656,10 @@ export default function CompanySettingsPanel({
               </label>
             </div>
             <p>
-              With the current YNSG rules, customers can request times 24–36
-              hours ahead. Closed days may leave no available times in that
-              window.
+              One-time visits and the first recurring visit are offered within
+              the next 30 days, subject to your hours and minimum notice. Weekly
+              requests keep the same local day and time for 12 months. Each
+              appointment needs approval before it is confirmed.
             </p>
           </fieldset>
           <fieldset disabled={pending}>

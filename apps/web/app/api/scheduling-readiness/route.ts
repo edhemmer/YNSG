@@ -1,0 +1,29 @@
+import {NextResponse} from 'next/server';
+import {z} from 'zod';
+import {authorizeGoogle,store,missingGoogleConfiguration} from '../../../lib/google-server';
+export const dynamic='force-dynamic';
+export async function GET(request:Request){
+ try{
+  const org=z.uuid().parse(new URL(request.url).searchParams.get('organization')),{db}=await authorizeGoogle(org);
+  const [configuration,operators,entitlement,delivery]=await Promise.all([
+   db.from('configuration_versions').select('version,settings').eq('organization_id',org).order('version',{ascending:false}).limit(1).maybeSingle(),
+   db.from('resources').select('id').eq('organization_id',org).eq('kind','operator').eq('status','available').limit(2),
+   db.from('entitlements').select('enabled').eq('organization_id',org).eq('module','scheduling').maybeSingle(),
+   db.rpc('mail_delivery_status',{p_org:org}),
+  ]);
+  if(configuration.error||operators.error||entitlement.error||delivery.error)throw Error('READ');
+  const account=missingGoogleConfiguration().length?null:await store(org,'read');
+  const rules=configuration.data?.settings?.scheduling;
+  const checks=[
+   {label:'Business settings published',complete:Boolean(configuration.data),action:'Review and publish Company settings below.'},
+   {label:'Booking window set to 30 days',complete:rules?.horizonMinutes===43200,action:'Set the booking window to 30 days in Company settings.'},
+   {label:'Travel buffer configured',complete:Number.isInteger(rules?.bufferMinutes),action:'Review the travel buffer in Company settings.'},
+   {label:'Scheduling enabled for your business',complete:entitlement.data?.enabled===true,action:'Scheduling access needs activation.'},
+   {label:'One available operator configured',complete:operators.data?.length===1,action:'The current website calendar requires one available operator.'},
+   {label:'Google connected and business calendar checked',complete:Boolean(account?.encrypted_tokens&&account?.calendar_id&&account?.health==='healthy'),action:'Connect Google and select your business calendar below.'},
+   {label:'Gmail test sent successfully',complete:account?.gmail_test==='accepted',action:'Send a Gmail test in Google settings.'},
+   {label:'Email notifications approved and enabled',complete:delivery.data?.enabled===true&&process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true',action:'Confirm the test arrived, review the sender and enable email notifications in Google settings.'},
+  ];
+  return NextResponse.json({checks,publicAvailabilityConfigured:process.env.PUBLIC_AVAILABILITY_ENABLED==='true'&&process.env.PUBLIC_SCHEDULING_ORGANIZATION_ID===org,recurringReservationsReady:false},{headers:{'Cache-Control':'private, no-store'}});
+ }catch{return NextResponse.json({error:'Sign in as the business owner to check scheduling setup.'},{status:403,headers:{'Cache-Control':'private, no-store'}});}
+}

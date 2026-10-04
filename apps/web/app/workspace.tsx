@@ -13,6 +13,7 @@ import CustomerInvite from './customer-invite';
 import RelationshipNotes from './relationship-notes';
 import CalendarBlocks from './calendar-blocks';
 import MonthCalendar from './month-calendar';
+import SchedulingReadiness from './scheduling-readiness';
 import CompanySettingsPanel from './company-settings';
 import DailyCallSheet from './day-plan';
 import AvailabilityPanel from './availability-panel';
@@ -448,6 +449,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                       <GoogleControls key={org} organization={org} view="settings"/>
                       <OwnerSecurity key={org} organization={org}/>
                     </>}
+                    {section === "Settings" && ['owner','admin'].includes(role||'') && <SchedulingReadiness organization={org}/>}
                     {section === "Settings" && ['owner','admin'].includes(role||'') && <CompanySettingsPanel organization={org} name={data.company.display_name}/>}
                     {['Today','Calendar','Work'].includes(section)&&data.schedulingPreferences.length>0&&<section className="card" aria-labelledby="reschedule-heading"><h2 id="reschedule-heading">Customers requesting another time</h2>{data.schedulingPreferences.map(p=><article key={p.id} className="card"><p><strong>{data.requests.find(r=>r.id===p.request_id)?.original_submission.name||'Service request'}</strong></p><p>{p.preferred_local_start?.replace('T',' at ')} {p.preferred_local_start&&`(${p.timezone})`}</p><p>{p.note}</p><p className="note">Review this on the same request. A confirmed original stays booked until you approve its replacement.</p><button type="button" className="secondary" onClick={()=>{window.location.assign('/?request='+encodeURIComponent(p.request_id));}}>Open service request</button></article>)}</section>}
                     {section === "Today" && ['owner','admin'].includes(role||'') && <DailyCallSheet key={org} organization={org} timezone={data.company.timezone}/>}
