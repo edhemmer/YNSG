@@ -1,10 +1,11 @@
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
-import {authorizeGoogle,store,missingGoogleConfiguration} from '../../../lib/google-server';
+import {authorizeGoogle,store,missingGoogleConfiguration,serverDatabase} from '../../../lib/google-server';
+import {verifiedSessionId} from '../../../lib/background-setup';
 export const dynamic='force-dynamic';
 export async function GET(request:Request){
  try{
-  const org=z.uuid().parse(new URL(request.url).searchParams.get('organization')),{db}=await authorizeGoogle(org);
+  const org=z.uuid().parse(new URL(request.url).searchParams.get('organization')),session=await authorizeGoogle(org),{db}=session;
   const [configuration,operators,entitlement,delivery]=await Promise.all([
    db.from('configuration_versions').select('version,settings').eq('organization_id',org).order('version',{ascending:false}).limit(1).maybeSingle(),
    db.from('resources').select('id').eq('organization_id',org).eq('kind','operator').eq('status','available').limit(2),
@@ -14,6 +15,11 @@ export async function GET(request:Request){
   if(configuration.error||operators.error||entitlement.error||delivery.error)throw Error('READ');
   const account=missingGoogleConfiguration().length?null:await store(org,'read');
   const rules=configuration.data?.settings?.scheduling;
+  let schedulerStatus=null;
+  try{
+   const result=await serverDatabase().rpc('background_setup',{p_org:org,p_actor:session.user.id,p_session:verifiedSessionId(session.access),p_action:'status'});
+   if(!result.error)schedulerStatus=result.data;
+  }catch{ /* Setup remains usable if the deployment registry has not been installed. */ }
   const checks=[
    {label:'Business settings published',complete:Boolean(configuration.data),action:'Review and publish Company settings below.'},
    {label:'Booking window set to 30 days',complete:rules?.horizonMinutes===43200,action:'Set the booking window to 30 days in Company settings.'},
@@ -29,6 +35,9 @@ export async function GET(request:Request){
     mailSwitchEnabled:process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true',
     calendarSwitchEnabled:process.env.GOOGLE_CALENDAR_WORKER_ENABLED==='true',
     calendarCompanyMatches:process.env.GOOGLE_WORKER_ORGANIZATION_ID===org,
+    deploymentCredentialReady:Boolean(process.env.VERCEL_AUTOMATION_BYPASS_SECRET&&process.env.VERCEL_AUTOMATION_BYPASS_SECRET.length>=32),
+    schedulerStatus,
+    canPrepare:Boolean(schedulerStatus),
    }},{headers:{'Cache-Control':'private, no-store'}});
- }catch{return NextResponse.json({error:'Sign in as the business owner to check scheduling setup.'},{status:403,headers:{'Cache-Control':'private, no-store'}});}
+ }catch(error){return NextResponse.json({error:'Sign in as the business owner to check scheduling setup.'},{status:error instanceof Error&&error.message==='UNAUTHORIZED'?401:403,headers:{'Cache-Control':'private, no-store'}});}
 }

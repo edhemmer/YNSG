@@ -15,7 +15,7 @@ Internal operations document. Latest owner direction authorizes recurring worker
 
 ## Prepared configuration
 
-The setup script scripts/setup-background-cron.sql prepares two one-minute Supabase cron jobs, both inactive. It uses existing POST mail and calendar workers and records only request IDs and worker types for monitoring. It must not be applied or activated before reviewing database extension availability, credentials and worker prerequisites. Current project has Vault; pg_cron and pg_net were not installed when inspected.
+The setup script scripts/setup-background-cron.sql prepares two one-minute Supabase cron jobs, both inactive. It uses existing POST mail and calendar workers and records only request IDs and worker types for monitoring. It must not be applied or activated before reviewing database extension availability, credentials and worker prerequisites. Vault, pg_cron and pg_net are now installed. Both jobs are installed and paused.
 
 Vercel project ynsg-repo / Preview / codex/crm-workflow requires GOOGLE_WORKER_SECRET (at least 32 random characters), GOOGLE_GMAIL_DELIVERY_ENABLED=true, GOOGLE_CALENDAR_WORKER_ENABLED=true, and GOOGLE_WORKER_ORGANIZATION_ID bound to the YNSG organization. No changes to public website variables or existing Google encryption key are needed.
 
@@ -25,9 +25,9 @@ Vault entries required: ynsg_crm_worker_secret (same worker bearer credential), 
 
 Owner approved the specific worker and project bypass setup. The approved Vercel connector retry returned a provider 403: permission to create projectProtectionBypass denied. Dashboard fallback was approved and the signed-in project dashboard is accessible.
 
-An existing project automation bypass was found. Its value appeared in diagnostic output, so it must be rotated before activation. Do not reuse that value. Browser confirmation policy requires owner handoff for credential creation or rotation; no new worker credential has been entered.
+An existing project automation bypass was found. Its value appeared in diagnostic output, so it must be rotated before activation. Do not reuse that value. Browser confirmation policy requires owner handoff for credential creation or rotation; the owner entered GOOGLE_WORKER_SECRET directly in Vercel. Its presence and branch scope were verified without revealing its value. Rotation of the older bypass still needs owner confirmation.
 
-Live changes verified: pg_cron and pg_net installed through migrations; both named one-minute jobs installed inactive; authenticated customers cannot execute the enqueue function. GOOGLE_CALENDAR_WORKER_ENABLED=true and GOOGLE_WORKER_ORGANIZATION_ID were saved for Preview branch codex/crm-workflow only. A new deployment is required to load these settings. GOOGLE_WORKER_SECRET and matching Vault worker/bypass entries remain outstanding; periodic HTTP and provider verification has not passed. The jobs are not active.
+Live changes verified: pg_cron and pg_net installed through migrations; both named one-minute jobs installed inactive; authenticated customers cannot execute the enqueue function. GOOGLE_CALENDAR_WORKER_ENABLED=true and GOOGLE_WORKER_ORGANIZATION_ID were saved for Preview branch codex/crm-workflow only. The owner-triggered redeploy targeted main and failed; it did not update the CRM branch. GOOGLE_WORKER_SECRET exists in Preview/codex/crm-workflow. Matching Vault entries remain outstanding; periodic HTTP and provider verification has not passed. The jobs are not active.
 
 ## Live verification and rollback
 
@@ -39,3 +39,13 @@ Live changes verified: pg_cron and pg_net installed through migrations; both nam
 6. Pause both jobs on failure. Company email approval and global switches offer additional pause controls. Never automatically retry unknown send outcomes.
 
 Do not call this setup active until real periodic HTTP and provider evidence passes. Native iOS, public booking and recurring reservations remain separate release work.
+
+## Secure preparation action — October 4
+
+Pass/fail checklist: existing owner authorization and live-session checks; company/deployment binding; same-origin POST; server-only worker/bypass values; no credentials in UI, source, errors or status responses; never activate on preparation; fail closed for other companies, expired/revoked owners and customer roles; no required 2FA; no customer test messages, DNS or main-branch changes.
+
+Owner Settings now has Prepare background schedule. It sends only organization and an acknowledgement that the Vercel bypass was regenerated and the app branch redeployed. Server code reads its deployment environment and writes the three fixed scheduler entries to Vault through a server-only RPC. A private deployment registry restricts this operational setup to the configured business and stable origin. The RPC independently checks a live, verified owner session and membership. Preparation is repeatable and pauses the two named jobs transactionally. It never returns a secret. Nonsecret status shows stored credentials and actual job activation flags; neither proves provider delivery.
+
+Verified: 121 tests pass, root/web TypeScript checks pass, production build passes, hosted anonymous/authenticated RPC execution denied and service-role execution granted. Full deliverable review completed against the checklist; actual Vault preparation and periodic HTTP/provider verification remain outstanding. No overall production-complete claim.
+
+Security advisor review: explicit deny policies were added to the two new private tables. pg_net is non-relocatable and provider-owned in this project. Revoking PUBLIC queue/response privileges as postgres did not change their ACL, and the result was detected by a follow-up privilege check. Do not expose the net schema through the Data API or add user-facing queue inspection. The provider-owned ACL and pre-existing leaked-password-protection warning remain in the production-hardening review; no security setting was weakened. This configuration concern is not evidence that customers can access those tables through the current application.
