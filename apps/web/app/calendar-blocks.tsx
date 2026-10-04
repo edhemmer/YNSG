@@ -6,9 +6,11 @@ type Block = { id: string; startsAt: string; endsAt: string; revision: number };
 export default function CalendarBlocks({
   organization,
   timezone,
+  onChanged,
 }: {
   organization: string;
   timezone: string;
+  onChanged?: () => void;
 }) {
   const [blocks, setBlocks] = useState<Block[]>([]),
     [start, setStart] = useState(""),
@@ -53,6 +55,7 @@ export default function CalendarBlocks({
       const d = await r.json();
       if (!r.ok) throw Error(d.error);
       await load();
+      onChanged?.();
       setMessage(
         block
           ? "Time is available again."

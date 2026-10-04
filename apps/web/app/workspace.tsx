@@ -10,6 +10,7 @@ import InvoiceDelivery from './invoice-delivery';
 import CustomerInvite from './customer-invite';
 import RelationshipNotes from './relationship-notes';
 import CalendarBlocks from './calendar-blocks';
+import MonthCalendar from './month-calendar';
 import CompanySettingsPanel from './company-settings';
 import DailyCallSheet from './day-plan';
 import AvailabilityPanel from './availability-panel';
@@ -436,10 +437,10 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                         Refresh
                       </button>
                     </div>
-                    <div className="actions" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1}. Agenda shows appointments from the last day onward.</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>
+                    {section !== "Calendar" && <div className="actions" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1}. Agenda shows appointments from the last day onward.</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>}
                     {section === "Calendar" && ['owner','admin'].includes(role||'') && <>
-                      <p>Review appointments, choose your Google calendar, or block time you need to keep free.</p>
-                      <GoogleControls key={org} organization={org} view="calendar"/>
+                      <MonthCalendar key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current}/>
+                      <details><summary>Choose or create your Google business calendar</summary><GoogleControls key={org} organization={org} view="calendar"/></details>
                     </>}
                       {section === "Settings" && ['owner','admin'].includes(role||'') && <OwnerSecurity key={org} organization={org}/>}
                     {section === "Settings" && ['owner','admin'].includes(role||'') && <CompanySettingsPanel organization={org} name={data.company.display_name}/>}
@@ -496,7 +497,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                         {["owner","admin"].includes(role || "") && <NotificationAttention organization={org}/>}
                       </>
                     )}
-                    {(["Today", "Calendar", "Work"].includes(section)) && (
+                    {(["Today", "Work"].includes(section)) && (
                       <section aria-labelledby="appointment-heading">
                         <h2 id="appointment-heading">Appointments and proposed times</h2>
                         {["owner","admin"].includes(role || "") && <AvailabilityPanel organization={org}/>}
@@ -524,7 +525,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                         })}
                       </section>
                     )}
-                    {section === "Calendar" && ["owner","admin"].includes(role||"") && <CalendarBlocks key={org} organization={org} timezone={data.company.timezone}/>}
+                    {section === "Calendar" && ["owner","admin"].includes(role||"") && <CalendarBlocks key={org} organization={org} timezone={data.company.timezone} onChanged={()=>void refresh()}/>}
                     {section === "Customers" && (
                       <div className="card">
                         <h2>Customer relationships</h2>
