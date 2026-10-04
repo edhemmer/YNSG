@@ -119,7 +119,7 @@ export default function DailyCallSheet({
       </div>
       <p>
         In appointment order · {timezone}. Choose tomorrow’s date to plan the
-        next day. Navigation uses your current location if you allow it in Maps.
+        next day. Press an address or Directions from my location to open Google Maps. Allow location access in Maps to start from where you are; otherwise, choose your starting point there.
       </p>
       {error && (
         <p role="alert" className="error">
@@ -253,7 +253,12 @@ export default function DailyCallSheet({
                       : "Awaiting response"}
                 </p>
                 <p>
-                  {call.address || "Address needs review"}
+                  {navigation ? (
+                    <a href={navigation} target="_blank" rel="noopener noreferrer"
+                      aria-label={`Directions to ${call.name} at ${call.address}`}>
+                      {call.address}
+                    </a>
+                  ) : "Address needs review"}
                   <br />
                   {call.phone || "Phone needs review"}
                   <br />
@@ -273,7 +278,7 @@ export default function DailyCallSheet({
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      Navigate to address
+                      Directions from my location
                     </a>
                   )}
                   {call.phone && (
