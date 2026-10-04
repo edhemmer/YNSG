@@ -16,16 +16,16 @@ type CalendarCreation = { status: string; calendarId: string | null; summary: st
 const messages: Record<string, string> = {
   CALENDAR_CREATION_PERMISSION_REQUIRED: "Calendar creation needs one additional Google permission. Disconnect and reconnect Google, then approve calendar creation. You can also select an existing business calendar.",
   BUSINESS_CALENDAR_ALREADY_SELECTED: "A business calendar is already selected. Calendar changes need review before switching.",
-  SERVER_DATABASE_AUTH_REQUIRED: "Supabase rejected the server key. In Vercel’s ynsg-repo Preview settings, set SUPABASE_SERVICE_ROLE_KEY to a secret key from the same Supabase project as SUPABASE_URL, then redeploy.",
+  SERVER_DATABASE_AUTH_REQUIRED: "Google connection storage needs a configuration repair. Your existing connection is retained.",
   SERVER_DATABASE_PERMISSION_REQUIRED: "The CRM server cannot access Google connection storage. Its database permissions need repair.",
   CONNECTION_STORAGE_FAILED: "The CRM could not save or read its Google connection. Refresh status; if this continues, connection storage needs repair.",
-  ENCRYPTION_KEY_REQUIRED: "The Google token encryption key is invalid. It must decode to 32 bytes; do not replace a key that already protects a connected account.",
+  ENCRYPTION_KEY_REQUIRED: "Google connection security configuration needs a repair.",
   GOOGLE_REFRESH_UNAVAILABLE: 'Google could not refresh access right now. The connection is retained; try again later.',
-  GOOGLE_CLIENT_CONFIGURATION_REQUIRED: 'Check the Google OAuth client ID and secret in this deployment environment.',
+  GOOGLE_CLIENT_CONFIGURATION_REQUIRED: 'Google sign-in configuration needs a repair.',
   OWNER_ACCESS_REQUIRED:
     "Owner or administrator access is required.",
   GOOGLE_SETUP_REQUIRED:
-    "Google configuration is missing. Enter the listed values directly in Vercel.",
+    "Google setup needs attention before connecting.",
   RECONNECT_REQUIRED:
     "Google access expired or was revoked. Disconnect, then connect again.",
   MISSING_GOOGLE_SCOPES:
@@ -42,16 +42,19 @@ const messages: Record<string, string> = {
 };
 export default function GoogleControls({
   organization,
+  view = "email",
 }: {
   organization: string;
+  view?: "calendar" | "email";
 }) {
   const [connection, setConnection] = useState<Connection | null>(null),
     [missing, setMissing] = useState<string[]>([]),
     [calendars, setCalendars] = useState<Calendar[]>([]),
     [calendar, setCalendar] = useState(""),
     [busy, setBusy] = useState(false),
-    [message, setMessage] = useState(""),
-    [redirect, setRedirect] = useState<string | null>(null);
+    [message, setMessage] = useState("");
+  const [calendarsLoading, setCalendarsLoading] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(true);
   const [delivery,setDelivery]=useState<Delivery|null>(null),[dispatcherEnabled,setDispatcherEnabled]=useState(false),[received,setReceived]=useState(false);
   const [creation, setCreation] = useState<CalendarCreation | null>(null);
   const deliveryKey=useRef<string|null>(null);
@@ -59,6 +62,7 @@ export default function GoogleControls({
     testKey = useRef<string | null>(null);
   async function load(advance=true) {
     const gen = advance?++generation.current:generation.current;
+    setStatusLoading(true);
     try {
       const r = await sessionFetch(
           "/api/google?organization=" + encodeURIComponent(organization),
@@ -71,19 +75,39 @@ export default function GoogleControls({
       setMissing(v.missing);
       setConnection(v.connection);
       setCreation(v.creation || null);
-      setRedirect(v.redirectUri);
       setCalendar(v.connection?.calendarId || "");
+      if (view === "calendar" && v.connection?.connected) await loadCalendars(gen);
     } catch (e) {
       if (gen === generation.current)
         setMessage(
           messages[(e as Error).message] ||
             "Unable to read Google connection status.",
         );
+    } finally {
+      if (gen === generation.current) setStatusLoading(false);
+    }
+  }
+  async function loadCalendars(gen = generation.current) {
+    setCalendarsLoading(true);
+    try {
+      const response = await sessionFetch("/api/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "calendars", organization }),
+      });
+      const value = await response.json();
+      if (gen !== generation.current) return;
+      if (!response.ok) throw new Error(value.error);
+      setCalendars(value.calendars);
+    } catch {
+      if (gen === generation.current) setMessage("Your calendar list could not be loaded. Press Refresh calendars to try again.");
+    } finally {
+      if (gen === generation.current) setCalendarsLoading(false);
     }
   }
   useEffect(() => {
     setConnection(null);setDelivery(null);setReceived(false);deliveryKey.current=null;
-    setCalendars([]);setCreation(null);
+    setCalendars([]);setCreation(null);setBusy(false);setMessage("");setCalendarsLoading(false);
     testKey.current = null;
     void load();
     const outcome = new URLSearchParams(window.location.search).get("google");
@@ -96,8 +120,9 @@ export default function GoogleControls({
     return () => {
       generation.current++;
     };
-  }, [organization]);
+  }, [organization, view]);
   async function act(action: string, extra: Record<string, unknown> = {}) {
+    if (busy) return;
     setBusy(true);
     setMessage("");
     const gen = generation.current;
@@ -127,11 +152,13 @@ export default function GoogleControls({
       if (v.creation) {
         setCreation(v.creation);
         setMessage(v.creation.status === "created"
-          ? "Your business calendar is ready. Load your calendars, choose it, and press Save calendar."
+          ? "Your business calendar is ready. Choose it below and press Use this calendar."
           : v.creation.status === "failed"
             ? "Google rejected calendar creation. Check Google permissions before trying again."
             : "Calendar creation is uncertain. Load your calendars and check for the business calendar before continuing. Another calendar will not be created automatically.");
       }
+      if (v.creation) await loadCalendars(gen);
+      if (gen !== generation.current) return;
       if (v.calendars) setCalendars(v.calendars);
       if (v.connection) setConnection(v.connection);
       if(v.delivery){setDelivery(v.delivery);setDispatcherEnabled(v.dispatcherEnabled===true);deliveryKey.current=null;setReceived(false);setMessage(v.delivery.enabled?'CRM email delivery authorized for this company. The dispatcher must also be enabled and scheduled.':'CRM email delivery paused for this company.');}
@@ -156,12 +183,14 @@ export default function GoogleControls({
               ? "Google rejected the test. Check configuration before retrying."
               : "Delivery is uncertain. Check Gmail Sent; this test will not be resent automatically.",
         );
+      if (action === "calendar") setMessage("Business calendar saved. You can now review appointments and block time below.");
       if (action === "health")
         setMessage(
-          "Connection checked. Gmail delivery requires the separate test below.",
+          view === "calendar" ? "Google connection checked." : "Connection checked. Send the Gmail test below to check email.",
         );
       if(['test_email','calendar','health'].includes(action))await load(false);
     } catch (e) {
+      if (gen !== generation.current) return;
       setMessage(
         messages[(e as Error).message] ||
           "Google could not complete this action. Your existing website email is unchanged.",
@@ -172,127 +201,53 @@ export default function GoogleControls({
   }
   return (
     <section className="card" aria-labelledby="google-heading">
-      <p className="eyebrow">Connections</p>
-      <h2 id="google-heading">Google Calendar & Gmail</h2>
-      <p>
-        Your website’s current email service stays active. Connecting Google
-        does not switch customer email delivery.
-      </p>
-      {missing.length > 0 ? (
-        <>
-          <h3>Missing configuration</h3>
-          <ul>
-            {missing.map((k) => (
-              <li key={k}>
-                <code>{k}</code>
-              </li>
-            ))}
-          </ul>
-          <p>
-            Enter secrets directly in Vercel’s project environment settings.
-          </p>
-        </>
-      ) : null}
-      {redirect && (
-        <p>
-          Authorized redirect URI:{" "}
-          <code style={{ overflowWrap: "anywhere" }}>{redirect}</code>
-        </p>
-      )}
+      <p className="eyebrow">{view === "calendar" ? "Business calendar" : "Email connection"}</p>
+      <h2 id="google-heading">{view === "calendar" ? "Choose your business calendar" : "Gmail"}</h2>
+      {missing.length > 0 && <p>Google setup needs attention before connecting. Technical configuration is available on the private setup page.</p>}
+      {statusLoading && <p role="status">Loading Google connection…</p>}
       {!connection?.connected ? (
         <button
           type="button"
-          disabled={busy || missing.length > 0}
+          disabled={busy || statusLoading || missing.length > 0}
           onClick={() => void act("connect")}
         >
           Connect Google
         </button>
       ) : (
         <>
-          <dl>
-            <dt>Google account</dt>
-            <dd>{connection.email}</dd>
-            <dt>Connection health</dt>
-            <dd>{connection.health.replaceAll("_", " ")}</dd>
-            <dt>Last checked</dt>
-            <dd>
-              {connection.checkedAt
-                ? new Date(connection.checkedAt).toLocaleString()
-                : "Not checked"}
-            </dd>
-            <dt>Gmail test</dt>
-            <dd>{connection.gmailTest.replaceAll("_", " ")}</dd>
-            <dt>Selected calendar</dt>
-            <dd style={{ overflowWrap: "anywhere" }}>
-              {connection.calendarId || "Not selected"}
-            </dd>
-          </dl>
-          <aside aria-labelledby="business-calendar-guidance">
-            <h3 id="business-calendar-guidance">Keep a separate business calendar</h3>
-            <p>Keep business appointments on this calendar and personal events on your personal calendar. The CRM checks only the selected business calendar for now. Personal-calendar events do not block customer bookings.</p>
-            <p>To reserve personal time, use Block time in the CRM. Customers see that the time is unavailable, without your personal details. Checking additional calendars for busy time is planned for a future update.</p>
-          </aside>
-          {!connection.calendarId && <section aria-labelledby="create-business-calendar">
-            <h3 id="create-business-calendar">Need a business calendar?</h3>
-            <p>Use an existing business calendar below, or press Create business calendar. The new calendar will be named for your company, owned by this Google account, and use your company’s time zone. The CRM can read, add, change and delete appointment events on it.</p>
-            {!connection.canCreateCalendar && <p>To create a calendar here, first disconnect and reconnect Google to approve the additional calendar-creation permission. You can still choose an existing calendar.</p>}
-            <button type="button" disabled={busy || !connection.canCreateCalendar || (!!creation && creation.status !== "failed")} onClick={() => void act("create_calendar")}>Create business calendar</button>
-            {creation && <p role="status">{creation.status === "created" ? "Calendar created: " + creation.summary + ". Load your calendars below and select it." : ["unknown", "sending"].includes(creation.status) ? "Check Google Calendar and Load my calendars before continuing. Creation is uncertain; repeat creation is blocked to avoid duplicates." : "The previous creation was rejected by Google. Check permissions before trying again."}</p>}
-          </section>}
-          <div className="actions">
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => void act("health")}
-            >
-              Check connection
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => void act("calendars")}
-            >
-              Load my calendars
-            </button>
-          </div>
-          {calendars.length > 0 && (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                void act("calendar", { calendarId: calendar });
-              }}
-            >
-              <label>
-                Calendar you own
-                <select
-                  value={calendar}
-                  required
-                  onChange={(e) => setCalendar(e.target.value)}
-                >
-                  <option value="">Choose a calendar</option>
-                  {calendars.map((c) => (
-                    <option value={c.id} key={c.id}>
-                      {c.summary}
-                      {c.timeZone ? " · " + c.timeZone : ""}
-                    </option>
-                  ))}
+          <p><strong>Google connected</strong> · {connection.email}</p>
+          {view === "calendar" && <>
+            <p>{connection.calendarId ? "Business calendar: " + (calendars.find(c => c.id === connection.calendarId)?.summary || "Saved calendar") : "Choose an existing calendar or create a separate one for your business."}</p>
+            <form onSubmit={e => { e.preventDefault(); void act("calendar", { calendarId: calendar }); }}>
+              <label>Business calendar
+                <select value={calendar} required disabled={busy || calendarsLoading} onChange={e => setCalendar(e.target.value)}>
+                  <option value="">{calendarsLoading ? "Loading your calendars…" : "Press to choose a calendar"}</option>
+                  {calendars.map(c => <option key={c.id} value={c.id}>{c.summary}{c.timeZone ? " · " + c.timeZone : ""}</option>)}
                 </select>
               </label>
-              <button disabled={busy || !calendar}>Save calendar</button>
+              <div className="actions">
+                <button disabled={busy || calendarsLoading || !calendar || calendar === connection.calendarId}>Use this calendar</button>
+                <button type="button" className="secondary" disabled={busy || calendarsLoading} onClick={() => void loadCalendars()}>Refresh calendars</button>
+              </div>
             </form>
-          )}
-          <button
-            type="button"
-            disabled={busy || !connection.calendarId}
-            onClick={() => void act("sync")}
-          >
-            Sync calendar now
-          </button>
-          <p>
-            Processes up to ten queued changes and checks mapped upcoming
-            events. Google edits require review; they do not approve or move CRM
-            appointments.
-          </p>
+            {!calendarsLoading && !calendars.length && <p>No owned calendars are available in this list. Try refreshing or create your business calendar below.</p>}
+            {!connection.calendarId && <>
+              <h3>Need a separate calendar?</h3>
+              <p>Create one named for your business, then choose it above.</p>
+              <button type="button" disabled={busy || !connection.canCreateCalendar || (!!creation && creation.status !== "failed")} onClick={() => void act("create_calendar")}>Create business calendar</button>
+              {!connection.canCreateCalendar && <p>Calendar creation requires additional Google permission. You can still choose an existing business calendar.</p>}
+              {creation && <p role="status">{creation.status === "created" ? "Created: " + creation.summary + ". Choose it above to finish." : ["unknown", "sending"].includes(creation.status) ? "Creation is still being checked. Refresh calendars before trying anything else; another calendar will not be created automatically." : "Google rejected creation. Check permissions before trying again."}</p>}
+            </>}
+            <p className="note">Keep business appointments separate from personal events. Personal calendars do not block bookings yet. Use Block calendar time below to make time unavailable to customers.</p>
+            <details><summary>Calendar connection tools</summary>
+              <div className="actions">
+                <button type="button" disabled={busy} onClick={() => void act("health")}>Check connection</button>
+                <button type="button" disabled={busy || !connection.calendarId} onClick={() => void act("sync")}>Sync calendar now</button>
+              </div>
+              <p>Changes made in Google need owner review before they move or approve a CRM appointment.</p>
+            </details>
+          </>}
+          {view === "email" && <>
           <p>
             The test sends one message to the connected Google account, not to a
             customer. No inbox-reading permission is requested.
@@ -312,6 +267,7 @@ export default function GoogleControls({
           <section aria-labelledby="mail-activation"><h3 id="mail-activation">CRM email delivery</h3><p>Company authorization: {delivery?.enabled?'enabled':'off'}. Background dispatcher: {dispatcherEnabled?'enabled':'paused'}.</p>
           {delivery?.enabled?<><button type="button" disabled={busy} onClick={()=>{deliveryKey.current??=crypto.randomUUID();void act('disable_delivery',{key:deliveryKey.current});}}>Pause CRM email delivery</button><button type="button" disabled={busy||!dispatcherEnabled} onClick={()=>void act('send_pending')}>Process pending CRM notices now</button></>:<><p>Verify the test arrived and that the configured sender matches this Gmail account before authorizing queued customer and owner notices. The website's current request email remains separate.</p><label><input type="checkbox" checked={received} disabled={busy||connection.gmailTest!=='accepted'} onChange={e=>setReceived(e.target.checked)}/>I received the Gmail test and reviewed the company sender.</label><button type="button" disabled={busy||!received||connection.gmailTest!=='accepted'||!delivery?.senderMatches||!delivery.testKey} onClick={()=>{deliveryKey.current??=crypto.randomUUID();void act('enable_delivery',{revision:delivery!.connectionRevision,configurationVersion:delivery!.configurationVersion,testKey:delivery!.testKey,receiptConfirmed:true,key:deliveryKey.current});}}>Authorize CRM email delivery</button></>}
           {!dispatcherEnabled&&<p>The server delivery switch and an approved recurring worker still need setup. Authorizing this company alone will not send messages.</p>}</section>
+          </>}
           <details>
             <summary>Disconnect Google</summary>
             <p>
