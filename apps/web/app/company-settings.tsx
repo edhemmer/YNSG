@@ -1,7 +1,8 @@
 "use client";
 import { publicError } from "../lib/public-errors";
 import { useEffect, useRef, useState } from "react";
-import { ZodError } from "zod";
+import {settingsIssue,settingsFieldLabel,type SettingsIssue} from "../lib/settings-validation";
+import {configurationCommand} from "../../../packages/contracts/operations";
 import type { CompanySettings } from "../../../packages/contracts";
 import {
   validateConfiguration,
@@ -58,29 +59,7 @@ const ynsgCatalog = (): CatalogItem[] =>
     pricingMode: name === "Something else" ? "review" : "hourly",
   }));
 function settingsError(error: unknown): string {
-  if (error instanceof ZodError) {
-    const issue = error.issues[0];
-    const field = String(issue?.path.at(-1) || "");
-    const names: Record<string, string> = {
-      sellerLegalName: "Business name",
-      weekdays: "Working days",
-      horizonMinutes: "How far ahead customers can book",
-      leadMinutes: "Minimum advance notice",
-      proposalMinutes: "Time to approve",
-      selectionMinutes: "Customer time hold",
-      bufferMinutes: "Time between appointments",
-      pendingLimit: "Pending alternatives",
-      timezone: "Timezone",
-    };
-    return (
-      (names[field] || "Company settings") +
-      ": " +
-      "Please check this value."
-    );
-  }
-  return error instanceof Error
-    ? publicError(error)
-    : "Check the settings and try again.";
+  return settingsIssue(error)?.message || publicError(error, "Settings could not be saved. Refresh and try again.");
 }
 function template(name: string, organization: string): CompanySettings {
   return {
@@ -146,6 +125,8 @@ export default function CompanySettingsPanel({
     [preview, setPreview] = useState(false),
     [ready, setReady] = useState(false),
     [loading, setLoading] = useState(true);
+  const formRef=useRef<HTMLFormElement>(null);
+  const [fieldIssue,setFieldIssue]=useState<SettingsIssue|null>(null);
   const retry = useRef<{ fingerprint: string; key: string } | null>(null);
   useEffect(() => {
     let live = true;
@@ -157,6 +138,7 @@ export default function CompanySettingsPanel({
     setPreview(false);
     setMessage("");
     setError("");
+    setFieldIssue(null);
     retry.current = null;
     void sessionFetch(
       "/api/configuration?organization=" + encodeURIComponent(organization),
@@ -201,6 +183,8 @@ export default function CompanySettingsPanel({
   const change = (patch: Partial<CompanySettings>) => {
     setDraft((d) => (d ? { ...d, ...patch } : d));
     setPreview(false);
+    setFieldIssue(null);
+    setError("");
   };
   const clock = (
     label: string,
@@ -210,6 +194,7 @@ export default function CompanySettingsPanel({
       {label}
       <select
         required
+        name={"scheduling."+key}
         value={draft!.scheduling[key]}
         onChange={(e) =>
           change({
@@ -242,6 +227,7 @@ export default function CompanySettingsPanel({
       {label} ({unit})
       <input
         type="number"
+        name={"scheduling."+key}
         required
         min={
           key === "bufferMinutes" || key === "leadMinutes"
@@ -273,6 +259,25 @@ export default function CompanySettingsPanel({
       <small>{help}</small>
     </label>
   );
+  function showIssue(issue:SettingsIssue) {
+    setPreview(false);setFieldIssue(issue);setError(issue.message);
+    const form=formRef.current;if(!form)return;
+    const controls=Array.from(form.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>('input,select,textarea'));
+    controls.forEach(control=>{control.removeAttribute('aria-invalid');control.removeAttribute('aria-errormessage');});
+    const target=controls.find(control=>control.name===issue.path);
+    if(target){target.setAttribute('aria-invalid','true');target.setAttribute('aria-errormessage','settings-field-error');requestAnimationFrame(()=>{if(target.isConnected){target.scrollIntoView({behavior:'auto',block:'center'});target.focus({preventScroll:true});}});}
+  }
+  function previewSettings(form:HTMLFormElement) {
+    if(!draft)return;
+    const invalid=Array.from(form.elements).find((element):element is HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement=>(element instanceof HTMLInputElement||element instanceof HTMLSelectElement||element instanceof HTMLTextAreaElement)&&element.willValidate&&!element.validity.valid);
+    if(invalid){showIssue({path:invalid.name,message:settingsFieldLabel(invalid.name)+': '+(invalid.validity.valueMissing?'Please complete this field.':invalid.validationMessage)});return;}
+    try{
+      validateConfiguration(draft);
+      configurationCommand.parse({organizationId:organization,expectedVersion:version,key:'settings-preview-validation',settings:draft,catalog:catalog.map(({existing,...item})=>item)});
+      setError('');setFieldIssue(null);setPreview(true);
+      form.querySelectorAll('[aria-invalid]').forEach(control=>{control.removeAttribute('aria-invalid');control.removeAttribute('aria-errormessage');});
+    }catch(error){const issue=settingsIssue(error);if(issue)showIssue(issue);else setError(settingsError(error));}
+  }
   async function publish() {
     if (!draft) return;
     setPending(true);
@@ -305,7 +310,7 @@ export default function CompanySettingsPanel({
           " published. Google and customer delivery remain separately controlled.",
       );
     } catch (e) {
-      setError(settingsError(e));
+      const issue=settingsIssue(e);if(issue)showIssue(issue);else setError(settingsError(e));
     } finally {
       setPending(false);
     }
@@ -329,10 +334,12 @@ export default function CompanySettingsPanel({
       )}
       {draft && <div className="settings-actions" role="group" aria-label="Save company settings">
         <p>{preview ? "Review your settings, then publish to save them." : "Changes are saved when you preview and publish them."}</p>
+        {fieldIssue && <p id="settings-field-error" role="alert">{fieldIssue.message}</p>}
+        {fieldIssue && <button type="button" className="secondary" onClick={()=>showIssue(fieldIssue)}>Go to this field</button>}
         {preview && <p>{draft.displayName} · {draft.timezone} · Standard ${draft.hourly.standardCents / 100}/hour · Community ${draft.hourly.communityCents / 100}/hour</p>}
         {preview ? <button type="button" disabled={pending || !ready} onClick={() => void publish()}>{pending ? "Saving…" : "Publish reviewed settings"}</button> : <button type="submit" form={settingsFormId} disabled={pending}>Preview settings to save</button>}
       </div>}
-      {error && <p role="alert">{error}</p>}
+      {error && !fieldIssue && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
       {loading ? (
         <p role="status">Loading your company settings…</p>
@@ -355,15 +362,12 @@ export default function CompanySettingsPanel({
       ) : (
         <form
           id={settingsFormId}
+          ref={formRef}
+          noValidate
+          onInput={()=>{if(fieldIssue){setFieldIssue(null);setError("");formRef.current?.querySelectorAll("[aria-invalid]").forEach(control=>{control.removeAttribute("aria-invalid");control.removeAttribute("aria-errormessage");});}}}
           onSubmit={(e) => {
             e.preventDefault();
-            try {
-              validateConfiguration(draft);
-              setError("");
-              setPreview(true);
-            } catch (e) {
-              setError(settingsError(e));
-            }
+            previewSettings(e.currentTarget);
           }}
         >
           <fieldset disabled={pending}>
@@ -372,6 +376,7 @@ export default function CompanySettingsPanel({
               Name shown to customers
               <input
                 required
+                name="displayName"
                 value={draft.displayName}
                 onChange={(e) => change({ displayName: e.target.value })}
               />
@@ -381,6 +386,7 @@ export default function CompanySettingsPanel({
               <input
                 required
                 minLength={2}
+                name="sellerLegalName"
                 value={draft.sellerLegalName}
                 onChange={(e) => change({ sellerLegalName: e.target.value })}
               />
@@ -393,6 +399,7 @@ export default function CompanySettingsPanel({
               Timezone
               <input
                 required
+                name="timezone"
                 value={draft.timezone}
                 onChange={(e) => change({ timezone: e.target.value })}
               />
@@ -401,6 +408,7 @@ export default function CompanySettingsPanel({
               State or region
               <input
                 required
+                name="region"
                 value={draft.region}
                 onChange={(e) => change({ region: e.target.value })}
               />
@@ -409,6 +417,7 @@ export default function CompanySettingsPanel({
               Service cities, separated by commas
               <input
                 required
+                name="cities"
                 value={draft.cities.join(", ")}
                 onChange={(e) =>
                   change({
@@ -422,6 +431,7 @@ export default function CompanySettingsPanel({
               <input
                 type="email"
                 required
+                name="sender"
                 value={draft.sender}
                 onChange={(e) => change({ sender: e.target.value })}
               />
@@ -431,6 +441,7 @@ export default function CompanySettingsPanel({
               <input
                 type="email"
                 required
+                name="notificationRecipient"
                 value={draft.notificationRecipient}
                 onChange={(e) =>
                   change({ notificationRecipient: e.target.value })
@@ -440,14 +451,14 @@ export default function CompanySettingsPanel({
           </fieldset>
           <fieldset disabled={pending}>
             <legend>Email logo and signature</legend>
-            <label>Owner name for email signature<input maxLength={160} value={draft.brand.ownerName || ""} placeholder="Your name" onChange={e=>change({brand:{...draft.brand,ownerName:e.target.value||null}})}/><small>Emails close with Best Regards, followed by this name.</small></label>
-            <label>Logo image link<input type="url" maxLength={2048} value={draft.brand.logoUrl || ""} placeholder="https://your-website.com/logo.png" onChange={e=>change({brand:{...draft.brand,logoUrl:e.target.value||null}})}/><small>Use a publicly accessible HTTPS image. Email readers may choose to hide images.</small></label>
+            <label>Owner name for email signature<input name="brand.ownerName" maxLength={160} value={draft.brand.ownerName || ""} placeholder="Your name" onChange={e=>change({brand:{...draft.brand,ownerName:e.target.value||null}})}/><small>Emails close with Best Regards, followed by this name.</small></label>
+            <label>Logo image link<input name="brand.logoUrl" type="url" maxLength={2048} value={draft.brand.logoUrl || ""} placeholder="https://your-website.com/logo.png" onChange={e=>change({brand:{...draft.brand,logoUrl:e.target.value||null}})}/><small>Use a publicly accessible HTTPS image. Email readers may choose to hide images.</small></label>
           </fieldset>
           <fieldset disabled={pending}>
             <legend>After an invoice is paid</legend>
             <p>A thank-you email queues when confirmed payments cover the full invoice. Sending requires your verified Google connection and enabled email delivery.</p>
             <label className="check"><input type="checkbox" checked={draft.review.enabled} onChange={e=>change({review:{...draft.review,enabled:e.target.checked}})} />Include a review request in the thank-you email</label>
-            <label>Review page link (optional until enabled)<input type="url" placeholder="https://" required={draft.review.enabled} value={draft.review.url||''} onChange={e=>change({review:{...draft.review,url:e.target.value||null}})} /></label>
+            <label>Review page link (optional until enabled)<input name="review.url" type="url" placeholder="https://" required={draft.review.enabled} value={draft.review.url||''} onChange={e=>change({review:{...draft.review,url:e.target.value||null}})} /></label>
             {organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" && <button type="button" className="secondary" onClick={()=>change({review:{enabled:true,url:"https://g.page/r/CWxW2KabD1UWECE/review"}})}>Use our Google review link</button>}
             <p>Use the HTTPS link where customers can leave a review. Leave this off until your review page is ready.</p>
           </fieldset>
@@ -460,6 +471,7 @@ export default function CompanySettingsPanel({
                 type="number"
                 min="0.01"
                 step="0.01"
+                name="hourly.standardCents"
                 value={draft.hourly.standardCents / 100}
                 onChange={(e) =>
                   change({
@@ -478,6 +490,7 @@ export default function CompanySettingsPanel({
                 type="number"
                 min="0.01"
                 step="0.01"
+                name="hourly.communityCents"
                 value={draft.hourly.communityCents / 100}
                 onChange={(e) =>
                   change({
@@ -496,6 +509,7 @@ export default function CompanySettingsPanel({
             <label>
               Partial extension billing
               <select
+                name="hourly.partialExtension"
                 value={draft.hourly.partialExtension ?? ""}
                 onChange={(e) =>
                   change({
@@ -517,6 +531,8 @@ export default function CompanySettingsPanel({
             <label>
               Invoice terms
               <textarea
+                name="invoiceTerms"
+                maxLength={4000}
                 value={draft.invoiceTerms ?? ""}
                 onChange={(e) =>
                   change({ invoiceTerms: e.target.value || null })
@@ -587,6 +603,7 @@ export default function CompanySettingsPanel({
                 <label key={day}>
                   <input
                     type="checkbox"
+                    name="scheduling.weekdays"
                     checked={draft.scheduling.weekdays.includes(index + 1)}
                     onChange={(e) =>
                       change({
@@ -654,6 +671,7 @@ export default function CompanySettingsPanel({
                   min={1}
                   max={5}
                   step={1}
+                  name="scheduling.pendingLimit"
                   value={draft.scheduling.pendingLimit}
                   onChange={(e) =>
                     change({
@@ -682,6 +700,7 @@ export default function CompanySettingsPanel({
               <label key={key}>
                 {key}
                 <input
+                  name={"brand."+key}
                   type="color"
                   value={draft.brand[key]}
                   onChange={(e) =>
@@ -707,6 +726,7 @@ export default function CompanySettingsPanel({
                     minLength={2}
                     maxLength={80}
                     readOnly={item.existing}
+                    name={"catalog."+index+".name"}
                     value={item.name}
                     onChange={(e) => {
                       setCatalog((c) =>
@@ -724,6 +744,7 @@ export default function CompanySettingsPanel({
                     required
                     minLength={10}
                     maxLength={4000}
+                    name={"catalog."+index+".scope"}
                     value={item.scope}
                     onChange={(e) => {
                       setCatalog((c) =>
@@ -741,6 +762,7 @@ export default function CompanySettingsPanel({
                     required
                     minLength={10}
                     maxLength={4000}
+                    name={"catalog."+index+".exclusions"}
                     value={item.exclusions}
                     onChange={(e) => {
                       setCatalog((c) =>
@@ -757,6 +779,7 @@ export default function CompanySettingsPanel({
                 <label>
                   Scope approval
                   <select
+                    name={"catalog."+index+".compliance"}
                     value={item.compliance}
                     onChange={(e) => {
                       setCatalog((c) =>
@@ -781,6 +804,7 @@ export default function CompanySettingsPanel({
                 <label>
                   Pricing approach
                   <select
+                    name={"catalog."+index+".pricingMode"}
                     value={item.pricingMode}
                     onChange={(e) => {
                       setCatalog((c) =>
@@ -853,6 +877,7 @@ export default function CompanySettingsPanel({
             {releaseGates(draft).join("; ") ||
               "These invoice setup checks are complete."}
           </p>
+          <p>You can publish settings while invoice decisions remain unreviewed. Invoicing stays blocked until those checks are complete.</p>
           <button disabled={pending}>Preview settings to save</button>
           {preview && (
             <div className="card">

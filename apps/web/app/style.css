@@ -34,3 +34,5 @@
 /* Keep explicit saving controls visible while reviewing long company forms. */
 .settings-actions{position:sticky;top:12px;z-index:5;padding:16px;margin:16px 0;background:var(--paper,#f8f6ef);border:1px solid #d6dfd7;border-radius:10px;box-shadow:0 3px 12px #10283c12}
 .settings-actions p{margin:0 0 10px}.company-settings{scroll-margin-top:20px}
+
+.company-settings [aria-invalid=true]{border:2px solid #892d1e;box-shadow:0 0 0 2px #892d1e22}.company-settings input,.company-settings select,.company-settings textarea{scroll-margin-block:180px}

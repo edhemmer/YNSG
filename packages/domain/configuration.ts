@@ -5,8 +5,11 @@ export function contrast(a:string,b:string):number {
 }
 export function validateConfiguration(value:unknown):CompanySettings {
  const c=companySettings.parse(value);
- if(contrast(c.brand.navy,c.brand.cream)<4.5||contrast(c.brand.navy,c.brand.gold)<4.5||contrast(c.brand.forest,c.brand.cream)<4.5)throw new DomainError('VALIDATION','Brand text/background pairs need at least 4.5:1 contrast');
- if(c.scheduling.earliestStart>c.scheduling.latestStart||c.scheduling.latestStart+120>c.scheduling.endOfDay)throw new DomainError('VALIDATION','Last start must allow the minimum reservation');
+ if(contrast(c.brand.navy,c.brand.cream)<4.5)throw new DomainError('VALIDATION','Navy/background colors need at least 4.5:1 contrast');
+ if(contrast(c.brand.navy,c.brand.gold)<4.5)throw new DomainError('VALIDATION','Navy/gold colors need at least 4.5:1 contrast');
+ if(contrast(c.brand.forest,c.brand.cream)<4.5)throw new DomainError('VALIDATION','Green/background colors need at least 4.5:1 contrast');
+ if(c.scheduling.earliestStart>c.scheduling.latestStart)throw new DomainError('VALIDATION','First start must be before last start');
+ if(c.scheduling.latestStart+120>c.scheduling.endOfDay)throw new DomainError('VALIDATION','Last start must allow the minimum reservation');
  return c;
 }
 export function releaseGates(c:CompanySettings):string[]{return [!c.sellerVerified&&'Confirm business name',!c.invoiceTerms&&'Approve invoice terms',!c.taxTreatmentVerified&&'Verify invoice tax treatment',c.hourly.partialExtension===null&&'Choose partial-extension billing policy',c.scheduling.bufferMinutes===null&&'Choose travel buffer'].filter((v):v is string=>typeof v==='string');}
