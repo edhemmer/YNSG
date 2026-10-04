@@ -136,7 +136,7 @@ export default function GoogleControls({
       if (gen !== generation.current) return;
       if (v.calendars) setCalendars(v.calendars);
       if (v.connection) setConnection(v.connection);
-      if(v.delivery){setDelivery(v.delivery);setDispatcherEnabled(v.dispatcherEnabled===true);deliveryKey.current=null;setReceived(false);setMessage(v.delivery.enabled?'CRM email delivery authorized for this company. The dispatcher must also be enabled and scheduled.':'CRM email delivery paused for this company.');}
+      if(v.delivery){setDelivery(v.delivery);setDispatcherEnabled(v.dispatcherEnabled===true);deliveryKey.current=null;setReceived(false);setMessage(v.delivery.enabled?'Email delivery approved for this business. Automatic sending must also be active.':'Email delivery paused for this business.');}
       if(action==='send_pending')setMessage('Processed '+v.deliveries.length+' queued communication(s). Provider acceptance is shown separately from delivery.');
       if (action === "disconnect") {
         setCalendars([]);
@@ -213,13 +213,13 @@ export default function GoogleControls({
               {!connection.canCreateCalendar && <p>Calendar creation requires additional Google permission. You can still choose an existing business calendar.</p>}
               {creation && <p role="status">{creation.status === "created" ? "Created: " + creation.summary + ". Choose it above to finish." : ["unknown", "sending"].includes(creation.status) ? "Creation is still being checked. Refresh calendars before trying anything else; another calendar will not be created automatically." : "Google rejected creation. Check permissions before trying again."}</p>}
             </>}
-            <p className="note">Keep business appointments separate from personal events. Personal calendars do not block bookings yet. Open Calendar and use Block calendar time to make time unavailable to customers.</p>
+            <p className="note">Keep business appointments separate from personal events. Personal calendars do not block bookings yet. Open Calendar and use Block time to make time unavailable to customers.</p>
             <details><summary>Calendar connection tools</summary>
               <div className="actions">
                 <button type="button" disabled={busy} onClick={() => void act("health")}>Check connection</button>
                 <button type="button" disabled={busy || !connection.calendarId} onClick={() => void act("sync")}>Sync calendar now</button>
               </div>
-              <p>Changes made in Google need owner review before they move or approve a CRM appointment.</p>
+              <p>Review changes made in Google before moving or confirming an appointment.</p>
             </details>
           </>}
           {view !== "calendar" && <>
@@ -239,14 +239,14 @@ export default function GoogleControls({
           >
             Send Gmail test to myself
           </button>
-          <section aria-labelledby="mail-activation"><h3 id="mail-activation">CRM email delivery</h3><p>Company authorization: {delivery?.enabled?'enabled':'off'}. Background dispatcher: {dispatcherEnabled?'enabled':'paused'}.</p>
-          {delivery?.enabled?<><button type="button" disabled={busy} onClick={()=>{deliveryKey.current??=crypto.randomUUID();void act('disable_delivery',{key:deliveryKey.current});}}>Pause CRM email delivery</button><button type="button" disabled={busy||!dispatcherEnabled} onClick={()=>void act('send_pending')}>Process pending CRM notices now</button></>:<><p>Verify the test arrived and that the configured sender matches this Gmail account before authorizing queued customer and owner notices. The website's current request email remains separate.</p><label><input type="checkbox" checked={received} disabled={busy||connection.gmailTest!=='accepted'} onChange={e=>setReceived(e.target.checked)}/>I received the Gmail test and reviewed the company sender.</label><button type="button" disabled={busy||!received||connection.gmailTest!=='accepted'||!delivery?.senderMatches||!delivery.testKey} onClick={()=>{deliveryKey.current??=crypto.randomUUID();void act('enable_delivery',{revision:delivery!.connectionRevision,configurationVersion:delivery!.configurationVersion,testKey:delivery!.testKey,receiptConfirmed:true,key:deliveryKey.current});}}>Authorize CRM email delivery</button></>}
-          {!dispatcherEnabled&&<p>The server delivery switch and an approved recurring worker still need setup. Authorizing this company alone will not send messages.</p>}</section>
+          <section aria-labelledby="mail-activation"><h3 id="mail-activation">Email notifications</h3><p>Business approval: {delivery?.enabled?'enabled':'off'}. Automatic sending: {dispatcherEnabled?'enabled':'paused'}.</p>
+          {delivery?.enabled?<><button type="button" disabled={busy} onClick={()=>{deliveryKey.current??=crypto.randomUUID();void act('disable_delivery',{key:deliveryKey.current});}}>Pause email notifications</button><button type="button" disabled={busy||!dispatcherEnabled} onClick={()=>void act('send_pending')}>Send pending notifications</button></>:<><p>Check that the test email arrived and the sender matches this Gmail account. Then enable customer and owner notifications. Website request emails use their existing delivery setup.</p><label><input type="checkbox" checked={received} disabled={busy||connection.gmailTest!=='accepted'} onChange={e=>setReceived(e.target.checked)}/>I received the Gmail test and reviewed the company sender.</label><button type="button" disabled={busy||!received||connection.gmailTest!=='accepted'||!delivery?.senderMatches||!delivery.testKey} onClick={()=>{deliveryKey.current??=crypto.randomUUID();void act('enable_delivery',{revision:delivery!.connectionRevision,configurationVersion:delivery!.configurationVersion,testKey:delivery!.testKey,receiptConfirmed:true,key:deliveryKey.current});}}>Enable email notifications</button></>}
+          {!dispatcherEnabled&&<p>Automatic sending still needs setup. Business approval alone will not send these messages.</p>}</section>
           </>}
           <details>
             <summary>Disconnect Google</summary>
             <p>
-              Stops new CRM Google operations and revokes the stored grant.
+              Disconnects this business from Google and stops new calendar updates and emails.
               Existing events and your website email remain in place.
             </p>
             <button

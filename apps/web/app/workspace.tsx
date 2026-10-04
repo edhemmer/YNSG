@@ -299,7 +299,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
             <p className="eyebrow">Workspace setup</p>
             <h1>A careful start.</h1>
             <p>
-              The CRM database connection is not configured for this deployment
+              The business workspace connection has not been set up
               yet. Your public website remains available.
             </p>
             <p className="note">
@@ -559,7 +559,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                             <p>
                               No requests in this workspace yet. Public requests
                               continue through the existing website until the
-                              CRM intake switch is enabled.
+                              website connection is enabled.
                             </p>
                           </div>
                         )}
@@ -772,9 +772,9 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                         <p className="badge">{data.company.status}</p>
                         <p>Timezone: {data.company.timezone}</p>
                         <p>
-                          This staged build has database request, quote, invoice
-                          and confirmed-payment commands. It has not passed the
-                          full operating release gates.
+                          Live operation still needs verification. Review the
+                          business settings, website requests, calendar and
+                          email delivery before taking bookings.
                         </p>
                         <ul>
                           <li>
@@ -874,10 +874,10 @@ function QuoteForm({
           Customer eligibility reviewed
         </label>
         <p>
-          Publishing creates a new immutable quote version. It does not send an
+          Publishing saves this quote as a new version. It does not send an
           email or schedule the job.
         </p>
-        <button disabled={pending}>Publish quote version</button>
+        <button disabled={pending}>Save quote version</button>
       </form>
     </details>
   );

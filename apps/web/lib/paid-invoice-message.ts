@@ -1,3 +1,4 @@
+import {emailLayout,emailButton} from '../../../lib/email-layout.js';
 import type { InvoiceDocument } from './invoice-document.js';
 const escape=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 export function paidInvoiceMessage(d:InvoiceDocument,review:unknown){
@@ -15,5 +16,5 @@ export function paidInvoiceMessage(d:InvoiceDocument,review:unknown){
  const ask='If you have a moment, we’d appreciate a review of your experience.';
  return {to:d.recipient.email,subject:`${d.businessName} — Thank you for your payment`,
  body:[greeting,thanks,...(reviewUrl?[ask,reviewUrl]:[]),'If you need anything else, you can reply to this email.'].join('\n\n'),
- html:`<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:20px;background:#f8f6ef;color:#10283c;font-family:Arial,sans-serif"><div style="max-width:600px;margin:auto;padding:24px;background:white;font-size:18px;line-height:1.6;overflow-wrap:anywhere"><h1 style="font-size:26px">Thank you</h1><p>${escape(greeting)}</p><p>${escape(thanks)}</p>${reviewUrl?`<p>${ask}</p><p><a href="${escape(reviewUrl)}" style="display:inline-block;padding:14px 20px;background:#21503a;color:white;border-radius:6px;font-weight:bold">Leave a review</a></p>`:''}<p>If you need anything else, you can reply to this email.</p></div></body></html>`};
+ html:emailLayout(d.businessName,'Thank you',`Invoice ${d.number} is paid in full`, `<p>${escape(greeting)}</p><p>${escape(thanks)}</p>${reviewUrl?`<p>${ask}</p>${emailButton("Leave a review",reviewUrl)}`:''}<p>If you need anything else, you can reply to this email.</p>`)}
 }

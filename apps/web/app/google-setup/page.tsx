@@ -43,7 +43,7 @@ export default async function GoogleSetup() {
           not enabled by connecting an account.
         </p>
         <h2>Owner Google sign-in</h2>
-        <p>In Supabase Authentication → Sign In / Providers → Google, enable Google and configure the OAuth client. Add the callback URL shown there to Google Cloud's Authorized redirect URIs. Also allow your CRM /auth/confirm URL in Supabase Authentication's redirect URL list. This login setup is separate from the Calendar/Gmail callback below. Existing verified owner memberships still control company access.</p>
+        <p>In Supabase Authentication → Sign In / Providers → Google, enable Google and configure the OAuth client. Add the callback URL shown there to Google Cloud's Authorized redirect URIs. Also allow your app /auth/confirm URL in Supabase Authentication's redirect URL list. This login setup is separate from the Calendar/Gmail callback below. Existing verified owner memberships still control company access.</p>
         <h2>Google Cloud settings for Calendar &amp; Gmail</h2>
         <ol>
           <li>
@@ -79,7 +79,7 @@ export default async function GoogleSetup() {
         </ul>
         <p>
           No Gmail inbox, Drive, Sheets, Maps, or service-account access is
-          requested. Calendar event editing is limited to calendars you own. The calendar.app.created permission allows the CRM to create a separate business calendar. Keep personal events on your personal calendar; only the selected business calendar currently affects CRM availability.
+          requested. Calendar event editing is limited to calendars you own. The calendar.app.created permission allows the app to create a separate business calendar. Keep personal events on your personal calendar; only the selected business calendar currently affects booking availability.
         </p>
         <h2>Missing deployment configuration</h2>
         {missing.length ? (
@@ -103,7 +103,7 @@ export default async function GoogleSetup() {
         </p>
         <h2>After configuration</h2>
         <p>
-          Sign in to the CRM as an owner or administrator and open Settings →
+          Sign in to the app as an owner or administrator and open Settings →
           Google Calendar & Gmail. Connect Google,
           select a calendar you own, check connection health, then send the test
           message to yourself.
@@ -114,7 +114,7 @@ export default async function GoogleSetup() {
           requirements before unattended use.
         </p>
         <p>
-          <Link href="/">Back to CRM sign-in</Link>
+          <Link href="/">Back to owner sign-in</Link>
         </p>
       </article>
     </main>

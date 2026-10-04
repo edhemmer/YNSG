@@ -45,7 +45,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
   const results = [];
   for (const item of (data || []) as Intent[]) {
     let to: string, subject: string, body: string;
-    let html: string | undefined, replyTo: string | undefined;
+    let html: string | undefined, replyTo: string | undefined = config.data.settings.notificationRecipient;
     let attachment: {filename:string;bytes:Uint8Array} | undefined;
     if (item.kind === "request.owner_notification") {
       to = config.data.settings.notificationRecipient;
@@ -79,7 +79,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       const request = await db.from("service_requests").select("original_submission")
         .eq("organization_id", org).eq("id", item.object_id).single();
       if (request.error || request.data.original_submission.email !== item.payload.recipient) continue;
-      ({ to, subject, body } = requestDeclinedMessage(config.data.settings.displayName, request.data.original_submission));
+      ({ to, subject, body, html } = requestDeclinedMessage(config.data.settings.displayName, request.data.original_submission));
     } else {
       const supported = [
         "appointment.owner_approval",
@@ -176,7 +176,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
           ? { reason: item.payload.reason }
           : {}),
       });
-      ({ to, subject, body } = rendered);
+      ({ to, subject, body, html } = rendered);
     }
     let raw: string;
     try {

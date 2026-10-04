@@ -161,7 +161,7 @@ export async function createBusinessCalendar(token: string, summary: string, tim
   try { new Intl.DateTimeFormat("en", { timeZone }); } catch { throw new GoogleFailure("INVALID_TIMEZONE"); }
   // One POST only. A timeout may mean Google created the calendar successfully.
   const result = await googleRequest<{id?: string; summary?: string; timeZone?: string}>(token, "/calendar/v3/calendars", {
-    method: "POST", body: JSON.stringify({summary, timeZone, description: "Business appointments managed through your service CRM."}),
+    method: "POST", body: JSON.stringify({summary, timeZone, description: "Business service appointments."}),
   }, transport);
   if (!result.id || result.id.length > 1024) throw new GoogleFailure("CALENDAR_CREATION_UNKNOWN");
   return {id: result.id, summary: result.summary || summary, timeZone: result.timeZone || timeZone};

@@ -43,7 +43,7 @@ export default function MonthCalendar({organization,timezone,revision}:{organiza
    <button type="button" className="secondary" disabled={month==='2100-12'} onClick={()=>move(1)} aria-label="Next month">Next →</button>
    <button type="button" className="secondary" disabled={busy} onClick={()=>setReload(n=>n+1)}>Refresh calendar</button>
   </div></div>
-  <p>Press a day to see the visits and blocked time. Times use {timezone}. An empty day does not guarantee a booking is available.</p>
+  <p>Press a day to see your visits and blocked time. Times use {timezone}. Available booking times also allow for travel and appointment length.</p>
   <div className="calendar-key" aria-label="Service colors">{[['home','Home'],['lawn','Lawn'],['garden','Yard & garden'],['snow','Snow'],['wash','Pressure washing'],['other','Other / mixed']].map(([tone,text])=><span className={'calendar-tone-'+tone} key={tone}>{text}</span>)}</div>
   {busy&&<p role="status">Loading this month…</p>}{error&&<p role="alert">{error} Press Refresh calendar to try again.</p>}
   <table className="month-grid" aria-label={label} aria-busy={busy}><thead><tr>{weekdays.map(w=><th key={w} scope="col"><abbr title={w}>{w.slice(0,2)}</abbr></th>)}</tr></thead><tbody>
@@ -57,7 +57,7 @@ export default function MonthCalendar({organization,timezone,revision}:{organiza
    })}</tr>)}
   </tbody></table>
   <div ref={detail} className="calendar-day-detail" aria-live="polite"><h3>{dayLabel(day)}</h3>
-   {!busy&&!error&&data&&!visits(day).length&&!blocks(day).length&&<p>No CRM appointments or blocked time recorded for this day.</p>}
+   {!busy&&!error&&data&&!visits(day).length&&!blocks(day).length&&<p>No visits or blocked time on this day.</p>}
    {visits(day).map(v=><article className={'calendar-visit calendar-tone-'+serviceTone(services(v).map(s=>s.service))} key={v.id}>
     <p><strong>{time(v.arrival_at||v.start_at)} · {v.customer?.name||'Service visit'}</strong><br/><span className="badge">{status(v)}</span></p>
     <p>{services(v).map(s=>s.service+': '+s.task).join(' · ')}</p>
@@ -67,6 +67,6 @@ export default function MonthCalendar({organization,timezone,revision}:{organiza
    </article>)}
    {blocks(day).map(b=><article className="calendar-visit calendar-blocked" key={b.id}><h4>Blocked time</h4><p>{new Date(b.startsAt).toLocaleString('en-US',{timeZone:timezone})} – {new Date(b.endsAt).toLocaleString('en-US',{timeZone:timezone})}</p><p>Customers see only that this time is unavailable.</p></article>)}
   </div>
-  {data&&<p className="tiny">CRM schedule checked at {time(data.checkedAt)}. Google event changes need review; this view does not display your personal Google calendar.</p>}
+  {data&&<p className="tiny">Updated at {time(data.checkedAt)}. Review changes made in Google before updating an appointment. Personal calendar events are not included here.</p>}
  </section>;
 }

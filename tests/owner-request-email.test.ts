@@ -10,7 +10,7 @@ test('Gmail owner notification contains readable HTML and plain text with safe R
  const raw=Buffer.from(emailRaw('owner@example.invalid','owner@example.invalid','Test Company New Request',message.text,'ynsg-test',{html:message.html,replyTo:'customer@example.invalid'}),'base64url').toString();
  assert.ok(raw.includes('Reply-To: customer@example.invalid\r\n'));assert.ok(raw.includes('multipart/alternative'));assert.ok(raw.endsWith('--ynsg-alt-ynsg-test--\r\n'));
  const parts=[...raw.matchAll(/Content-Transfer-Encoding: base64\r\n\r\n([A-Za-z0-9+/=\r\n]+?)(?=\r\n--)/g)].map(x=>Buffer.from(x[1]!.replace(/\r\n/g,''),'base64').toString());
- assert.deepEqual(parts,[message.text,message.html]);assert.ok(message.html.includes('Open request in CRM'));
+ assert.deepEqual(parts,[message.text,message.html]);assert.ok(message.html.includes('Open service request'));
  assert.throws(()=>emailRaw('owner@example.invalid','owner@example.invalid','Test',message.text,'ynsg-test',{replyTo:'customer@example.invalid\r\nBcc: victim@example.invalid'}));
  const plain=Buffer.from(emailRaw('owner@example.invalid','customer@example.invalid','Test','Plain fallback','ynsg-plain'),'base64url').toString();assert.ok(plain.includes('Content-Type: text/plain'));assert.ok(!plain.includes('multipart/alternative'));assert.ok(!plain.includes('Reply-To:'));
 });

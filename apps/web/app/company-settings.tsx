@@ -829,7 +829,7 @@ export default function CompanySettingsPanel({
                 checked={draft.intakeEnabled}
                 onChange={(e) => change({ intakeEnabled: e.target.checked })}
               />
-              Enable database intake after the website connection is verified.
+              Save website requests here after the connection is verified.
             </label>
           </fieldset>
           <p>
@@ -847,7 +847,7 @@ export default function CompanySettingsPanel({
                 {draft.hourly.communityCents / 100}/hour
               </p>
               <p>
-                Database intake: {draft.intakeEnabled ? "enabled" : "disabled"}.
+                Website requests: {draft.intakeEnabled ? "enabled" : "disabled"}.
                 Previously issued invoices keep their original details.
               </p>
               <button

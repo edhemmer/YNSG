@@ -59,7 +59,7 @@ export default function CalendarBlocks({
       onChanged?.();
       setMessage(
         block
-          ? "Time is available again."
+          ? "Time block removed. Booking availability will be checked when a time is selected."
           : "Time blocked. Customers will only see that it is unavailable.",
       );
       setStart("");
@@ -73,10 +73,10 @@ export default function CalendarBlocks({
   }
   return (
     <section className="panel">
-      <h2>Block calendar time</h2>
+      <h2>Block time</h2>
       <p>
-        Choose a time range or several days. No personal reason is shown to
-        customers. Times below use {timezone}.
+        Choose a few hours or several days. Your reason stays private.
+        Customers see these times as unavailable. Times use {timezone}.
       </p>
       <form
         onSubmit={(e) => {
