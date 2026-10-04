@@ -264,7 +264,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
           {data?.company.display_name || "Service workspace"}
           <small>Requests, work and the next step.</small>
         </div>
-        <a href="/google-setup">Google setup guide</a>
+        {session && ["owner", "admin"].includes(role || "") && <a href="/google-setup">Google setup guide</a>}
         {session && (
           <button
             className="secondary"
@@ -328,7 +328,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                 try{const result=await api("/api/owner-google",{});window.location.assign(result.url);}
                 catch(e){setError((e as Error).message);setPending(false);}
               }}>Continue with Google</button>
-              <p>{ownerGoogle.enabled ? "Sign in with Google, then connect Calendar and Gmail in your owner workspace." : "Google sign-in needs setup in Supabase Authentication. You can still use the email link below."} <a href="/google-setup">Connection setup</a></p>
+              <p>{ownerGoogle.enabled ? "Sign in with Google, then connect Calendar and Gmail in your owner workspace." : "Google sign-in is not available yet. Use the email link below."}</p>
             </div>}
             <label htmlFor="email">Email address</label>
             <input

@@ -1,8 +1,33 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+import { redirect as navigate } from "next/navigation";
+import { authenticated } from "../../lib/session";
 import { callbackUri, GOOGLE_SCOPES } from "../../lib/google-core";
 import { missingGoogleConfiguration } from "../../lib/google-server";
 export const dynamic = "force-dynamic";
-export default function GoogleSetup() {
+export const metadata: Metadata = {
+  title: "Owner Google setup",
+  robots: { index: false, follow: false },
+  referrer: "no-referrer",
+};
+export default async function GoogleSetup() {
+  // Authenticate and recheck live owner permission before reading any setup details.
+  let allowed = false;
+  try {
+    const { db, user } = await authenticated();
+    const { data, error } = await db.from("memberships")
+      .select("organization_id,role").eq("user_id", user.id);
+    if (!error) {
+      for (const membership of data || []) {
+        if (!["owner", "admin"].includes(membership.role)) continue;
+        const access = await db.rpc("google_access", { p_org: membership.organization_id });
+        if (!access.error && access.data === true) { allowed = true; break; }
+      }
+    }
+  } catch {
+    // Fail closed for expired sessions, revoked membership or unavailable auth.
+  }
+  if (!allowed) navigate("/owner");
   const missing = missingGoogleConfiguration();
   let redirect: string | null = null;
   try {
