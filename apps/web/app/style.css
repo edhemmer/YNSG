@@ -36,3 +36,6 @@
 .settings-actions p{margin:0 0 10px}.company-settings{scroll-margin-top:20px}
 
 .company-settings [aria-invalid=true]{border:2px solid #892d1e;box-shadow:0 0 0 2px #892d1e22}.company-settings input,.company-settings select,.company-settings textarea{scroll-margin-block:180px}
+
+/* Keep action feedback visible without covering the current form. */
+.workspace-feedback{position:sticky;top:8px;z-index:6;pointer-events:none}.workspace-feedback:empty{display:none}.workspace-feedback .card,.workspace-feedback .note{margin:0 0 12px;box-shadow:0 4px 16px #10283c18;pointer-events:auto}.company-workspace a,.account-shell a{overflow-wrap:anywhere}.actions a:not(.button){display:inline-flex;align-items:center;min-height:48px;padding-block:8px}.account-shell button[hidden]{display:none}@media(max-width:600px){.list-heading{flex-wrap:wrap;gap:10px}.list-heading h1{margin-bottom:8px}.workspace-feedback{top:4px}.workspace-feedback .card,.workspace-feedback .note{padding:12px 16px}}

@@ -296,6 +296,10 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
         )}
       </header>
       <main className="shell" id="main">
+        <div className="workspace-feedback">
+          {error && <p role="alert" className="error card">{error}</p>}
+          {message && <p role="status" className="note">{message}</p>}
+        </div>
         {!configured ? (
           <div className="auth card">
             <p className="eyebrow">Workspace setup</p>
@@ -392,6 +396,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                   value={org}
                   onChange={(e) => {
                     setOrg(e.target.value);
+                    setPage(0);
                     reloadSequence.current++;
                     retryKeys.current.clear();
                     setData(null);
@@ -402,7 +407,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                     <option key={m.organization_id} value={m.organization_id}>
                       {data?.company.id === m.organization_id
                         ? data.company.display_name
-                        : m.organization_id}{" "}
+                        : `Business ${session.memberships.indexOf(m) + 1}`}{" "}
                       · {m.role}
                     </option>
                   ))}
@@ -422,7 +427,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                           <button
                             key={s}
                             aria-current={section === s ? "page" : undefined}
-                            onClick={() => setSection(s)}
+                            onClick={() => {setPage(0);setMessage("");setError("");setSection(s);}}
                           >
                             {s}
                           </button>
@@ -431,7 +436,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                     </nav>
                     <div className="list-heading">
                       <h1>
-                        {section === "Today" ? "A clear next step." : section}
+                        {section === "Today" ? "Today’s work" : section}
                       </h1>
                       <button
                         className="secondary"
@@ -440,7 +445,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                         Refresh
                       </button>
                     </div>
-                    {!["Calendar","Snapshot"].includes(section) && <div className="actions" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1}. Agenda shows appointments from the last day onward.</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>}
+                    {["Today","Customers","Work","Money"].includes(section) && <div className="actions" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1}. Agenda shows appointments from the last day onward.</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>}
                     {section === "Snapshot" && ["owner","admin"].includes(role||"") && <BusinessSnapshot key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={s=>{setPage(0);setSection(s);}}/>}
                     {section === "Calendar" && ['owner','admin'].includes(role||'') && <>
                       <MonthCalendar key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current}/>
@@ -515,7 +520,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                           return <article className="card" key={a.id}>
                             <span className="badge">{a.status === "proposal" ? "Awaiting owner approval" : a.status === "reserved" ? "Confirmed appointment" : a.status.replaceAll("_"," ")}</span>
                             <h3>{request?.original_submission.name || "Service appointment"}</h3>
-                            <p>{request ? requestServices(request).join(', ') : 'Service'}<br/>{request?.original_submission.street}, {request?.original_submission.city}</p>
+                            <p>{request ? requestServices(request).join(', ') : 'Open the service order to review the requested work.'}<br/>{request ? [request.original_submission.street, request.original_submission.city].filter(Boolean).join(', ') : 'Open the service order to check the address.'}</p>
                             <p><strong>Customer arrival:</strong> {date(a.arrival_at)}<br/><strong>Reserved work time:</strong> {date(a.start_at)} – {date(a.end_at)}<br/>{data.company.timezone}</p>
                             {a.expires_at && ["held","proposal"].includes(a.status) && <p>Decision deadline: {date(a.expires_at)}</p>}
                             {a.replaces_id && <p className="note">This is a proposed replacement. The original appointment remains booked until this replacement is approved.</p>}
@@ -540,23 +545,22 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                           data.customers.map((c) => (
                             <div className="row" key={c.id}>
                               <strong>{c.display_name}</strong>{["owner","admin"].includes(role||"")&&<CustomerInvite organization={org} customer={c.id}/>}
-                              <p className="tiny muted">{c.id}</p>{["owner","admin"].includes(role||"")&&<RelationshipNotes organization={org} type="customer" target={c.id} timezone={data.company.timezone}/>}
+                              {["owner","admin"].includes(role||"")&&<RelationshipNotes organization={org} type="customer" target={c.id} timezone={data.company.timezone}/>}
                             </div>
                           ))
                         ) : (
                           <p>
-                            No customer records yet. Reviewing and publishing a
-                            quote can create an explicitly linked customer
-                            record.
+                            No customers on this page yet. Customer records appear when a service request is linked to a customer.
                           </p>
                         )}
                         <p className="muted">
-                          Showing up to 50 authorized records.
+                          Showing up to 50 customers on this page.
                         </p>
                       </div>
                     )}
                     {section === "Work" && (
                       <>
+                        {new URLSearchParams(window.location.search).has('request') && <div className="note"><p>You’re viewing the request opened from your link.</p><button type="button" className="secondary" onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('request');window.history.replaceState(null,'',url);setPage(0);void refresh();}}>Show all service requests</button></div>}
                         <h2>Service requests</h2>
                         {!data.requests.length && (
                           <div className="card">
@@ -569,7 +573,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                         )}
                         {data.requests.map((r) => (
                           <article className="card" key={r.id} id={"request-"+r.id}>
-                            <span className="badge">{r.status}</span>
+                            <span className="badge">{r.status.replaceAll("_", " ")}</span>
                             <h2>{r.original_submission.name}</h2>
                             <p>
                               <strong>Requested work</strong><br/>
@@ -806,16 +810,6 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
               </>
             )}
           </>
-        )}
-        {error && (
-          <p role="alert" className="error card">
-            {error}
-          </p>
-        )}
-        {message && (
-          <p role="status" className="note">
-            {message}
-          </p>
         )}
       </main>
     </div>

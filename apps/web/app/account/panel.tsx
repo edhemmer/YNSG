@@ -44,13 +44,15 @@ export default function Account() {
   const [org, setOrg] = useState("");
   const [page, setPage] = useState(0);
   const [refresh, setRefresh] = useState(0);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyFailed, setHistoryFailed] = useState(false);
   const [data, setData] = useState<Portal | null>(null);
   async function load() {
     setChecking(true);
     setSessionUnavailable(false);
     try {
       const r = await sessionFetch("/api/portal");
-      if (r.status === 401) { setSigned(false); return; }
+      if (r.status === 401) { setSigned(false); setData(null); setOrg(""); setCompanies([]); return; }
       if (!r.ok) throw Error('Account unavailable');
       const d = await r.json();
       const pending = await sessionFetch("/api/account-link");
@@ -90,6 +92,8 @@ export default function Account() {
     if (!org) return;
     let current = true;
     setData(null);
+    setHistoryLoading(true);
+    setHistoryFailed(false);
     sessionFetch("/api/portal?organization=" + org + "&page=" + page)
       .then(async (r) => {
         const d = await r.json();
@@ -97,8 +101,9 @@ export default function Account() {
         if (current) setData(d);
       })
       .catch((e) => {
-        if (current) setMessage(publicError(e));
-      });
+        if (current) {setHistoryFailed(true);setMessage(publicError(e));}
+      })
+      .finally(() => {if (current) setHistoryLoading(false);});
     return () => {
       current = false;
     };
@@ -173,7 +178,7 @@ export default function Account() {
         {checking
           ? "Checking your account"
           : signed
-          ? "Your service history"
+          ? "Your appointments and service history"
           : mode === "signup"
             ? "Create your account"
             : mode === "recover"
@@ -245,6 +250,8 @@ export default function Account() {
           <div className="actions">
             <button
               type="button"
+              disabled={busy}
+              hidden={mode === "password"}
               onClick={() => {
                 setMode("password");
                 setPassword("");
@@ -254,6 +261,8 @@ export default function Account() {
             </button>
             <button
               type="button"
+              disabled={busy}
+              hidden={mode === "signup" || mode === "set-password"}
               onClick={() => {
                 setMode("signup");
                 setPassword("");
@@ -263,6 +272,8 @@ export default function Account() {
             </button>
             <button
               type="button"
+              disabled={busy}
+              hidden={mode === "recover" || mode === "set-password"}
               onClick={() => {
                 setMode("recover");
                 setPassword("");
@@ -336,6 +347,8 @@ export default function Account() {
         </label>
       )}
       {signed && org && <RepeatRequest organization={org} onSaved={()=>{setPage(0);setRefresh(n=>n+1);}}/>}
+      {signed && org && historyLoading && <p role="status">Loading your service history…</p>}
+      {signed && org && historyFailed && <button type="button" onClick={()=>setRefresh(n=>n+1)}>Try loading service history again</button>}
       {data && (
         <>
           <h2>{data.company.display_name}</h2>
@@ -361,7 +374,7 @@ export default function Account() {
                     undefined,
                     { timeZone: a.timezone },
                   )}{" "}
-                  — {a.status.replaceAll("_", " ")}
+                  — {a.status === "reserved" ? "Confirmed" : a.status === "proposal" ? "Awaiting approval" : a.status === "held" ? "Time temporarily held" : a.status.replaceAll("_", " ")}
                 </p>
               ))
             )}
@@ -410,14 +423,14 @@ export default function Account() {
           </section>
           <div className="actions">
             <button disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
-              Previous
+              Previous records
             </button>
             <span>Page {page + 1}</span>
             <button
               disabled={!data.hasMore}
               onClick={() => setPage((p) => p + 1)}
             >
-              Next
+              Next records
             </button>
           </div>
         </>
