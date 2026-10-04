@@ -1,6 +1,8 @@
 function requestErrorMessage(error){
   const approved=new Set([
     'Please check the form and try again.',
+    'That time is no longer available. Please choose another time.',
+    'Please check your appointment selection, or send your request without a time.',
     'Please refresh the page before sending your request.',
     'Please choose at least one job.',
     'Please check the required fields and try again.',
@@ -121,6 +123,8 @@ if(form){
     const button=form.querySelector('button[type=submit]');
     const data=Object.fromEntries(new FormData(form));
     data.services=[...selected.values()];
+    data.appointmentSelection={mode:data.visitMode||'once',start:form.dataset.appointmentStart||null};
+    delete data.visitMode;
     const fingerprint=JSON.stringify(data);
     if(fingerprint!==requestFingerprint){requestKey=newRequestKey();requestFingerprint=fingerprint;}
     data.requestKey=requestKey;
