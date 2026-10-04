@@ -1,4 +1,4 @@
-import {emailLayout,emailParagraph,emailButton} from '../../../lib/email-layout.js';
+import {emailLayout,emailParagraph,emailButton,emailSignedText,type EmailIdentity} from '../../../lib/email-layout.js';
 type Submission = {
   name?: string;
   phone?: string;
@@ -19,6 +19,7 @@ export type AppointmentMessageInput = {
     | "appointment.declined_service"
     | "appointment.reschedule_requested";
   company: string;
+  identity?: EmailIdentity;
   recipient: string;
   notificationRecipient: string;
   request: Submission;
@@ -119,5 +120,5 @@ export function appointmentMessage(v: AppointmentMessageInput) {
   flush();
   return parts.join('');
  }).join('');
- return {...message,html:emailLayout(v.company,titles[v.kind],message.subject,content)};
+ return {...message,body:emailSignedText(message.body,v.identity),html:emailLayout(v.company,titles[v.kind],message.subject,content,v.identity)};
 }

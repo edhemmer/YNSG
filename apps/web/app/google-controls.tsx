@@ -1,4 +1,5 @@
 "use client";
+import {mailActivationBlocker} from "../lib/mail-activation";
 import { publicError } from "../lib/public-errors";
 import { googleMessages as messages } from "../lib/google-messages";
 import { useEffect, useRef, useState } from "react";
@@ -12,7 +13,7 @@ type Connection = {
   checkedAt: string | null;
   gmailTest: string;
 };
-type Delivery={enabled:boolean;testKey:string|null;configurationVersion:number|null;connectionRevision:number|null;receiptConfirmedAt:string|null;senderMatches:boolean};
+type Delivery={enabled:boolean;testKey:string|null;configurationVersion:number|null;connectionRevision:number|null;receiptConfirmedAt:string|null;senderMatches:boolean|null};
 type Calendar = { id: string; summary: string; timeZone?: string };
 type CalendarCreation = { status: string; calendarId: string | null; summary: string };
 export default function GoogleControls({
@@ -49,6 +50,7 @@ export default function GoogleControls({
       setDelivery(v.delivery);setDispatcherEnabled(v.dispatcherEnabled===true);deliveryKey.current=null;
       setMissing(v.missing);
       setConnection(v.connection);
+      if(["accepted","failed"].includes(v.connection?.gmailTest))testKey.current=null;
       setCreation(v.creation || null);
       setCalendar(v.connection?.calendarId || "");
       if (view !== "email" && v.connection?.connected) await loadCalendars(gen);
@@ -241,6 +243,8 @@ export default function GoogleControls({
           </button>
           <section aria-labelledby="mail-activation"><h3 id="mail-activation">Email notifications</h3><p>Business approval: {delivery?.enabled?'enabled':'off'}. Automatic sending: {dispatcherEnabled?'enabled':'paused'}.</p>
           {delivery?.enabled?<><button type="button" disabled={busy} onClick={()=>{deliveryKey.current??=crypto.randomUUID();void act('disable_delivery',{key:deliveryKey.current});}}>Pause email notifications</button><button type="button" disabled={busy||!dispatcherEnabled} onClick={()=>void act('send_pending')}>Send pending notifications</button></>:<><p>Check that the test email arrived and the sender matches this Gmail account. Then enable customer and owner notifications. Website request emails use their existing delivery setup.</p><label><input type="checkbox" checked={received} disabled={busy||connection.gmailTest!=='accepted'} onChange={e=>setReceived(e.target.checked)}/>I received the Gmail test and reviewed the company sender.</label><button type="button" disabled={busy||!received||connection.gmailTest!=='accepted'||!delivery?.senderMatches||!delivery.testKey} onClick={()=>{deliveryKey.current??=crypto.randomUUID();void act('enable_delivery',{revision:delivery!.connectionRevision,configurationVersion:delivery!.configurationVersion,testKey:delivery!.testKey,receiptConfirmed:true,key:deliveryKey.current});}}>Enable email notifications</button></>}
+          {!delivery?.enabled&&mailActivationBlocker(delivery,connection.gmailTest,received)&&<p role="status">{mailActivationBlocker(delivery,connection.gmailTest,received)}</p>}
+          {!delivery?.configurationVersion&&view==='settings'&&<button type="button" className="secondary" onClick={()=>{const heading=document.getElementById('settings-heading');heading?.scrollIntoView({behavior:'auto',block:'start'});heading?.focus({preventScroll:true});}}>Open company settings</button>}
           {!dispatcherEnabled&&<p>Automatic sending still needs setup. Business approval alone will not send these messages.</p>}</section>
           </>}
           <details>

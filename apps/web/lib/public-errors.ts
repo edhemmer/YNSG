@@ -1,4 +1,4 @@
-import { googleMessages } from "./google-messages";
+import { googleMessages } from "./google-messages.ts";
 // Only reviewed messages reach product screens. Provider text, exception messages,
 // database details and unknown future codes always fall back to plain language.
 const messages:Record<string,string>={

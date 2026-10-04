@@ -12,7 +12,7 @@ const messageNames: Record<string, string> = {
  'appointment.reschedule_requested': 'Rescheduling request',
 };
 export function notificationName(kind: string): string {
- return Object.hasOwn(messageNames, kind) ? messageNames[kind] : 'Business notification';
+ return Object.hasOwn(messageNames, kind) ? messageNames[kind]! : 'Business notification';
 }
 export type AttentionRecord={id:string;kind:string;status:string;object_id:string;created_at:string;next_attempt_at:string;lease_until:string|null;attempts:number};
 export function notificationAttention(row:AttentionRecord,enabled:boolean,now:number){

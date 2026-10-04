@@ -1,4 +1,5 @@
-import {emailLayout,emailParagraph} from '../../../../../lib/email-layout.js';
+import {emailIdentity} from '../../../../../lib/email-layout.js';
+import {googleTestMessage} from '../../../lib/google-test-message';
 import { publicError } from "../../../lib/public-errors";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -196,6 +197,13 @@ export async function POST(request: Request) {
       }
     }
     if (value.action === "test_email") {
+      const [config,company]=await Promise.all([
+        db.from('configuration_versions').select('settings').eq('organization_id',org).order('version',{ascending:false}).limit(1).maybeSingle(),
+        db.from('organizations').select('display_name').eq('id',org).single(),
+      ]);
+      if(config.error||company.error)throw new GoogleFailure('GOOGLE_SETUP_REQUIRED');
+      const companyName=config.data?.settings.displayName||company.data.display_name;
+      const rendered=googleTestMessage(companyName,emailIdentity(config.data?.settings,org));
       const sending = await store(org, "test_begin", {
         revision: account.revision,
         key: value.key,
@@ -209,10 +217,10 @@ export async function POST(request: Request) {
           emailRaw(
             account.email!,
             account.email!,
-            "Business email connection test",
-            "Your business email connection sent this test successfully. Return to Settings and confirm that it arrived before enabling notifications. Your existing website request emails have not changed.",
+            rendered.subject,
+            rendered.body,
             "ynsg-test-" + value.key,
-            { html:emailLayout("Business email", "Your Gmail connection works", "Your business email test arrived", emailParagraph("This test was sent through your connected Gmail account. Return to Settings and confirm that it arrived before enabling notifications.")+emailParagraph("Your existing website request emails have not changed.")) },
+            { fromName:companyName, html:rendered.html },
           ),
         );
         result = "accepted";

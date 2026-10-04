@@ -1,4 +1,4 @@
-import {localInstant} from '../../../packages/domain/timezone';
+import {localInstant} from '../../../packages/domain/timezone.ts';
 export function snapshotWindow(from:string,to:string,timezone:string){
  if(!/^\d{4}-\d{2}-\d{2}$/.test(from)||!/^\d{4}-\d{2}-\d{2}$/.test(to)||from>to)throw Error('VALIDATION');
  const a=Date.parse(from),b=Date.parse(to);

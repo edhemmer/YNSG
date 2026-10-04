@@ -97,6 +97,8 @@ function template(name: string, organization: string): CompanySettings {
       forest: "#315842",
       gold: "#edbd6b",
       cream: "#f8f6ef",
+      ownerName: organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" ? "Edward Hemmer" : null,
+      logoUrl: organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" ? "https://www.yourneighborhoodserviceguy.com/assets/logo.jpg" : null,
     },
     sender: "edhemmer@gmail.com",
     notificationRecipient: "edhemmer@gmail.com",
@@ -308,12 +310,13 @@ export default function CompanySettingsPanel({
       setPending(false);
     }
   }
+  const settingsFormId = "company-settings-" + organization;
   return (
     <section
       className="card company-settings"
       aria-labelledby="settings-heading"
     >
-      <h2 id="settings-heading">Company settings</h2>
+      <h2 id="settings-heading" tabIndex={-1}>Company settings</h2>
       <p>
         Review business details and operating rules before publishing. These
         settings do not activate Google or customer emails.
@@ -324,6 +327,11 @@ export default function CompanySettingsPanel({
           template here.
         </p>
       )}
+      {draft && <div className="settings-actions" role="group" aria-label="Save company settings">
+        <p>{preview ? "Review your settings, then publish to save them." : "Changes are saved when you preview and publish them."}</p>
+        {preview && <p>{draft.displayName} · {draft.timezone} · Standard ${draft.hourly.standardCents / 100}/hour · Community ${draft.hourly.communityCents / 100}/hour</p>}
+        {preview ? <button type="button" disabled={pending || !ready} onClick={() => void publish()}>{pending ? "Saving…" : "Publish reviewed settings"}</button> : <button type="submit" form={settingsFormId} disabled={pending}>Preview settings to save</button>}
+      </div>}
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
       {loading ? (
@@ -346,6 +354,7 @@ export default function CompanySettingsPanel({
         </>
       ) : (
         <form
+          id={settingsFormId}
           onSubmit={(e) => {
             e.preventDefault();
             try {
@@ -428,6 +437,11 @@ export default function CompanySettingsPanel({
                 }
               />
             </label>
+          </fieldset>
+          <fieldset disabled={pending}>
+            <legend>Email logo and signature</legend>
+            <label>Owner name for email signature<input maxLength={160} value={draft.brand.ownerName || ""} placeholder="Your name" onChange={e=>change({brand:{...draft.brand,ownerName:e.target.value||null}})}/><small>Emails close with Best Regards, followed by this name.</small></label>
+            <label>Logo image link<input type="url" maxLength={2048} value={draft.brand.logoUrl || ""} placeholder="https://your-website.com/logo.png" onChange={e=>change({brand:{...draft.brand,logoUrl:e.target.value||null}})}/><small>Use a publicly accessible HTTPS image. Email readers may choose to hide images.</small></label>
           </fieldset>
           <fieldset disabled={pending}>
             <legend>After an invoice is paid</legend>
@@ -839,7 +853,7 @@ export default function CompanySettingsPanel({
             {releaseGates(draft).join("; ") ||
               "These invoice setup checks are complete."}
           </p>
-          <button disabled={pending}>Preview settings</button>
+          <button disabled={pending}>Preview settings to save</button>
           {preview && (
             <div className="card">
               <h3>Publish version {version + 1}</h3>

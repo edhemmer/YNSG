@@ -1,7 +1,7 @@
 import {weeklyDates,localDay,addDays} from '../../lib/appointment-window.js';
-import {localInstant} from './timezone';
-import {feasible,type Interval,type FeasibilityInput} from './scheduling';
-import {DomainError} from '../contracts';
+import {localInstant} from './timezone.ts';
+import {feasible,type Interval,type FeasibilityInput} from './scheduling.ts';
+import {DomainError} from '../contracts/index.ts';
 
 // A preview is advisory: it does not reserve resources or authorize a booking.
 export function recurringPreview(input:{localStart:string;durationMinutes:number;timezone:string;clock:number;rules:FeasibilityInput['rules'];busy:readonly Interval[];verifiedUntil:number;travelBeforeMinutes:number;travelAfterMinutes:number}){
@@ -16,7 +16,8 @@ export function recurringPreview(input:{localStart:string;durationMinutes:number
   try{
    // Only the initial visit uses the one-time booking horizon. Later visits
    // still require the same operating-hours, capacity and provider checks.
-   const rules=index===0?input.rules:{...input.rules,horizonMinutes:undefined};
+   const {horizonMinutes: _horizon, ...recurringRules}=input.rules;
+   const rules=index===0?input.rules:recurringRules;
    feasible({start,clock:input.clock,durationMinutes:input.durationMinutes,timezone:input.timezone,rules,busy,externalBusyVerifiedUntil:input.verifiedUntil});
    return {date,start:new Date(start).toISOString(),end:new Date(end).toISOString(),available:true};
   }catch(e){

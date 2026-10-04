@@ -1,4 +1,4 @@
-import { localInstant, localMinute } from '../../../packages/domain/timezone';
+import { localInstant, localMinute } from '../../../packages/domain/timezone.ts';
 export function monthWindow(month: string, timezone: string) {
  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month) || Number(month.slice(0,4)) < 2000 || Number(month.slice(0,4)) > 2100) throw Error('Choose a valid month.');
  const next = shiftMonth(month, 1);

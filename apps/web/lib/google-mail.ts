@@ -1,3 +1,4 @@
+import {emailIdentity} from '../../../lib/email-layout.js';
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { accessToken } from "./google-server";
 import { emailRaw, sendEmail, GoogleFailure, hash } from "./google-core";
@@ -37,6 +38,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
     config.data.settings.sender?.toLowerCase() !== account.email?.toLowerCase()
   )
     throw new GoogleFailure("APPROVED_SENDER_REQUIRED");
+  const identity=emailIdentity(config.data.settings,org);
   const { data, error } = await db.rpc("claim_outbox", {
     p_org: org,
     p_limit: 5,
@@ -60,7 +62,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       ownerUrl.searchParams.set("request", item.object_id);
       ownerUrl.searchParams.set("organization", org);
       const rendered = ownerRequestEmail(submission, selections, item.object_id,
-        config.data.settings.displayName, "", ownerUrl.toString());
+        config.data.settings.displayName, "", ownerUrl.toString(),identity);
       body = rendered.text;
       html = rendered.html;
       replyTo = submission.email;
@@ -70,7 +72,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       if(invoice.error) continue;
       try {
         const document = invoiceDocument(invoice.data);
-        const rendered = item.kind === "invoice.paid" ? paidInvoiceMessage(document,item.payload.review) : invoiceMessage(document);
+        const rendered = item.kind === "invoice.paid" ? paidInvoiceMessage(document,item.payload.review,identity) : invoiceMessage(document,identity);
         if(rendered.to !== item.payload.recipient) continue;
         ({to,subject,body,html} = rendered);
         if(item.kind === "invoice.delivery") attachment = {filename:`invoice-${document.number}.pdf`,bytes:await invoicePdf(document)};
@@ -79,7 +81,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       const request = await db.from("service_requests").select("original_submission")
         .eq("organization_id", org).eq("id", item.object_id).single();
       if (request.error || request.data.original_submission.email !== item.payload.recipient) continue;
-      ({ to, subject, body, html } = requestDeclinedMessage(config.data.settings.displayName, request.data.original_submission));
+      ({ to, subject, body, html } = requestDeclinedMessage(config.data.settings.displayName, request.data.original_submission,identity));
     } else {
       const supported = [
         "appointment.owner_approval",
@@ -164,6 +166,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       const rendered = appointmentMessage({
         kind: item.kind as AppointmentMessageInput["kind"],
         company: config.data.settings.displayName,
+        identity,
         recipient,
         notificationRecipient: config.data.settings.notificationRecipient,
         request: request.data.original_submission,

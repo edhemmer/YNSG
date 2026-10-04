@@ -1,5 +1,6 @@
 import {appointmentSelection} from '../lib/appointment-window.js';
 import {websiteAvailability} from '../lib/website-availability.js';
+import {YNSG_EMAIL_IDENTITY} from '../lib/email-layout.js';
 import {ownerRequestEmail} from '../lib/owner-request-email.js';
 import { randomUUID } from 'node:crypto';
 import { saveCrmRequest, IntakeFailure } from '../lib/public-intake.js';
@@ -58,7 +59,7 @@ export default async function handler(req,res){
     console.error('Missing Resend API key configuration');
     return fail(res,503,'The form is temporarily unavailable. Please call or text 770-630-2094.');
   }
-  const message=ownerRequestEmail(data,normalized,id);
+  const message=ownerRequestEmail(data,normalized,id,undefined,undefined,null,YNSG_EMAIL_IDENTITY);
   try{
     const sent=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json','Idempotency-Key':`ynsg-request-${id}`},body:JSON.stringify({from:'Your Neighborhood Service Guy <onboarding@resend.dev>',to:['edhemmer@gmail.com'],reply_to:data.email,subject:'Your Neighborhood Service Guy New Request',text:message.text,html:message.html}),signal:AbortSignal.timeout(10000)});
     if(!sent.ok){

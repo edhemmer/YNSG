@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {recurringPreview} from '../packages/domain/recurring-preview';
-import {localMinute} from '../packages/domain/timezone';
+import {recurringPreview} from '../packages/domain/recurring-preview.ts';
+import {localMinute} from '../packages/domain/timezone.ts';
 const clock=Date.parse('2026-10-04T08:00:00Z');
 const base={localStart:'2026-10-05T09:00',durationMinutes:120,timezone:'America/Chicago',clock,rules:{weekdays:[1,2,3,4,5],earliestStart:480,latestStart:900,endOfDay:1020,bufferMinutes:30,leadMinutes:1440,horizonMinutes:43200},busy:[],verifiedUntil:clock+60000,travelBeforeMinutes:0,travelAfterMinutes:0};
 test('full-year preview retains local weekday/time across both DST changes without claiming reservations',()=>{
