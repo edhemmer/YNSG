@@ -16,7 +16,7 @@ type CalendarCreation = { status: string; calendarId: string | null; summary: st
 const messages: Record<string, string> = {
   CALENDAR_CREATION_PERMISSION_REQUIRED: "Calendar creation needs one additional Google permission. Disconnect and reconnect Google, then approve calendar creation. You can also select an existing business calendar.",
   BUSINESS_CALENDAR_ALREADY_SELECTED: "A business calendar is already selected. Calendar changes need review before switching.",
-  SERVER_DATABASE_AUTH_REQUIRED: "The CRM server database credential was rejected. Update SUPABASE_SERVICE_ROLE_KEY in Vercel’s CRM Preview environment, redeploy, then try Connect Google again.",
+  SERVER_DATABASE_AUTH_REQUIRED: "Supabase rejected the server key. In Vercel’s ynsg-repo Preview settings, set SUPABASE_SERVICE_ROLE_KEY to a secret key from the same Supabase project as SUPABASE_URL, then redeploy.",
   SERVER_DATABASE_PERMISSION_REQUIRED: "The CRM server cannot access Google connection storage. Its database permissions need repair.",
   CONNECTION_STORAGE_FAILED: "The CRM could not save or read its Google connection. Refresh status; if this continues, connection storage needs repair.",
   ENCRYPTION_KEY_REQUIRED: "The Google token encryption key is invalid. It must decode to 32 bytes; do not replace a key that already protects a connected account.",
