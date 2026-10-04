@@ -1,4 +1,5 @@
 'use client';
+import { publicError } from "../lib/public-errors";
 import { useEffect, useRef, useState } from 'react';
 import { sessionFetch } from '../lib/session-fetch';
 import { localMinute } from '../../../packages/domain/timezone';
@@ -9,7 +10,7 @@ export default function SchedulingReviewPanel({organization,requestId,appointmen
  const [expanded,setExpanded]=useState(false),[retry,setRetry]=useState(0);
  const key=useRef<{fingerprint:string;value:string}|null>(null),sequence=useRef(0);
  useEffect(()=>{const s=++sequence.current;setContext(null);setSelected([]);setError('');setMessage('');setPending(false);key.current=null;if(!expanded)return;
-  void sessionFetch('/api/scheduling-review?'+new URLSearchParams({organization,request:requestId,...(appointmentId?{appointment:appointmentId}:{})}),{cache:'no-store'}).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error);if(s===sequence.current){setContext(d);setSelected(d.appointmentResources||[]);}}).catch(e=>{if(s===sequence.current)setError(e.message);});
+  void sessionFetch('/api/scheduling-review?'+new URLSearchParams({organization,request:requestId,...(appointmentId?{appointment:appointmentId}:{})}),{cache:'no-store'}).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error);if(s===sequence.current){setContext(d);setSelected(d.appointmentResources||[]);}}).catch(e=>{if(s===sequence.current)setError(publicError(e));});
   return()=>{sequence.current++;};
  },[organization,requestId,appointmentId,expanded,retry]);
  async function submit(form:HTMLFormElement){
@@ -21,7 +22,7 @@ export default function SchedulingReviewPanel({organization,requestId,appointmen
   const fingerprint=JSON.stringify(input);if(key.current?.fingerprint!==fingerprint)key.current={fingerprint,value:crypto.randomUUID()};
   setPending(true);setError('');setMessage('');
   try{const r=await sessionFetch('/api/scheduling-review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...input,key:key.current.value})});const d=await r.json();if(!r.ok)throw Error(d.error);if(s===sequence.current){setMessage(d.result.status==='reserved'?'Appointment confirmed. Calendar and customer email status are tracked separately.':'Proposed time saved. It remains tentative until approved.');completed();}}
-  catch(e){if(s===sequence.current)setError((e as Error).message);}
+  catch(e){if(s===sequence.current)setError(publicError(e));}
   finally{if(s===sequence.current)setPending(false);}
  }
  return <div className="schedule-review"><button type="button" className="secondary" aria-expanded={expanded} onClick={()=>setExpanded(v=>!v)}>{appointmentId?'Review and approve this time':'Schedule this request'}</button>

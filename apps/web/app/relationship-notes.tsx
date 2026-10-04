@@ -1,4 +1,5 @@
 "use client";
+import { publicError } from "../lib/public-errors";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { sessionFetch } from "../lib/session-fetch";
 type Note = { id: string; body: string; created_at: string; request_id: string | null };
@@ -18,7 +19,7 @@ export default function RelationshipNotes({ organization, type, target, timezone
     try {
       const result = await call(`/api/notes?${new URLSearchParams({ organization, type, target, page: String(page) })}`);
       if (sequence.current === current) { setNotes(result.notes); setHasMore(result.hasMore); }
-    } catch (e) { if (sequence.current === current) setError((e as Error).message); }
+    } catch (e) { if (sequence.current === current) setError(publicError(e)); }
     finally { if (sequence.current === current) setLoading(false); }
   }
   useEffect(() => { if (open) void reload(); return () => { sequence.current++; }; }, [open, organization, type, target, page]);
@@ -31,7 +32,7 @@ export default function RelationshipNotes({ organization, type, target, timezone
       await call("/api/notes", { organization, type, target, body: text, key: retry.current!.key });
       retry.current = null; setBody(""); setMessage("Note saved.");
       if (page !== 0) setPage(0); else await reload();
-    } catch (e) { setError((e as Error).message); }
+    } catch (e) { setError(publicError(e)); }
     finally { setPending(false); }
   }
   const region = `notes-${type}-${target}`;

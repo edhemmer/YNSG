@@ -1,3 +1,19 @@
+function requestErrorMessage(error){
+  const approved=new Set([
+    'Please check the form and try again.',
+    'Please refresh the page before sending your request.',
+    'Please choose at least one job.',
+    'Please check the required fields and try again.',
+    'Please check your selected services and required fields.',
+    'Please wait before sending another request, or call or text 770-630-2094.',
+    'This request changed while it was sending. Refresh the page before sending the updated details.',
+    'We could not verify that your request was saved. Try again with the same details, or call or text 770-630-2094.',
+    'The form is temporarily unavailable. Please call or text 770-630-2094.'
+  ]);
+  const message=typeof error==='string'?error:error?.message;
+  return approved.has(message)?message:'We could not confirm that your request was sent. Try again with the same details, or call or text 770-630-2094.';
+}
+// End public error helper.
 const tasks = {
   'Help around the home':['Furniture assembly','Shelving and organizing','Household product setup','Lightweight hanging','Small drywall patch','Moving manageable items','Several small jobs'],
   'Lawn care':['Mowing','Trimming and edging','Mow, trim and blow-off','Leaf management','Recurring lawn care'],
@@ -122,7 +138,7 @@ if(form){
       success.querySelector('h3').setAttribute('tabindex','-1');
       success.querySelector('h3').focus();
     }catch(error){
-      message.textContent=error.message || 'We could not send your request. Please call or text 770-630-2094.';
+      message.textContent=requestErrorMessage(error);
       const fallback=form.querySelector('#email-fallback');
       const subject='Your Neighborhood Service Guy New Request';
       const jobs=data.services.map(x=>`${x.service}: ${x.task}`).join('\n');

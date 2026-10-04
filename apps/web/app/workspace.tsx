@@ -1,4 +1,5 @@
 "use client";
+import { publicError } from "../lib/public-errors";
 import {companyTheme} from "../lib/company-brand";
 import NotificationAttention from "./notification-attention";
 import OwnerSecurity from './owner-security';
@@ -174,7 +175,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
     } catch (e) {
       if (sequence === reloadSequence.current) {
         setData(null);
-        setError((e as Error).message);
+        setError(publicError(e));
       }
     }
   }
@@ -196,7 +197,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
         setMessage(r.message);
       }
     } catch (e) {
-      setError((e as Error).message);
+      setError(publicError(e));
     } finally {
       setPending(false);
     }
@@ -218,7 +219,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
       await refresh();
       return r;
     } catch (e) {
-      setError((e as Error).message);
+      setError(publicError(e));
     } finally {
       setPending(false);
     }
@@ -241,7 +242,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
       );
       await refresh();
     } catch (e) {
-      setError((e as Error).message);
+      setError(publicError(e));
     } finally {
       setPending(false);
     }
@@ -249,7 +250,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
   async function fieldAction(j:Job,action:'start'|'pause'|'resume') {
     setPending(true);setError('');const value={organizationId:org,id:j.id,revision:j.revision,action,note:''};const fingerprint=JSON.stringify(value);
     if(!retryKeys.current.has(fingerprint))retryKeys.current.set(fingerprint,crypto.randomUUID());
-    try{await api('/api/jobs',{...value,key:retryKeys.current.get(fingerprint)});setMessage('Job and time record saved.');await refresh();}catch(e){setError((e as Error).message);}finally{setPending(false);}
+    try{await api('/api/jobs',{...value,key:retryKeys.current.get(fingerprint)});setMessage('Job and time record saved.');await refresh();}catch(e){setError(publicError(e));}finally{setPending(false);}
   }
   const role = session?.memberships.find(
     (m) => m.organization_id === org,
@@ -284,7 +285,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                 setCode("");
                 setSent(false);
               } catch (e) {
-                setError((e as Error).message);
+                setError(publicError(e));
               }
             }}
           >
@@ -327,7 +328,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
               <button type="button" disabled={pending || !ownerGoogle.enabled} onClick={async()=>{
                 setPending(true);setError("");
                 try{const result=await api("/api/owner-google",{});window.location.assign(result.url);}
-                catch(e){setError((e as Error).message);setPending(false);}
+                catch(e){setError(publicError(e));setPending(false);}
               }}>Continue with Google</button>
               <p>{ownerGoogle.enabled ? "Sign in with Google, then connect Calendar and Gmail in your owner workspace." : "Google sign-in is not available yet. Use the email link below."}</p>
             </div>}

@@ -7,14 +7,14 @@ export async function GET(request: Request) {
   // Never render authorization codes, provider errors, or tokens into a page or log.
   if (!process.env.APP_ORIGIN)
     return NextResponse.json(
-      { error: "GOOGLE_SETUP_REQUIRED" },
+      { error: "Google connection needs setup." },
       { status: 503 },
     );
   let destination: URL;
   try {
     destination = new URL("/", callbackUri(process.env.APP_ORIGIN));
   } catch {
-    return NextResponse.json({ error: "INVALID_APP_ORIGIN" }, { status: 503 });
+    return NextResponse.json({ error: "Google connection is temporarily unavailable." }, { status: 503 });
   }
   const query = new URL(request.url).searchParams,
     state = query.get("state"),

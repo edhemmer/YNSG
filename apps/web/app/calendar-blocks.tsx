@@ -1,4 +1,5 @@
 "use client";
+import { publicError } from "../lib/public-errors";
 import { useEffect, useRef, useState } from "react";
 import { sessionFetch } from "../lib/session-fetch";
 import { localInstant } from "../../../packages/domain/timezone";
@@ -27,7 +28,7 @@ export default function CalendarBlocks({
     setBlocks(d.blocks);
   }
   useEffect(() => {
-    void load().catch((e) => setMessage(e.message));
+    void load().catch((e) => setMessage(publicError(e)));
   }, [organization]);
   async function save(block: Block | null) {
     if (busy) return;
@@ -65,7 +66,7 @@ export default function CalendarBlocks({
       setEnd("");
       retry.current = null;
     } catch (e) {
-      setMessage((e as Error).message);
+      setMessage(publicError(e));
     } finally {
       setBusy(false);
     }

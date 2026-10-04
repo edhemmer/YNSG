@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     const org = z.uuid().parse(query.get('organization'));
     const { db } = await authorizeGoogle(org);
     const response = await db.rpc('scheduling_snapshot', { p_org: org });
-    if (response.error) return json({ error: 'Publish scheduling settings before checking times.', code: 'SETUP_REQUIRED' }, 409);
+    if (response.error) return json({ error: 'Publish scheduling settings before checking times.' }, 409);
     const snapshot = snapshotSchema.parse(response.data);
     if (!query.has('resources')) return json({ resources: snapshot.resources, timezone: snapshot.settings.timezone });
     const selectedResources = z.array(z.uuid()).min(1).max(30).parse(query.get('resources')!.split(','));
@@ -57,9 +57,9 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     if (error instanceof Error && error.message === 'UNAUTHORIZED') return json({ error: 'Sign in to check times.' }, 401);
-    if (error instanceof GoogleFailure) return json({ error: 'Connect an authorized Google calendar before checking times.', code: error.code }, error.code === 'OWNER_ACCESS_REQUIRED' ? 403 : 409);
-    if (error instanceof DomainError) return json({ error: error.message, code: error.code }, 409);
-    if (error instanceof z.ZodError) return json({ error: 'Review the scheduling settings and selected resources.', code: 'VALIDATION' }, 400);
-    return json({ error: 'Times could not be checked. No appointment was created.', code: 'CHECK_FAILED' }, 503);
+    if (error instanceof GoogleFailure) return json({ error: 'Connect an authorized Google calendar before checking times.' }, error.code === 'OWNER_ACCESS_REQUIRED' ? 403 : 409);
+    if (error instanceof DomainError) return json({ error: error.message }, 409);
+    if (error instanceof z.ZodError) return json({ error: 'Review the scheduling settings and selected resources.' }, 400);
+    return json({ error: 'Times could not be checked. No appointment was created.' }, 503);
   }
 }

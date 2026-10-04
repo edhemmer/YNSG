@@ -1,4 +1,5 @@
 "use client";
+import { publicError } from "../../../lib/public-errors";
 import { useEffect, useRef, useState } from "react";
 type Context = {
   company: string;
@@ -71,7 +72,7 @@ export default function CustomerRequest() {
         }
       })
       .catch((e) => {
-        if (alive && s === seq.current) setError(e.message);
+        if (alive && s === seq.current) setError(publicError(e));
       })
       .finally(() => {
         if (alive && s === seq.current) setLoading(false);
@@ -122,7 +123,7 @@ export default function CustomerRequest() {
       }
       setReschedule(false);
     } catch (e) {
-      if (s === seq.current) setError((e as Error).message);
+      if (s === seq.current) setError(publicError(e));
     } finally {
       if (s === seq.current) setPending(false);
     }
@@ -164,7 +165,7 @@ export default function CustomerRequest() {
                 setPending(true);
                 void refresh()
                   .then(() => setError(""))
-                  .catch((e) => setError(e.message))
+                  .catch((e) => setError(publicError(e)))
                   .finally(() => setPending(false));
               }}
             >
@@ -327,7 +328,7 @@ export default function CustomerRequest() {
                     attempt.current = null;
                     setError("");
                   })
-                  .catch((e) => setError(e.message))
+                  .catch((e) => setError(publicError(e)))
                   .finally(() => setPending(false));
               }}
             >

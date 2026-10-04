@@ -1,4 +1,5 @@
 "use client";
+import { publicError } from "../lib/public-errors";
 import { useEffect, useRef, useState } from "react";
 import { sessionFetch } from "../lib/session-fetch";
 type Line = {
@@ -55,7 +56,7 @@ export default function InvoiceDraft({
         }
       })
       .catch((e) => {
-        if (current) setMessage(e.message);
+        if (current) setMessage(publicError(e));
       });
     return () => {
       current = false;
@@ -92,7 +93,7 @@ export default function InvoiceDraft({
       retry.current = null;
       saved();
     } catch (e) {
-      setMessage((e as Error).message);
+      setMessage(publicError(e));
     } finally {
       setBusy(false);
       onBusy(false);
@@ -129,7 +130,7 @@ export default function InvoiceDraft({
       );
       saved();
     } catch (error) {
-      setMessage((error as Error).message);
+      setMessage(publicError(error));
     } finally {
       setBusy(false);
       onBusy(false);

@@ -1,4 +1,5 @@
 'use client';
+import { publicError } from "../lib/public-errors";
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { sessionFetch } from '../lib/session-fetch';
 import { monthCells, shiftMonth, groupCalendarDays, serviceTone, activeCalendarVisit } from '../lib/month-calendar';
@@ -21,7 +22,7 @@ export default function MonthCalendar({organization,timezone,revision}:{organiza
     const response=await sessionFetch('/api/calendar-month?'+new URLSearchParams({organization,month}),{cache:'no-store',signal:controller.signal});
     const value=await response.json();if(!response.ok)throw Error(value.error||'Calendar could not be loaded.');
     if(seq===sequence.current)setData(value);
-   }catch(e){if(seq===sequence.current&&!controller.signal.aborted)setError((e as Error).message);}
+   }catch(e){if(seq===sequence.current&&!controller.signal.aborted)setError(publicError(e));}
    finally{if(seq===sequence.current)setBusy(false);}
   })();
   return()=>{controller.abort();sequence.current++;};

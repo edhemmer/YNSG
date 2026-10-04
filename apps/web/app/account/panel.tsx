@@ -1,4 +1,5 @@
 "use client";
+import { publicError } from "../../lib/public-errors";
 import { useEffect, useState } from "react";
 import { sessionFetch } from "../../lib/session-fetch";
 import RepeatRequest from "./repeat-request";
@@ -82,7 +83,7 @@ export default function Account() {
         if (current) setData(d);
       })
       .catch((e) => {
-        if (current) setMessage(e.message);
+        if (current) setMessage(publicError(e));
       });
     return () => {
       current = false;
@@ -118,7 +119,7 @@ export default function Account() {
         await load();
       }
     } catch (e) {
-      setMessage((e as Error).message);
+      setMessage(publicError(e));
     } finally {
       setBusy(false);
     }
@@ -144,7 +145,7 @@ export default function Account() {
                 setOrg("");
                 setCompanies([]);
               } catch (e) {
-                setMessage((e as Error).message);
+                setMessage(publicError(e));
               } finally {
                 setBusy(false);
               }
@@ -277,7 +278,7 @@ export default function Account() {
                 setMessage("Your service history is connected.");
                 await load();
               } catch (e) {
-                setMessage((e as Error).message);
+                setMessage(publicError(e));
               } finally {
                 setBusy(false);
               }

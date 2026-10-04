@@ -1,4 +1,5 @@
 "use client";
+import { publicError } from "../lib/public-errors";
 import { useState } from "react";
 import { sessionFetch } from "../lib/session-fetch";
 export default function CustomerInvite({
@@ -41,7 +42,7 @@ export default function CustomerInvite({
             "Invitation expires in 24 hours. Share it only with this customer. They must verify the same email before their records connect.",
           );
         } catch (e) {
-          setMessage((e as Error).message);
+          setMessage(publicError(e));
         } finally {
           setBusy(false);
         }

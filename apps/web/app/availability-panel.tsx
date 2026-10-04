@@ -1,4 +1,5 @@
 'use client';
+import { publicError } from "../lib/public-errors";
 import { useEffect, useRef, useState } from 'react';
 import { sessionFetch } from '../lib/session-fetch';
 type Resource = { id: string; name: string; kind: string; status: string };
@@ -26,7 +27,7 @@ export default function AvailabilityPanel({ organization }: { organization: stri
    if(!response.ok)throw new Error(value.error||'Times could not be checked.');
    if(seq!==sequence.current)return;
    if(loadOnly){setResources(value.resources);setLoaded(true);}else setResult(value);
-  }catch(e){if(seq===sequence.current)setError((e as Error).message);}
+  }catch(e){if(seq===sequence.current)setError(publicError(e));}
   finally{if(seq===sequence.current)setPending(false);}
  }
  function invalidate(){sequence.current++;setResult(null);setPending(false);}

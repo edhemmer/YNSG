@@ -58,12 +58,6 @@ export async function POST(request: Request) {
               ? "That resource is already reserved for part of this time. Choose another time."
               : messages[error.message] ||
                 "The appointment was not changed. Refresh and review your access.",
-          code:
-            error.code === "23P01"
-              ? "CAPACITY_CONFLICT"
-              : messages[error.message]
-                ? error.message
-                : "ACTION_REJECTED",
         },
         { status: error.code === "42501" ? 403 : 409 },
       );

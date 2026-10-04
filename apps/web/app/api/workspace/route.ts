@@ -70,7 +70,7 @@ export async function GET(request: Request) {
       return NextResponse.json(
         {
           error: "Select a company you have permission to manage.",
-          code: "ACCESS_REQUIRED",
+
         },
         { status: 403 },
       );

@@ -22,12 +22,12 @@ async function run(request: Request) {
     !timingSafeEqual(Buffer.from(secret), Buffer.from(provided))
   )
     return NextResponse.json(
-      { error: "UNAUTHORIZED" },
+      { error: "Access is required." },
       { status: 401, headers },
     );
   if (process.env.GOOGLE_GMAIL_DELIVERY_ENABLED !== "true")
     return NextResponse.json(
-      { error: "DELIVERY_DISABLED" },
+      { error: "Email delivery is paused." },
       { status: 503, headers },
     );
   let db: ReturnType<typeof serverDatabase>;
@@ -37,13 +37,13 @@ async function run(request: Request) {
     claimed = await db.rpc("claim_mail_company");
   } catch {
     return NextResponse.json(
-      { error: "WORKER_SETUP_REQUIRED" },
+      { error: "This connection needs setup." },
       { status: 503, headers },
     );
   }
   if (claimed.error)
     return NextResponse.json(
-      { error: "WORKER_UNAVAILABLE" },
+      { error: "This service is temporarily unavailable." },
       { status: 503, headers },
     );
   if (!claimed.data) return NextResponse.json({ processed: 0 }, { headers });
@@ -59,7 +59,7 @@ async function run(request: Request) {
     );
   } catch {
     return NextResponse.json(
-      { error: "DELIVERY_REQUIRES_ATTENTION" },
+      { error: "Email delivery needs attention." },
       { status: 503, headers },
     );
   } finally {

@@ -1,4 +1,5 @@
 "use client";
+import { publicError } from "../../lib/public-errors";
 import { useEffect, useState } from "react";
 import { sessionFetch } from "../../lib/session-fetch";
 type Owner = {
@@ -27,7 +28,7 @@ export default function Platform() {
         }
       })
       .catch((e) => {
-        if (active) setError(e.message);
+        if (active) setError(publicError(e));
       });
     return () => {
       active = false;

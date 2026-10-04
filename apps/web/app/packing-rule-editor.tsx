@@ -1,4 +1,5 @@
 "use client";
+import { publicError } from "../lib/public-errors";
 import { useRef, useState } from "react";
 import { sessionFetch } from "../lib/session-fetch";
 import type { PackingItem, PackingRule, WorkItem } from "../lib/packing-plan";
@@ -60,7 +61,7 @@ export default function PackingRuleEditor({
         throw Error(result.error || "The packing list was not saved.");
       saved();
     } catch (e) {
-      setError((e as Error).message);
+      setError(publicError(e));
     } finally {
       setPending(false);
       busy(false);

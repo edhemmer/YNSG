@@ -190,7 +190,7 @@ export async function POST(request: Request) {
           error:
             messages[error.message] ||
             "The action was not committed. Review the record and try again.",
-          code: messages[error.message] ? error.message : "COMMAND_FAILED",
+
         },
         { status: error.code === "42501" ? 403 : 409 },
       );

@@ -1,4 +1,5 @@
 "use client";
+import { publicError } from "../lib/public-errors";
 import { useEffect, useRef, useState } from "react";
 import { ZodError } from "zod";
 import type { CompanySettings } from "../../../packages/contracts";
@@ -74,11 +75,11 @@ function settingsError(error: unknown): string {
     return (
       (names[field] || "Company settings") +
       ": " +
-      (issue?.message || "Check the entered value.")
+      "Please check this value."
     );
   }
   return error instanceof Error
-    ? error.message
+    ? publicError(error)
     : "Check the settings and try again.";
 }
 function template(name: string): CompanySettings {
@@ -186,7 +187,7 @@ export default function CompanySettingsPanel({
         }
       })
       .catch((e) => {
-        if (live) setError(e.message);
+        if (live) setError(publicError(e));
       })
       .finally(() => {
         if (live) setLoading(false);

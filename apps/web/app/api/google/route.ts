@@ -1,3 +1,4 @@
+import { publicError } from "../../../lib/public-errors";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { sameOrigin } from "../../../lib/session";
@@ -48,6 +49,7 @@ const input = z.discriminatedUnion("action", [
   z.object({action:z.literal('disable_delivery'),organization:z.uuid(),key:z.string().min(16).max(128)}).strict(),
 ]);
 function json(value: unknown, status = 200) {
+  if (value && typeof value === "object" && "error" in value) value = { ...value, error: publicError((value as {error:unknown}).error, "Google could not complete this action. Please try again in Settings.") };
   return NextResponse.json(value, {
     status,
     headers: { "Cache-Control": "no-store" },

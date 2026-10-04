@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       command.operation === "open" ? command.token : jar.get(cookieName)?.value;
     if (!token || !/^[A-Za-z0-9_-]{43}$/.test(token))
       return NextResponse.json(
-        { error: messages.LINK_UNAVAILABLE, code: "LINK_UNAVAILABLE" },
+        { error: messages.LINK_UNAVAILABLE },
         { status: 401, headers },
       );
     const db = serverDatabase(),
@@ -77,7 +77,6 @@ export async function POST(request: Request) {
           error:
             messages[code] ||
             "We could not complete this action. Please try again or contact the business.",
-          code,
         },
         {
           status:

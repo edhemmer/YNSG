@@ -35,11 +35,11 @@ async function context(db:Awaited<ReturnType<typeof authorizeGoogle>>['db'],org:
  if(r.error)throw new Error(r.error.message);return r.data;
 }
 function failed(e:unknown){
- if(e instanceof GoogleFailure)return json({error:e.code==='GOOGLE_EVENT_CHANGED'?'The Google event changed. Resolve its sync issue before approval.':'A current authorized Google calendar check is required.',code:e.code},e.code==='OWNER_ACCESS_REQUIRED'?403:409);
- if(e instanceof DomainError)return json({error:e.message,code:e.code},409);
- if(e instanceof z.ZodError)return json({error:'Complete the scheduling review and choose valid resources and times.',code:'VALIDATION'},400);
+ if(e instanceof GoogleFailure)return json({error:e.code==='GOOGLE_EVENT_CHANGED'?'The Google event changed. Resolve its sync issue before approval.':'A current authorized Google calendar check is required.'},e.code==='OWNER_ACCESS_REQUIRED'?403:409);
+ if(e instanceof DomainError)return json({error:e.message},409);
+ if(e instanceof z.ZodError)return json({error:'Complete the scheduling review and choose valid resources and times.'},400);
  const code=e instanceof Error?e.message:'FAILED';
- return json({error:messages[code]||(code==='UNAUTHORIZED'?'Sign in to continue.':'The appointment was not changed. Refresh and review your access.'),code:messages[code]?code:'FAILED'},code==='UNAUTHORIZED'?401:code==='FORBIDDEN'?403:409);
+ return json({error:messages[code]||(code==='UNAUTHORIZED'?'Sign in to continue.':'The appointment was not changed. Refresh and review your access.')},code==='UNAUTHORIZED'?401:code==='FORBIDDEN'?403:409);
 }
 export async function GET(request:Request){try{
  const q=new URL(request.url).searchParams,org=z.uuid().parse(q.get('organization')),id=z.uuid().parse(q.get('request'));

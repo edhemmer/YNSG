@@ -14,13 +14,13 @@ export async function POST(request: Request) {
     Buffer.byteLength(secret) !== Buffer.byteLength(provided) ||
     !timingSafeEqual(Buffer.from(secret), Buffer.from(provided))
   )
-    return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+    return NextResponse.json({ error: "Access is required." }, { status: 401 });
   if (process.env.GOOGLE_CALENDAR_WORKER_ENABLED !== "true")
-    return NextResponse.json({ error: "WORKER_DISABLED" }, { status: 503 });
+    return NextResponse.json({ error: "Calendar updates are paused." }, { status: 503 });
   const org = z.uuid().safeParse(process.env.GOOGLE_WORKER_ORGANIZATION_ID);
   if (!org.success)
     return NextResponse.json(
-      { error: "WORKER_SETUP_REQUIRED" },
+      { error: "This connection needs setup." },
       { status: 503 },
     );
   try {
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     );
   } catch {
     return NextResponse.json(
-      { error: "SYNC_REQUIRES_ATTENTION" },
+      { error: "Calendar updates need attention." },
       { status: 503 },
     );
   }

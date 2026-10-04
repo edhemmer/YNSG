@@ -57,7 +57,6 @@ export async function POST(request: Request) {
         return NextResponse.json(
           {
             error: "Check your email and password, or use Forgot password.",
-            code: "SIGN_IN_FAILED",
           },
           { status: 400, headers: { "Cache-Control": "no-store" } },
         );
@@ -80,7 +79,6 @@ export async function POST(request: Request) {
         return NextResponse.json(
           {
             error: "Account email could not be sent. Please try again later.",
-            code: "EMAIL_UNAVAILABLE",
           },
           { status: 503, headers: { "Cache-Control": "no-store" } },
         );
@@ -147,7 +145,6 @@ export async function POST(request: Request) {
             error: limited
               ? "The email provider has temporarily limited sign-in emails. Check your inbox for the newest message already sent and open its link in the browser where you requested it. If it has expired, wait before requesting another email."
               : "Email sign-in is unavailable. Check workspace email setup or try again later.",
-            code: limited ? "EMAIL_RATE_LIMITED" : "EMAIL_UNAVAILABLE",
           },
           {
             status: limited ? 429 : 503,
@@ -196,7 +193,6 @@ export async function POST(request: Request) {
             error: rejected
               ? "Your saved sign-in has expired. Sign in once to continue."
               : "Your sign-in could not be renewed right now. Please try again; no new email is needed.",
-            code: rejected ? "UNAUTHORIZED" : "SESSION_TEMPORARILY_UNAVAILABLE",
           },
           {
             status: rejected ? 401 : 503,

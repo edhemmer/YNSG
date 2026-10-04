@@ -1,4 +1,5 @@
 "use client";
+import { publicError } from "../lib/public-errors";
 import { useEffect, useState, type FormEvent } from "react";
 import { sessionFetch } from "../lib/session-fetch";
 async function call(body?: unknown) {
@@ -23,7 +24,7 @@ export default function OwnerSetup({ onComplete }: { onComplete: () => Promise<v
   async function claim(event: FormEvent) {
     event.preventDefault(); setPending(true); setError("");
     try { await call({ action: "claim" }); await onComplete(); }
-    catch (e) { setError((e as Error).message); }
+    catch (e) { setError(publicError(e)); }
     finally { setPending(false); }
   }
   return <div className="card">

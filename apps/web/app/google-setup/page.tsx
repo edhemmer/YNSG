@@ -103,7 +103,7 @@ export default async function GoogleSetup() {
         </p>
         <h2>After configuration</h2>
         <p>
-          Sign in to the CRM as an owner or administrator and open More →
+          Sign in to the CRM as an owner or administrator and open Settings →
           Google Calendar & Gmail. Connect Google,
           select a calendar you own, check connection health, then send the test
           message to yourself.
