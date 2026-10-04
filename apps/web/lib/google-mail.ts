@@ -181,6 +181,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
     let raw: string;
     try {
       raw = emailRaw(account.email!, to, subject, body, "ynsg-" + item.id, {
+        fromName: config.data.settings.displayName,
         ...(html === undefined ? {} : { html }),
         ...(replyTo === undefined ? {} : { replyTo }),
         ...(attachment === undefined ? {} : { attachment }),

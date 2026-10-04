@@ -3,6 +3,7 @@ import { publicError } from "../lib/public-errors";
 import {companyTheme} from "../lib/company-brand";
 import NotificationAttention from "./notification-attention";
 import OwnerSecurity from './owner-security';
+import BusinessSnapshot from './business-snapshot';
 import FinanceActivity from './finance-activity';
 import GoogleControls from './google-controls';
 import OwnerSetup from './owner-setup';
@@ -415,7 +416,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                 {data && (
                   <>
                     <nav className="nav" aria-label="Workspace">
-                      {["Today", "Calendar", "Customers", "Work", "Money", "Settings"].map(
+                      {[...(["owner","admin"].includes(role||"")?["Snapshot"]:[]), "Today", "Calendar", "Customers", "Work", "Money", "Settings"].map(
                         (s) => (
                           <button
                             key={s}
@@ -438,7 +439,8 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                         Refresh
                       </button>
                     </div>
-                    {section !== "Calendar" && <div className="actions" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1}. Agenda shows appointments from the last day onward.</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>}
+                    {!["Calendar","Snapshot"].includes(section) && <div className="actions" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1}. Agenda shows appointments from the last day onward.</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>}
+                    {section === "Snapshot" && ["owner","admin"].includes(role||"") && <BusinessSnapshot key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={s=>{setPage(0);setSection(s);}}/>}
                     {section === "Calendar" && ['owner','admin'].includes(role||'') && <>
                       <MonthCalendar key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current}/>
                     </>}
@@ -792,8 +794,8 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                           </li>
                         </ul>
                         <p>
-                          No review destination has been activated. No customer
-                          emails are sent by this screen.
+                          Set your review link in the business settings below.
+                          Customer messages are sent only after email activation.
                         </p>
                       </div></>
                     )}

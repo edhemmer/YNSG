@@ -217,13 +217,15 @@ export function emailRaw(
   subject: string,
   body: string,
   messageId: string,
-  options: { html?: string; replyTo?: string; attachment?: { filename: string; bytes: Uint8Array } } = {},
+  options: { fromName?: string; html?: string; replyTo?: string; attachment?: { filename: string; bytes: Uint8Array } } = {},
 ) {
   for (const address of [from, to, ...(options.replyTo ? [options.replyTo] : [])])
     if (!/^[^\s<>@\r\n]+@[^\s<>@\r\n]+\.[^\s<>@\r\n]+$/.test(address))
       throw new GoogleFailure("INVALID_EMAIL");
   if (/[\r\n]/.test(subject) || !/^[a-z0-9-]+$/.test(messageId))
     throw new GoogleFailure("INVALID_HEADER");
+  if(options.fromName!==undefined&&(!options.fromName.trim()||/[\r\n]/.test(options.fromName)||options.fromName.length>254))throw new GoogleFailure("INVALID_HEADER");
+  const sender=options.fromName?`=?UTF-8?B?${Buffer.from(options.fromName,"utf8").toString("base64")}?= <${from}>`:from;
   const encode = (value: string) => Buffer.from(value, "utf8").toString("base64").match(/.{1,76}/g)?.join("\r\n") || "";
   const boundary = "ynsg-alt-" + messageId;
   let content = options.html === undefined
@@ -238,7 +240,7 @@ export function emailRaw(
     content=`Content-Type: multipart/mixed; boundary="${mixed}"\r\n\r\n--${mixed}\r\n${content}\r\n--${mixed}\r\nContent-Type: application/pdf; name="${attachment.filename}"\r\nContent-Disposition: attachment; filename="${attachment.filename}"\r\nContent-Transfer-Encoding: base64\r\n\r\n${encoded}\r\n--${mixed}--\r\n`;
   }
   return Buffer.from(
-    `From: ${from}\r\nTo: ${to}\r\n${options.replyTo ? `Reply-To: ${options.replyTo}\r\n` : ""}Subject: =?UTF-8?B?${Buffer.from(subject).toString("base64")}?=\r\nMessage-ID: <${messageId}@ynsg.invalid>\r\nMIME-Version: 1.0\r\n${content}`,
+    `From: ${sender}\r\nTo: ${to}\r\n${options.replyTo ? `Reply-To: ${options.replyTo}\r\n` : ""}Subject: =?UTF-8?B?${Buffer.from(subject).toString("base64")}?=\r\nMessage-ID: <${messageId}@ynsg.invalid>\r\nMIME-Version: 1.0\r\n${content}`,
   ).toString("base64url");
 }
 export async function sendEmail(

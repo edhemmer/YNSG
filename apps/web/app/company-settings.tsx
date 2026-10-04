@@ -82,7 +82,7 @@ function settingsError(error: unknown): string {
     ? publicError(error)
     : "Check the settings and try again.";
 }
-function template(name: string): CompanySettings {
+function template(name: string, organization: string): CompanySettings {
   return {
     schemaVersion: 1,
     displayName: name,
@@ -125,7 +125,7 @@ function template(name: string): CompanySettings {
     invoiceTerms: null,
     taxTreatmentVerified: false,
     laborTaxTreatment: "unreviewed",
-    review: { enabled: false, url: null },
+    review: organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" ? {enabled:true,url:"https://g.page/r/CWxW2KabD1UWECE/review"} : { enabled: false, url: null },
   };
 }
 export default function CompanySettingsPanel({
@@ -336,7 +336,7 @@ export default function CompanySettingsPanel({
           </p>
           <button
             onClick={() => {
-              setDraft(template(name));
+              setDraft(template(name,organization));
               setCatalog(ynsgCatalog());
               setVersion(0);
             }}
@@ -434,6 +434,7 @@ export default function CompanySettingsPanel({
             <p>A thank-you email queues when confirmed payments cover the full invoice. Sending requires your verified Google connection and enabled email delivery.</p>
             <label className="check"><input type="checkbox" checked={draft.review.enabled} onChange={e=>change({review:{...draft.review,enabled:e.target.checked}})} />Include a review request in the thank-you email</label>
             <label>Review page link (optional until enabled)<input type="url" placeholder="https://" required={draft.review.enabled} value={draft.review.url||''} onChange={e=>change({review:{...draft.review,url:e.target.value||null}})} /></label>
+            {organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" && <button type="button" className="secondary" onClick={()=>change({review:{enabled:true,url:"https://g.page/r/CWxW2KabD1UWECE/review"}})}>Use our Google review link</button>}
             <p>Use the HTTPS link where customers can leave a review. Leave this off until your review page is ready.</p>
           </fieldset>
           <fieldset disabled={pending}>
