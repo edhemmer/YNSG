@@ -42,6 +42,10 @@ export default async function GoogleSetup() {
           The existing website email stays active. Google customer delivery is
           not enabled by connecting an account.
         </p>
+        <p>Open Settings → Google Calendar &amp; Gmail to connect your account, choose your business calendar, and send yourself a test email.</p>
+        <details>
+        <summary>Advanced settings</summary>
+        <p>Technical instructions for the person setting up your app.</p>
         <h2>Owner Google sign-in</h2>
         <p>In Supabase Authentication → Sign In / Providers → Google, enable Google and configure the OAuth client. Add the callback URL shown there to Google Cloud's Authorized redirect URIs. Also allow your app /auth/confirm URL in Supabase Authentication's redirect URL list. This login setup is separate from the Calendar/Gmail callback below. Existing verified owner memberships still control company access.</p>
         <h2>Google Cloud settings for Calendar &amp; Gmail</h2>
@@ -97,9 +101,8 @@ export default async function GoogleSetup() {
           </p>
         )}
         <p>
-          Enter secret values directly in Vercel → ynsg-repo → Settings →
-          Environment Variables → Preview → codex/crm-workflow, then redeploy.
-          Do not send them in chat.
+          Your administrator must save the required connection settings securely
+          and publish the app update. Never send access keys in chat.
         </p>
         <h2>After configuration</h2>
         <p>
@@ -113,8 +116,9 @@ export default async function GoogleSetup() {
           expire after seven days. Review publishing and verification
           requirements before unattended use.
         </p>
+        </details>
         <p>
-          <Link href="/">Back to owner sign-in</Link>
+          <Link href="/owner">Back to your workspace</Link>
         </p>
       </article>
     </main>

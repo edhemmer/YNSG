@@ -22,19 +22,29 @@ export default function SchedulingReadiness({organization}:{organization:string}
   return()=>{live=false;};
  },[organization,retry]);
  return <section className="card" aria-labelledby="scheduling-readiness-heading"><h2 id="scheduling-readiness-heading">Scheduling setup</h2>
-  {error?<p role="alert">Setup could not be checked. Refresh after confirming your owner sign-in.</p>:setup?<><ul>{setup.checks.map(check=><li key={check.label}><strong>{check.complete?'Complete':'Needs attention'}: {check.label}</strong>{!check.complete&&<p>{check.action}</p>}</li>)}</ul><p>{setup.publicAvailabilityConfigured?'The business availability endpoint is enabled. The website connection still needs a live booking test.':'Website availability still needs connection and a live booking test.'}</p><p>Weekly dates can be reviewed for the full year. Automatic recurring reservations still need implementation and testing before use.</p></>:<p role="status">Checking scheduling setup…</p>}
-  {setup?.background&&<section aria-labelledby="background-setup-heading"><h3 id="background-setup-heading">Background setup</h3><p>These checks show whether the workers can receive a request. They do not confirm that a recurring schedule is running.</p><ul>
-   <li>{setup.background.workerCredentialReady?'Ready':'Needs setup'}: protected worker access</li>
-   <li>{setup.background.mailSwitchEnabled?'Enabled':'Paused'}: email worker</li>
-   <li>{setup.background.calendarSwitchEnabled?'Enabled':'Paused'}: calendar worker</li>
-   <li>{setup.background.calendarCompanyMatches?'Ready':'Needs setup'}: calendar worker linked to this business</li>
-   <li>{setup.background.deploymentCredentialReady?'Ready':'Needs setup'}: protected deployment access</li>
-   <li>{setup.background.schedulerStatus?.credentialsStored?'Stored securely':'Needs setup'}: scheduler credentials</li>
-   {setup.background.schedulerStatus?.jobs.map(job=><li key={job.name}>{job.active?'Scheduled':'Paused'}: {job.name==='ynsg-mail-worker'?'email schedule':'calendar schedule'}</li>)}
-  </ul><p>A recurring trigger and successful live runs still need verification. Changes to worker settings require a new deployment.</p></section>}
-  {setup?.background?.canPrepare&&<section aria-labelledby="prepare-background-heading"><h3 id="prepare-background-heading">Prepare the background schedule</h3><p>After regenerating the automation key in Vercel, redeploy the app branch. Then press the button below to store the matching credentials securely. No keys are shown here. This step pauses both jobs; live verification comes before activation.</p>
-   <label><input type="checkbox" checked={rotationConfirmed} disabled={preparing} onChange={event=>setRotationConfirmed(event.target.checked)}/> I regenerated the Vercel automation key and redeployed the app branch.</label>
-   <button type="button" className="secondary" disabled={preparing||!rotationConfirmed||!setup.background.workerCredentialReady||!setup.background.deploymentCredentialReady||!setup.background.calendarCompanyMatches} onClick={()=>void prepareBackground()}>{preparing?'Preparing…':'Prepare background schedule'}</button>
+  {error?<p role="alert">Setup could not be checked. Refresh after confirming your owner sign-in.</p>:setup?<><ul>{setup.checks.map(check=><li key={check.label}><strong>{check.complete?'Complete':'Needs attention'}: {check.label}</strong>{!check.complete&&<p>{check.action}</p>}</li>)}</ul><p>{setup.publicAvailabilityConfigured?'The website calendar connection is configured. A live booking test is still needed.':'Website availability still needs connection and a live booking test.'}</p><p>Weekly dates can be reviewed for the full year. Automatic recurring bookings are not ready to use yet.</p></>:<p role="status">Checking scheduling setup…</p>}
+  {setup?.background&&<section aria-labelledby="background-setup-heading"><h3 id="background-setup-heading">Background automation</h3>
+   <p>Keep appointment emails and calendar updates moving while you work.</p>
+   <ul>
+    <li><strong>Connection:</strong> {setup.background.schedulerStatus?.credentialsStored&&setup.background.workerCredentialReady&&setup.background.deploymentCredentialReady&&setup.background.calendarCompanyMatches?'Connected':'Needs attention'}</li>
+    <li><strong>Appointment emails:</strong> {setup.background.schedulerStatus===null?'Needs attention':setup.background.mailSwitchEnabled&&setup.background.schedulerStatus.jobs.some(job=>job.name==='ynsg-mail-worker'&&job.active)?'Scheduled':'Paused'}</li>
+    <li><strong>Calendar updates:</strong> {setup.background.schedulerStatus===null?'Needs attention':setup.background.calendarSwitchEnabled&&setup.background.calendarCompanyMatches&&setup.background.schedulerStatus.jobs.some(job=>job.name==='ynsg-calendar-worker'&&job.active)?'Scheduled':'Paused'}</li>
+   </ul>
+   <p>A connected status means your setup is saved. Paused means automatic updates are not running. Email delivery and calendar updates still need live testing.</p>
+   <details><summary>Advanced settings</summary>
+    <p>These checks are for initial setup and troubleshooting.</p>
+    <ul>
+     <li>{setup.background.workerCredentialReady?'Ready':'Needs attention'}: secure automation access</li>
+     <li>{setup.background.deploymentCredentialReady?'Ready':'Needs attention'}: app connection</li>
+     <li>{setup.background.calendarCompanyMatches?'Ready':'Needs attention'}: business calendar connection</li>
+     <li>{setup.background.schedulerStatus?.credentialsStored?'Saved securely':'Needs attention'}: automation settings</li>
+    </ul>
+    {setup.background.canPrepare&&<section aria-labelledby="connect-background-heading"><h4 id="connect-background-heading">Connect background automation</h4>
+     <p>Use this after automation access has been renewed and the app update published. Connecting saves the settings securely and pauses automatic emails and calendar updates until testing is complete.</p>
+     <label><input type="checkbox" checked={rotationConfirmed} disabled={preparing} onChange={event=>setRotationConfirmed(event.target.checked)}/> I confirm automation access was renewed and the app update published.</label>
+     <button type="button" className="secondary" disabled={preparing||!rotationConfirmed||!setup.background.workerCredentialReady||!setup.background.deploymentCredentialReady||!setup.background.calendarCompanyMatches} onClick={()=>void prepareBackground()}>{preparing?'Connecting…':'Connect background automation'}</button>
+    </section>}
+   </details>
    {feedback&&<p role="status">{feedback}</p>}
   </section>}
   <button type="button" className="secondary" onClick={()=>setRetry(v=>v+1)}>Refresh setup status</button>

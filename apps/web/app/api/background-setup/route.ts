@@ -14,6 +14,6 @@ export async function POST(request:Request){
   const {worker,bypass,origin}=backgroundDeployment(process.env,input.organization);
   const {data,error}=await serverDatabase().rpc('background_setup',{p_org:input.organization,p_actor:session.user.id,p_session:verifiedSessionId(session.access),p_action:'prepare',p_worker:worker,p_bypass:bypass,p_origin:origin});
   if(error)throw Error('SETUP_REQUIRED');
-  return NextResponse.json({status:data,message:'Credentials stored securely. Background jobs are paused until live verification passes.'},{headers});
- }catch(error){return NextResponse.json({error:'Background setup could not be completed. Confirm your owner sign-in, regenerate the Vercel automation key, and redeploy the app branch before trying again.'},{status:error instanceof Error&&error.message==='UNAUTHORIZED'?401:400,headers});}
+  return NextResponse.json({status:data,message:'Automation settings saved securely. Appointment emails and calendar updates remain paused until live testing is complete.'},{headers});
+ }catch(error){return NextResponse.json({error:'The automation connection could not be completed. Confirm your owner sign-in and review Advanced settings before trying again.'},{status:error instanceof Error&&error.message==='UNAUTHORIZED'?401:400,headers});}
 }
