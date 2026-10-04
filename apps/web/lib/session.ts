@@ -24,5 +24,5 @@ export function saveSession(response:NextResponse,session:{access_token:string;r
 }
 export function failure(error:unknown){
  const code=error instanceof Error?error.message:'FAILED';
- return NextResponse.json({error:code==='UNAUTHORIZED'?'Sign in to continue.':code==='SETUP_REQUIRED'?'This workspace connection is not configured yet.':'The action could not be completed. Your saved records have not been discarded.',code:['UNAUTHORIZED','SETUP_REQUIRED'].includes(code)?code:'FAILED'},{status:code==='UNAUTHORIZED'?401:code==='SETUP_REQUIRED'?503:400,headers:{'Cache-Control':'no-store'}});
+ return NextResponse.json({error:code==='UNAUTHORIZED'?'Sign in to continue.':code==='SETUP_REQUIRED'?'This workspace connection is not configured yet.':code==='SECURITY_LOG_UNAVAILABLE'?'Sign-in protection is temporarily unavailable. Please try again shortly.':'The action could not be completed. Your saved records have not been discarded.',code:['UNAUTHORIZED','SETUP_REQUIRED','SECURITY_LOG_UNAVAILABLE'].includes(code)?code:'FAILED'},{status:code==='UNAUTHORIZED'?401:['SETUP_REQUIRED','SECURITY_LOG_UNAVAILABLE'].includes(code)?503:400,headers:{'Cache-Control':'no-store'}});
 }

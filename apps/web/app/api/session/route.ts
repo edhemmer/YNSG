@@ -9,6 +9,7 @@ import {
   failure,
 } from "../../../lib/session";
 import { emailClient, saveEmailVerifier } from "../../../lib/email-auth";
+import { recordOwnerSessionIp } from "../../../lib/owner-security";
 const input = z.discriminatedUnion("action", [
   z.object({ action: z.literal("send"), email: z.email().max(254) }),
   z.object({
@@ -171,11 +172,12 @@ export async function POST(request: Request) {
         token: value.code,
         type: "email",
       });
-      if (error || !data.session)
+      if (error || !data.session) {
         return NextResponse.json(
           { error: "That code is invalid or expired. Request a new code." },
           { status: 400 },
         );
+      }
       return saveEmailVerifier(
         saveSession(NextResponse.json({ ok: true }), data.session),
         null,
@@ -227,7 +229,7 @@ export async function POST(request: Request) {
     return failure(error);
   }
 }
-export async function GET() {
+export async function GET(request:Request) {
   try {
     const { db, user } = await authenticated();
     const { data, error } = await db
@@ -235,6 +237,9 @@ export async function GET() {
       .select("organization_id,role")
       .eq("user_id", user.id);
     if (error) throw error;
+    for(const m of data||[])
+      if(['owner','admin'].includes(m.role))
+        await recordOwnerSessionIp(db,request,m.organization_id);
     return NextResponse.json(
       { email: user.email, memberships: data },
       { headers: { "Cache-Control": "no-store" } },

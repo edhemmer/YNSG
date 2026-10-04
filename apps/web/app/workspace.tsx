@@ -1,6 +1,7 @@
 "use client";
 import {companyTheme} from "../lib/company-brand";
 import NotificationAttention from "./notification-attention";
+import OwnerSecurity from './owner-security';
 import FinanceActivity from './finance-activity';
 import GoogleControls from './google-controls';
 import OwnerSetup from './owner-setup';
@@ -320,6 +321,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
               No password is needed. We’ll email you a sign-in link. Open it in this browser. Your verified email opens the companies you have permission to manage.
             </p>
             <p>On this device, your sign-in renews automatically as you use the workspace. Sign out when using a shared device.</p>
+            <p>We record the IP address and time of owner sign-ins for account security.</p>
             {ownerGoogle && <div>
               <button type="button" disabled={pending || !ownerGoogle.enabled} onClick={async()=>{
                 setPending(true);setError("");
@@ -435,7 +437,8 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                       </button>
                     </div>
                     <div className="actions" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1}. Agenda shows appointments from the last day onward.</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>
-                    {section === "More" && ['owner','admin'].includes(role||'') && <CalendarBlocks organization={org} timezone={data.company.timezone}/> }
+                      {section === "More" && ['owner','admin'].includes(role||'') && <CalendarBlocks organization={org} timezone={data.company.timezone}/> }
+                      {section === "More" && ['owner','admin'].includes(role||'') && <OwnerSecurity key={org} organization={org}/>}
                     {section === "More" && ['owner','admin'].includes(role||'') && <CompanySettingsPanel organization={org} name={data.company.display_name}/>}
                     {['Today','Work'].includes(section)&&data.schedulingPreferences.length>0&&<section className="card" aria-labelledby="reschedule-heading"><h2 id="reschedule-heading">Customers requesting another time</h2>{data.schedulingPreferences.map(p=><article key={p.id} className="card"><p><strong>{data.requests.find(r=>r.id===p.request_id)?.original_submission.name||'Service request'}</strong></p><p>{p.preferred_local_start?.replace('T',' at ')} {p.preferred_local_start&&`(${p.timezone})`}</p><p>{p.note}</p><p className="note">Review this on the same request. A confirmed original stays booked until you approve its replacement.</p><button type="button" className="secondary" onClick={()=>{window.location.assign('/?request='+encodeURIComponent(p.request_id));}}>Open service request</button></article>)}</section>}
                     {section === "Today" && ['owner','admin'].includes(role||'') && <DailyCallSheet key={org} organization={org} timezone={data.company.timezone}/>}
