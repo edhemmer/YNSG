@@ -48,3 +48,17 @@ test('Calendar projection carries reviewed contact details and a protected order
  const sent=event as Record<string,unknown>|null;
  assert.match(String(sent?.summary),/Synthetic Neighbor/);assert.match(String(sent?.summary),/Leaf management/);assert.equal(sent?.location,p.customer.address);assert.match(String(sent?.description),/5550000000/);assert.match(String(sent?.description),/request=synthetic/);assert.equal(sent?.visibility,'private');
 });
+
+// Provider calls use synthetic transports; no real calendars are created by tests.
+import {createBusinessCalendar,CALENDAR_CREATION_SCOPE,GOOGLE_SCOPES} from '../apps/web/lib/google-core.ts';
+test('Business calendar creation sends company name and time zone once', async()=>{
+ let calls=0;
+ const transport=(async(url, init)=>{calls++;assert.equal(url,'https://www.googleapis.com/calendar/v3/calendars');assert.equal(init?.method,'POST');const body=JSON.parse(String(init?.body));assert.equal(body.summary,'Synthetic Company — Appointments');assert.equal(body.timeZone,'America/Chicago');assert.equal(body.acl,undefined);return Response.json({id:'business@example.invalid',summary:body.summary,timeZone:body.timeZone});}) as typeof fetch;
+ assert.equal((await createBusinessCalendar('synthetic','Synthetic Company — Appointments','America/Chicago',transport)).id,'business@example.invalid');assert.equal(calls,1);assert.ok(GOOGLE_SCOPES.includes(CALENDAR_CREATION_SCOPE));
+});
+test('Ambiguous creation is never retried and invalid input makes no call',async()=>{
+ let calls=0;const timeout=(async()=>{calls++;throw Error('synthetic timeout');}) as typeof fetch;
+ await assert.rejects(()=>createBusinessCalendar('synthetic','Business','America/Chicago',timeout),{message:'PROVIDER_UNREACHABLE'});assert.equal(calls,1);
+ await assert.rejects(()=>createBusinessCalendar('synthetic','Business','invalid/zone',timeout),{message:'INVALID_TIMEZONE'});assert.equal(calls,1);
+ await assert.rejects(()=>createBusinessCalendar('synthetic','Business\nName','America/Chicago',timeout),{message:'INVALID_CALENDAR_NAME'});assert.equal(calls,1);
+});

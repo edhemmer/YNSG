@@ -1,0 +1,35 @@
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001"}',true);
+do $$begin begin perform public.google_calendar_creation('20000000-0000-4000-8000-000000000001','read','{}');raise exception 'TEST FAILED exposed creation';exception when insufficient_privilege then null;end;end$$;
+reset role;
+set local role service_role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+select public.google_store('20000000-0000-4000-8000-000000000001','read','{}');
+select public.google_store('20000000-0000-4000-8000-000000000001','connect','{"revision":0,"ciphertext":"synthetic","email":"owner@example.invalid","subject":"synthetic-subject","scopes":["https://www.googleapis.com/auth/calendar.app.created"],"actor":"00000000-0000-4000-8000-000000000001"}');
+do $$declare first jsonb; repeat_attempt jsonb; result jsonb;begin
+ first:=public.google_calendar_creation('20000000-0000-4000-8000-000000000001','begin','{"revision":1}');
+ perform pg_temp.assert_true((first->>'create')::boolean,'first create allowed');
+ perform pg_temp.assert_true(first->>'summary'='Synthetic One — Appointments' and first->>'timeZone'='America/Chicago','company-owned name and timezone');
+ repeat_attempt:=public.google_calendar_creation('20000000-0000-4000-8000-000000000001','begin','{"revision":1}');
+ perform pg_temp.assert_true(not (repeat_attempt->>'create')::boolean,'second click cannot create');
+ result:=public.google_calendar_creation('20000000-0000-4000-8000-000000000001','finish',first||'{"result":"unknown"}'::jsonb);
+ perform pg_temp.assert_true(result->>'status'='unknown','ambiguous provider result saved');
+ repeat_attempt:=public.google_calendar_creation('20000000-0000-4000-8000-000000000001','begin','{"revision":1}');
+ perform pg_temp.assert_true(not (repeat_attempt->>'create')::boolean,'unknown result never retried');
+end$$;
+select public.google_store('20000000-0000-4000-8000-000000000002','read','{}');
+select public.google_store('20000000-0000-4000-8000-000000000002','connect','{"revision":0,"ciphertext":"synthetic","email":"owner2@example.invalid","subject":"synthetic-subject","scopes":["https://www.googleapis.com/auth/calendar.app.created"],"actor":"00000000-0000-4000-8000-000000000002"}');
+do $$declare first jsonb; retry jsonb; result jsonb;begin
+ first:=public.google_calendar_creation('20000000-0000-4000-8000-000000000002','begin','{"revision":1}');
+ perform pg_temp.assert_true((first->>'create')::boolean,'other company independently creates');
+ perform public.google_calendar_creation('20000000-0000-4000-8000-000000000002','finish',first||'{"result":"failed"}'::jsonb);
+ retry:=public.google_calendar_creation('20000000-0000-4000-8000-000000000002','begin','{"revision":1}');
+ perform pg_temp.assert_true((retry->>'create')::boolean and retry->>'operationId'<>first->>'operationId','explicit rejection allows fenced retry');
+ begin perform public.google_calendar_creation('20000000-0000-4000-8000-000000000002','finish',first||'{"result":"created","calendarId":"stale"}'::jsonb);raise exception 'TEST FAILED stale operation';exception when raise_exception then if sqlerrm<>'STALE_OPERATION' then raise;end if;end;
+ perform public.google_store('20000000-0000-4000-8000-000000000002','disconnect','{"revision":1,"actor":"00000000-0000-4000-8000-000000000002"}');
+ result:=public.google_calendar_creation('20000000-0000-4000-8000-000000000002','finish',retry||'{"result":"created","calendarId":"synthetic-business"}'::jsonb);
+ perform pg_temp.assert_true(result->>'calendarId'='synthetic-business','provider receipt survives disconnect');
+ perform pg_temp.assert_true(public.google_store('20000000-0000-4000-8000-000000000002','read','{}')->>'calendar_id' is null,'creation does not switch selected calendar');
+end$$;
+reset role;
+rollback;

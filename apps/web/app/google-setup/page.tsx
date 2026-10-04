@@ -79,7 +79,7 @@ export default async function GoogleSetup() {
         </ul>
         <p>
           No Gmail inbox, Drive, Sheets, Maps, or service-account access is
-          requested. Calendar editing is limited to calendars you own.
+          requested. Calendar event editing is limited to calendars you own. The calendar.app.created permission allows the CRM to create a separate business calendar. Keep personal events on your personal calendar; only the selected business calendar currently affects CRM availability.
         </p>
         <h2>Missing deployment configuration</h2>
         {missing.length ? (

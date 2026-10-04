@@ -9,6 +9,7 @@ import {
   startGoogle,
   accessToken,
   disconnectGoogle,
+  calendarCreation,
 } from "../../../lib/google-server";
 import {
   ownedCalendars,
@@ -17,6 +18,8 @@ import {
   sendEmail,
   GoogleFailure,
   callbackUri,
+  createBusinessCalendar,
+  CALENDAR_CREATION_SCOPE,
 } from "../../../lib/google-core";
 import { syncGoogleCalendar } from "../../../lib/google-sync";
 import { dispatchGoogleMail } from "../../../lib/google-mail";
@@ -27,6 +30,7 @@ const input = z.discriminatedUnion("action", [
   z.object({ action: z.literal("connect"), organization: z.uuid() }),
   z.object({ action: z.literal("health"), organization: z.uuid() }),
   z.object({ action: z.literal("calendars"), organization: z.uuid() }),
+  z.object({ action: z.literal("create_calendar"), organization: z.uuid() }).strict(),
   z.object({
     action: z.literal("calendar"),
     organization: z.uuid(),
@@ -62,16 +66,16 @@ export async function GET(request: Request) {
       .parse(new URL(request.url).searchParams.get("organization"));
     const {db}=await authorizeGoogle(org);
     const missing = missingGoogleConfiguration();
+    const account = missing.length ? null : await store(org, "read");
     return json({
       missing,
+      creation: account?.encrypted_tokens ? await calendarCreation(org, "read") : null,
       delivery:(await db.rpc('mail_delivery_status',{p_org:org})).data,
       dispatcherEnabled:process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true',
       redirectUri: process.env.APP_ORIGIN
         ? callbackUri(process.env.APP_ORIGIN)
         : null,
-      connection: missing.length
-        ? null
-        : publicAccount(await store(org, "read")),
+      connection: account ? publicAccount(account) : null,
     });
   } catch (error) {
     return failed(error);
@@ -116,6 +120,23 @@ export async function POST(request: Request) {
     if (value.action === "send_pending")
       return json({ deliveries: await dispatchGoogleMail(org, db) });
     const { token, account } = await accessToken(org);
+    if (value.action === "create_calendar") {
+      if (!account.scopes.includes(CALENDAR_CREATION_SCOPE)) throw new GoogleFailure("CALENDAR_CREATION_PERMISSION_REQUIRED");
+      const intent = await calendarCreation(org, "begin", {revision: account.revision});
+      if (!intent) throw new GoogleFailure("CONNECTION_STORAGE_FAILED");
+      if (!intent.create) return json({creation: intent});
+      let result: "created" | "unknown" | "failed" = "unknown";
+      let created: {id: string; summary: string; timeZone: string} | undefined;
+      try {
+        created = await createBusinessCalendar(token, intent.summary, intent.timeZone!);
+        result = "created";
+      } catch (error) {
+        // Only explicit rejection permits a subsequent creation attempt.
+        if (error instanceof GoogleFailure && ((error.status >= 400 && error.status < 500) || ["INVALID_CALENDAR_NAME", "INVALID_TIMEZONE"].includes(error.code))) result = "failed";
+      }
+      const creation = await calendarCreation(org, "finish", {subject: intent.subject, operationId: intent.operationId, result, calendarId: created?.id});
+      return json({creation});
+    }
     if (value.action === "calendars")
       return json({ calendars: await ownedCalendars(token) });
     if (value.action === "calendar") {

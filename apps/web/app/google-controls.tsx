@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import {sessionFetch} from '../lib/session-fetch';
 type Connection = {
   connected: boolean;
+  canCreateCalendar: boolean;
   email: string | null;
   calendarId: string | null;
   health: string;
@@ -11,7 +12,10 @@ type Connection = {
 };
 type Delivery={enabled:boolean;testKey:string|null;configurationVersion:number|null;connectionRevision:number|null;receiptConfirmedAt:string|null;senderMatches:boolean};
 type Calendar = { id: string; summary: string; timeZone?: string };
+type CalendarCreation = { status: string; calendarId: string | null; summary: string };
 const messages: Record<string, string> = {
+  CALENDAR_CREATION_PERMISSION_REQUIRED: "Calendar creation needs one additional Google permission. Disconnect and reconnect Google, then approve calendar creation. You can also select an existing business calendar.",
+  BUSINESS_CALENDAR_ALREADY_SELECTED: "A business calendar is already selected. Calendar changes need review before switching.",
   SERVER_DATABASE_AUTH_REQUIRED: "The CRM server database credential was rejected. Update SUPABASE_SERVICE_ROLE_KEY in Vercel’s CRM Preview environment, redeploy, then try Connect Google again.",
   SERVER_DATABASE_PERMISSION_REQUIRED: "The CRM server cannot access Google connection storage. Its database permissions need repair.",
   CONNECTION_STORAGE_FAILED: "The CRM could not save or read its Google connection. Refresh status; if this continues, connection storage needs repair.",
@@ -49,6 +53,7 @@ export default function GoogleControls({
     [message, setMessage] = useState(""),
     [redirect, setRedirect] = useState<string | null>(null);
   const [delivery,setDelivery]=useState<Delivery|null>(null),[dispatcherEnabled,setDispatcherEnabled]=useState(false),[received,setReceived]=useState(false);
+  const [creation, setCreation] = useState<CalendarCreation | null>(null);
   const deliveryKey=useRef<string|null>(null);
   const generation = useRef(0),
     testKey = useRef<string | null>(null);
@@ -65,6 +70,7 @@ export default function GoogleControls({
       setDelivery(v.delivery);setDispatcherEnabled(v.dispatcherEnabled===true);deliveryKey.current=null;
       setMissing(v.missing);
       setConnection(v.connection);
+      setCreation(v.creation || null);
       setRedirect(v.redirectUri);
       setCalendar(v.connection?.calendarId || "");
     } catch (e) {
@@ -77,7 +83,7 @@ export default function GoogleControls({
   }
   useEffect(() => {
     setConnection(null);setDelivery(null);setReceived(false);deliveryKey.current=null;
-    setCalendars([]);
+    setCalendars([]);setCreation(null);
     testKey.current = null;
     void load();
     const outcome = new URLSearchParams(window.location.search).get("google");
@@ -118,6 +124,14 @@ export default function GoogleControls({
             ).length +
             " event(s) need owner review.",
         );
+      if (v.creation) {
+        setCreation(v.creation);
+        setMessage(v.creation.status === "created"
+          ? "Your business calendar is ready. Load your calendars, choose it, and press Save calendar."
+          : v.creation.status === "failed"
+            ? "Google rejected calendar creation. Check Google permissions before trying again."
+            : "Calendar creation is uncertain. Load your calendars and check for the business calendar before continuing. Another calendar will not be created automatically.");
+      }
       if (v.calendars) setCalendars(v.calendars);
       if (v.connection) setConnection(v.connection);
       if(v.delivery){setDelivery(v.delivery);setDispatcherEnabled(v.dispatcherEnabled===true);deliveryKey.current=null;setReceived(false);setMessage(v.delivery.enabled?'CRM email delivery authorized for this company. The dispatcher must also be enabled and scheduled.':'CRM email delivery paused for this company.');}
@@ -213,6 +227,18 @@ export default function GoogleControls({
               {connection.calendarId || "Not selected"}
             </dd>
           </dl>
+          <aside aria-labelledby="business-calendar-guidance">
+            <h3 id="business-calendar-guidance">Keep a separate business calendar</h3>
+            <p>Keep business appointments on this calendar and personal events on your personal calendar. The CRM checks only the selected business calendar for now. Personal-calendar events do not block customer bookings.</p>
+            <p>To reserve personal time, use Block time in the CRM. Customers see that the time is unavailable, without your personal details. Checking additional calendars for busy time is planned for a future update.</p>
+          </aside>
+          {!connection.calendarId && <section aria-labelledby="create-business-calendar">
+            <h3 id="create-business-calendar">Need a business calendar?</h3>
+            <p>Use an existing business calendar below, or press Create business calendar. The new calendar will be named for your company, owned by this Google account, and use your company’s time zone. The CRM can read, add, change and delete appointment events on it.</p>
+            {!connection.canCreateCalendar && <p>To create a calendar here, first disconnect and reconnect Google to approve the additional calendar-creation permission. You can still choose an existing calendar.</p>}
+            <button type="button" disabled={busy || !connection.canCreateCalendar || (!!creation && creation.status !== "failed")} onClick={() => void act("create_calendar")}>Create business calendar</button>
+            {creation && <p role="status">{creation.status === "created" ? "Calendar created: " + creation.summary + ". Load your calendars below and select it." : ["unknown", "sending"].includes(creation.status) ? "Check Google Calendar and Load my calendars before continuing. Creation is uncertain; repeat creation is blocked to avoid duplicates." : "The previous creation was rejected by Google. Check permissions before trying again."}</p>}
+          </section>}
           <div className="actions">
             <button
               type="button"

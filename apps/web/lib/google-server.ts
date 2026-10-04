@@ -10,6 +10,7 @@ import {
   unseal,
   GoogleFailure,
   googleRefreshFailure,
+  CALENDAR_CREATION_SCOPE,
 } from "./google-core";
 export type Account = {
   organization_id: string;
@@ -111,6 +112,7 @@ export function publicAccount(a: Account) {
         ? "unknown"
         : a.gmail_test,
     legacyEmailUnchanged: true,
+    canCreateCalendar: a.scopes.includes(CALENDAR_CREATION_SCOPE),
   };
 }
 type OAuthState = {
@@ -272,4 +274,16 @@ export async function disconnectGoogle(org: string, user: string) {
         "Local access removed. Google revocation could not be confirmed; remove access in your Google Account security settings.",
     };
   }
+}
+
+export type CalendarCreation = { status: "sending" | "created" | "unknown" | "failed"; calendarId: string | null; summary: string; create?: boolean; operationId?: string; subject?: string; timeZone?: string };
+export async function calendarCreation(org: string, action: string, input: Record<string, unknown> = {}): Promise<CalendarCreation | null> {
+  const {data, error, status} = await serverDatabase().rpc("google_calendar_creation", {p_org: org, p_action: action, p_input: input});
+  if (error) {
+    const code = status === 401 ? "SERVER_DATABASE_AUTH_REQUIRED" : status === 403 ? "SERVER_DATABASE_PERMISSION_REQUIRED"
+      : ["STALE_CONNECTION", "BUSINESS_CALENDAR_ALREADY_SELECTED", "CALENDAR_CREATION_PERMISSION_REQUIRED", "GOOGLE_DISCONNECTED"].find(c => error.message.includes(c)) || "CONNECTION_STORAGE_FAILED";
+    console.error("google_calendar_creation_failed", {category: code, status});
+    throw new GoogleFailure(code);
+  }
+  return data;
 }

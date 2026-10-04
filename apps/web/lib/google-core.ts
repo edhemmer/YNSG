@@ -4,6 +4,7 @@ import {
   createHash,
   randomBytes,
 } from "node:crypto";
+export const CALENDAR_CREATION_SCOPE = "https://www.googleapis.com/auth/calendar.app.created";
 export const GOOGLE_SCOPES = [
   "openid",
   "https://www.googleapis.com/auth/userinfo.email",
@@ -11,6 +12,7 @@ export const GOOGLE_SCOPES = [
   "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
   "https://www.googleapis.com/auth/calendar.events.owned",
   "https://www.googleapis.com/auth/calendar.freebusy",
+  CALENDAR_CREATION_SCOPE,
 ] as const;
 export const CALLBACK_PATH = "/api/google/callback";
 export function googleRefreshFailure(error: unknown) {
@@ -153,6 +155,16 @@ export async function ownedCalendars(
     if (calendars.length > 2500) throw new GoogleFailure("TOO_MANY_CALENDARS");
   } while (page);
   return calendars;
+}
+export async function createBusinessCalendar(token: string, summary: string, timeZone: string, transport: typeof fetch = fetch) {
+  if (!summary.trim() || summary.length > 500 || /[\r\n]/.test(summary)) throw new GoogleFailure("INVALID_CALENDAR_NAME");
+  try { new Intl.DateTimeFormat("en", { timeZone }); } catch { throw new GoogleFailure("INVALID_TIMEZONE"); }
+  // One POST only. A timeout may mean Google created the calendar successfully.
+  const result = await googleRequest<{id?: string; summary?: string; timeZone?: string}>(token, "/calendar/v3/calendars", {
+    method: "POST", body: JSON.stringify({summary, timeZone, description: "Business appointments managed through your service CRM."}),
+  }, transport);
+  if (!result.id || result.id.length > 1024) throw new GoogleFailure("CALENDAR_CREATION_UNKNOWN");
+  return {id: result.id, summary: result.summary || summary, timeZone: result.timeZone || timeZone};
 }
 export async function busyTimes(
   token: string,
