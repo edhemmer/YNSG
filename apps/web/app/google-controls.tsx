@@ -45,7 +45,7 @@ export default function GoogleControls({
   view = "email",
 }: {
   organization: string;
-  view?: "calendar" | "email";
+  view?: "calendar" | "email" | "settings";
 }) {
   const [connection, setConnection] = useState<Connection | null>(null),
     [missing, setMissing] = useState<string[]>([]),
@@ -76,7 +76,7 @@ export default function GoogleControls({
       setConnection(v.connection);
       setCreation(v.creation || null);
       setCalendar(v.connection?.calendarId || "");
-      if (view === "calendar" && v.connection?.connected) await loadCalendars(gen);
+      if (view !== "email" && v.connection?.connected) await loadCalendars(gen);
     } catch (e) {
       if (gen === generation.current)
         setMessage(
@@ -183,7 +183,7 @@ export default function GoogleControls({
               ? "Google rejected the test. Check configuration before retrying."
               : "Delivery is uncertain. Check Gmail Sent; this test will not be resent automatically.",
         );
-      if (action === "calendar") setMessage("Business calendar saved. You can now review appointments and block time below.");
+      if (action === "calendar") setMessage("Business calendar saved. Open the Calendar tab to review appointments or block time.");
       if (action === "health")
         setMessage(
           view === "calendar" ? "Google connection checked." : "Connection checked. Send the Gmail test below to check email.",
@@ -200,9 +200,9 @@ export default function GoogleControls({
     }
   }
   return (
-    <section className="card" aria-labelledby="google-heading">
-      <p className="eyebrow">{view === "calendar" ? "Business calendar" : "Email connection"}</p>
-      <h2 id="google-heading">{view === "calendar" ? "Choose your business calendar" : "Gmail"}</h2>
+    <section className="card" aria-labelledby={"google-"+view+"-heading"}>
+      <p className="eyebrow">{view === "settings" ? "Google connection" : view === "calendar" ? "Business calendar" : "Email connection"}</p>
+      <h2 id={"google-"+view+"-heading"}>{view === "settings" ? "Google Calendar & Gmail" : view === "calendar" ? "Choose your business calendar" : "Gmail"}</h2>
       {missing.length > 0 && <p>Google setup needs attention before connecting. Technical configuration is available on the private setup page.</p>}
       {statusLoading && <p role="status">Loading Google connection…</p>}
       {!connection?.connected ? (
@@ -216,7 +216,7 @@ export default function GoogleControls({
       ) : (
         <>
           <p><strong>Google connected</strong> · {connection.email}</p>
-          {view === "calendar" && <>
+          {view !== "email" && <>
             <p>{connection.calendarId ? "Business calendar: " + (calendars.find(c => c.id === connection.calendarId)?.summary || "Saved calendar") : "Choose an existing calendar or create a separate one for your business."}</p>
             <form onSubmit={e => { e.preventDefault(); void act("calendar", { calendarId: calendar }); }}>
               <label>Business calendar
@@ -238,7 +238,7 @@ export default function GoogleControls({
               {!connection.canCreateCalendar && <p>Calendar creation requires additional Google permission. You can still choose an existing business calendar.</p>}
               {creation && <p role="status">{creation.status === "created" ? "Created: " + creation.summary + ". Choose it above to finish." : ["unknown", "sending"].includes(creation.status) ? "Creation is still being checked. Refresh calendars before trying anything else; another calendar will not be created automatically." : "Google rejected creation. Check permissions before trying again."}</p>}
             </>}
-            <p className="note">Keep business appointments separate from personal events. Personal calendars do not block bookings yet. Use Block calendar time below to make time unavailable to customers.</p>
+            <p className="note">Keep business appointments separate from personal events. Personal calendars do not block bookings yet. Open Calendar and use Block calendar time to make time unavailable to customers.</p>
             <details><summary>Calendar connection tools</summary>
               <div className="actions">
                 <button type="button" disabled={busy} onClick={() => void act("health")}>Check connection</button>
@@ -247,7 +247,7 @@ export default function GoogleControls({
               <p>Changes made in Google need owner review before they move or approve a CRM appointment.</p>
             </details>
           </>}
-          {view === "email" && <>
+          {view !== "calendar" && <>
           <p>
             The test sends one message to the connected Google account, not to a
             customer. No inbox-reading permission is requested.

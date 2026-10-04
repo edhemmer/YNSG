@@ -440,9 +440,11 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                     {section !== "Calendar" && <div className="actions" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1}. Agenda shows appointments from the last day onward.</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>}
                     {section === "Calendar" && ['owner','admin'].includes(role||'') && <>
                       <MonthCalendar key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current}/>
-                      <details><summary>Choose or create your Google business calendar</summary><GoogleControls key={org} organization={org} view="calendar"/></details>
                     </>}
-                      {section === "Settings" && ['owner','admin'].includes(role||'') && <OwnerSecurity key={org} organization={org}/>}
+                    {section === "Settings" && ['owner','admin'].includes(role||'') && <>
+                      <GoogleControls key={org} organization={org} view="settings"/>
+                      <OwnerSecurity key={org} organization={org}/>
+                    </>}
                     {section === "Settings" && ['owner','admin'].includes(role||'') && <CompanySettingsPanel organization={org} name={data.company.display_name}/>}
                     {['Today','Calendar','Work'].includes(section)&&data.schedulingPreferences.length>0&&<section className="card" aria-labelledby="reschedule-heading"><h2 id="reschedule-heading">Customers requesting another time</h2>{data.schedulingPreferences.map(p=><article key={p.id} className="card"><p><strong>{data.requests.find(r=>r.id===p.request_id)?.original_submission.name||'Service request'}</strong></p><p>{p.preferred_local_start?.replace('T',' at ')} {p.preferred_local_start&&`(${p.timezone})`}</p><p>{p.note}</p><p className="note">Review this on the same request. A confirmed original stays booked until you approve its replacement.</p><button type="button" className="secondary" onClick={()=>{window.location.assign('/?request='+encodeURIComponent(p.request_id));}}>Open service request</button></article>)}</section>}
                     {section === "Today" && ['owner','admin'].includes(role||'') && <DailyCallSheet key={org} organization={org} timezone={data.company.timezone}/>}
@@ -764,7 +766,6 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                     )}
                     {section === "Settings" && (
                       <>
-                      {["owner","admin"].includes(role||"")&&<GoogleControls key={org} organization={org}/>}
                       <div className="card">
                         <h2>Company readiness</h2>
                         <p className="badge">{data.company.status}</p>
