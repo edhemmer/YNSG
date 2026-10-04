@@ -21,9 +21,13 @@ Vercel project ynsg-repo / Preview / codex/crm-workflow requires GOOGLE_WORKER_S
 
 Vault entries required: ynsg_crm_worker_secret (same worker bearer credential), ynsg_crm_protection_bypass (project automation bypass), and ynsg_crm_worker_origin (stable HTTPS CRM branch origin). Create/update these through an authorized secret-management path, never by copying them into GitHub or this document.
 
-## Blocked approval
+## Approved setup — activation blocked by credentials
 
-Automatic approval review rejected generation of the project-specific Vercel protection bypass. It reported that creating a persistent credential-bearing access path was not explicitly authorized in scope. No bypass was generated and protection remains enabled. Explicit approval is required before retrying that action. The bypass covers protected deployments within ynsg-repo; application sign-in, tenant authorization and separate worker bearer checks remain required.
+Owner approved the specific worker and project bypass setup. The approved Vercel connector retry returned a provider 403: permission to create projectProtectionBypass denied. Dashboard fallback was approved and the signed-in project dashboard is accessible.
+
+An existing project automation bypass was found. Its value appeared in diagnostic output, so it must be rotated before activation. Do not reuse that value. Browser confirmation policy requires owner handoff for credential creation or rotation; no new worker credential has been entered.
+
+Live changes verified: pg_cron and pg_net installed through migrations; both named one-minute jobs installed inactive; authenticated customers cannot execute the enqueue function. GOOGLE_CALENDAR_WORKER_ENABLED=true and GOOGLE_WORKER_ORGANIZATION_ID were saved for Preview branch codex/crm-workflow only. A new deployment is required to load these settings. GOOGLE_WORKER_SECRET and matching Vault worker/bypass entries remain outstanding; periodic HTTP and provider verification has not passed. The jobs are not active.
 
 ## Live verification and rollback
 
