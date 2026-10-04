@@ -1,3 +1,5 @@
+import {appointmentSelection} from '../lib/appointment-window.js';
+import {websiteAvailability} from '../lib/website-availability.js';
 import {ownerRequestEmail} from '../lib/owner-request-email.js';
 import { randomUUID } from 'node:crypto';
 import { saveCrmRequest, IntakeFailure } from '../lib/public-intake.js';
@@ -25,6 +27,13 @@ export default async function handler(req,res){
   if(Buffer.byteLength(JSON.stringify(raw))>12000)return fail(res,413,'Request is too large.');
   if(Object.hasOwn(raw,'requestKey') && (typeof raw.requestKey!=='string' || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(raw.requestKey)))return fail(res,400,'Please refresh the page before sending your request.');
   const data={service:clean(raw.service,80),task:clean(raw.task,120),description:clean(raw.description,3000),name:clean(raw.name,120),phone:clean(raw.phone,35),email:clean(raw.email,254),street:clean(raw.street,200),city:clean(raw.city,80),preferredTime:clean(raw.preferredTime,180),communityRate:clean(raw.communityRate,10),website:clean(raw.website,200)};
+  if(Object.hasOwn(raw,'appointmentSelection')){
+    try {
+      const selection=appointmentSelection(raw.appointmentSelection);
+      if(selection.start){const current=await websiteAvailability();if(!current.times.some(t=>t.start===selection.start))return fail(res,409,'That time is no longer available. Please choose another time.');}
+      data.preferredTime=selection.preferredTime;
+    }catch(error){return fail(res,error.message==='OUTSIDE_WINDOW'||error.message==='INVALID_SELECTION'?400:503,'Please check your appointment selection, or send your request without a time.');}
+  }
   const hasServices=Object.hasOwn(raw,'services');
   const selections=hasServices ? raw.services : [{service:data.service,task:data.task}];
   if(!Array.isArray(selections))return fail(res,400,'Please choose at least one job.');

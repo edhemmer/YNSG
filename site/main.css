@@ -19,3 +19,11 @@
 
 /* Phone actions use strong, readable numerals; labels wrap when text is enlarged. */
 .call-link,.phone-display{font-weight:700;font-variant-numeric:lining-nums tabular-nums}.call-link{line-height:1.5}.call-link span{white-space:normal}.button{white-space:normal}.hero-buttons .button-gold{box-shadow:0 3px 0 #0002}
+
+/* Appointment calendar: text labels, visible button boundaries and large targets. */
+.appointment-picker{border:1px solid #bdc8bf;border-radius:16px;padding:20px;min-width:0}
+.appointment-modes{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0}.appointment-modes label{display:flex;align-items:center;gap:8px;padding:12px;border:1px solid #809785;border-radius:8px;cursor:pointer}.appointment-modes input{width:22px;height:22px}
+.calendar-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:20px 0 12px}.calendar-toolbar h3{font-size:18px;margin:0;text-align:center}.calendar-toolbar button{min-height:48px;padding:8px;border:1px solid #809785;border-radius:8px;background:white;color:#10283c;font-weight:700;cursor:pointer}
+.appointment-weekdays,.appointment-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.appointment-weekdays{text-align:center;font-size:14px;font-weight:700;margin-bottom:8px}.appointment-day{min-height:48px;background:#fff;border:2px solid #376342;border-radius:8px;color:#10283c;font-size:18px;font-weight:700;cursor:pointer}.appointment-day:disabled{background:#edf0ed;color:#68706a;border:1px solid #d2d8d2;cursor:default}.appointment-day[aria-pressed=true],.appointment-time[aria-pressed=true]{background:#214932;color:white}
+.appointment-times{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.appointment-time{min-height:48px;padding:10px 16px;border:2px solid #376342;border-radius:8px;background:white;color:#10283c;font-size:17px;font-weight:700;cursor:pointer}.appointment-picker button:focus-visible{outline:3px solid #10283c;outline-offset:3px}.appointment-picker>.button{margin:8px 6px 8px 0}.appointment-picker p{font-size:17px;line-height:1.6}.appointment-picker [hidden]{display:none!important}
+@media(max-width:400px){.appointment-picker{padding:12px}.calendar-toolbar h3{font-size:16px}.calendar-toolbar button{font-size:13px}.appointment-day{font-size:16px}}
