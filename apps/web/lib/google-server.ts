@@ -74,12 +74,17 @@ export async function store<T = Account>(
     process.env.SUPABASE_SERVICE_ROLE_KEY,
     { auth: { persistSession: false, autoRefreshToken: false } },
   );
-  const { data, error } = await db.rpc("google_store", {
+  const { data, error, status } = await db.rpc("google_store", {
     p_org: org,
     p_action: action,
     p_input: input,
   });
-  if (error)
+  if (error) {
+    // Log only an allowlisted category/status, never credentials or provider payloads.
+    const category = status === 401 ? "SERVER_DATABASE_AUTH_REQUIRED"
+      : status === 403 ? "SERVER_DATABASE_PERMISSION_REQUIRED" : "CONNECTION_STORAGE_FAILED";
+    console.error("google_store_failed", { category, status });
+    if (status === 401 || status === 403) throw new GoogleFailure(category);
     throw new GoogleFailure(
       [
         "STALE_CONNECTION",
@@ -88,6 +93,7 @@ export async function store<T = Account>(
         "CALENDAR_MIGRATION_REQUIRED",
       ].find((x) => error.message.includes(x)) || "CONNECTION_STORAGE_FAILED",
     );
+  }
   return data as T;
 }
 export function publicAccount(a: Account) {

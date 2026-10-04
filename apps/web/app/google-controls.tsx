@@ -12,6 +12,10 @@ type Connection = {
 type Delivery={enabled:boolean;testKey:string|null;configurationVersion:number|null;connectionRevision:number|null;receiptConfirmedAt:string|null;senderMatches:boolean};
 type Calendar = { id: string; summary: string; timeZone?: string };
 const messages: Record<string, string> = {
+  SERVER_DATABASE_AUTH_REQUIRED: "The CRM server database credential was rejected. Update SUPABASE_SERVICE_ROLE_KEY in Vercel’s CRM Preview environment, redeploy, then try Connect Google again.",
+  SERVER_DATABASE_PERMISSION_REQUIRED: "The CRM server cannot access Google connection storage. Its database permissions need repair.",
+  CONNECTION_STORAGE_FAILED: "The CRM could not save or read its Google connection. Refresh status; if this continues, connection storage needs repair.",
+  ENCRYPTION_KEY_REQUIRED: "The Google token encryption key is invalid. It must decode to 32 bytes; do not replace a key that already protects a connected account.",
   GOOGLE_REFRESH_UNAVAILABLE: 'Google could not refresh access right now. The connection is retained; try again later.',
   GOOGLE_CLIENT_CONFIGURATION_REQUIRED: 'Check the Google OAuth client ID and secret in this deployment environment.',
   OWNER_ACCESS_REQUIRED:

@@ -152,3 +152,7 @@ The Today workspace now uses an independent owner/admin-only queue instead of li
 ## Internal Google setup access — October 3
 
 /google-setup now requires a verified session and a current owner/admin google_access permission before rendering instructions, callback URLs or deployment diagnostics. Missing, expired, revoked or unauthorized access redirects to /owner. The setup link is shown only to signed-in owner/admin roles; the sign-in screen retains the email fallback without developer instructions. The route remains dynamic and carries noindex/nofollow metadata. Live owner-authorized rendering and Google consent remain pending. Hosted read at this audit found zero connected Google accounts, selected calendars or accepted Gmail self-tests.
+
+## Google connection blocker — October 3, 7:51 p.m. CT
+
+The owner Connect Google attempt returned HTTP 400. Supabase edge logs for the matching window show two google_store RPC requests rejected with HTTP 401, and hosted reads still show zero Google accounts. Credential presence is not credential validity. The Vercel environment connector returned 403 Forbidden for project environment access; no credential was read or changed. Google storage now classifies 401/403 separately and logs only category/status. The owner must update the correct project server key in the CRM Preview environment and redeploy; live consent/receipt remains pending.
