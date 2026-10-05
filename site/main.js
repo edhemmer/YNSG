@@ -120,17 +120,20 @@ if(form){
   form.addEventListener('submit',async event=>{
     event.preventDefault();
     if(sending)return;
+    if(form.dataset.appointmentHolding==='true'){message.textContent='Please wait a moment while we check your selected time.';message.focus();return;}
     if(!selected.size){message.textContent='Please choose at least one job, or choose Something else and tell us about it.';groups.querySelector('summary').focus();return;}
     if(!form.reportValidity()) return;
     const button=form.querySelector('button[type=submit]');
     const data=Object.fromEntries(new FormData(form));
     data.services=[...selected.values()];
     data.appointmentSelection={mode:data.visitMode||'once',start:form.dataset.appointmentStart||null};
+    data.appointmentHold=data.appointmentSelection.start?{token:form.dataset.appointmentHoldToken||'',clientKey:form.dataset.appointmentClientKey||''}:null;
     delete data.visitMode;
     const fingerprint=JSON.stringify(data);
     if(fingerprint!==requestFingerprint){requestKey=newRequestKey();requestFingerprint=fingerprint;}
     data.requestKey=requestKey;
     sending=true;
+    form.dataset.deliveryUnknown='true';
     const editable=[...form.querySelectorAll('input,textarea,select,button,summary')].map(element=>({element,disabled:element.disabled,tabIndex:element.tabIndex}));
     for(const {element} of editable){if('disabled' in element)element.disabled=true;else element.tabIndex=-1;}
     form.setAttribute('aria-busy','true');
@@ -138,14 +141,18 @@ if(form){
     button.firstChild.textContent='Sending… ';
     message.textContent='';
     form.querySelector('#email-fallback').hidden=true;
+    let refreshCalendar=false;
     try{
       await deliverRequest(data);
+      form.dataset.deliveryUnknown='false';
       form.hidden=true;
       const success=document.querySelector('#form-success');
       success.hidden=false;
       success.querySelector('h3').setAttribute('tabindex','-1');
       success.querySelector('h3').focus();
     }catch(error){
+      if(error.status>=400&&error.status<500)form.dataset.deliveryUnknown='false';
+      if(error.status===409)refreshCalendar=true;
       message.textContent=requestErrorMessage(error);
       const fallback=form.querySelector('#email-fallback');
       const subject='Your Neighborhood Service Guy New Request';
@@ -157,6 +164,7 @@ if(form){
     }finally{
       for(const {element,disabled,tabIndex} of editable){if('disabled' in element)element.disabled=disabled;else element.tabIndex=tabIndex;}
       sending=false;form.setAttribute('aria-busy','false');button.firstChild.textContent='Send service request ';
+      if(refreshCalendar)form.dispatchEvent(new CustomEvent('appointment-conflict'));
     }
   });
 }

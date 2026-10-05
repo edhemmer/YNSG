@@ -1,6 +1,5 @@
 import {websiteGuard,websiteRequest} from '../lib/website-guard.js';
 import {appointmentSelection} from '../lib/appointment-window.js';
-import {websiteAvailability} from '../lib/website-availability.js';
 import { randomUUID } from 'node:crypto';
 import { saveCrmRequest, IntakeFailure } from '../lib/public-intake.js';
 const services = new Set(['Lawn care','Yard & garden','Snow clearing','Help around the home','Concrete pressure washing','Something else']);
@@ -42,13 +41,15 @@ export default async function handler(req,res){
     try{selection=appointmentSelection(raw.appointmentSelection);data.preferredTime=selection.preferredTime;}
     catch{return fail(res,400,'Please check your appointment selection, or send your request without a time.');}
   }
-  try{await websiteGuard(req,'request',{key:raw.requestKey,email:data.email});}catch(error){if(error.status===429)res.setHeader('Retry-After','3600');return fail(res,error.status||503,error.message);}
+  let heldSelection=null;
   if(selection?.start){
-    try{const current=await websiteAvailability();if(!current.times.some(t=>t.start===selection.start))return fail(res,409,'That time is no longer available. Please choose another time.');}
-    catch{return fail(res,503,'Please check your appointment selection, or send your request without a time.');}
+    const hold=raw.appointmentHold;
+    if(!hold||typeof hold!=='object'||Array.isArray(hold)||!/^[a-f0-9]{64}$/.test(hold.token||'')||typeof hold.clientKey!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(hold.clientKey))return fail(res,409,'That time is no longer available. Please choose another time.');
+    heldSelection={mode:selection.mode,start:selection.start,token:hold.token,clientKey:hold.clientKey};
   }
+  try{await websiteGuard(req,'request',{key:raw.requestKey,email:data.email});}catch(error){if(error.status===429)res.setHeader('Retry-After','3600');return fail(res,error.status||503,error.message);}
   const id=raw.requestKey || randomUUID();
-  if(process.env.CRM_INTAKE_ENABLED==='true'){
+  if(process.env.CRM_INTAKE_ENABLED==='true'&&!heldSelection){
     try {
       const result=await saveCrmRequest(req,{...data,services:normalized},id);
       return res.status(200).json(result);
@@ -58,6 +59,6 @@ export default async function handler(req,res){
       return fail(res,known?error.status:503,known?error.message:'The form is temporarily unavailable. Please call or text 770-630-2094.');
     }
   }
-  try{return res.status(200).json(await websiteRequest(req,{...data,services:normalized},id));}
+  try{return res.status(200).json(await websiteRequest(req,{...data,services:normalized},id,process.env,fetch,heldSelection));}
   catch(error){return fail(res,error.status||503,error.message||'We couldn’t save your request. Please try again, or call 770-630-2094.');}
 }

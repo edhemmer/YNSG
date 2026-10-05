@@ -14,7 +14,8 @@ test('reviewed errors retain useful instructions and known codes become plain la
  assert.equal(publicError('RECONNECT_REQUIRED').includes('RECONNECT_REQUIRED'),false);
 });
 test('public website form filters injected diagnostics but retains reviewed validation and retry messages',()=>{
- const source=readFileSync('site/main.js','utf8').split('// End public error helper.')[0]!;
+ const main=readFileSync('site/main.js','utf8');
+ const source=main.slice(main.indexOf('function requestErrorMessage(')).split('// End public error helper.')[0]!;
  const safe=runInNewContext(source+'\nrequestErrorMessage;') as (error:unknown)=>string;
  for(const message of ['SyntaxError: invalid JSON','UNAUTHORIZED_DATABASE','<html>proxy trace</html>','provider secret=synthetic'])assert.equal(safe({message}).includes(message),false);
  assert.equal(safe('Please check the required fields and try again.'),'Please check the required fields and try again.');

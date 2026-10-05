@@ -6,9 +6,9 @@
   "packageManager": "pnpm@11.25.0",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "check": "node --check site/main.js && node --check api/requests.js && node --check scripts/build.mjs",
+    "check": "node --check site/main.js && node --check site/appointment-picker.js && node --check site/appointment-hold.js && node --check site/request-delivery.js && node --check api/requests.js && node --check api/appointment-hold.js && node --check lib/website-guard.js && node --check scripts/build.mjs",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/*.test.ts",
+    "test": "node --import tsx --test tests/*.test.ts tests/*.test.js",
     "test:db": "node tests/database.mjs"
   },
   "dependencies": {"@supabase/supabase-js": "2.117.2", "zod": "4.6.5"},

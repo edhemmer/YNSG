@@ -14,6 +14,7 @@ export async function GET(request: Request) {
     const selectedRequest=new URL(request.url).searchParams.get('request');
     if(selectedRequest)z.uuid().parse(selectedRequest);
     const requestQuery=db.from('service_requests').select('id,status,revision,created_at,original_submission').eq('organization_id',org);
+    const appointmentQuery=db.from('appointments').select('id,request_id,status,revision,start_at,end_at,arrival_at,expires_at,replaces_id,customer_response').eq('organization_id',org).not('request_id','is',null);
     const results = await Promise.all([
       db
         .from("organizations")
@@ -53,15 +54,7 @@ export async function GET(request: Request) {
         .eq("organization_id", org)
         .order("created_at", { ascending: false }).order("id")
         .range(from,to),
-      db
-        .from("appointments")
-        .select(
-          "id,request_id,status,revision,start_at,end_at,arrival_at,expires_at,replaces_id,customer_response",
-        )
-        .eq("organization_id", org)
-        .gte("end_at",appointmentFrom)
-        .order("start_at").order("id")
-        .range(from,to),
+      (selectedRequest?appointmentQuery.eq('request_id',selectedRequest):appointmentQuery.gte('end_at',appointmentFrom)).order('start_at').order('id').range(from,to),
       db.from('customer_schedule_preferences').select('id,request_id,appointment_id,appointment_revision,response_version,preferred_local_start,timezone,note,status,created_at').eq('organization_id',org).eq('status','pending').order('created_at',{ascending:false}).order('id').range(from,to),
       db.from('configuration_versions').select('settings').eq('organization_id',org).order('version',{ascending:false}).limit(1).maybeSingle(),
     ]);

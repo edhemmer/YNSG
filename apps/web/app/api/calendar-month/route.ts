@@ -19,7 +19,7 @@ export async function GET(request:Request) {
   // Independent from workspace pagination. Never report a truncated month as complete.
   const appointments:Appointment[]=[];
   for(let page=0;page<7;page++) {
-   const result=await db.from('appointments').select('id,request_id,status,start_at,end_at,arrival_at,expires_at').eq('organization_id',org).lt('start_at',window.end).gt('end_at',window.start).order('start_at').order('id').range(page*500,page*500+499);
+   const result=await db.from('appointments').select('id,request_id,status,start_at,end_at,arrival_at,expires_at').eq('organization_id',org).not('request_id','is',null).lt('start_at',window.end).gt('end_at',window.start).order('start_at').order('id').range(page*500,page*500+499);
    if(result.error)throw result.error;
    appointments.push(...result.data);
    if(appointments.length>3000)throw Error('MONTH_TOO_LARGE');
