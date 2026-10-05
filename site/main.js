@@ -1,3 +1,4 @@
+import {deliverRequest} from './request-delivery.js';
 function requestErrorMessage(error){
   const approved=new Set([
     'Please check the form and try again.',
@@ -115,9 +116,10 @@ if(form){
     section.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
     setTimeout(()=>categoryGroups.get(link.dataset.service)?.querySelector('summary').focus({preventScroll:true}),350);
   }));
-  let requestKey='', requestFingerprint='';
+  let requestKey='', requestFingerprint='',sending=false;
   form.addEventListener('submit',async event=>{
     event.preventDefault();
+    if(sending)return;
     if(!selected.size){message.textContent='Please choose at least one job, or choose Something else and tell us about it.';groups.querySelector('summary').focus();return;}
     if(!form.reportValidity()) return;
     const button=form.querySelector('button[type=submit]');
@@ -128,14 +130,16 @@ if(form){
     const fingerprint=JSON.stringify(data);
     if(fingerprint!==requestFingerprint){requestKey=newRequestKey();requestFingerprint=fingerprint;}
     data.requestKey=requestKey;
+    sending=true;
+    const editable=[...form.querySelectorAll('input,textarea,select,button,summary')].map(element=>({element,disabled:element.disabled,tabIndex:element.tabIndex}));
+    for(const {element} of editable){if('disabled' in element)element.disabled=true;else element.tabIndex=-1;}
+    form.setAttribute('aria-busy','true');
     button.disabled=true;
     button.firstChild.textContent='Sending… ';
     message.textContent='';
     form.querySelector('#email-fallback').hidden=true;
     try{
-      const response=await fetch('/api/requests',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-      const result=await response.json();
-      if(!response.ok) throw new Error(result.error || 'We could not send your request. Please call or text 770-630-2094.');
+      await deliverRequest(data);
       form.hidden=true;
       const success=document.querySelector('#form-success');
       success.hidden=false;
@@ -150,7 +154,10 @@ if(form){
       fallback.querySelector('a').href=`mailto:edhemmer@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.slice(0,2500))}`;
       fallback.hidden=false;
       message.focus();
-    }finally{button.disabled=false;button.firstChild.textContent='Send service request ';}
+    }finally{
+      for(const {element,disabled,tabIndex} of editable){if('disabled' in element)element.disabled=disabled;else element.tabIndex=tabIndex;}
+      sending=false;form.setAttribute('aria-busy','false');button.firstChild.textContent='Send service request ';
+    }
   });
 }
 const motion=matchMedia('(prefers-reduced-motion: reduce)');
