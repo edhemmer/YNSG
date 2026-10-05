@@ -2,7 +2,7 @@ import {localDay,addDays,appointmentSelection} from './appointment-window.js';
 const form=document.querySelector('#request-form'),picker=document.querySelector('#appointment-picker');
 if(form&&picker){
  const today=localDay(),limit=addDays(today,30),firstMonth=today.slice(0,7),lastMonth=limit.slice(0,7);
- let month=firstMonth,times=[],selectedDate='',selectedStart='',validUntil=0,generation=0,controller=null;
+ let month=firstMonth,times=[],selectedDate='',selectedStart='',validUntil=0,availabilityKnown=false,generation=0,controller=null;
  const grid=picker.querySelector('#appointment-days'),status=picker.querySelector('#calendar-status'),choices=picker.querySelector('#appointment-times'),summary=picker.querySelector('#appointment-selection');
  const dateLabel=day=>new Intl.DateTimeFormat('en-US',{timeZone:'UTC',weekday:'long',month:'long',day:'numeric',year:'numeric'}).format(new Date(day+'T12:00:00Z'));
  const timeLabel=start=>new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',hour:'numeric',minute:'2-digit'}).format(new Date(start));
@@ -28,7 +28,7 @@ if(form&&picker){
   for(let i=0;i<date.getUTCDay();i++){const empty=document.createElement('span');empty.setAttribute('aria-hidden','true');grid.append(empty);}
   for(let day=1;day<=count;day++){
    const key=month+'-'+String(day).padStart(2,'0'),open=key>=today&&key<=limit&&times.some(t=>localDay(Date.parse(t.start))===key);
-   const button=document.createElement('button');button.type='button';button.className='appointment-day';button.textContent=String(day);button.disabled=!open;button.setAttribute('aria-label',`${dateLabel(key)}${open?', open times':', unavailable'}`);button.setAttribute('aria-pressed',String(selectedDate===key));
+   const button=document.createElement('button');button.type='button';button.className='appointment-day';button.textContent=String(day);button.disabled=!open;button.setAttribute('aria-label',`${dateLabel(key)}${open?', open times':availabilityKnown?', unavailable':', open times not checked'}`);button.setAttribute('aria-pressed',String(selectedDate===key));
    button.addEventListener('click',()=>{if(Date.now()>=validUntil){load();return;}selectedDate=key;selectedStart='';draw();showTimes();updateSelection();status.textContent=`Choose a time for ${dateLabel(key)}.`;choices.querySelector('button')?.focus();});grid.append(button);
   }
  }
@@ -36,17 +36,17 @@ if(form&&picker){
   controller?.abort();controller=new AbortController();const current=++generation;
   picker.setAttribute('aria-busy','true');
   picker.querySelectorAll('.calendar-toolbar,.appointment-weekdays,#appointment-days').forEach(el=>el.hidden=false);
-  times=[];selectedStart='';selectedDate='';validUntil=0;draw();showTimes();updateSelection();status.textContent='Checking open times…';
+  times=[];availabilityKnown=false;selectedStart='';selectedDate='';validUntil=0;draw();showTimes();updateSelection();status.textContent='Checking open times…';
   const refresh=picker.querySelector('#calendar-refresh');refresh.disabled=true;
   const requestController=controller,timeout=setTimeout(()=>requestController.abort(),15000);
   try{
    const response=await fetch('/api/availability',{cache:'no-store',signal:controller.signal});const data=await response.json();
    if(current!==generation)return;
    if(!response.ok||data.reserved!==false||data.timezone!=='America/Chicago'||!Array.isArray(data.times)||!Number.isFinite(Date.parse(data.validUntil))||Date.parse(data.validUntil)<=Date.now())throw Error('UNAVAILABLE');
-   times=data.times.filter(t=>{try{return !!appointmentSelection({mode:'once',start:t.start}).start;}catch{return false;}});validUntil=Date.parse(data.validUntil);
+   times=data.times.filter(t=>{try{return !!appointmentSelection({mode:'once',start:t.start}).start;}catch{return false;}});validUntil=Date.parse(data.validUntil);availabilityKnown=true;
    picker.querySelectorAll('.calendar-toolbar,.appointment-weekdays,#appointment-days').forEach(el=>el.hidden=false);
    status.textContent=times.length?'Press or click an open date to see the times. Dates shown in gray are unavailable.':'No open times are showing in the next 30 days. Send your request without a time, or call 770-630-2094.';draw();
-  }catch(error){if(current===generation&&true)status.textContent='Open times couldn’t load. The gray dates haven’t been checked. Press “Check open times again” to retry, or send your request and we’ll arrange a time with you.';}
+  }catch{if(current===generation)status.textContent='Open times couldn’t load. The gray dates haven’t been checked. Press “Check open times again” to retry, or send your request and we’ll arrange a time with you.';}
   finally{clearTimeout(timeout);if(current===generation){refresh.disabled=false;picker.setAttribute('aria-busy','false');}}
  }
  picker.querySelector('#calendar-refresh').addEventListener('click',load);
