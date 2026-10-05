@@ -28,7 +28,7 @@ if(form&&picker){
   held=null;selectedStart='';updateSelection();showTimes();status.textContent='That time hold ended. Press or click a time again, or send your request and we’ll arrange a time with you.';
  }
  async function clearSelection(){
-  clearTimeout(expiryTimer);expiryTimer=null;const previous=held;held=null;selectedStart='';updateSelection();
+  clearTimeout(expiryTimer);expiryTimer=null;const previous=held;held=null;selectedStart='';updateSelection();status.textContent='No time selected. We’ll arrange a time with you after you send your request.';
   if(previous)await release(previous.key,previous.token);
  }
  async function selectTime(slot){
