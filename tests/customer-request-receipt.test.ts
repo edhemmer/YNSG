@@ -1,3 +1,11 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {customerRequestEmail} from '../lib/customer-request-email.js';
 test('request acknowledgement shows timing and every category without promising confirmation',()=>{const message=customerRequestEmail('Your Neighborhood Service Guy',{name:'Synthetic Neighbor',email:'test@example.invalid',preferredTime:'Tuesday, October 6, 2026 at 9:00 AM',services:[{service:'Lawn care',task:'Leaf management'},{service:'Yard & garden',task:'Planting flowers'}]},{ownerName:'Edward Hemmer',logoUrl:'https://www.yourneighborhoodserviceguy.com/assets/logo.jpg'});assert.match(message.body,/October 6, 2026 at 9:00 AM/);assert.match(message.body,/Leaf management/);assert.match(message.body,/Planting flowers/);assert.match(message.body,/We’ll call you to confirm/);assert.match(message.body,/does not confirm an appointment/);assert.match(message.html,/logo.jpg/);assert.match(message.body,/Best Regards,\nEdward Hemmer/);});
 test('dynamic email text is escaped and no-time requests have an honest fallback',()=>{const message=customerRequestEmail('Business',{name:'<script>bad</script>',email:'test@example.invalid',services:[{service:'Yard & garden',task:'<img src=x>'}]});assert.equal(message.html.includes('<script>'),false);assert.equal(message.html.includes('<img src=x>'),false);assert.match(message.body,/arrange a day and time/);});
+
+import {requestTiming} from '../lib/request-timing.js';
+test('canonical timing reads naturally without changing local dates or weekly intent',()=>{
+ assert.equal(requestTiming('2026-10-06 at 09:00 America/Chicago. Owner approval required.'),'Tuesday, October 6, 2026 at 9:00 AM (local time)');
+ assert.match(requestTiming('Weekly Tuesday 13:30; 2026-10-06 to before 2027-10-06; America/Chicago; 12 months. Owner approval required.'),/Every Tuesday at 1:30 PM .*starting Tuesday, October 6, 2026, for 12 months/);
+ assert.equal(requestTiming('Prefer afternoons'),'Prefer afternoons');
+ const message=customerRequestEmail('Business',{email:'test@example.invalid',preferredTime:'2026-10-06 at 09:00 America/Chicago. Owner approval required.'});assert.match(message.body,/Tuesday, October 6, 2026 at 9:00 AM/);assert.equal(message.body.includes('America/Chicago'),false);
+});

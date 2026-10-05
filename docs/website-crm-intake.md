@@ -1,39 +1,41 @@
-# Website-to-CRM intake acceptance — October 3, 2026
+# Website-to-business intake — October 5, 2026
 
-This connection is implemented behind a server-side release switch. It is not active until the owner company, catalog, notification sender and recurring worker have passed live tests.
+Internal implementation and verification record. This file is not included in the website output.
 
-| Required behavior | Acceptance |
-|---|---|
-| Name, address, phone, email and selections | Validated before any provider call |
-| Multi-category requests | All selections retained in original submission and request item rows |
-| Company binding | Server environment only; customer cannot select a tenant |
-| Retry after network failure | Same request key and payload; one durable request, audit event and owner notification intent |
-| Edited retry | New key; changed payload under an existing key rejected |
-| CRM failure | No email-only success fallback; retain form and allow safe retry |
-| CRM commit | Return saved request ID; notification delivery proceeds from durable outbox |
-| Email-only transition | Existing Resend recipient and exact subject retained; provider retry key added |
-| Privacy | Secret keys server-only; HMAC client-IP digest; no contact details in logs or browser storage |
-| Scheduling | A request does not promise an appointment or silently reserve unverified capacity |
-| Activation | Verify dashboard request, all selected items and owner backup email before public release |
+## Current transport
 
-## Exact public website variables
+The public website now saves requests through the protected business app's `/api/website-request` endpoint. It uses the existing server-only `CRM_AVAILABILITY_URL` and `CRM_AVAILABILITY_BYPASS_SECRET`; no database service-role credential is copied to the public website. The business app binds the company using `PUBLIC_SCHEDULING_ORGANIZATION_ID` and calls the canonical `submit_service_request` RPC. The previous explicit `CRM_INTAKE_ENABLED=true` direct-database transport remains supported for configured installations. The default no longer falls back to email-only success.
 
-Set these in the public `ynsg` project's Production environment, not merely the CRM project's Preview environment:
+A signed server envelope includes the exact body and a timestamp valid for 60 seconds. A privacy-preserving network-address digest identifies the quota bucket. Secrets and raw network addresses are not returned to the browser or stored in request records. CRM errors produce a friendly retry message and preserve the form. The same request key and same payload produce the same durable request through the existing command receipt.
 
-- `CRM_INTAKE_ENABLED=true` — release switch; leave unset until connection acceptance passes.
-- `CRM_ORGANIZATION_ID` — the company UUID created by the owner's verified invitation claim. It does not exist before that claim.
-- `SUPABASE_URL` — the existing YNSG project URL.
-- `SUPABASE_SERVICE_ROLE_KEY` — existing YNSG server-only service role key; never a NEXT_PUBLIC value.
-- `CRM_INTAKE_HASH_KEY` — independently generated secret of at least 32 characters for the privacy-preserving abuse-control digest.
+## Silent abuse controls
 
-`RESEND_API_KEY` stays in place for the existing email-only mode. Once CRM mode is active, owner email uses the existing CRM outbox/Gmail dispatcher; that dispatcher must be connected, receipt-authorized and triggered independently of an open browser first.
+- Hidden honeypot is outside keyboard navigation and the accessibility tree; a filled value is discarded before provider work.
+- Cross-site browser submissions are rejected. This is an additional check, not proof of humanity.
+- Server-side input allowlists, size limits, required contact fields and current availability recheck remain enforced.
+- Calendar reads: 60 per minute per keyed network-address digest.
+- Submissions: 20 per hour per network-address digest and 5 per hour per email digest; the canonical intake RPC also enforces its existing limit of 5 committed requests per hour per network-address digest.
+- Identical safe retries within 24 hours do not consume another website quota allowance. Database command receipts prevent duplicates beyond that short quota retry window.
+- The private quota tables deny anonymous/customer access. Only the server role can execute the quota function. Old quota rows are pruned on subsequent activity after 25 hours.
+- No CAPTCHA, minimum completion speed, customer challenge or additional form step.
 
-## Live release test
+These measures reduce ordinary automated abuse. They do not guarantee that distributed bots or compromised server credentials can never send requests.
 
-Create the owner company and publish reviewed catalog/settings. Connect Google and verify Gmail receipt; configure and test the recurring notification trigger. Then test CRM intake on an isolated preview configured for the real owner company using explicitly designated test contact details. Confirm one dashboard record, every selected service, one owner email with subject Your Neighborhood Service Guy New Request, and no duplicate on identical retry. Exercise provider failure and verify the form preserves input, the outbox retains unsent intent, and retry does not create a second request. Only then enable the public Production switch and redeploy.
+## Notifications
 
-Resend retry keys expire after 24 hours; they do not replace durable CRM command receipts. No existing submissions are retrospectively imported or automatically matched to an account by email.
+A durable request insert atomically creates both an owner notification intent and a customer receipt intent. The background worker uses the owner's connected, approved Google sender and the current company email branding. The owner email links to the saved request. The receipt includes all categories/items, requested timing, and a clear statement that the owner will call to confirm details and date. It does not claim that an appointment is confirmed. Declined/canceled requests or requests already reserved suppress stale pending receipts. Provider-unknown outcomes remain subject to reconciliation rather than automatic duplicate sending.
 
-## Automated evidence
+## Verification
 
-48 unit tests passed. Bridge tests cover retained multi-category selections, stable private abuse-control digest, server tenant binding, invalid setup, provider outages, validation/rate/conflict statuses, malformed success rejection, unchanged legacy email payload/retry key, and no email-only fallback on CRM failure. Website syntax/type checks and nine-page build passed. Existing database suites already prove one request, all items and one outbox intent after retries. Public activation and actual owner email receipt are still pending.
+- Website: 13 tests passed; syntax checks and nine-page build passed.
+- Business app: 123 tests passed before final timing polish; production build passed after clearing a corrupt local generated build cache. Timing polish has focused email tests and type checks.
+- Hosted rollback test: one request queues exactly `request.owner_notification` and `request.customer_receipt`; both services persist; receipt-current checks and worker allowlists include the new kind.
+- Quota rollback tests: 61st read within a minute denied; 6th request per email within an hour denied; identical retry permitted.
+- Live public form: October 5, 2026, 12:49 UTC. A clearly marked test addressed only to the owner's verified business email saved request `51f8d1e1-b337-472c-8cc8-31a40f034a4a`, with two service items and requested October 6 at 9 AM local time. Status remained `submitted`; zero appointment records were created.
+- Both live outbox messages reached `accepted` through the scheduled Google worker. This means Google accepted the sends, not that inbox placement was independently observed.
+- Live public calendar and request endpoints returned HTTP 200; protected GET requests to the new POST-only app endpoints returned 405.
+- Database advisors report pre-existing pg_net schema/password-protection findings and an owner-sign-in deny-by-default table notice; no new quota-table finding was returned.
+
+## Still separate
+
+Guest slot selection does not create a temporary reservation. Confirmed capacity is governed by owner scheduling approval; simultaneous guests can still request the same preference. Recurring intake retains weekly intent; this change does not reserve a year of appointments. Actual owner SMS alerts are not enabled: they need a configured SMS provider, a verified owner destination and applicable sender registration/cost approval. Owner email is active now. No SMS account, subscription or paid sender was created.
