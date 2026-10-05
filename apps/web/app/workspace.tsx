@@ -22,6 +22,7 @@ import SchedulingReviewPanel from './scheduling-review-panel';
 import {sessionFetch,SessionApiError} from '../lib/session-fetch';
 import { useEffect, useRef, useState, type FormEvent } from "react";
 type Membership = { organization_id: string; role: string };
+const loginBrand = process.env.NEXT_PUBLIC_LOGIN_BRAND || "Your Neighborhood Service Guy";
 type RequestRecord = {
   id: string;
   status: string;
@@ -263,8 +264,8 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
   const customerName = (id: string) =>
     data?.customers.find((c) => c.id === id)?.display_name || "Customer record";
   return (
-    <div className="company-workspace" style={companyTheme(data?.brand)}>
-      <header className="top">
+    <div className={`company-workspace${session ? "" : " signed-out"}`} style={companyTheme(data?.brand)}>
+      {session && <header className="top">
         <div className="brand">
           {data?.company.display_name || "Service workspace"}
           <small>Requests, work and the next step.</small>
@@ -295,7 +296,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
             Sign out
           </button>
         )}
-      </header>
+      </header>}
       <main className="shell" id="main">
         <div className="workspace-feedback">
           {error && <p role="alert" className="error card">{error}</p>}
@@ -324,20 +325,15 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
           <div className="auth card"><h1>Reconnect to your workspace</h1><p>Your saved sign-in could not be checked. You do not need to request another email.</p><button onClick={()=>{setChecking(true);void loadSession();}}>Try saved sign-in again</button></div>
         ) : !session ? (
           <form className="auth card" onSubmit={login}>
-            <p className="eyebrow">Welcome back</p>
-            <h1>One place for your work.</h1>
-            <p>
-              No password is needed. We’ll email you a sign-in link. Open it in this browser. Your verified email opens the companies you have permission to manage.
-            </p>
-            <p>On this device, your sign-in renews automatically as you use the workspace. Sign out when using a shared device.</p>
-            <p>We record the IP address and time of owner sign-ins for account security.</p>
-            {ownerGoogle && <div>
-              <button type="button" disabled={pending || !ownerGoogle.enabled} onClick={async()=>{
+            <p className="eyebrow">{loginBrand}</p>
+            <h1>Sign in to your workspace</h1>
+            <p>Enter your email and we’ll send you a secure sign-in link. Open the newest link in this same browser to continue.</p>
+            {ownerGoogle?.enabled && <div>
+              <button type="button" disabled={pending} onClick={async()=>{
                 setPending(true);setError("");
                 try{const result=await api("/api/owner-google",{requestContext:ownerRequestContext(Object.fromEntries(new URLSearchParams(window.location.search)))||undefined});window.location.assign(result.url);}
                 catch(e){setError(publicError(e));setPending(false);}
               }}>Continue with Google</button>
-              <p>{ownerGoogle.enabled ? "Sign in with Google, then connect Calendar and Gmail in your owner workspace." : "Google sign-in is not available yet. Use the email link below."}</p>
             </div>}
             <label htmlFor="email">Email address</label>
             <input
