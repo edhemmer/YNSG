@@ -30,3 +30,11 @@ test('no-time request preserves existing email flow and weekly request intent',a
  let message;t.mock.method(globalThis,'fetch',async(_url,options)=>{message=JSON.parse(options.body);return Response.json({id:'synthetic'});});
  const res=response();await handler({method:'POST',headers:{host:'synthetic.invalid'},body:{...base,appointmentSelection:{mode:'weekly',start:null}}},res);assert.equal(res.code,200);assert.ok(message.text.includes('Weekly visits for 12 months'));assert.equal(message.reply_to,base.email);
 });
+
+test('deployment credential stays in server request headers and never enters slot response',async()=>{
+ const env={CRM_AVAILABILITY_URL:'https://synthetic.vercel.app/api/public-availability',CRM_AVAILABILITY_BYPASS_SECRET:'synthetic-test-only-credential-00000000'};
+ const data={times:[],reserved:false,timezone:'America/Chicago',validUntil:new Date(Date.now()+60000).toISOString()};
+ let options;const result=await websiteAvailability(env,async(_url,init)=>{options=init;return Response.json(data);});
+ assert.equal(options.headers['x-vercel-protection-bypass'],env.CRM_AVAILABILITY_BYPASS_SECRET);assert.equal(JSON.stringify(result).includes(env.CRM_AVAILABILITY_BYPASS_SECRET),false);
+ await assert.rejects(websiteAvailability({...env,CRM_AVAILABILITY_BYPASS_SECRET:'short'},async()=>{throw Error('must not call provider');}),/SETUP_REQUIRED/);
+});
