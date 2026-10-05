@@ -24,6 +24,7 @@ At this checkpoint, both database-scheduled workers are active every minute. In 
 |---|---|---|
 | Durable website requests and receipt/owner notification | Verified for designated owner test submissions | Owner checks request contents in dashboard and notification link on iPhone |
 | Background worker execution | Verified live | Monitor failures and exercise actual appointment/invoice work |
+| Business appointment hours | Fail: published end of day is 5 p.m.; starts offered every 30 minutes through 3 p.m. | Owner publishes the requested 8 a.m.–3 p.m. workday and agrees the two-hour start grid; verify website and owner scheduling together |
 | Schema, commercial, scheduling and authorization fixtures | Local database suite passes | Multi-connection collision test and live account boundaries |
 | Owner sign-in and request return | Built; unauthenticated access is rejected | Same-browser iPhone sign-in, logout and request-link return |
 | Approval, decline and calendar updates | Built, fixture-tested | Live create, move, block and cancel; matching customer notices |
@@ -41,6 +42,7 @@ Production certification is not granted by this checkpoint. Use a controlled own
 ## Checks after the import correction
 
 - All 129 application tests passed; shared NodeNext and web TypeScript checks passed; the Next.js application build passed.
+- Live browser verification confirms the website calendar loads available dates and time options, and the service picker retains a Yard selection while opening Home jobs. This is interaction evidence, not a submitted booking or real-device accessibility certification.
 - The empty-schema migration and PostgreSQL assertion suite passed. This is a single-process PGlite test, not evidence of live simultaneous bookings.
 - The public website syntax check and nine-page build passed. Its historical standalone email test imports an absent CRM file and cannot run in that checkout; the corresponding current email and link tests pass in the CRM suite. The public test harness still needs separation from CRM internals.
 - Every public database table has RLS enabled. Anonymous and authenticated roles cannot select the private sign-in event table. Its no-policy advisor notice is intentional deny-by-default, not a reason to add public access.
@@ -53,6 +55,7 @@ Production certification is not granted by this checkpoint. Use a controlled own
 2. Establish encrypted off-site backups and perform an isolated restore. Supabase recommends regular CLI exports for Free projects; automatic accessible backups are a paid-plan feature. No successful restore evidence exists in this audit. Source: https://supabase.com/docs/guides/platform/backups
 3. Resolve the customer password security policy before broad account launch. Supabase leaked-password protection requires Pro or above; do not silently purchase an upgrade. Source: https://supabase.com/docs/guides/auth/password-security
 4. Prove external failure alerts and worker freshness monitoring, including recovery from revoked Google access and failed delivery. Active cron jobs alone are insufficient.
+5. Correct the published business hours through the owner's authenticated Company settings workflow. Current version 1 has earliestStart 480 (8 a.m.), latestStart 900 (3 p.m.) and endOfDay 1020 (5 p.m.). The public generator offers two-hour durations on 30-minute start increments. The requested workday ends at 3 p.m.; no two-hour visit should start after 1 p.m. If fixed two-hour start blocks are intended, the start grid also needs an explicit implementation decision. Do not alter published history or impersonate an owner to bypass configuration commands.
 
 ## Owner acceptance sequence
 
