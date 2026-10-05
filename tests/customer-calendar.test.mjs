@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {appointmentSelection,weeklyDates,yearEnd} from '../lib/appointment-window.js';
+import {validGuardSignature} from '../lib/website-guard.js';
 import {websiteAvailability} from '../lib/website-availability.js';
 import handler from '../api/requests.js';
 const now=Date.parse('2026-10-04T16:00:00Z');
@@ -35,6 +36,6 @@ test('deployment credential stays in server request headers and never enters slo
  const env={CRM_AVAILABILITY_URL:'https://synthetic.vercel.app/api/public-availability',CRM_AVAILABILITY_BYPASS_SECRET:'synthetic-test-only-credential-00000000'};
  const data={times:[],reserved:false,timezone:'America/Chicago',validUntil:new Date(Date.now()+60000).toISOString()};
  let options;const result=await websiteAvailability(env,async(_url,init)=>{options=init;return Response.json(data);});
- assert.equal(options.headers['x-vercel-protection-bypass'],env.CRM_AVAILABILITY_BYPASS_SECRET);assert.equal(JSON.stringify(result).includes(env.CRM_AVAILABILITY_BYPASS_SECRET),false);
+ assert.equal(options.headers['x-vercel-protection-bypass'],env.CRM_AVAILABILITY_BYPASS_SECRET);assert.equal(validGuardSignature(env.CRM_AVAILABILITY_BYPASS_SECRET,'availability',options.headers['x-ynsg-guard-time'],options.headers['x-ynsg-guard-signature']),true);assert.equal(JSON.stringify(result).includes(env.CRM_AVAILABILITY_BYPASS_SECRET),false);
  await assert.rejects(websiteAvailability({...env,CRM_AVAILABILITY_BYPASS_SECRET:'short'},async()=>{throw Error('must not call provider');}),/SETUP_REQUIRED/);
 });
