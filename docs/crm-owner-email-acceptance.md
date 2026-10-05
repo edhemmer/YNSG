@@ -4,7 +4,7 @@ Before work: reviewed the active owner instructions, governance, full production
 
 - Preserve authenticated company settings and tenant-bound request lookup.
 - Retain every selected cross-category task; support legacy service/task submissions.
-- Show customer/contact information before grouped work; include internal CRM request link and small request ID.
+- Show customer/contact information before grouped work; include internal CRM request link without displaying a request ID.
 - Use company branding name, not a hardcoded tenant identity.
 - Encode HTML and plain-text alternatives; escape customer HTML and prevent email-header injection.
 - Reply-To is the customer's address only for owner request notifications.

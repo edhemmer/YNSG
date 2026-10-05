@@ -1,3 +1,4 @@
+import {validGuardSignature} from '../../../../../lib/website-guard.js';
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
 import {companySettings} from '../../../../../packages/contracts/index';
@@ -9,7 +10,8 @@ import {addDays,localDay} from '../../../../../lib/appointment-window.js';
 export const dynamic='force-dynamic';
 export const runtime='nodejs';
 const unavailable=(stage:string)=>{console.warn('public_availability_unavailable',{stage});return NextResponse.json({error:'Open times are unavailable. Please contact the business to arrange a visit.'},{status:503,headers:{'Cache-Control':'no-store'}});};
-export async function GET(){
+export async function GET(request:Request){
+ if(!validGuardSignature(process.env.VERCEL_AUTOMATION_BYPASS_SECRET,'availability',request.headers.get('x-ynsg-guard-time'),request.headers.get('x-ynsg-guard-signature')))return NextResponse.json({error:'Open the business website to check available times.'},{status:401,headers:{'Cache-Control':'no-store'}});
  let stage='activation';
  try{
   // Tenant and activation are server-controlled. Visitors cannot choose another company or inspect events.

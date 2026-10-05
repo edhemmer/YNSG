@@ -1,3 +1,14 @@
-# Owner request email acceptance — October 3, 2026
+# Owner request email acceptance — October 5, 2026
 
-Owner screenshot shows a long plain-text email, repeated service labels and buried contact information. Preserve exact public subject, recipient, Reply-To, request ID and every selected task. Put customer/contact actions first, group tasks by category, distinguish timing preference from a booked appointment and keep ID at the bottom. Add HTML with readable single-column mobile layout, plain-text fallback and escaped user content. Keep stable provider retry keys; retries across a template change may be rejected by the provider rather than send duplicates. No real customer test mail is authorized in this pass. Test payload and escaping, build both applications and deploy both branches. Real iPhone Mail/dark-mode receipt acceptance remains open.
+Current requirements supersede the October 3 request-ID footer requirement.
+
+- Keep the company subject, correct recipient and customer Reply-To.
+- Show customer contact actions first and group all selected tasks by category.
+- Distinguish a requested time from an approved appointment.
+- Hide internal request IDs in HTML and plain text. IDs used in authenticated navigation are not authorization credentials.
+- Open the owner request page and preserve the selected request through sign-in. Never link to the Vercel dashboard or include hosting bypass secrets.
+- Use readable mobile email layouts, escaped customer content, configurable branding and owner signature.
+- Preserve delivery retry keys and current appointment details.
+- Verify hosting access independently of the connector’s deployment-protection bypass.
+
+Real owner sign-in and customer action acceptance remain separate live checks.

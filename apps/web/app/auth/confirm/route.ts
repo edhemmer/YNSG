@@ -1,3 +1,4 @@
+import {ownerReturnTarget} from '../../../lib/email-links';
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { emailClient, saveEmailVerifier } from "../../../lib/email-auth";
@@ -14,7 +15,8 @@ export async function GET(request: Request) {
       headers: { "Cache-Control": "no-store" },
     });
   const destination = (await cookies()).get("ynsg-auth-destination")?.value;
-  let target = signInTarget(destination, []);
+  let context:unknown=null;try{context=JSON.parse((await cookies()).get('ynsg-owner-request')?.value||'null');}catch{/* Invalid navigation hints never affect authentication. */}
+  let target = ownerReturnTarget(signInTarget(destination, []),context);
   const redirect = (failed: boolean) =>
     NextResponse.redirect(
       origin +
@@ -41,13 +43,14 @@ export async function GET(request: Request) {
     if (!destination) {
       const membership = await authClient(data.session.access_token).from('memberships')
         .select('role,revoked_at').eq('user_id', data.session.user.id);
-      target = signInTarget(undefined, membership.error ? [] : membership.data || []);
+      target = ownerReturnTarget(signInTarget(undefined, membership.error ? [] : membership.data || []),context);
     }
     const response = saveEmailVerifier(
       saveSession(redirect(false), data.session),
       null,
     );
     response.cookies.delete("ynsg-auth-destination");
+    response.cookies.delete("ynsg-owner-request");
     return response;
   } catch {
     return saveEmailVerifier(redirect(true), null);

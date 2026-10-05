@@ -1,3 +1,4 @@
+import {ownerRequestUrl} from './email-links';
 import {customerRequestEmail} from '../../../lib/customer-request-email.js';
 import {emailIdentity} from '../../../lib/email-layout.js';
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -59,11 +60,9 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       const submission = request.data.original_submission;
       const selections = submission.services?.length ? submission.services
         : [{ service: submission.service || "Work details require review", task: submission.task || "Not sure yet" }];
-      const ownerUrl = new URL(process.env.APP_ORIGIN!);
-      ownerUrl.searchParams.set("request", item.object_id);
-      ownerUrl.searchParams.set("organization", org);
+      const ownerUrl = ownerRequestUrl(process.env.APP_ORIGIN!,item.object_id,org);
       const rendered = ownerRequestEmail(submission, selections, item.object_id,
-        config.data.settings.displayName, "", ownerUrl.toString(),identity);
+        config.data.settings.displayName, "", ownerUrl,identity);
       body = rendered.text;
       html = rendered.html;
       replyTo = submission.email;
@@ -165,9 +164,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
         if (saved.error || !saved.data) continue;
         preference = saved.data;
       }
-      const ownerUrl = new URL(process.env.APP_ORIGIN!);
-      ownerUrl.searchParams.set("request", appointment.data.request_id);
-      ownerUrl.searchParams.set("organization", org);
+      const ownerUrl = ownerRequestUrl(process.env.APP_ORIGIN!,appointment.data.request_id,org);
       const rendered = appointmentMessage({
         kind: item.kind as AppointmentMessageInput["kind"],
         company: config.data.settings.displayName,
@@ -177,7 +174,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
         request: request.data.original_submission,
         arrivalAt: appointment.data.arrival_at,
         timezone: appointment.data.timezone,
-        ownerUrl: ownerUrl.toString(),
+        ownerUrl,
         ...(link || {}),
         ...(preference ? { preference } : {}),
         ...(typeof item.payload.reason === "string"

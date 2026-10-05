@@ -93,9 +93,9 @@ test("reminder and under-24h confirmation carry intentional actions and correct 
     assert.match(v.body, /Home: Door adjustment/);
     assert.ok(v.body.includes(base.confirmUrl));
     assert.ok(v.body.includes(base.rescheduleUrl));
-    assert.match(v.body, /Nothing changes until/);
+    assert.match(v.body, /review your appointment before making any changes/);
     assert.match(v.body, /stays booked/);
-    if(kind === "appointment.reminder")assert.match(v.body,/email .* immediately if you need to reschedule/);
+    if(kind === "appointment.reminder")assert.match(v.body,/need to reschedule, please reply to this email right away/);
   }
   assert.equal(
     appointmentMessage({ ...base, kind: "appointment.owner_approval" }).subject,

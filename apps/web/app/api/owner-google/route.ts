@@ -1,3 +1,4 @@
+import {ownerRequestContext} from '../../../lib/email-links';
 import { NextResponse } from "next/server";
 import { emailClient, saveEmailVerifier } from "../../../lib/email-auth";
 import { sameOrigin, failure } from "../../../lib/session";
@@ -51,6 +52,9 @@ export async function POST(request: Request) {
       path: "/",
       maxAge: 3600,
     });
+    const input=await request.json().catch(()=>null);const context=ownerRequestContext(input?.requestContext);
+    if(context)response.cookies.set('ynsg-owner-request',JSON.stringify(context),{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'lax',path:'/',maxAge:3600});
+    else response.cookies.delete('ynsg-owner-request');
     return response;
   } catch (e) {
     return failure(e);

@@ -1,4 +1,5 @@
 "use client";
+import {ownerRequestContext} from '../lib/email-links';
 import { publicError } from "../lib/public-errors";
 import {companyTheme} from "../lib/company-brand";
 import NotificationAttention from "./notification-attention";
@@ -194,7 +195,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
         await api("/api/session", { action: "verify", email, code });
         await loadSession();
       } else {
-        const r = await api("/api/session", { action: "send", email, destination: "owner" });
+        const r = await api("/api/session", { action: "send", email, destination: "owner",requestContext:ownerRequestContext(Object.fromEntries(new URLSearchParams(window.location.search)))||undefined });
         setSent(true);
         setMessage(r.message);
       }
@@ -333,7 +334,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
             {ownerGoogle && <div>
               <button type="button" disabled={pending || !ownerGoogle.enabled} onClick={async()=>{
                 setPending(true);setError("");
-                try{const result=await api("/api/owner-google",{});window.location.assign(result.url);}
+                try{const result=await api("/api/owner-google",{requestContext:ownerRequestContext(Object.fromEntries(new URLSearchParams(window.location.search)))||undefined});window.location.assign(result.url);}
                 catch(e){setError(publicError(e));setPending(false);}
               }}>Continue with Google</button>
               <p>{ownerGoogle.enabled ? "Sign in with Google, then connect Calendar and Gmail in your owner workspace." : "Google sign-in is not available yet. Use the email link below."}</p>

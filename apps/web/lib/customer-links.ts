@@ -1,3 +1,4 @@
+import {applicationOrigin} from './email-links';
 import { createHmac, hkdfSync } from "node:crypto";
 // Separate cryptographic purpose: this key never encrypts tokens or Google credentials.
 export function customerLinkToken(
@@ -26,7 +27,7 @@ export function customerLinkUrl(
   token: string,
   action: "confirm" | "reschedule" | "manage" = "manage",
 ) {
-  const url = new URL(origin);
+  const url = new URL(applicationOrigin(origin));
   if (
     url.protocol !== "https:" ||
     url.username ||

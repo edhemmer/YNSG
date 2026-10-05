@@ -1,3 +1,4 @@
+import {ownerRequestContext} from '../../../lib/email-links';
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
@@ -11,7 +12,7 @@ import {
 import { emailClient, saveEmailVerifier } from "../../../lib/email-auth";
 import { recordOwnerSessionIp } from "../../../lib/owner-security";
 const input = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("send"), email: z.email().max(254), destination: z.enum(["owner", "account"]).optional() }),
+  z.object({ action: z.literal("send"), email: z.email().max(254), destination: z.enum(["owner", "account"]).optional(), requestContext:z.object({request:z.uuid(),organization:z.uuid()}).strict().optional() }),
   z.object({
     action: z.literal("verify"),
     email: z.email().max(254),
@@ -164,6 +165,9 @@ export async function POST(request: Request) {
         httpOnly: true, secure: process.env.NODE_ENV === "production",
         sameSite: "lax", path: "/", maxAge: 3600,
       });
+      const context=value.destination==='owner'?ownerRequestContext(value.requestContext):null;
+      if(context)response.cookies.set('ynsg-owner-request',JSON.stringify(context),{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'lax',path:'/',maxAge:3600});
+      else response.cookies.delete('ynsg-owner-request');
       return response;
     }
     if (value.action === "verify") {
