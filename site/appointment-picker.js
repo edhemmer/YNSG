@@ -34,18 +34,20 @@ if(form&&picker){
  }
  async function load(){
   controller?.abort();controller=new AbortController();const current=++generation;
-  picker.querySelectorAll('.calendar-toolbar,.appointment-weekdays,#appointment-days').forEach(el=>el.hidden=true);
+  picker.setAttribute('aria-busy','true');
+  picker.querySelectorAll('.calendar-toolbar,.appointment-weekdays,#appointment-days').forEach(el=>el.hidden=false);
   times=[];selectedStart='';selectedDate='';validUntil=0;draw();showTimes();updateSelection();status.textContent='Checking open times…';
   const refresh=picker.querySelector('#calendar-refresh');refresh.disabled=true;
+  const requestController=controller,timeout=setTimeout(()=>requestController.abort(),15000);
   try{
    const response=await fetch('/api/availability',{cache:'no-store',signal:controller.signal});const data=await response.json();
    if(current!==generation)return;
-   if(!response.ok||data.reserved!==false||data.timezone!=='America/Chicago'||!Array.isArray(data.times)||Date.parse(data.validUntil)<=Date.now())throw Error('UNAVAILABLE');
+   if(!response.ok||data.reserved!==false||data.timezone!=='America/Chicago'||!Array.isArray(data.times)||!Number.isFinite(Date.parse(data.validUntil))||Date.parse(data.validUntil)<=Date.now())throw Error('UNAVAILABLE');
    times=data.times.filter(t=>{try{return !!appointmentSelection({mode:'once',start:t.start}).start;}catch{return false;}});validUntil=Date.parse(data.validUntil);
    picker.querySelectorAll('.calendar-toolbar,.appointment-weekdays,#appointment-days').forEach(el=>el.hidden=false);
    status.textContent=times.length?'Press or click an open date to see the times. Dates shown in gray are unavailable.':'No open times are showing in the next 30 days. Send your request without a time, or call 770-630-2094.';draw();
-  }catch(error){if(current===generation&&error.name!=='AbortError')status.textContent='We can’t check open times right now. You can still send your request, or call 770-630-2094 to arrange a visit.';}
-  finally{if(current===generation)refresh.disabled=false;}
+  }catch(error){if(current===generation&&true)status.textContent='Open times couldn’t load. The gray dates haven’t been checked. Press “Check open times again” to retry, or send your request and we’ll arrange a time with you.';}
+  finally{clearTimeout(timeout);if(current===generation){refresh.disabled=false;picker.setAttribute('aria-busy','false');}}
  }
  picker.querySelector('#calendar-refresh').addEventListener('click',load);
  picker.querySelector('#calendar-clear').addEventListener('click',()=>{selectedStart='';selectedDate='';draw();showTimes();updateSelection();});
