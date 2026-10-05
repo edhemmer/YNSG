@@ -10,6 +10,7 @@ await cp(join(source,'main.css'), join(output,'main.css'));
 await cp(join(source,'main.js'), join(output,'main.js'));
 await cp(join(source,'request-delivery.js'),join(output,'request-delivery.js'));
 await cp(join(source,'appointment-picker.js'),join(output,'appointment-picker.js'));
+await cp(join(source,'appointment-hold.js'),join(output,'appointment-hold.js'));
 await cp(join(root,'lib','appointment-window.js'),join(output,'appointment-window.js'));
 const form = await readFile(join(source,'pages','form.html'),'utf8');
 const pages = {
