@@ -41,6 +41,22 @@ test('Vault preparation requires a live owner in the deployment company, never a
   await prepare();assert.equal((await db.query<{count:number}>('select count(*)::int as count from vault.secrets')).rows[0]!.count,3);
   assert.equal((await db.query<{active:boolean}>("select active from cron.job where jobname='unrelated'")).rows[0]!.active,true);
   const access=await db.query<{allowed:boolean}>("select has_function_privilege('authenticated','public.background_setup(uuid,uuid,uuid,text,text,text,text)','execute') as allowed");assert.equal(access.rows[0]!.allowed,false);
-  await db.exec('update public.memberships set revoked_at=now()');await assert.rejects(prepare());
+  await db.exec(`create schema net;
+   create table private.background_http_runs(request_id bigint,kind text,requested_at timestamptz);
+   create table net._http_response(id bigint,status_code int,timed_out boolean,error_msg text);
+   create table public.outbox(organization_id uuid,status text,next_attempt_at timestamptz,lease_until timestamptz);
+   insert into private.background_http_runs values(1,'mail',now()-interval '1 minute'),(2,'calendar',now()-interval '1 minute');
+   insert into net._http_response values(1,200,false,null),(2,401,false,null);`);
+  await db.exec(await readFile('scripts/setup-background-health.sql','utf8'));
+  const health=()=>db.query<{health:{workers:{kind:string;lastOutcome:string;lastSuccessfulAt:string|null}[];queue:{needsReview:number;overdue:number;waiting:number}}}>('select public.background_health($1,$2,$3) as health',[org,actor,session]);
+  await db.query("insert into public.outbox values($1,'needs_reconciliation',now(),null),($1,'pending',now()-interval '10 minutes',null),($2,'dead_letter',now(),null)",[org,'00000000-0000-4000-8000-000000000009']);
+  const h=(await health()).rows[0]!.health;
+  assert.equal(h.workers.find(w=>w.kind==='mail')!.lastOutcome,'success');assert.equal(h.workers.find(w=>w.kind==='calendar')!.lastOutcome,'failed');
+  assert.equal(h.workers.find(w=>w.kind==='calendar')!.lastSuccessfulAt,null);assert.deepEqual(h.queue,{needsReview:1,overdue:1,waiting:1});
+  assert.ok(!JSON.stringify(h).includes('w'.repeat(40))&&!JSON.stringify(h).includes('401'));
+  assert.equal((await db.query<{allowed:boolean}>("select has_function_privilege('authenticated','public.background_health(uuid,uuid,uuid)','execute') as allowed")).rows[0]!.allowed,false);
+  await db.exec("set test.role='authenticated'");await assert.rejects(health());
+  await db.exec("set test.role='service_role';update auth.sessions set not_after=now()-interval '1 minute'");await assert.rejects(health());
+  await db.exec('update auth.sessions set not_after=null;update public.memberships set revoked_at=now()');await assert.rejects(health());await assert.rejects(prepare());
  }finally{await db.close();}
 });

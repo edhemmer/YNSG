@@ -15,10 +15,12 @@ export async function GET(request:Request){
   if(configuration.error||operators.error||entitlement.error||delivery.error)throw Error('READ');
   const account=missingGoogleConfiguration().length?null:await store(org,'read');
   const rules=configuration.data?.settings?.scheduling;
-  let schedulerStatus=null;
+  let schedulerStatus=null,executionHealth=null;
   try{
    const result=await serverDatabase().rpc('background_setup',{p_org:org,p_actor:session.user.id,p_session:verifiedSessionId(session.access),p_action:'status'});
    if(!result.error)schedulerStatus=result.data;
+   const health=await serverDatabase().rpc('background_health',{p_org:org,p_actor:session.user.id,p_session:verifiedSessionId(session.access)});
+   if(!health.error)executionHealth=health.data;
   }catch{ /* Setup remains usable if the deployment registry has not been installed. */ }
   const checks=[
    {label:'Business settings published',complete:Boolean(configuration.data),action:'Review and publish Company settings below.'},
@@ -36,7 +38,7 @@ export async function GET(request:Request){
     calendarSwitchEnabled:process.env.GOOGLE_CALENDAR_WORKER_ENABLED==='true',
     calendarCompanyMatches:process.env.GOOGLE_WORKER_ORGANIZATION_ID===org,
     deploymentCredentialReady:Boolean(process.env.VERCEL_AUTOMATION_BYPASS_SECRET&&process.env.VERCEL_AUTOMATION_BYPASS_SECRET.length>=32),
-    schedulerStatus,
+    schedulerStatus,executionHealth,
     canPrepare:Boolean(schedulerStatus),
    }},{headers:{'Cache-Control':'private, no-store'}});
  }catch(error){return NextResponse.json({error:'Sign in as the business owner to check scheduling setup.'},{status:error instanceof Error&&error.message==='UNAUTHORIZED'?401:403,headers:{'Cache-Control':'private, no-store'}});}

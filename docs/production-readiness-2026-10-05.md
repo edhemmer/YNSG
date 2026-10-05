@@ -24,7 +24,7 @@ At this checkpoint, both database-scheduled workers are active every minute. In 
 |---|---|---|
 | Durable website requests and receipt/owner notification | Verified for designated owner test submissions | Owner checks request contents in dashboard and notification link on iPhone |
 | Background worker execution | Verified live | Monitor failures and exercise actual appointment/invoice work |
-| Business appointment hours | Fail: published end of day is 5 p.m.; starts offered every 30 minutes through 3 p.m. | Owner publishes the requested 8 a.m.–3 p.m. workday and agrees the two-hour start grid; verify website and owner scheduling together |
+| Business appointment hours | Published setting matches owner clarification: starts from 8 a.m. through 3 p.m.; two-hour visits may end at 5 p.m. | Full booking/collision acceptance remains open; offered starts use 30-minute increments |
 | Schema, commercial, scheduling and authorization fixtures | Local database suite passes | Multi-connection collision test and live account boundaries |
 | Owner sign-in and request return | Built; unauthenticated access is rejected | Same-browser iPhone sign-in, logout and request-link return |
 | Approval, decline and calendar updates | Built, fixture-tested | Live create, move, block and cancel; matching customer notices |
@@ -55,8 +55,17 @@ Production certification is not granted by this checkpoint. Use a controlled own
 2. Establish encrypted off-site backups and perform an isolated restore. Supabase recommends regular CLI exports for Free projects; automatic accessible backups are a paid-plan feature. No successful restore evidence exists in this audit. Source: https://supabase.com/docs/guides/platform/backups
 3. Resolve the customer password security policy before broad account launch. Supabase leaked-password protection requires Pro or above; do not silently purchase an upgrade. Source: https://supabase.com/docs/guides/auth/password-security
 4. Prove external failure alerts and worker freshness monitoring, including recovery from revoked Google access and failed delivery. Active cron jobs alone are insufficient.
-5. Correct the published business hours through the owner's authenticated Company settings workflow. Current version 1 has earliestStart 480 (8 a.m.), latestStart 900 (3 p.m.) and endOfDay 1020 (5 p.m.). The public generator offers two-hour durations on 30-minute start increments. The requested workday ends at 3 p.m.; no two-hour visit should start after 1 p.m. If fixed two-hour start blocks are intended, the start grid also needs an explicit implementation decision. Do not alter published history or impersonate an owner to bypass configuration commands.
+5. Owner clarified on October 5 that 3 p.m. is the last appointment start, not the finish deadline. Current version 1 correctly has earliestStart 480 (8 a.m.), latestStart 900 (3 p.m.) and endOfDay 1020 (5 p.m.). The earlier audit interpretation that all work must end at 3 p.m. is withdrawn. Public options reserve two-hour durations on 30-minute start increments; no half-hour pricing is implied. Published configuration history remains unchanged.
 
 ## Owner acceptance sequence
 
 Use only a clearly marked owner test customer with the owner's email and no real service obligation. Submit a request, open its notification on iPhone, sign in, compare every selected service, then approve a safe test slot. Verify the customer notice and one matching Google event. Move the appointment and verify the event and current confirmation. Block time and confirm it disappears from availability. Exercise decline and cancellation without duplicate notices. Finally close a test job, review and send its test invoice, verify the PDF and paid follow-up with the review link. A separate reminder test must prove current details and cancellation suppression. Record receipts and failures before expanding use to customers.
+
+
+## Owner automation health continuation — October 5
+
+Change constraints: keep diagnostics owner-only with live session and membership checks; return only safe timestamps, status and tenant-scoped queue counts; do not activate/pause jobs, retry messages, edit appointments or expose provider response bodies. Do not confuse successful worker HTTP responses with delivered messages or completed calendar projections.
+
+The background health function reads actual dispatch responses. Settings distinguishes Running (recent successful response), Paused (disabled schedule/switch) and Needs attention (missing, failed or stale execution). Status refreshes every minute while this screen is open, with bounded requests and cleanup. A failed refresh clears old results. Delivery reconciliation and overdue queue entries produce an owner warning. This is in-app diagnostics, not an independent external alert service; outside-app outage alerts remain a release gate.
+
+Verification: 130 application tests pass, including failure/staleness classification and SQL fixtures for owner authorization, expired/revoked sessions, tenant-scoped queue counts and no-secret output. Root and web TypeScript checks and Next.js build pass. Hosted RPC execution is denied to anonymous/authenticated roles and granted only to the server role; independent owner checks still apply. Both named jobs remain active and the five most recent minutes show five HTTP 200 responses from each worker. Advisors show no new findings; existing warnings remain documented above. An authenticated owner UI acceptance test remains outstanding.
