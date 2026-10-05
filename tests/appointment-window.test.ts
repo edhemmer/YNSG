@@ -9,7 +9,7 @@ test('one-time date boundary is 30 local calendar days and server rejects later 
  assert.throws(()=>appointmentSelection({mode:'once',start:'2026-11-04T15:00:00Z'},now));
  assert.throws(()=>appointmentSelection({mode:'once',start:'2026-10-02T15:00:00Z'},now));
  assert.throws(()=>appointmentSelection({mode:'once',start:'2026-10-05T14:15:00Z'},now));
- assert.throws(()=>appointmentSelection({mode:'once',start:'2026-10-10T15:00:00Z'},now));
+ assert.equal(appointmentSelection({mode:'once',start:'2026-10-10T15:00:00Z'},now).weekday,'Saturday');
 });
 test('weekly pattern captures local weekday/time and an exact 12-month exclusive ending',()=>{
  const v=appointmentSelection({mode:'weekly',start:'2026-10-05T14:00:00Z'},now);

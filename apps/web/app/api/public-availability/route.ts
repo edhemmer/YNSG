@@ -4,6 +4,7 @@ import {z} from 'zod';
 import {companySettings} from '../../../../../packages/contracts/index';
 import {feasible} from '../../../../../packages/domain/scheduling';
 import {localInstant} from '../../../../../packages/domain/timezone';
+import {publicStartMinutes} from '../../../../../packages/domain/public-starts';
 import {accessToken,serverDatabase} from '../../../lib/google-server';
 import {busyTimes} from '../../../lib/google-core';
 import {addDays,localDay} from '../../../../../lib/appointment-window.js';
@@ -52,9 +53,9 @@ export async function GET(request:Request){
   stage='slot_generation';
   const buffer=settings.scheduling.bufferMinutes*60000,expanded=busy.map(t=>({start:t.start-buffer,end:t.end+buffer})),times=[];
   for(let day=first;day<=last;day=addDays(day,1)){
-   const weekday=new Date(day+'T12:00:00Z').getUTCDay();if(weekday===0||weekday===6)continue;
+   const candidates=publicStartMinutes(day,settings.scheduling);if(!candidates.length)continue;
    const noon=localInstant(day+'T12:00',settings.timezone);
-   for(let minute=480;minute<=900;minute+=30){
+   for(const minute of candidates){
     const start=noon+(minute-720)*60000;
     try{const slot=feasible({start,clock,durationMinutes:120,timezone:settings.timezone,rules:settings.scheduling,busy:expanded,externalBusyVerifiedUntil:checkedAt+60000});times.push({start:new Date(slot.start).toISOString(),end:new Date(slot.end).toISOString()});}catch{/* No candidate is offered when any feasibility check fails. */}
    }
