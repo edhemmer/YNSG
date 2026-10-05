@@ -37,23 +37,23 @@ function resultCollector(){
   return {code:0,payload:null as unknown,setHeader(){},status(code:number){this.code=code;return this;},json(payload:unknown){this.payload=payload;return this;}};
 }
 function configure(t: {after:(fn:()=>void)=>void}, overrides:Record<string,string>){
+  overrides={CRM_AVAILABILITY_URL:'https://synthetic.vercel.app/api/public-availability',CRM_AVAILABILITY_BYPASS_SECRET:'synthetic-only-credential-00000000000',VERCEL:'0',...overrides};
   const prior=Object.fromEntries(Object.keys(overrides).map(k=>[k,process.env[k]]));
   Object.assign(process.env,overrides);
   t.after(()=>{for(const [k,v] of Object.entries(prior)){if(v===undefined)delete process.env[k];else process.env[k]=v;}});
 }
-test('real public handler retains legacy email with identical payload and provider retry key',async(t)=>{
-  configure(t,{CRM_INTAKE_ENABLED:'false',RESEND_API_KEY:'synthetic-key'});
+test('real public handler saves through signed CRM transport with stable retries and all service items',async(t)=>{
+  configure(t,{CRM_INTAKE_ENABLED:'false'});
   const sent:RequestInit[]=[];
-  t.mock.method(globalThis,'fetch',async(_url:unknown,options:RequestInit)=>{sent.push(options);return Response.json({id:'synthetic-provider-id'});});
-  for(let i=0;i<2;i++){const res=resultCollector();await handler({method:'POST',headers:{host:'synthetic.invalid'},body:{...data,requestKey:key}},res);assert.equal(res.code,200);}
+  t.mock.method(globalThis,'fetch',async(url:unknown,options:RequestInit)=>{if(new URL(String(url)).pathname==='/api/website-guard')return Response.json({allowed:true});assert.equal(new URL(String(url)).pathname,'/api/website-request');sent.push(options);return Response.json({ok:true,id:key});});
+  for(let i=0;i<2;i++){const res=resultCollector();await handler({method:'POST',headers:{host:'synthetic.invalid'},socket:{remoteAddress:'127.0.0.1'},body:{...data,requestKey:key}},res);assert.equal(res.code,200);assert.deepEqual(res.payload,{ok:true,id:key,notification:'pending',saved:true});}
   assert.equal(sent.length,2);assert.equal(sent[0]!.body,sent[1]!.body);
-  assert.equal((sent[0]!.headers as Record<string,string>)['Idempotency-Key'],`ynsg-request-${key}`);
-  const email=JSON.parse(String(sent[0]!.body));assert.equal(email.subject,'Your Neighborhood Service Guy New Request');assert.deepEqual(email.to,['edhemmer@gmail.com']);assert.equal(email.reply_to,data.email);assert.ok(email.html.indexOf('Call customer')<email.html.indexOf('Work requested'));assert.ok(email.html.includes('Leaf management'));assert.ok(email.html.includes('Planting flowers'));assert.ok(email.text.includes('Request ID: '+key));assert.ok(email.text.endsWith('Best Regards,\nEdward Hemmer'));assert.ok(email.html.includes('/assets/logo.jpg'));
+  const envelope=JSON.parse(String(sent[0]!.body));assert.equal(envelope.key,key);assert.deepEqual(envelope.data.services,data.services);assert.equal(envelope.data.email,data.email);assert.equal(JSON.stringify(envelope).includes('127.0.0.1'),false);assert.ok((sent[0]!.headers as Record<string,string>)['x-ynsg-guard-signature']);
 });
 test('real CRM handler returns only committed success and never falls back to email after a database failure',async(t)=>{
   configure(t,{...env,CRM_INTAKE_ENABLED:'true'});
   const calls:string[]=[];let fail=false;
-  t.mock.method(globalThis,'fetch',async(url:unknown)=>{calls.push(String(url));return fail?Response.json({message:'SETUP_REQUIRED'},{status:400}):Response.json({ok:true,id:key});});
+  t.mock.method(globalThis,'fetch',async(url:unknown)=>{if(new URL(String(url)).pathname==='/api/website-guard')return Response.json({allowed:true});calls.push(String(url));return fail?Response.json({message:'SETUP_REQUIRED'},{status:400}):Response.json({ok:true,id:key});});
   const request={method:'POST',headers:{...req.headers,host:'synthetic.invalid'},body:{...data,requestKey:key,organizationId:'malicious-client-tenant'}};
   const saved=resultCollector();await handler(request,saved);assert.equal(saved.code,200);assert.deepEqual(saved.payload,{ok:true,id:key,notification:'pending',saved:true});
   fail=true;const failed=resultCollector();await handler(request,failed);assert.equal(failed.code,503);

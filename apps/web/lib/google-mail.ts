@@ -1,3 +1,4 @@
+import {customerRequestEmail} from '../../../lib/customer-request-email.js';
 import {emailIdentity} from '../../../lib/email-layout.js';
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { accessToken } from "./google-server";
@@ -66,6 +67,10 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       body = rendered.text;
       html = rendered.html;
       replyTo = submission.email;
+    } else if (item.kind === "request.customer_receipt") {
+      const request=await db.from("service_requests").select("original_submission").eq("organization_id",org).eq("id",item.object_id).single();
+      if(request.error||!request.data?.original_submission||request.data.original_submission.email!==item.payload.recipient)continue;
+      ({to,subject,body,html}=customerRequestEmail(config.data.settings.displayName,request.data.original_submission,identity));
     } else if (item.kind === "invoice.delivery" || item.kind === "invoice.paid") {
       const invoice = await db.from("invoices").select("number,issued_at,total_cents,snapshot,payments(cents)")
         .eq("organization_id", org).eq("id", item.object_id).single();

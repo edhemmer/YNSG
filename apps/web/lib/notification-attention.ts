@@ -1,4 +1,5 @@
 const messageNames: Record<string, string> = {
+ 'request.customer_receipt': 'Customer request acknowledgement',
  'request.owner_notification': 'New service request',
  'request.declined': 'Service request declined',
  'invoice.delivery': 'Invoice email',
