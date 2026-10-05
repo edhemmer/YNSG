@@ -12,6 +12,6 @@ export async function appointmentHold(input,transport=fetch,timeoutMs=15000){
   if(!response.ok||result?.ok!==true){const error=new Error(typeof result?.error==='string'?result.error:'We couldn’t hold that time. Please try again, or send your request without a time.');error.status=response.status;throw error;}
   if(input.action==='release')return {ok:true};
   if(!/^[a-f0-9]{64}$/.test(result.token||'')||Date.parse(result.start)!==Date.parse(input.start)||!Number.isFinite(Date.parse(result.expiresAt))||Date.parse(result.expiresAt)<=Date.now()||Date.parse(result.end)-Date.parse(result.start)!==7200000)throw Error('We couldn’t hold that time. Please try again, or send your request without a time.');
-  return result;
+  return {...result,start:new Date(result.start).toISOString(),end:new Date(result.end).toISOString(),expiresAt:new Date(result.expiresAt).toISOString()};
  }finally{clearTimeout(timeout);}
 }

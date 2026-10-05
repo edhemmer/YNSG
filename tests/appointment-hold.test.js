@@ -6,6 +6,8 @@ const input={action:'select',key,clientKey,token:null,start:new Date(Date.now()+
 const reply=()=>({ok:true,token:'a'.repeat(64),start:input.start,end:new Date(Date.parse(input.start)+7200000).toISOString(),expiresAt:new Date(Date.now()+600000).toISOString()});
 test('selection requires a current two-hour hold receipt and preserves conflicts',async()=>{
  assert.equal((await appointmentHold(input,async()=>Response.json(reply()))).token,'a'.repeat(64));
+ const offsetReply={...reply(),start:input.start.replace('Z','+00:00'),end:reply().end.replace('Z','+00:00')};
+ assert.equal((await appointmentHold(input,async()=>Response.json(offsetReply))).start,input.start);
  for(const value of [{...reply(),token:'invalid'},{...reply(),expiresAt:new Date(Date.now()-1).toISOString()},{...reply(),start:new Date(Date.now()).toISOString()},{...reply(),end:input.start}])await assert.rejects(appointmentHold(input,async()=>Response.json(value)));
  await assert.rejects(appointmentHold(input,async()=>Response.json({error:'That time is no longer available. Please choose another time.'},{status:409})),error=>error.status===409);
 });
