@@ -1,7 +1,6 @@
+import {websiteGuard,websiteRequest} from '../lib/website-guard.js';
 import {appointmentSelection} from '../lib/appointment-window.js';
 import {websiteAvailability} from '../lib/website-availability.js';
-import {YNSG_EMAIL_IDENTITY} from '../lib/email-layout.js';
-import {ownerRequestEmail} from '../lib/owner-request-email.js';
 import { randomUUID } from 'node:crypto';
 import { saveCrmRequest, IntakeFailure } from '../lib/public-intake.js';
 const services = new Set(['Lawn care','Yard & garden','Snow clearing','Help around the home','Concrete pressure washing','Something else']);
@@ -26,15 +25,11 @@ export default async function handler(req,res){
   const raw=req.body;
   if(!raw || typeof raw!=='object' || Array.isArray(raw))return fail(res,400,'Please check the form and try again.');
   if(Buffer.byteLength(JSON.stringify(raw))>12000)return fail(res,413,'Request is too large.');
+  // Honeypot rejection occurs before calendar, database or mail provider work.
+  if(typeof raw.website==='string'&&raw.website.trim())return res.status(200).json({ok:true});
+  if(req.headers['sec-fetch-site']==='cross-site')return fail(res,403,'Request not accepted.');
   if(Object.hasOwn(raw,'requestKey') && (typeof raw.requestKey!=='string' || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(raw.requestKey)))return fail(res,400,'Please refresh the page before sending your request.');
   const data={service:clean(raw.service,80),task:clean(raw.task,120),description:clean(raw.description,3000),name:clean(raw.name,120),phone:clean(raw.phone,35),email:clean(raw.email,254),street:clean(raw.street,200),city:clean(raw.city,80),preferredTime:clean(raw.preferredTime,180),communityRate:clean(raw.communityRate,10),website:clean(raw.website,200)};
-  if(Object.hasOwn(raw,'appointmentSelection')){
-    try {
-      const selection=appointmentSelection(raw.appointmentSelection);
-      if(selection.start){const current=await websiteAvailability();if(!current.times.some(t=>t.start===selection.start))return fail(res,409,'That time is no longer available. Please choose another time.');}
-      data.preferredTime=selection.preferredTime;
-    }catch(error){return fail(res,error.message==='OUTSIDE_WINDOW'||error.message==='INVALID_SELECTION'?400:503,'Please check your appointment selection, or send your request without a time.');}
-  }
   const hasServices=Object.hasOwn(raw,'services');
   const selections=hasServices ? raw.services : [{service:data.service,task:data.task}];
   if(!Array.isArray(selections))return fail(res,400,'Please choose at least one job.');
@@ -42,7 +37,16 @@ export default async function handler(req,res){
   if(!validSelections)return fail(res,400,'Please check the required fields and try again.');
   const normalized=selections.map(item=>({service:item.service,task:item.task || 'Not sure yet'}));
   if(!validSelections || new Set(normalized.map(item=>`${item.service}::${item.task}`)).size!==normalized.length || ((normalized.some(item=>item.service==='Something else') || !hasServices) && data.description.length<10) || !cities.has(data.city)||data.description.length>3000||data.name.length<2||data.name.length>120||data.phone.length<7||data.phone.length>35||data.street.length<5||data.street.length>200||data.email.length>254||data.preferredTime.length>180||!['Yes','No'].includes(data.communityRate)||data.website.length>200||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))return fail(res,400,'Please check the required fields and try again.');
-  if(data.website)return res.status(200).json({ok:true});
+  let selection;
+  if(Object.hasOwn(raw,'appointmentSelection')){
+    try{selection=appointmentSelection(raw.appointmentSelection);data.preferredTime=selection.preferredTime;}
+    catch{return fail(res,400,'Please check your appointment selection, or send your request without a time.');}
+  }
+  try{await websiteGuard(req,'request',{key:raw.requestKey,email:data.email});}catch(error){if(error.status===429)res.setHeader('Retry-After','3600');return fail(res,error.status||503,error.message);}
+  if(selection?.start){
+    try{const current=await websiteAvailability();if(!current.times.some(t=>t.start===selection.start))return fail(res,409,'That time is no longer available. Please choose another time.');}
+    catch{return fail(res,503,'Please check your appointment selection, or send your request without a time.');}
+  }
   const id=raw.requestKey || randomUUID();
   if(process.env.CRM_INTAKE_ENABLED==='true'){
     try {
@@ -54,22 +58,6 @@ export default async function handler(req,res){
       return fail(res,known?error.status:503,known?error.message:'The form is temporarily unavailable. Please call or text 770-630-2094.');
     }
   }
-  const apiKey=process.env.RESEND_API_KEY||process.env.RESEND_API_Key;
-  if(!apiKey){
-    console.error('Missing Resend API key configuration');
-    return fail(res,503,'The form is temporarily unavailable. Please call or text 770-630-2094.');
-  }
-  const message=ownerRequestEmail(data,normalized,id,undefined,undefined,null,YNSG_EMAIL_IDENTITY);
-  try{
-    const sent=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json','Idempotency-Key':`ynsg-request-${id}`},body:JSON.stringify({from:'Your Neighborhood Service Guy <onboarding@resend.dev>',to:['edhemmer@gmail.com'],reply_to:data.email,subject:'Your Neighborhood Service Guy New Request',text:message.text,html:message.html}),signal:AbortSignal.timeout(10000)});
-    if(!sent.ok){
-      const detail=await sent.json().catch(()=>({}));
-      console.error('Request email provider rejected request',{status:sent.status,code:String(detail.name||'unknown').slice(0,80)});
-      return fail(res,502,'The form could not send your request. Please call or text 770-630-2094.');
-    }
-    return res.status(200).json({ok:true,id});
-  }catch{
-    console.error('Resend request email unavailable');
-    return fail(res,502,'The form could not send your request. Please call or text 770-630-2094.');
-  }
+  try{return res.status(200).json(await websiteRequest(req,{...data,services:normalized},id));}
+  catch(error){return fail(res,error.status||503,error.message||'We couldn’t save your request. Please try again, or call 770-630-2094.');}
 }

@@ -22,13 +22,13 @@ test('availability response exposes slots only and rejects invalid provider data
 const base={services:[{service:'Lawn care',task:'Leaf management'}],name:'Synthetic Contact',email:'synthetic@example.invalid',phone:'5550000000',street:'100 Test Street',city:'DeKalb',description:'',communityRate:'No',website:''};
 const response=()=>({code:0,payload:null,setHeader(){},status(v){this.code=v;return this;},json(v){this.payload=v;return this;}});
 test('forged out-of-window input is rejected without sending email',async(t)=>{
- let sent=0;t.mock.method(globalThis,'fetch',async()=>{sent++;return Response.json({id:'synthetic'});});
- const res=response();await handler({method:'POST',headers:{host:'synthetic.invalid'},body:{...base,appointmentSelection:{mode:'once',start:'2099-10-05T14:00:00Z'}}},res);assert.equal(res.code,400);assert.equal(sent,0);
+ let sent=0;t.mock.method(globalThis,'fetch',async()=>{sent++;return Response.json({ok:true,id:'80000000-0000-4000-8000-000000000001'});});
+ const res=response();await handler({method:'POST',headers:{host:'synthetic.invalid'},socket:{remoteAddress:'127.0.0.1'},body:{...base,appointmentSelection:{mode:'once',start:'2099-10-05T14:00:00Z'}}},res);assert.equal(res.code,400);assert.equal(sent,0);
 });
-test('no-time request preserves existing email flow and weekly request intent',async(t)=>{
- const prior={CRM_INTAKE_ENABLED:process.env.CRM_INTAKE_ENABLED,RESEND_API_KEY:process.env.RESEND_API_KEY};Object.assign(process.env,{CRM_INTAKE_ENABLED:'false',RESEND_API_KEY:'synthetic'});t.after(()=>{for(const [k,v] of Object.entries(prior)){if(v===undefined)delete process.env[k];else process.env[k]=v;}});
- let message;t.mock.method(globalThis,'fetch',async(_url,options)=>{message=JSON.parse(options.body);return Response.json({id:'synthetic'});});
- const res=response();await handler({method:'POST',headers:{host:'synthetic.invalid'},body:{...base,appointmentSelection:{mode:'weekly',start:null}}},res);assert.equal(res.code,200);assert.ok(message.text.includes('Weekly visits for 12 months'));assert.equal(message.reply_to,base.email);
+test('no-time request is saved with weekly intent and customer email',async(t)=>{
+ const overrides={CRM_INTAKE_ENABLED:'false',RESEND_API_KEY:'synthetic',CRM_AVAILABILITY_URL:'https://synthetic.vercel.app/api/public-availability',CRM_AVAILABILITY_BYPASS_SECRET:'synthetic-only-credential-00000000000',VERCEL:'0'};const prior=Object.fromEntries(Object.keys(overrides).map(k=>[k,process.env[k]]));Object.assign(process.env,overrides);t.after(()=>{for(const [k,v] of Object.entries(prior)){if(v===undefined)delete process.env[k];else process.env[k]=v;}});
+ let message;t.mock.method(globalThis,'fetch',async(_url,options)=>{if(new URL(_url).pathname==='/api/website-guard')return Response.json({allowed:true});message=JSON.parse(options.body);return Response.json({ok:true,id:'80000000-0000-4000-8000-000000000001'});});
+ const res=response();await handler({method:'POST',headers:{host:'synthetic.invalid'},socket:{remoteAddress:'127.0.0.1'},body:{...base,appointmentSelection:{mode:'weekly',start:null}}},res);assert.equal(res.code,200);assert.ok(message.data.preferredTime.includes('Weekly visits for 12 months'));assert.equal(message.data.email,base.email);
 });
 
 test('deployment credential stays in server request headers and never enters slot response',async()=>{
