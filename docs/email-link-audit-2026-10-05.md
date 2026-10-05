@@ -13,7 +13,8 @@ Internal engineering document; not a public website page.
 - PASS (source and tests): local reschedule preference and appointment time display preserve local date/time. Appointment times include CST/CDT as applicable.
 - PASS (local verification): 129 CRM tests, 13 public website tests, web TypeScript checking and Next production build.
 - PASS (live before CRM deployment): main branch signed availability client is deployed; public availability still returns times.
-- PENDING (live): latest CRM deployment, removal of the extra hosting SSO screen, anonymous protected-route rejection and customer appointment page accessibility.
+- PASS (live, connector): CRM deployment 7e94843 is READY on the existing branch alias. Public website availability returns HTTP 200 after the CRM signature requirement; unsigned CRM availability returns 401. Anonymous owner workspace API returns 401. Customer appointment management page returns 200 without a token and does not disclose a request. Connector HTTP tests use hosting bypass and do not prove recipient hosting access.
+- BLOCKED (hosting): automatic approval review rejected setting project-wide ssoProtection to null because authorization did not specifically cover removal of the hosting gate across the entire project. That action was not applied. Project protection remains all_except_custom_domains. A single-address Deployment Protection Exception is the narrower proposed next step, pending explicit approval; no workaround was attempted.
 - PENDING (owner acceptance): click a new notification from iPhone Mail, complete business sign-in and confirm the selected request opens. Real customer confirmation/reschedule mutations are not performed during this audit.
 
 ## Hosting correction and protection
