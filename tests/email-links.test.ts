@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {applicationOrigin,ownerRequestUrl,ownerRequestContext,ownerReturnTarget} from '../apps/web/lib/email-links';
-import {customerLinkUrl} from '../apps/web/lib/customer-links';
+import {applicationOrigin,ownerRequestUrl,ownerRequestContext,ownerReturnTarget} from '../apps/web/lib/email-links.ts';
+import {customerLinkUrl} from '../apps/web/lib/customer-links.ts';
 const request='80000000-0000-4000-8000-000000000001',organization='20000000-0000-4000-8000-000000000001';
 test('email destinations use app paths and reject hosting dashboard or unsafe origins',()=>{
  const u=new URL(ownerRequestUrl('https://business.example.invalid',request,organization));assert.equal(u.pathname,'/owner');assert.equal(u.searchParams.get('request'),request);assert.equal(u.searchParams.get('organization'),organization);

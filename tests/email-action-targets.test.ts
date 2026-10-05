@@ -1,8 +1,8 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {ownerRequestEmail} from '../lib/owner-request-email.js';
-import {ownerRequestUrl} from '../apps/web/lib/email-links';
-import {customerLinkUrl} from '../apps/web/lib/customer-links';
-import {appointmentMessage,type AppointmentMessageInput} from '../apps/web/lib/appointment-message';
+import {ownerRequestUrl} from '../apps/web/lib/email-links.ts';
+import {customerLinkUrl} from '../apps/web/lib/customer-links.ts';
+import {appointmentMessage,type AppointmentMessageInput} from '../apps/web/lib/appointment-message.ts';
 import {requestTiming} from '../lib/request-timing.js';
 const origin='https://business.example.invalid',id='80000000-0000-4000-8000-000000000001',org='20000000-0000-4000-8000-000000000001',owner=ownerRequestUrl(origin,id,org);
 const links=(html:string)=>[...html.matchAll(/href="([^"]+)"/g)].map(m=>m[1]!.replaceAll('&amp;','&'));

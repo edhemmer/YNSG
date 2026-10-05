@@ -1,5 +1,7 @@
 # Website and CRM production audit
 
+> Historical checkpoint. For current live evidence and remaining release gates, use [October 5 production readiness](production-readiness-2026-10-05.md).
+
 Checkpoint: October 3, 2026. Latest owner instruction removes mandatory 2FA; verified email and live company permissions remain required. Current audited CRM branch includes owner access, intake bridge, notes, decline notices and both 24-hour reminders; public website baseline f7ab04b. This is an open acceptance worklist, not a production-readiness certificate.
 
 ## Required acceptance constraints

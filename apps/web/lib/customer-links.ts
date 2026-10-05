@@ -1,4 +1,4 @@
-import {applicationOrigin} from './email-links';
+import {applicationOrigin} from './email-links.ts';
 import { createHmac, hkdfSync } from "node:crypto";
 // Separate cryptographic purpose: this key never encrypts tokens or Google credentials.
 export function customerLinkToken(
