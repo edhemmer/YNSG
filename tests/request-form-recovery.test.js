@@ -13,7 +13,7 @@ function harness(outcomes){
   addEventListener(event,fn){if(event==='submit')this.submit=fn;},querySelector:s=>s==='button[type=submit]'?button:s==='#draft-note'?draftNote:s==='#clear-draft'?clearDraft:fallback,querySelectorAll:()=>[button,field,alreadyDisabled,heading],setAttribute(k,v){this.attributes[k]=v;},reportValidity:()=>true,dispatchEvent:e=>events.push(e.type)};
  const bodies=[];let keys=0;
  runInNewContext(source,{requestRecovery,form,message,selected:new Map([['job',{service:'Lawn care',task:'Leaf management'}]]),groups:{querySelector:()=>({focus(){}})},newRequestKey:()=>`key-${++keys}`,FormData:class {constructor(f){return Object.entries(f.fields);}},requestErrorMessage:()=> 'Please try again.',document:{querySelector:()=>({hidden:true,querySelector:()=>({setAttribute(){},focus(){}})})},CustomEvent:class {constructor(type){this.type=type;}},deliverRequest:async data=>{bodies.push(JSON.stringify(data));const value=outcomes.shift();if(value instanceof Error)throw value;return {id:'11111111-1111-4111-8111-111111111111'};}});
- return {form,button,field,alreadyDisabled,heading,message,bodies,events,submit:()=>form.submit({preventDefault(){}})};
+ return {form,button,field,alreadyDisabled,heading,message,emailLink,bodies,events,submit:()=>form.submit({preventDefault(){}})};
 }
 test('unknown submission freezes editing but keeps an identical-payload retry available',async()=>{
  const h=harness([Error('timeout'),Error('timeout'),true]);await h.submit();assert.equal(h.field.disabled,true);assert.equal(h.heading.tabIndex,-1);assert.equal(h.button.disabled,false);assert.match(h.button.firstChild.textContent,/Try sending again/);assert.match(h.message.textContent,/details are kept/);
@@ -21,4 +21,12 @@ test('unknown submission freezes editing but keeps an identical-payload retry av
 });
 test('definitive conflict restores original controls and refreshes the calendar',async()=>{
  const h=harness([Error('timeout'),Object.assign(Error('conflict'),{status:409}),true]);await h.submit();await h.submit();assert.equal(h.field.disabled,false);assert.equal(h.alreadyDisabled.disabled,true);assert.equal(h.heading.tabIndex,0);assert.equal(h.form.dataset.deliveryUnknown,'false');assert.deepEqual(h.events,['appointment-conflict']);h.form.fields.name='Corrected';await h.submit();assert.notEqual(h.bodies[2],h.bodies[1]);assert.match(h.bodies[2],/Corrected/);
+});
+
+test('long customer notes never truncate contacts from the fallback email',async()=>{
+ const h=harness([Error('timeout')]);
+ h.form.fields={...h.form.fields,name:'Contact retained',phone:'7706302094',email:'owner@example.test',street:'100 Test Street',city:'DeKalb',description:'x'.repeat(3000)};
+ await h.submit();
+ const body=new URL(h.emailLink.href).searchParams.get('body');
+ assert.match(body,/Name: Contact retained/);assert.match(body,/Phone: 7706302094/);assert.match(body,/Email: owner@example.test/);assert.match(body,/Address: 100 Test Street/);
 });
