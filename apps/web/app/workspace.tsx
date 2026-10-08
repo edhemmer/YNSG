@@ -607,24 +607,13 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                     {section === "Settings" && (
                       <>
                       <div className="card">
-                        <h2>Company readiness</h2>
+                        <h2>Business preferences</h2>
                         <p className="badge">{data.company.status}</p>
                         <p>Timezone: {data.company.timezone}</p>
                         <p>
                           Manage your business rules and connections here. The request inbox and calendar use these settings for the next saved decision.
                         </p>
-                        <ul>
-                          <li>
-                            Confirm business name, compliance, tax treatment
-                            and invoice terms.
-                          </li>
-                          <li>Set travel buffer, holidays and territory.</li>
-                          <li>Review calendar and email connection status above.</li>
-                          <li>
-                            Verify backup restoration, native devices and
-                            operator usability.
-                          </li>
-                        </ul>
+
                         <p>
                           Set your review link in the business settings below.
                           Customer messages follow your current email approval and delivery settings.

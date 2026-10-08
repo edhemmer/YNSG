@@ -180,7 +180,7 @@ export default function GoogleControls({
     <section className="card" aria-labelledby={"google-"+view+"-heading"}>
       <p className="eyebrow">{view === "settings" ? "Google connection" : view === "calendar" ? "Business calendar" : "Email connection"}</p>
       <h2 id={"google-"+view+"-heading"}>{view === "settings" ? "Google Calendar & Gmail" : view === "calendar" ? "Choose your business calendar" : "Gmail"}</h2>
-      {missing.length > 0 && <p>Google setup needs attention before connecting. Technical configuration is available on the private setup page.</p>}
+      {missing.length > 0 && <p>Google connection is currently unavailable. Your app administrator needs to restore it.</p>}
       {statusLoading && <p role="status">Loading Google connection…</p>}
       {!connection?.connected ? (
         <button
@@ -242,10 +242,10 @@ export default function GoogleControls({
             Send Gmail test to myself
           </button>
           <section aria-labelledby="mail-activation"><h3 id="mail-activation">Email notifications</h3><p>Business approval: {delivery?.enabled?'enabled':'off'}. Automatic sending: {dispatcherEnabled?'enabled':'paused'}.</p>
-          {delivery?.enabled?<><button type="button" disabled={busy} onClick={()=>{deliveryKey.current??=crypto.randomUUID();void act('disable_delivery',{key:deliveryKey.current});}}>Pause email notifications</button><button type="button" disabled={busy||!dispatcherEnabled} onClick={()=>void act('send_pending')}>Send pending notifications</button></>:<><p>Check that the test email arrived and the sender matches this Gmail account. Then enable customer and owner notifications. Website request emails use their existing delivery setup.</p><label><input type="checkbox" checked={received} disabled={busy||connection.gmailTest!=='accepted'} onChange={e=>setReceived(e.target.checked)}/>I received the Gmail test and reviewed the company sender.</label><button type="button" disabled={busy||!received||connection.gmailTest!=='accepted'||!delivery?.senderMatches||!delivery.testKey} onClick={()=>{deliveryKey.current??=crypto.randomUUID();void act('enable_delivery',{revision:delivery!.connectionRevision,configurationVersion:delivery!.configurationVersion,testKey:delivery!.testKey,receiptConfirmed:true,key:deliveryKey.current});}}>Enable email notifications</button></>}
+          {delivery?.enabled?<><button type="button" disabled={busy} onClick={()=>{deliveryKey.current??=crypto.randomUUID();void act('disable_delivery',{key:deliveryKey.current});}}>Pause email notifications</button><button type="button" disabled={busy||!dispatcherEnabled} onClick={()=>void act('send_pending')}>Send pending notifications</button></>:<><p>Check that the test email arrived and the sender matches this Gmail account. Then enable customer and owner notifications.</p><label><input type="checkbox" checked={received} disabled={busy||connection.gmailTest!=='accepted'} onChange={e=>setReceived(e.target.checked)}/>I received the Gmail test and reviewed the company sender.</label><button type="button" disabled={busy||!received||connection.gmailTest!=='accepted'||!delivery?.senderMatches||!delivery.testKey} onClick={()=>{deliveryKey.current??=crypto.randomUUID();void act('enable_delivery',{revision:delivery!.connectionRevision,configurationVersion:delivery!.configurationVersion,testKey:delivery!.testKey,receiptConfirmed:true,key:deliveryKey.current});}}>Enable email notifications</button></>}
           {!delivery?.enabled&&mailActivationBlocker(delivery,connection.gmailTest,received)&&<p role="status">{mailActivationBlocker(delivery,connection.gmailTest,received)}</p>}
           {!delivery?.configurationVersion&&view==='settings'&&<button type="button" className="secondary" onClick={()=>{const heading=document.getElementById('settings-heading');heading?.scrollIntoView({behavior:'auto',block:'start'});heading?.focus({preventScroll:true});}}>Open company settings</button>}
-          {!dispatcherEnabled&&<p>Automatic sending still needs setup. Business approval alone will not send these messages.</p>}</section>
+          {!dispatcherEnabled&&<p>Automatic sending is paused. Your app administrator needs to restore it.</p>}</section>
           </>}
           <details>
             <summary>Disconnect Google</summary>
