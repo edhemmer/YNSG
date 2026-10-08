@@ -17,3 +17,9 @@ Verification: 171 application/unit checks passed, root TypeScript passed, optimi
 Release evidence: CRM commit de1691d496ff9b3646fe9132c1559375ec47f85a, tree b2908182687d8740e5c631e590957ce07fc1415a, deployment dpl_6ZNVdG8ZLrftx8UGGwBMeoTEvVEZ is READY and assigned the existing codex-crm-workflow stable alias. Public website production remains 52f3e7d. Independent root source checkpoint tree c41747577308fd2f3ccc062fb1285355f223d603 is preserved remotely at 9d06292a4b652e106fd6bc1e7584182b1d741607.
 
 At 19:04 UTC, all 60 scheduler HTTP responses in the preceding 30 minutes were HTTP 200 without timeout. No grouped runtime errors were returned for intake, calendar decisions, billing commands, invoice delivery or either worker in the preceding hour. This does not establish exercised financial or calendar actions; the owner browser still requires sign-in.
+
+## 15:49 CT continuation: invoice delivery status
+
+Pre-change checklist: keep explicit reviewed invoice sending, immutable recipient, stable retry key and same-company authorization; polling must only read status, never send; avoid overlapping requests and hidden-tab polling; abort on invoice/company change; ignore an old invoice's pending send response; clear stale delivery state if status cannot be read. Browser restarted and currently has no authenticated owner session. No live billing mutation is authorized through a privileged bypass.
+
+Change review: automatic delivery-status reads every minute while visible, no overlapping reads, aborted/inactive reads ignored, reads suspended during sending, changed invoice identity rejects prior send results; failed reads remove stale status, and manual refresh remains available on errors. Explicit reviewed sends, per-invoice retry key and provider-accepted wording are preserved. 171 tests and optimized production build passed. Signed-in visual and real invoice delivery acceptance remain pending; no global production certification.
