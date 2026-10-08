@@ -203,7 +203,7 @@ if(form){
       const fallback=form.querySelector('#email-fallback');
       const subject='Your Neighborhood Service Guy New Request';
       const jobs=data.services.map(x=>`${x.service}: ${x.task}`).join('\n');
-      const body=[`Jobs requested:\n${jobs}`,`Details: ${data.description || 'Not specified'}`,`Name: ${data.name}`,`Phone: ${data.phone}`,`Email: ${data.email}`,`Address: ${data.street}, ${data.city}, IL`,`Preferred time: ${data.preferredTime || 'Not specified'}`,`Community Rate inquiry: ${data.communityRate}`].join('\n\n');
+      const body=[`Name: ${data.name}`,`Phone: ${data.phone}`,`Email: ${data.email}`,`Address: ${data.street}, ${data.city}, IL`,`Preferred time: ${data.preferredTime || 'Not specified'}`,`Community Rate inquiry: ${data.communityRate}`,`Jobs requested:\n${jobs}`,`Details: ${data.description || 'Not specified'}`].join('\n\n');
       fallback.querySelector('a').href=`mailto:edhemmer@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.slice(0,2500))}`;
       fallback.hidden=false;
       message.focus();
