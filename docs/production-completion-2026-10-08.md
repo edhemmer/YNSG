@@ -55,3 +55,7 @@ Owner feedback: the CRM felt scattered and required back-and-forth navigation. T
 ## 17:20 CT proposed-time clarity
 
 Owner feedback identified an unclear proposal decision. The request dialog now labels a pending proposal “Proposed time — your decision is needed”; the primary action is “Review proposed time”; the review panel is “Accept the proposed time”; and the final action is “Accept proposed time & confirm”. Existing scheduling validation, revision checks, capacity checks, resource review, idempotency and notification queue behavior are unchanged. TypeScript and optimized production build passed.
+
+## 17:22 CT reschedule decision
+
+A proposed appointment now exposes three clear owner decisions: Review proposed time, Choose another time, or Decline proposed time. Choosing another time records a decline-time decision, keeps the request open, and immediately opens the scheduling review for a replacement proposal. The database pending-limit, revision, capacity, Google facts, idempotency and outbox protections remain authoritative. TypeScript and optimized build passed.
