@@ -6,6 +6,6 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "check": "node --check site/main.js && node --check site/appointment-picker.js && node --check site/appointment-hold.js && node --check site/request-delivery.js && node --check api/requests.js && node --check api/appointment-hold.js && node --check lib/website-guard.js && node --check scripts/build.mjs",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js tests/calendar-picker.test.mjs tests/website-guard.test.mjs"
   }
 }
