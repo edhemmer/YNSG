@@ -33,8 +33,8 @@ test('test, decline, owner request and appointment emails share HTML logo and ma
  const owner=ownerRequestEmail({name:'Synthetic',phone:'5550000000',email:'test@example.invalid',street:'100 Test St',city:'DeKalb'},[{service:'Yard',task:'Weeds'}],'test-id',company,'IL',null,identity);
  const appointment=appointmentMessage({kind:'appointment.confirmation',company,identity,recipient:'test@example.invalid',notificationRecipient:'owner@example.invalid',request:{name:'Synthetic',street:'100 Test St',city:'DeKalb'},arrivalAt:'2026-10-07T14:00Z',timezone:'America/Chicago',ownerUrl:'https://example.invalid/owner',manageUrl:'https://example.invalid/manage',confirmUrl:'https://example.invalid/confirm',rescheduleUrl:'https://example.invalid/reschedule'});
  for(const message of [testMessage,declined,{...owner,body:owner.text},appointment]){
-  assert.ok(message.html.includes(identity.logoUrl!));assert.ok(message.html.includes('Edward Hemmer'));
-  assert.ok(message.body.endsWith('Best Regards,\nEdward Hemmer'));
+  assert.ok(message.html.includes(identity.logoUrl!));assert.ok(message.html.includes('Ed Hemmer'));
+  assert.ok(message.body.endsWith('Best Regards,\nEd Hemmer'));
  }
  assert.equal(testMessage.subject,company+' — Email connection test');assert.ok(!testMessage.body.includes('Your existing website'));
 });

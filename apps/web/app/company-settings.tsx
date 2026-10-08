@@ -76,7 +76,7 @@ function template(name: string, organization: string): CompanySettings {
       forest: "#315842",
       gold: "#edbd6b",
       cream: "#f8f6ef",
-      ownerName: organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" ? "Edward Hemmer" : null,
+      ownerName: organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" ? "Ed Hemmer" : null,
       logoUrl: organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" ? "https://www.yourneighborhoodserviceguy.com/assets/logo.jpg" : null,
     },
     sender: "edhemmer@gmail.com",
