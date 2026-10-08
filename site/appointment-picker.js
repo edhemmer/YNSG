@@ -116,7 +116,7 @@ if(form&&picker){
  updateSelection();
  if(disclosure){
   disclosure.addEventListener('toggle',()=>{
-   if(disclosure.open&&!opened){opened=true;void load();}
+   if(disclosure.open&&!opened&&!locked()){opened=true;void load();}
   });
  }else void load();
 }

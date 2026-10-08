@@ -65,3 +65,8 @@ test('closed calendar loads only on first open; closing and reopening retains th
  assert.equal(h.calls(),1);assert.equal(h.holdCalls.length,1);assert.equal(h.form.dataset.appointmentStart,start);assert.equal(h.form.dataset.appointmentHoldToken,token);
  h.advance(61000);h.window.handlers.pageshow();assert.equal(h.form.dataset.appointmentStart,'');assert.match(h.note.textContent,/Optional/);
 });
+
+test('opening during a pending submission does not consume the first availability check',async()=>{
+ const h=await harness([available()],{collapsed:true});h.form.setAttribute('aria-busy','true');h.disclosure.open=true;h.disclosure.handlers.toggle();await h.settle();assert.equal(h.calls(),0);
+ h.form.setAttribute('aria-busy','false');h.disclosure.open=false;h.disclosure.handlers.toggle();h.disclosure.open=true;h.disclosure.handlers.toggle();await h.settle();assert.equal(h.calls(),1);
+});
