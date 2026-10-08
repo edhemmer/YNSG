@@ -6,7 +6,7 @@
   "packageManager": "pnpm@11.25.0",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "check": "node --check site/main.js && node --check site/appointment-picker.js && node --check site/appointment-hold.js && node --check site/request-delivery.js && node --check api/requests.js && node --check api/appointment-hold.js && node --check lib/website-guard.js && node --check scripts/build.mjs",
+    "check": "node --check site/main.js && node --check site/appointment-picker.js && node --check site/appointment-hold.js && node --check site/request-delivery.js && node --check site/request-recovery.js && node --check api/requests.js && node --check api/appointment-hold.js && node --check lib/website-guard.js && node --check scripts/build.mjs",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts tests/*.test.js tests/*.test.mjs",
     "test:db": "node tests/database.mjs"
