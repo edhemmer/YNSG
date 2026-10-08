@@ -1,4 +1,5 @@
 "use client";
+import {paymentInput} from '../lib/payment-input';
 import {ownerRequestContext} from '../lib/email-links';
 import { publicError } from "../lib/public-errors";
 import {companyTheme} from "../lib/company-brand";
@@ -593,6 +594,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                               {finance && balance > 0 && (
                                 <PaymentForm
                                   invoice={i}
+                                  timezone={data.company.timezone}
                                   pending={pending}
                                   submit={act}
                                 />
@@ -707,35 +709,32 @@ function QuoteForm({
 }
 function PaymentForm({
   invoice,
+  timezone,
   pending,
   submit,
 }: {
   invoice: Invoice;
+  timezone: string;
   pending: boolean;
   submit: (v: Record<string, unknown>) => Promise<unknown>;
 }) {
-  const [key] = useState(() => crypto.randomUUID());
+  const [key,setKey] = useState(() => crypto.randomUUID());
+  const [inputError,setInputError] = useState("");
   return (
     <details>
       <summary>Record a received payment</summary>
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          const f = new FormData(e.currentTarget),
-            amount = String(f.get("amount"));
-          if (!/^\d+(\.\d{1,2})?$/.test(amount)) return;
-          const [whole, fraction = ""] = amount.split(".");
-          const cents = Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
-          void submit({
-            command: "RecordPayment",
-            key,
-            id: invoice.id,
-            cents,
-            method: f.get("method"),
-            reference: f.get("reference"),
-            receivedAt: new Date(String(f.get("receivedAt"))).toISOString(),
-            confirmed: true,
-          });
+          if(pending)return;
+          const form=e.currentTarget;
+          setInputError("");
+          try {
+            const value=paymentInput(new FormData(form),timezone);
+            void submit({command:"RecordPayment",key,id:invoice.id,...value,confirmed:true}).then(result=>{
+              if(result){form.reset();setKey(crypto.randomUUID());}
+            });
+          }catch(error){setInputError(publicError(error));}
         }}
       >
         <label>
@@ -755,7 +754,7 @@ function PaymentForm({
           </select>
         </label>
         <label>
-          Received at
+          Received at ({timezone})
           <input name="receivedAt" type="datetime-local" required />
         </label>
         <label>
@@ -765,6 +764,7 @@ function PaymentForm({
         <label className="check">
           <input type="checkbox" required />I confirmed the money was received.
         </label>
+        {inputError&&<p role="alert">{inputError}</p>}
         <button disabled={pending}>Record confirmed payment</button>
       </form>
     </details>

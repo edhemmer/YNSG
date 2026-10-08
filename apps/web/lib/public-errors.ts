@@ -11,6 +11,20 @@ const messages:Record<string,string>={
  RECONNECT_REQUIRED:'Google access expired or was revoked. Reconnect in Settings.',
 };
 const approved=new Set([
+ 'Enter a positive dollar amount with up to two decimal places.',
+ 'Enter an amount greater than zero.',
+ 'Review the saved invoice before approving it.',
+ 'Save the invoice draft before approving it.',
+ 'The invoice charges changed. Reload and review the draft.',
+ 'This job already has an issued invoice.',
+ 'This amount exceeds the outstanding balance.',
+ 'This retry contains different information. Refresh before continuing.',
+ 'The action was not committed. Review the record and try again.',
+ 'Invoice email was not queued. Check the issued invoice, recipient and Google receipt verification.',
+ 'Google email delivery is not enabled. Complete the connection and receipt test first.',
+ 'Charges exceed the approved labor amount. A change order is required.',
+ 'The draft was not saved. Reload the job and check the recorded work.',
+
  ...Object.values(googleMessages),
  'Sign in to continue.','Owner access is required.','Please try again.',
  'The email provider has temporarily limited sign-in emails. Check your inbox for the newest message already sent and open its link in the browser where you requested it. If it has expired, wait before requesting another email.',
