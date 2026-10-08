@@ -1,4 +1,5 @@
 import {deliverRequest} from './request-delivery.js';
+import {requestRecovery} from './request-recovery.js';
 function requestErrorMessage(error){
   const approved=new Set([
     'Please check the form and try again.',
@@ -55,7 +56,7 @@ if(form){
       remove.className = 'remove-service';
       remove.textContent = 'Remove';
       remove.setAttribute('aria-label',`Remove ${label.textContent}`);
-      remove.addEventListener('click',()=>{selected.delete(key(service,task));refresh();form.querySelector('#service-count').focus();});
+      remove.addEventListener('click',()=>{selected.delete(key(service,task));refresh();saveDraft();form.querySelector('#service-count').focus();});
       item.append(label,remove);
       list.append(item);
     }
@@ -112,30 +113,72 @@ if(form){
     const section=document.querySelector('#request');
     if(!section) return;
     event.preventDefault();
-    choose(link.dataset.service,link.dataset.task || '');
+    choose(link.dataset.service,link.dataset.task || '');saveDraft();
     section.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
     setTimeout(()=>categoryGroups.get(link.dataset.service)?.querySelector('summary').focus({preventScroll:true}),350);
   }));
-  let requestKey='', requestFingerprint='',sending=false;
+  let requestKey='', requestFingerprint='',sending=false,pendingSubmission=null;
+  let tabStorage;try{tabStorage=sessionStorage;}catch{}
+  const recovery=requestRecovery(tabStorage),recovered=recovery.read();
+  const draftNote=form.querySelector('#draft-note'),clearDraft=form.querySelector('#clear-draft');
+  const contactFields=['description','name','phone','email','street','city'];
+  function saveDraft(){
+    if(pendingSubmission||form.hidden)return;
+    const data=Object.fromEntries(new FormData(form));
+    const draft=Object.fromEntries(contactFields.map(name=>[name,data[name]||'']));
+    draft.communityRate=data.communityRate||'No';draft.services=[...selected.values()];
+    if(recovery.saveDraft(draft)){draftNote.hidden=false;clearDraft.hidden=false;}
+  }
+  const editableControls=()=>[...form.querySelectorAll('input,textarea,select,button,summary')].map(element=>({element,disabled:element.disabled,tabIndex:element.tabIndex}));
+  function lockControls(editable){for(const {element} of editable){if('disabled' in element)element.disabled=true;else element.tabIndex=-1;}}
+  if(recovered){
+    const data=recovered.data;
+    for(const name of contactFields){if(typeof data[name]==='string')form.elements.namedItem(name).value=data[name];}
+    const community=form.querySelector(`input[name=communityRate][value="${data.communityRate==='Yes'?'Yes':'No'}"]`);community.checked=true;
+    selected.clear();
+    for(const item of data.services){if(item&&Object.hasOwn(tasks,item.service)&&tasks[item.service].includes(item.task)&&selected.size<15){selected.set(key(item.service,item.task),{service:item.service,task:item.task});categoryGroups.get(item.service).open=true;}}
+    refresh();draftNote.hidden=false;
+    if(recovered.kind==='pending'){
+      pendingSubmission={data,editable:editableControls()};form.dataset.deliveryUnknown='true';lockControls(pendingSubmission.editable);
+      const button=form.querySelector('button[type=submit]');button.disabled=false;button.firstChild.textContent='Try sending again ';
+      message.textContent='Your previous send still needs confirmation. Press “Try sending again” to check the same request. Your original details are kept.';
+      draftNote.textContent='Your original request is kept in this tab while we check whether it was saved.';
+    }else{
+      clearDraft.hidden=false;message.textContent='Your unfinished request was restored. Please choose a preferred time again if you want one.';
+    }
+  }
+  form.addEventListener('input',saveDraft);form.addEventListener('change',saveDraft);
+  clearDraft.addEventListener('click',()=>{
+    if(pendingSubmission||sending)return;
+    recovery.clear();form.reset();selected.clear();refresh();form.dispatchEvent(new CustomEvent('appointment-conflict'));
+    draftNote.hidden=true;clearDraft.hidden=true;message.textContent='Saved details cleared. You can start a new request.';form.elements.namedItem('name').focus();
+  });
+
   form.addEventListener('submit',async event=>{
     event.preventDefault();
     if(sending)return;
     if(form.dataset.appointmentHolding==='true'){message.textContent='Please wait a moment while we check your selected time.';message.focus();return;}
-    if(!selected.size){message.textContent='Please choose at least one job, or choose Something else and tell us about it.';groups.querySelector('summary').focus();return;}
-    if(!form.reportValidity()) return;
+    if(!pendingSubmission&&!selected.size){message.textContent='Please choose at least one job, or choose Something else and tell us about it.';groups.querySelector('summary').focus();return;}
+    if(!pendingSubmission&&!form.reportValidity()) return;
     const button=form.querySelector('button[type=submit]');
-    const data=Object.fromEntries(new FormData(form));
-    data.services=[...selected.values()];
-    data.appointmentSelection={mode:data.visitMode||'once',start:form.dataset.appointmentStart||null};
-    data.appointmentHold=data.appointmentSelection.start?{token:form.dataset.appointmentHoldToken||'',clientKey:form.dataset.appointmentClientKey||''}:null;
-    delete data.visitMode;
-    const fingerprint=JSON.stringify(data);
-    if(fingerprint!==requestFingerprint){requestKey=newRequestKey();requestFingerprint=fingerprint;}
-    data.requestKey=requestKey;
+    let data=pendingSubmission?.data;
+    if(!data){
+      data=Object.fromEntries(new FormData(form));
+      data.services=[...selected.values()];
+      data.appointmentSelection={mode:data.visitMode||'once',start:form.dataset.appointmentStart||null};
+      data.appointmentHold=data.appointmentSelection.start?{token:form.dataset.appointmentHoldToken||'',clientKey:form.dataset.appointmentClientKey||''}:null;
+      delete data.visitMode;
+      const fingerprint=JSON.stringify(data);
+      if(fingerprint!==requestFingerprint){requestKey=newRequestKey();requestFingerprint=fingerprint;}
+      data.requestKey=requestKey;
+    }
     sending=true;
     form.dataset.deliveryUnknown='true';
-    const editable=[...form.querySelectorAll('input,textarea,select,button,summary')].map(element=>({element,disabled:element.disabled,tabIndex:element.tabIndex}));
-    for(const {element} of editable){if('disabled' in element)element.disabled=true;else element.tabIndex=-1;}
+    const editable=pendingSubmission?.editable||editableControls();
+    pendingSubmission={data,editable};
+    const saved=recovery.savePending(data);
+    lockControls(editable);clearDraft.hidden=true;
+    if(saved){draftNote.hidden=false;draftNote.textContent='Your original request is kept in this tab while we check whether it was saved.';}
     form.setAttribute('aria-busy','true');
     button.disabled=true;
     button.firstChild.textContent='Sending… ';
@@ -143,7 +186,9 @@ if(form){
     form.querySelector('#email-fallback').hidden=true;
     let refreshCalendar=false;
     try{
-      await deliverRequest(data);
+      const receipt=await deliverRequest(data);
+      recovery.clear();
+      document.querySelector('#request-reference').textContent='Request reference: '+receipt.id;
       form.dataset.deliveryUnknown='false';
       form.hidden=true;
       const success=document.querySelector('#form-success');
@@ -154,6 +199,7 @@ if(form){
       if(error.status>=400&&error.status<500)form.dataset.deliveryUnknown='false';
       if(error.status===409)refreshCalendar=true;
       message.textContent=requestErrorMessage(error);
+      if(form.dataset.deliveryUnknown==='true')message.textContent+=' Your details are kept for this retry. Press “Try sending again” to check the same request, or contact us using the options below.';
       const fallback=form.querySelector('#email-fallback');
       const subject='Your Neighborhood Service Guy New Request';
       const jobs=data.services.map(x=>`${x.service}: ${x.task}`).join('\n');
@@ -162,8 +208,13 @@ if(form){
       fallback.hidden=false;
       message.focus();
     }finally{
-      for(const {element,disabled,tabIndex} of editable){if('disabled' in element)element.disabled=disabled;else element.tabIndex=tabIndex;}
-      sending=false;form.setAttribute('aria-busy','false');button.firstChild.textContent='Send service request ';
+      const unknown=form.dataset.deliveryUnknown==='true';
+      if(!unknown){
+        for(const {element,disabled,tabIndex} of editable){if('disabled' in element)element.disabled=disabled;else element.tabIndex=tabIndex;}
+        pendingSubmission=null;
+        if(!form.hidden){draftNote.textContent='Your unfinished details are kept in this tab for up to 24 hours.';saveDraft();}
+      }
+      sending=false;form.setAttribute('aria-busy','false');button.disabled=false;button.firstChild.textContent=unknown?'Try sending again ':'Send service request ';
       if(refreshCalendar)form.dispatchEvent(new CustomEvent('appointment-conflict'));
     }
   });
