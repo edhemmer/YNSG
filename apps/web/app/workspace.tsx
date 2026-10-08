@@ -133,6 +133,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
   const [email, setEmail] = useState(initialEmail),
     [code, setCode] = useState(""),
     [sent, setSent] = useState(false),
+    [useEmailCode, setUseEmailCode] = useState(false),
     [pending, setPending] = useState(false);
   const [org, setOrg] = useState(""),
     [data, setData] = useState<Data | null>(null),
@@ -156,6 +157,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
       setError(previous=>previous.startsWith('We could not check your saved sign-in.')?'':previous);
       if(!initialWorkspaceChosen.current){initialWorkspaceChosen.current=true;const initial=s.memberships.find((m:Membership)=>m.organization_id===org)||s.memberships[0];if(initial?.role==='technician')setSection('Today');else if(initial?.role==='bookkeeper')setSection('Money');else if(initial?.role==='dispatcher')setSection('Requests');}
       setSession(s);
+      setMessage("");setSent(false);setCode("");setUseEmailCode(false);
       const locationParams = new URLSearchParams(window.location.search);
       const googleOrg = locationParams.get('googleOrganization') || locationParams.get('organization');
       setOrg((o: string) => o || s.memberships.find((m: Membership)=>m.organization_id===googleOrg)?.organization_id || s.memberships[0]?.organization_id || "");
@@ -205,15 +207,21 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
   }, [org,page]);
   async function login(event: FormEvent) {
     event.preventDefault();
+    if (sent && useEmailCode && !/^\d{6,10}$/.test(code.trim())) {
+      setError("Enter the numeric code from your email. A sign-in link should be opened in this browser.");
+      return;
+    }
     setPending(true);
     setError("");
     try {
-      if (sent) {
-        await api("/api/session", { action: "verify", email, code });
+      if (sent && !useEmailCode) {
+        await loadSession();
+      } else if (sent) {
+        await api("/api/session", { action: "verify", email, code: code.trim() });
         await loadSession();
       } else {
         const r = await api("/api/session", { action: "send", email, destination: "owner",requestContext:ownerRequestContext(Object.fromEntries(new URLSearchParams(window.location.search)))||undefined });
-        setSent(true);
+        setSent(true);setUseEmailCode(false);setCode("");
         setMessage(r.message);
       }
     } catch (e) {
@@ -333,16 +341,22 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
               type="email"
               autoComplete="email"
               required
+              disabled={pending || sent}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            {sent && (
+            {sent && <div><h2>Check your email</h2><p>Open the newest sign-in link in the same browser where you requested it. If your mail app opens another browser, use that browser to request a fresh link.</p></div>}
+            {sent && useEmailCode && (
               <>
-                <p>Open the newest email link in this browser. If the email contains a code instead, enter it below.</p>
                 <label htmlFor="code">Email code (if provided)</label>
                 <input
                   id="code"
+                  type="text"
                   inputMode="numeric"
+                  pattern="[0-9]{6,10}"
+                  minLength={6}
+                  maxLength={10}
+                  disabled={pending}
                   autoComplete="one-time-code"
                   required
                   value={code}
@@ -355,15 +369,17 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                 {pending
                   ? "Please wait…"
                   : sent
-                    ? "Sign in"
+                    ? useEmailCode ? "Sign in with code" : "Check sign-in"
                     : "Email me a sign-in link"}
               </button>
+              {sent && !useEmailCode && <button type="button" className="secondary" disabled={pending} onClick={()=>setUseEmailCode(true)}>My email includes a code</button>}
               {sent && (
                 <button
                   type="button"
                   className="secondary"
+                  disabled={pending}
                   onClick={() => {
-                    setSent(false);
+                    setSent(false);setUseEmailCode(false);setMessage("");setError("");
                     setCode("");
                   }}
                 >
