@@ -59,3 +59,7 @@ Owner feedback identified an unclear proposal decision. The request dialog now l
 ## 17:22 CT reschedule decision
 
 A proposed appointment now exposes three clear owner decisions: Review proposed time, Choose another time, or Decline proposed time. Choosing another time records a decline-time decision, keeps the request open, and immediately opens the scheduling review for a replacement proposal. The database pending-limit, revision, capacity, Google facts, idempotency and outbox protections remain authoritative. TypeScript and optimized build passed.
+
+## 17:24 CT premium dashboard focus
+
+Replaced the competing dashboard quick-action list with a single data-driven Next best action card. It prioritizes request review, then upcoming visit, active job, unpaid invoice, or an empty-state requests prompt. Existing metrics, Activity access and role-scoped routing remain available. TypeScript and optimized build passed.
