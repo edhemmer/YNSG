@@ -1,3 +1,17 @@
+# October 8 request recovery checkpoint
+
+Continued the existing CRM source at `a9de7be` on an isolated review branch. The latest October 5 atomic website holds supersede the earlier notes that guest selection did not reserve temporary capacity. The original October 2 traceability rows below are historical, not current release acceptance.
+
+This batch fixes interrupted submission recovery: the form retains the exact payload and request key, keeps editable fields locked while the result is unknown, and offers an accessible retry with phone/email fallback. A definitive rejection restores original control states; reservation conflicts refresh availability. Saved requests and uncertain sends are never released by navigation. Leaving an unsent form clears its released selection, returning from browser suspension checks the hold clock, and equivalent UTC timestamp formats preserve the selected button state. Hold-release requests use keepalive; database expiry remains the fallback if the browser cannot send.
+
+The normal test command now includes `.test.mjs` regressions. The calendar harness uses the current hold contract; the weekly request test checks the signed durable CRM transport instead of obsolete email-only success. Tests cover interrupted sends, identical retries, rejected retries, failed hold responses, selection state, page exit, suspended timers, uncertain-send preservation and saved-request protection.
+
+Verification: all 154 application tests pass; public syntax and nine-page build pass; shared and CRM TypeScript checks pass; Next.js production build passes; all empty-schema migration/PostgreSQL fixtures pass. Full changed files and generated page/assets were reviewed against `docs/request-recovery-checklist.md`. Local simulated DOM tests are not real iPhone or browser navigation-cache acceptance. No browser executable is available in this workspace. There are no schema, provider, DNS, pricing, service catalog, logo, or main-branch changes in this batch.
+
+Remaining release work: live multi-client booking collisions; owner/mobile request approval, decline, reschedule and cancellation; actual current 24-hour reminders; invoice approval/send/PDF/paid follow-up; account recovery and isolation; encrypted restore and outside-app failure alerts. Twelve-month recurring reservations, durable packing/briefing and verified weather automation remain implementation gaps; native iOS and complete SaaS onboarding remain later work. Do not claim the project is production-ready.
+
+Source delivery is recorded after repository synchronization; no deployment is claimed by these local checks.
+
 # October 2 active CRM update
 
 Owner approved production_workflows; applied and permissions verified. PR #3 merged into codex/crm-workflow at 902259fa1cde1e318797b8c84e375adcad6ea150; Vercel dpl_6fT1eeqdQrMzRtkB6Zs4Pu7VsfJ2 READY. Supersedes the earlier migration-blocked checkpoint below.

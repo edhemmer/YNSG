@@ -9,6 +9,7 @@ if(form&&picker){
  const dateLabel=day=>new Intl.DateTimeFormat('en-US',{timeZone:'UTC',weekday:'long',month:'long',day:'numeric',year:'numeric'}).format(new Date(day+'T12:00:00Z'));
  const timeLabel=start=>new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',hour:'numeric',minute:'2-digit'}).format(new Date(start));
  const mode=()=>picker.querySelector('input[name=visitMode]:checked').value;
+ const locked=()=>holding||form.getAttribute('aria-busy')==='true'||form.dataset.deliveryUnknown==='true';
  function updateSelection(){
   let current;
   try{current=appointmentSelection({mode:mode(),start:selectedStart||null});}
@@ -28,11 +29,11 @@ if(form&&picker){
   held=null;selectedStart='';updateSelection();showTimes();status.textContent='That time hold ended. Press or click a time again, or send your request and we’ll arrange a time with you.';
  }
  async function clearSelection(){
-  clearTimeout(expiryTimer);expiryTimer=null;const previous=held;held=null;selectedStart='';updateSelection();status.textContent='No time selected. We’ll arrange a time with you after you send your request.';
+  clearTimeout(expiryTimer);expiryTimer=null;const previous=held;held=null;selectedStart='';updateSelection();showTimes();status.textContent='No time selected. We’ll arrange a time with you after you send your request.';
   if(previous)await release(previous.key,previous.token);
  }
  async function selectTime(slot){
-  if(holding||form.getAttribute('aria-busy')==='true')return;
+  if(locked())return;
   if(Date.now()>=validUntil){await load();return;}
   holding=true;form.dataset.appointmentHolding='true';picker.setAttribute('aria-busy','true');
   const key=selectionKey(),controls=[...picker.querySelectorAll('button,input[type=radio]')].map(element=>({element,disabled:element.disabled}));
@@ -58,7 +59,7 @@ if(form&&picker){
  function showTimes(){
   choices.replaceChildren();
   for(const slot of times.filter(t=>localDay(Date.parse(t.start))===selectedDate)){
-   const button=document.createElement('button');button.type='button';button.className='appointment-time';button.textContent=timeLabel(slot.start);button.disabled=holding;button.setAttribute('aria-pressed',String(slot.start===selectedStart));
+   const button=document.createElement('button');button.type='button';button.className='appointment-time';button.textContent=timeLabel(slot.start);button.disabled=holding;button.setAttribute('aria-pressed',String(!!selectedStart&&Date.parse(slot.start)===Date.parse(selectedStart)));
    button.addEventListener('click',()=>void selectTime(slot));choices.append(button);
   }
  }
@@ -72,7 +73,7 @@ if(form&&picker){
    const key=month+'-'+String(day).padStart(2,'0'),open=key>=today&&key<=limit&&times.some(t=>localDay(Date.parse(t.start))===key);
    const button=document.createElement('button');button.type='button';button.className='appointment-day';button.textContent=String(day);button.disabled=!open;button.setAttribute('aria-label',`${dateLabel(key)}${open?', open times':availabilityKnown?', unavailable':', open times not checked'}`);button.setAttribute('aria-pressed',String(selectedDate===key));
    button.addEventListener('click',async()=>{
-    if(holding||form.getAttribute('aria-busy')==='true')return;
+    if(locked())return;
     if(Date.now()>=validUntil){await load();return;}
     const previous=held;clearTimeout(expiryTimer);held=null;selectedStart='';selectedDate=key;draw();showTimes();updateSelection();status.textContent=`Choose a time for ${dateLabel(key)}.`;choices.querySelector('button')?.focus();
     if(previous)void release(previous.key,previous.token);
@@ -80,7 +81,7 @@ if(form&&picker){
   }
  }
  async function load(){
-  if(holding||form.getAttribute('aria-busy')==='true')return;
+  if(locked())return;
   controller?.abort();controller=new AbortController();const current=++generation;
   picker.setAttribute('aria-busy','true');
   picker.querySelectorAll('.calendar-toolbar,.appointment-weekdays,#appointment-days').forEach(el=>el.hidden=false);
@@ -99,10 +100,15 @@ if(form&&picker){
   finally{clearTimeout(timeout);if(current===generation){refresh.disabled=false;picker.setAttribute('aria-busy','false');}}
  }
  picker.querySelector('#calendar-refresh').addEventListener('click',()=>void load());
- picker.querySelector('#calendar-clear').addEventListener('click',()=>{if(holding||form.getAttribute('aria-busy')==='true')return;void clearSelection();selectedDate='';draw();showTimes();});
- for(const [id,offset] of [['calendar-previous',-1],['calendar-next',1]])picker.querySelector('#'+id).addEventListener('click',()=>{if(holding)return;const date=new Date(month+'-01T12:00:00Z');date.setUTCMonth(date.getUTCMonth()+offset);month=date.toISOString().slice(0,7);draw();});
- picker.querySelectorAll('input[name=visitMode]').forEach(radio=>radio.addEventListener('change',()=>{picker.querySelector('#recurrence-note').hidden=mode()!=='weekly';updateSelection();}));
+ picker.querySelector('#calendar-clear').addEventListener('click',()=>{if(locked())return;void clearSelection();selectedDate='';draw();showTimes();});
+ for(const [id,offset] of [['calendar-previous',-1],['calendar-next',1]])picker.querySelector('#'+id).addEventListener('click',()=>{if(locked())return;const date=new Date(month+'-01T12:00:00Z');date.setUTCMonth(date.getUTCMonth()+offset);month=date.toISOString().slice(0,7);draw();});
+ picker.querySelectorAll('input[name=visitMode]').forEach(radio=>radio.addEventListener('change',()=>{if(locked())return;picker.querySelector('#recurrence-note').hidden=mode()!=='weekly';updateSelection();}));
  form.addEventListener('appointment-conflict',()=>{void load();});
- window.addEventListener('pagehide',()=>{if(held&&form.dataset.deliveryUnknown!=='true'&&!form.hidden)void release(held.key,held.token);});
+ window.addEventListener('pagehide',()=>{if(held&&form.dataset.deliveryUnknown!=='true'&&!form.hidden)void clearSelection();});
+ // Mobile browsers can suspend timers while backgrounded or restore this page
+ // from their navigation cache. Recheck the clock instead of trusting a timer.
+ function resume(){if(held&&Date.parse(held.expiresAt)<=Date.now())expire();}
+ window.addEventListener('pageshow',resume);
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')resume();});
  load();
 }

@@ -7,7 +7,7 @@ export function selectionKey(){
 export async function appointmentHold(input,transport=fetch,timeoutMs=15000){
  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),timeoutMs);
  try{
-  const response=await transport('/api/appointment-hold',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input),signal:controller.signal});
+  const response=await transport('/api/appointment-hold',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input),signal:controller.signal,keepalive:input.action==='release'});
   const result=await response.json();
   if(!response.ok||result?.ok!==true){const error=new Error(typeof result?.error==='string'?result.error:'We couldn’t hold that time. Please try again, or send your request without a time.');error.status=response.status;throw error;}
   if(input.action==='release')return {ok:true};

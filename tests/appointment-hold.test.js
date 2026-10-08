@@ -13,7 +13,7 @@ test('selection requires a current two-hour hold receipt and preserves conflicts
 });
 test('a stalled selection aborts without showing a false hold; release works without a received token',async()=>{
  await assert.rejects(appointmentHold(input,async(url,options)=>new Promise((resolve,reject)=>options.signal.addEventListener('abort',()=>reject(new Error('TIMEOUT')),{once:true})),10),/TIMEOUT/);
- let sent;await appointmentHold({...input,action:'release',start:null},async(url,options)=>{sent=JSON.parse(options.body);return Response.json({ok:true});});
+ let sent;await appointmentHold({...input,action:'release',start:null},async(url,options)=>{assert.equal(options.keepalive,true);sent=JSON.parse(options.body);return Response.json({ok:true});});
  assert.equal(sent.key,key);assert.equal(sent.token,null);
 });
 test('server bridge signs the body, hashes the client address and strips extra response data',async()=>{

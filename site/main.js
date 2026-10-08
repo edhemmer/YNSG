@@ -116,25 +116,29 @@ if(form){
     section.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
     setTimeout(()=>categoryGroups.get(link.dataset.service)?.querySelector('summary').focus({preventScroll:true}),350);
   }));
-  let requestKey='', requestFingerprint='',sending=false;
+  let requestKey='', requestFingerprint='',sending=false,pendingSubmission=null;
   form.addEventListener('submit',async event=>{
     event.preventDefault();
     if(sending)return;
     if(form.dataset.appointmentHolding==='true'){message.textContent='Please wait a moment while we check your selected time.';message.focus();return;}
-    if(!selected.size){message.textContent='Please choose at least one job, or choose Something else and tell us about it.';groups.querySelector('summary').focus();return;}
-    if(!form.reportValidity()) return;
+    if(!pendingSubmission&&!selected.size){message.textContent='Please choose at least one job, or choose Something else and tell us about it.';groups.querySelector('summary').focus();return;}
+    if(!pendingSubmission&&!form.reportValidity()) return;
     const button=form.querySelector('button[type=submit]');
-    const data=Object.fromEntries(new FormData(form));
-    data.services=[...selected.values()];
-    data.appointmentSelection={mode:data.visitMode||'once',start:form.dataset.appointmentStart||null};
-    data.appointmentHold=data.appointmentSelection.start?{token:form.dataset.appointmentHoldToken||'',clientKey:form.dataset.appointmentClientKey||''}:null;
-    delete data.visitMode;
-    const fingerprint=JSON.stringify(data);
-    if(fingerprint!==requestFingerprint){requestKey=newRequestKey();requestFingerprint=fingerprint;}
-    data.requestKey=requestKey;
+    let data=pendingSubmission?.data;
+    if(!data){
+      data=Object.fromEntries(new FormData(form));
+      data.services=[...selected.values()];
+      data.appointmentSelection={mode:data.visitMode||'once',start:form.dataset.appointmentStart||null};
+      data.appointmentHold=data.appointmentSelection.start?{token:form.dataset.appointmentHoldToken||'',clientKey:form.dataset.appointmentClientKey||''}:null;
+      delete data.visitMode;
+      const fingerprint=JSON.stringify(data);
+      if(fingerprint!==requestFingerprint){requestKey=newRequestKey();requestFingerprint=fingerprint;}
+      data.requestKey=requestKey;
+    }
     sending=true;
     form.dataset.deliveryUnknown='true';
-    const editable=[...form.querySelectorAll('input,textarea,select,button,summary')].map(element=>({element,disabled:element.disabled,tabIndex:element.tabIndex}));
+    const editable=pendingSubmission?.editable||[...form.querySelectorAll('input,textarea,select,button,summary')].map(element=>({element,disabled:element.disabled,tabIndex:element.tabIndex}));
+    pendingSubmission={data,editable};
     for(const {element} of editable){if('disabled' in element)element.disabled=true;else element.tabIndex=-1;}
     form.setAttribute('aria-busy','true');
     button.disabled=true;
@@ -154,6 +158,7 @@ if(form){
       if(error.status>=400&&error.status<500)form.dataset.deliveryUnknown='false';
       if(error.status===409)refreshCalendar=true;
       message.textContent=requestErrorMessage(error);
+      if(form.dataset.deliveryUnknown==='true')message.textContent+=' Your details are kept for this retry. Press “Try sending again” to check the same request, or contact us using the options below.';
       const fallback=form.querySelector('#email-fallback');
       const subject='Your Neighborhood Service Guy New Request';
       const jobs=data.services.map(x=>`${x.service}: ${x.task}`).join('\n');
@@ -162,8 +167,12 @@ if(form){
       fallback.hidden=false;
       message.focus();
     }finally{
-      for(const {element,disabled,tabIndex} of editable){if('disabled' in element)element.disabled=disabled;else element.tabIndex=tabIndex;}
-      sending=false;form.setAttribute('aria-busy','false');button.firstChild.textContent='Send service request ';
+      const unknown=form.dataset.deliveryUnknown==='true';
+      if(!unknown){
+        for(const {element,disabled,tabIndex} of editable){if('disabled' in element)element.disabled=disabled;else element.tabIndex=tabIndex;}
+        pendingSubmission=null;
+      }
+      sending=false;form.setAttribute('aria-busy','false');button.disabled=false;button.firstChild.textContent=unknown?'Try sending again ':'Send service request ';
       if(refreshCalendar)form.dispatchEvent(new CustomEvent('appointment-conflict'));
     }
   });

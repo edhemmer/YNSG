@@ -6,7 +6,7 @@ import handler from '../api/requests.js';
 const now=Date.parse('2026-10-04T16:00:00Z');
 test('30-day boundary is enforced for one-time and recurring first visits',()=>{
  for(const mode of ['once','weekly']){assert.equal(appointmentSelection({mode,start:'2026-11-03T15:00:00Z'},now).firstDate,'2026-11-03');assert.throws(()=>appointmentSelection({mode,start:'2026-11-04T15:00:00Z'},now));}
- assert.throws(()=>appointmentSelection({mode:'once',start:'2026-10-10T15:00:00Z'},now));
+ assert.equal(appointmentSelection({mode:'once',start:'2026-10-10T15:00:00Z'},now).weekday,'Saturday','Published business configuration decides open days');
 });
 test('weekly calendar dates preserve weekday and cover 12 months including leap-year ending',()=>{
  const result=appointmentSelection({mode:'weekly',start:'2026-10-05T14:00:00Z'},now);assert.equal(result.localTime,'09:00');assert.equal(result.endExclusive,'2027-10-05');assert.ok(result.preferredTime.includes('Owner approval required'));
@@ -25,10 +25,14 @@ test('forged out-of-window input is rejected without sending email',async(t)=>{
  let sent=0;t.mock.method(globalThis,'fetch',async()=>{sent++;return Response.json({id:'synthetic'});});
  const res=response();await handler({method:'POST',headers:{host:'synthetic.invalid'},body:{...base,appointmentSelection:{mode:'once',start:'2099-10-05T14:00:00Z'}}},res);assert.equal(res.code,400);assert.equal(sent,0);
 });
-test('no-time request preserves existing email flow and weekly request intent',async(t)=>{
- const prior={CRM_INTAKE_ENABLED:process.env.CRM_INTAKE_ENABLED,RESEND_API_KEY:process.env.RESEND_API_KEY};Object.assign(process.env,{CRM_INTAKE_ENABLED:'false',RESEND_API_KEY:'synthetic'});t.after(()=>{for(const [k,v] of Object.entries(prior)){if(v===undefined)delete process.env[k];else process.env[k]=v;}});
- let message;t.mock.method(globalThis,'fetch',async(_url,options)=>{message=JSON.parse(options.body);return Response.json({id:'synthetic'});});
- const res=response();await handler({method:'POST',headers:{host:'synthetic.invalid'},body:{...base,appointmentSelection:{mode:'weekly',start:null}}},res);assert.equal(res.code,200);assert.ok(message.text.includes('Weekly visits for 12 months'));assert.equal(message.reply_to,base.email);
+test('no-time weekly request requires a durable CRM receipt rather than email-only success',async(t)=>{
+ const names=['CRM_INTAKE_ENABLED','CRM_AVAILABILITY_URL','CRM_AVAILABILITY_BYPASS_SECRET'];const prior=Object.fromEntries(names.map(k=>[k,process.env[k]]));
+ Object.assign(process.env,{CRM_INTAKE_ENABLED:'false',CRM_AVAILABILITY_URL:'https://synthetic.vercel.app/api/public-availability',CRM_AVAILABILITY_BYPASS_SECRET:'synthetic-test-only-credential-00000000'});
+ t.after(()=>{for(const [k,v] of Object.entries(prior)){if(v===undefined)delete process.env[k];else process.env[k]=v;}});
+ const id='11111111-1111-4111-8111-111111111111';let message;
+ t.mock.method(globalThis,'fetch',async(url,options)=>{if(url.pathname==='/api/website-guard')return Response.json({allowed:true});message=JSON.parse(options.body);return Response.json({ok:true,id});});
+ const res=response();await handler({method:'POST',headers:{host:'synthetic.invalid'},socket:{remoteAddress:'127.0.0.1'},body:{...base,requestKey:id,appointmentSelection:{mode:'weekly',start:null}}},res);
+ assert.equal(res.code,200);assert.equal(res.payload.saved,true);assert.ok(message.data.preferredTime.includes('Weekly visits for 12 months'));assert.equal(message.data.email,base.email);assert.equal(message.selection,null);
 });
 
 test('deployment credential stays in server request headers and never enters slot response',async()=>{
