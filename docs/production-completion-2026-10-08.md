@@ -51,3 +51,7 @@ Sign-in UX review: link-first waiting screen; optional explicit code entry with 
 ## 17:18 CT workflow simplification
 
 Owner feedback: the CRM felt scattered and required back-and-forth navigation. The owner sidebar now presents five workflow destinations first: Overview, Requests, Calendar, Quotes & jobs and Invoices & money. Today, Customers, Reports, Activity and Settings are grouped under More workspace. The dashboard includes a compact clickable path: Requests → Schedule → Work → Invoice & paid. Permission filtering remains tenant-role based; calendar/request routing and existing command guards are unchanged. TypeScript and optimized build passed.
+
+## 17:20 CT proposed-time clarity
+
+Owner feedback identified an unclear proposal decision. The request dialog now labels a pending proposal “Proposed time — your decision is needed”; the primary action is “Review proposed time”; the review panel is “Accept the proposed time”; and the final action is “Accept proposed time & confirm”. Existing scheduling validation, revision checks, capacity checks, resource review, idempotency and notification queue behavior are unchanged. TypeScript and optimized production build passed.

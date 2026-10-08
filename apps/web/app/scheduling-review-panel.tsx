@@ -34,8 +34,8 @@ export default function SchedulingReviewPanel({organization,requestId,appointmen
   catch(e){if(s===sequence.current)setError(publicError(e));}
   finally{if(s===sequence.current)setPending(false);}
  }
- return <div className="schedule-review"><button type="button" className="secondary" aria-expanded={expanded} disabled={pending} onClick={()=>setExpanded(v=>!v)}>{appointmentId?'Appointment confirmation checks':'Choose and review a time'}</button>
-  {expanded&&<div className="card"><h3>{appointmentId?'Confirm this appointment':'Schedule the visit'}</h3><p>Check the visit details below. Your connected Google calendar is checked automatically when you save; the customer notice and calendar update follow your saved decision.</p>
+ return <div className="schedule-review"><button type="button" className="secondary" aria-expanded={expanded} disabled={pending} onClick={()=>setExpanded(v=>!v)}>{appointmentId?'Review proposed time':'Choose and review a time'}</button>
+  {expanded&&<div className="card"><h3>{appointmentId?'Accept the proposed time':'Schedule the visit'}</h3><p>Check the visit details below. Your connected Google calendar is checked automatically when you save; the customer notice and calendar update follow your saved decision.</p>
    {error&&<p role="alert" className="error">{error}</p>}{message&&<p role="status">{message}</p>}
    {!context?<button type="button" onClick={()=>setRetry(v=>v+1)}>Reload review</button>:<form onSubmit={e=>{e.preventDefault();void submit(e.currentTarget);}}>
     <p>Times use {context.settings.timezone}. The work and price approvals remain separate.</p>
@@ -46,7 +46,7 @@ export default function SchedulingReviewPanel({organization,requestId,appointmen
     <label><input name="equipmentReviewed" type="checkbox" required/>I selected and verified all required people, equipment and trailer capacity.</label>
     <label><input name="pickupReviewed" type="checkbox" required/>I checked pickup location, supplier hours, payment/readiness and customer arrival, or confirmed that no pickup is needed.</label>
     <label>Visit review notes<textarea name="note" minLength={10} maxLength={3000} required placeholder="Note the work, travel and equipment checks, plus any pickup arrangements."/></label>
-    <button disabled={pending||!selected.length||(!appointmentId&&!times.length)}>{pending?'Checking and saving…':appointmentId?'Confirm appointment & queue customer notice':'Save proposed appointment'}</button>
+    <button disabled={pending||!selected.length||(!appointmentId&&!times.length)}>{pending?'Checking and saving…':appointmentId?'Accept proposed time & confirm':'Save proposed appointment'}</button>
    </form>}
    {context&&!appointmentId&&<RecurringPreviewPanel key={selected.join(",")} organization={organization} requestId={requestId} resources={selected}/> }
   </div>}
