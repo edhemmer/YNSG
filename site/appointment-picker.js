@@ -2,6 +2,8 @@ import {localDay,addDays,appointmentSelection} from './appointment-window.js';
 import {appointmentHold,selectionKey} from './appointment-hold.js';
 const form=document.querySelector('#request-form'),picker=document.querySelector('#appointment-picker');
 if(form&&picker){
+ const disclosure=document.querySelector('#appointment-disclosure'),disclosureNote=document.querySelector('#appointment-disclosure-note');
+ let opened=false;
  const today=localDay(),limit=addDays(today,30),firstMonth=today.slice(0,7),lastMonth=limit.slice(0,7),clientKey=selectionKey();
  let month=firstMonth,times=[],selectedDate='',selectedStart='',held=null,expiryTimer=null,holding=false,validUntil=0,availabilityKnown=false,generation=0,controller=null;
  form.dataset.appointmentClientKey=clientKey;
@@ -16,6 +18,7 @@ if(form&&picker){
   catch{held=null;selectedStart='';current=appointmentSelection({mode:mode(),start:null});}
   form.dataset.appointmentStart=selectedStart;form.dataset.appointmentHoldToken=held?.token||'';
   form.querySelector('#preferredTime').value=current.preferredTime;
+  if(disclosureNote)disclosureNote.textContent=selectedStart?`${dateLabel(current.firstDate)} · ${timeLabel(selectedStart)} · awaiting confirmation`:'Optional · or we can arrange a time with you';
   summary.textContent=selectedStart?`Selected: ${dateLabel(current.firstDate)} at ${timeLabel(selectedStart)}. ${held&&Date.parse(held.expiresAt)>Date.now()?'This time is held while you finish the form.':'The time hold has ended.'} ${mode()==='weekly'?'Only the first visit is held; we’ll review the weekly schedule with you. ':''}We’ll call to confirm the details and appointment.`:'We’ll arrange a time with you after you send your request.';
  }
  async function release(key,token=null){
@@ -110,5 +113,10 @@ if(form&&picker){
  function resume(){if(held&&Date.parse(held.expiresAt)<=Date.now())expire();}
  window.addEventListener('pageshow',resume);
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')resume();});
- load();
+ updateSelection();
+ if(disclosure){
+  disclosure.addEventListener('toggle',()=>{
+   if(disclosure.open&&!opened&&!locked()){opened=true;void load();}
+  });
+ }else void load();
 }

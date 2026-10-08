@@ -8,20 +8,21 @@ class Element {
  children=[];hidden=false;disabled=false;dataset={};attributes={};handlers={};value='once';textContent='';
  setAttribute(k,v){this.attributes[k]=v;} getAttribute(k){return this.attributes[k];} addEventListener(k,fn){this.handlers[k]=fn;} append(el){this.children.push(el);} replaceChildren(){this.children=[];} focus(){} querySelector(){return this.children[0];}
 }
-async function harness(responses,{holdError=false}={}){
+async function harness(responses,{holdError=false,collapsed=false}={}){
  const elements=new Map();const get=id=>{if(!elements.has(id))elements.set(id,new Element());return elements.get(id);};
  const form=new Element(),picker=new Element(),window=new Element();form.querySelector=get;picker.querySelector=get;
  const sections=['.calendar-toolbar','.appointment-weekdays','#appointment-days'].map(get);picker.querySelectorAll=selector=>selector.startsWith('.calendar-toolbar')?sections:[];
- const document=new Element();document.querySelector=id=>id==='#request-form'?form:picker;document.createElement=()=>new Element();
+ const disclosure=new Element(),note=new Element();disclosure.open=!collapsed;
+ const document=new Element();document.querySelector=id=>({'#request-form':form,'#appointment-picker':picker,'#appointment-disclosure':disclosure,'#appointment-disclosure-note':note}[id]??null);document.createElement=()=>new Element();
  let calls=0,key=0;const holdCalls=[],timers=new Map();let clock=Date.now();
  class Clock extends Date {static now(){return clock;}}
  vm.runInNewContext(source,{document,window,localDay,addDays,appointmentSelection,Intl,Date:Clock,AbortController,
   selectionKey:()=>`selection-${++key}`,appointmentHold:async input=>{holdCalls.push(input);if(input.action==='release')return {ok:true};if(holdError)throw Object.assign(Error('conflict'),{status:409});return {ok:true,token:'a'.repeat(64),start:new Date(input.start).toISOString(),end:new Date(Date.parse(input.start)+7200000).toISOString(),expiresAt:new Date(clock+60000).toISOString()};},
   setTimeout:(fn,ms)=>{const id=Symbol();timers.set(id,{fn,ms});return id;},clearTimeout:id=>timers.delete(id),
   fetch:async()=>{const r=responses[calls++];if(r instanceof Error)throw r;return r;}});
- const settle=async()=>{for(let n=0;n<30;n++)await Promise.resolve();};await settle();
+ const settle=async()=>{for(let n=0;n<30;n++)await Promise.resolve();};if(!collapsed)disclosure.handlers.toggle();await settle();
  const select=async()=>{const open=get('#appointment-days').children.find(el=>el.handlers.click&&!el.disabled);assert.ok(open);await open.handlers.click();await get('#appointment-times').children[0].handlers.click();await settle();};
- return {get,form,picker,window,document,sections,settle,select,holdCalls,advance:ms=>{clock+=ms;},calls:()=>calls};
+ return {get,form,picker,window,document,disclosure,note,sections,settle,select,holdCalls,advance:ms=>{clock+=ms;},calls:()=>calls};
 }
 const available=()=>{
  let day=addDays(localDay(),1);while([0,6].includes(new Date(day+'T12:00Z').getUTCDay()))day=addDays(day,1);
@@ -54,4 +55,18 @@ test('uncertain delivery retains selection and blocks refresh, clearing and rele
 });
 test('saved request never releases its reservation when leaving the page',async()=>{
  const h=await harness([available()]);await h.select();h.form.hidden=true;h.window.handlers.pagehide();assert.equal(h.holdCalls.length,1);
+});
+
+test('closed calendar loads only on first open; closing and reopening retains the hold',async()=>{
+ const h=await harness([available()],{collapsed:true});assert.equal(h.calls(),0);assert.equal(h.holdCalls.length,0);assert.equal(h.form.dataset.appointmentStart,'');
+ h.disclosure.open=true;h.disclosure.handlers.toggle();await h.settle();assert.equal(h.calls(),1);await h.select();
+ const start=h.form.dataset.appointmentStart,token=h.form.dataset.appointmentHoldToken;assert.match(h.note.textContent,/awaiting confirmation/);
+ h.disclosure.open=false;h.disclosure.handlers.toggle();h.disclosure.open=true;h.disclosure.handlers.toggle();await h.settle();
+ assert.equal(h.calls(),1);assert.equal(h.holdCalls.length,1);assert.equal(h.form.dataset.appointmentStart,start);assert.equal(h.form.dataset.appointmentHoldToken,token);
+ h.advance(61000);h.window.handlers.pageshow();assert.equal(h.form.dataset.appointmentStart,'');assert.match(h.note.textContent,/Optional/);
+});
+
+test('opening during a pending submission does not consume the first availability check',async()=>{
+ const h=await harness([available()],{collapsed:true});h.form.setAttribute('aria-busy','true');h.disclosure.open=true;h.disclosure.handlers.toggle();await h.settle();assert.equal(h.calls(),0);
+ h.form.setAttribute('aria-busy','false');h.disclosure.open=false;h.disclosure.handlers.toggle();h.disclosure.open=true;h.disclosure.handlers.toggle();await h.settle();assert.equal(h.calls(),1);
 });

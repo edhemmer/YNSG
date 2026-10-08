@@ -59,3 +59,16 @@ test('real CRM handler returns only committed success and never falls back to em
   fail=true;const failed=resultCollector();await handler(request,failed);assert.equal(failed.code,503);
   assert.equal(calls.length,2);assert.ok(calls.every(u=>u.endsWith('/rest/v1/rpc/submit_service_request')));
 });
+test('bot honeypots and cross-site submissions never reach calendar, database or mail',async(t)=>{
+  let calls=0;t.mock.method(globalThis,'fetch',async()=>{calls++;throw Error('unexpected provider call');});
+  const base={method:'POST',headers:{host:'synthetic.invalid'},body:{...data,requestKey:key}};
+  const trap=resultCollector();await handler({...base,body:{...base.body,website:'automated spam'}},trap);assert.equal(trap.code,200);assert.deepEqual(trap.payload,{ok:true});
+  for(const headers of [{host:'synthetic.invalid',origin:'https://attacker.invalid'},{host:'synthetic.invalid','sec-fetch-site':'cross-site'}]){const res=resultCollector();await handler({...base,headers},res);assert.equal(res.code,403);}
+  assert.equal(calls,0);
+});
+test('server request quota refusal stops intake instead of reserving or sending',async(t)=>{
+  configure(t,{CRM_INTAKE_ENABLED:'false'});let calls=0;
+  t.mock.method(globalThis,'fetch',async(url:unknown)=>{calls++;assert.equal(new URL(String(url)).pathname,'/api/website-guard');return Response.json({allowed:false},{status:429});});
+  const res=resultCollector();await handler({method:'POST',headers:{host:'synthetic.invalid'},socket:{remoteAddress:'127.0.0.1'},body:{...data,requestKey:key}},res);
+  assert.equal(res.code,429);assert.equal(calls,1);
+});
