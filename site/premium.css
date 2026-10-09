@@ -140,17 +140,17 @@ body:has(#request-form) .page-hero h1{font-size:clamp(1.9rem,3.5vw,2.8rem)}
 @media(max-width:590px){
  .shell{width:calc(100% - 36px)}.section{padding-block:36px}
  body:has(.home-services) .hero h1{font-size:clamp(1.85rem,7.7vw,2.35rem);margin-bottom:18px;line-height:1.2}
- .premium-hero .overline{margin-bottom:18px}.premium-hero .hero-lead{margin-bottom:22px}
+ body:has(.home-services) .hero-layout{padding-block:28px}.premium-hero .overline{margin-bottom:14px}.premium-hero .hero-lead{margin-bottom:22px}
  .hero-buttons{display:grid;grid-template-columns:1fr;gap:12px}.hero-call{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;min-height:56px;text-align:center}
  .neighbor-note .shell{align-items:start;gap:12px;padding-block:18px}.neighbor-note .flag-icon{margin-top:5px}.neighbor-note p{font-size:1rem}
  .home-services.section{padding-block:32px}.home-section-heading h2{font-size:1.75rem}.home-section-heading p:not(.overline){font-size:1rem}
  .home-service-grid{grid-template-columns:1fr;gap:0;border:1px solid #c5d2c7;border-radius:16px;overflow:hidden}
- .home-service{grid-template-columns:38px minmax(0,1fr) 18px;gap:14px;padding:18px 16px;border:0;border-bottom:1px solid #d7e0d6;border-radius:0;align-items:center}
- .home-service:last-child{border-bottom:0}.service-symbol{width:38px;height:38px;border-radius:10px}
+ .home-service{grid-template-columns:minmax(0,1fr) 18px;gap:12px;padding:16px;border:0;border-bottom:1px solid #d7e0d6;border-radius:0;align-items:center}
+ .home-service:last-child{border-bottom:0}.service-symbol{display:none}
  .home-service h3{font-size:1.1rem;margin-bottom:4px}.home-service p{font-size:1rem;line-height:1.45}.service-card-action{display:none}
  .home-rates-layout{gap:24px}.home-rates{padding-block:28px}.rate-pair{gap:32px}.home-request.section{padding-block:36px}
  .page-hero{padding-block:36px}.page-hero h1{font-size:2rem}.page-hero p:not(.overline){font-size:1rem}
- .request-layout{gap:20px}.request-side{padding:18px}.request-side .contact-options{grid-template-columns:1fr}
+ .request-layout{gap:20px}.request-layout>.form-card{grid-row:1}.request-layout>.request-side{grid-row:2}.request-side{padding:18px}.request-side .contact-options{grid-template-columns:1fr}
  body:has(#request-form) .request-side h2{font-size:1.3rem}.request-side p{margin-bottom:16px}
  .form-card{padding:20px 16px;border-radius:16px}.form-top{flex-direction:column;gap:4px;padding-bottom:18px;margin-bottom:24px}
  .form-row{grid-template-columns:1fr;gap:0}.form-section-heading{font-size:1.25rem}
