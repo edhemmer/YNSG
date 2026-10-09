@@ -38,13 +38,15 @@ body:has(.home-services) .hero h1{color:var(--navy);font-size:clamp(2.1rem,4.1vw
 .hero-call strong{font-size:1rem;white-space:nowrap}
 .hero-call:hover{background:#edf3ed}
 .premium-hero .hero-foot{font-size:1rem;color:#395647;line-height:1.5;margin-top:16px}
+.premium-hero .hero-bottom{color:var(--forest);border-color:#c8d6c9;font-size:1rem;padding-block:18px}
+.premium-hero .hero-bottom a{color:var(--forest)}
 body:has(.home-services) .hero-art{height:340px;min-height:340px;background:var(--navy);border-radius:32px;overflow:hidden;transform:none;will-change:auto;padding:22px}
 body:has(.home-services) .hero-art svg{max-height:290px;filter:none}
 .hero-art .art-orbit{animation:none}
 .hero-art .art-label{font-size:1rem;border-radius:8px;transform:none}
 .neighbor-note{background:#eef3eb;border-block:1px solid #d5dfd4}
 .neighbor-note .shell{display:flex;align-items:center;gap:16px;padding-block:20px}
-.neighbor-note .flag-icon{flex:none;margin:0}
+.neighbor-note .flag-icon{flex:none;margin:0 10px 0 0;vertical-align:middle}
 .neighbor-note p{margin:0;font-size:1rem;color:#284736;line-height:1.5}
 .home-services.section{padding-block:44px;background:white}
 .home-section-heading{align-items:center;margin-bottom:24px}
@@ -139,7 +141,7 @@ body:has(#request-form) .page-hero h1{font-size:clamp(1.9rem,3.5vw,2.8rem)}
 }
 @media(max-width:590px){
  .shell{width:calc(100% - 36px)}.section{padding-block:36px}
- body:has(.home-services) .hero h1{font-size:clamp(1.85rem,7.7vw,2.35rem);margin-bottom:18px;line-height:1.2}
+ body:has(.home-services) .hero h1{font-size:clamp(1.65rem,7vw,2.2rem);margin-bottom:18px;line-height:1.2}
  body:has(.home-services) .hero-layout{padding-block:28px}.premium-hero .overline{margin-bottom:14px}.premium-hero .hero-lead{margin-bottom:22px}
  .hero-buttons{display:grid;grid-template-columns:1fr;gap:12px}.hero-call{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;min-height:56px;text-align:center}
  .neighbor-note .shell{align-items:start;gap:12px;padding-block:18px}.neighbor-note .flag-icon{margin-top:5px}.neighbor-note p{font-size:1rem}
