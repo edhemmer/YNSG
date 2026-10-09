@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { syncGoogleCalendar } from "../../../../lib/google-sync";
+import {verifyRoutesConnection} from '../../../../lib/routes-health';
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export async function POST(request: Request) {
@@ -25,8 +26,10 @@ export async function POST(request: Request) {
     );
   try {
     const result = await syncGoogleCalendar(org.data);
+    let maps='verification_unavailable';
+    try{maps=await verifyRoutesConnection(org.data);}catch{console.error('routes_health_unavailable');}
     return NextResponse.json(
-      { processed: result.results.length },
+      { processed: result.results.length,maps },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch {

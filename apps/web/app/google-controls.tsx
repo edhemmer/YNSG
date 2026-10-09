@@ -32,6 +32,7 @@ export default function GoogleControls({
   const [calendarsLoading, setCalendarsLoading] = useState(false);
   const [statusLoading, setStatusLoading] = useState(true);
   const [delivery,setDelivery]=useState<Delivery|null>(null),[dispatcherEnabled,setDispatcherEnabled]=useState(false),[received,setReceived]=useState(false);
+  const [calendarSyncEnabled,setCalendarSyncEnabled]=useState(false),[maps,setMaps]=useState<{keyConfigured:boolean;connection:{status:string;last_success_at:string|null;last_error:string|null}|null}|null>(null);
   const [creation, setCreation] = useState<CalendarCreation | null>(null);
   const deliveryKey=useRef<string|null>(null);
   const generation = useRef(0),
@@ -48,6 +49,7 @@ export default function GoogleControls({
       if (gen !== generation.current) return;
       if (!r.ok) throw new Error(v.error);
       setDelivery(v.delivery);setDispatcherEnabled(v.dispatcherEnabled===true);deliveryKey.current=null;
+      setCalendarSyncEnabled(v.calendarSyncEnabled===true);setMaps(v.maps||null);
       setMissing(v.missing);
       setConnection(v.connection);
       if(["accepted","failed"].includes(v.connection?.gmailTest))testKey.current=null;
@@ -83,7 +85,7 @@ export default function GoogleControls({
     }
   }
   useEffect(() => {
-    setConnection(null);setDelivery(null);setReceived(false);deliveryKey.current=null;
+    setConnection(null);setDelivery(null);setReceived(false);setMaps(null);setCalendarSyncEnabled(false);deliveryKey.current=null;
     setCalendars([]);setCreation(null);setBusy(false);setMessage("");setCalendarsLoading(false);
     testKey.current = null;
     void load();
@@ -194,6 +196,7 @@ export default function GoogleControls({
         <>
           <p><strong>Google connected</strong> · {connection.email}</p>
           {view !== "email" && <>
+            <p>Automatic calendar updates: <strong>{calendarSyncEnabled&&connection.calendarId?'enabled':'paused'}</strong>.</p>
             <p>{connection.calendarId ? "Business calendar: " + (calendars.find(c => c.id === connection.calendarId)?.summary || "Saved calendar") : "Choose an existing calendar or create a separate one for your business."}</p>
             <form onSubmit={e => { e.preventDefault(); void act("calendar", { calendarId: calendar }); }}>
               <label>Business calendar
@@ -224,6 +227,7 @@ export default function GoogleControls({
               <p>Review changes made in Google before moving or confirming an appointment.</p>
             </details>
           </>}
+          {view==='settings'&&maps&&<section><h3>Travel-time connection</h3><p>{!maps.keyConfigured?'The Routes API key is not present in this deployment.':maps.connection?.status==='active'?'Google Routes verified. Day routes use scheduled departure times.':maps.connection?.status==='error'?'Google rejected the route check. Review API enablement, key restrictions, billing and quota.':'The Routes key is saved. The background worker is checking it.'}</p>{maps.connection?.last_success_at&&<p>Last successful route check: {new Date(maps.connection.last_success_at).toLocaleString()}.</p>}</section>}
           {view !== "calendar" && <>
           <p>
             The test sends one message to the connected Google account, not to a

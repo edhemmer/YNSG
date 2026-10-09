@@ -22,12 +22,13 @@ export async function GET(request:Request){
    count('quotes').eq('status','sent'),
    count('outbox').in('status',['pending','failed','leased','sending','needs_reconciliation','dead_letter']).lte('next_attempt_at',now),
    count('customer_schedule_preferences').eq('status','pending'),
+   count('outbox').in('status',['failed','needs_reconciliation','dead_letter']),
   ];
-  const [counts,finance,email]=await Promise.all([Promise.all(calls),db.rpc('finance_activity',{p_org:org,p_from:from,p_to:to}),db.rpc('mail_delivery_status',{p_org:org})]);
-  if(counts.some(r=>r.error||!Number.isSafeInteger(r.count)||r.count!<0)||finance.error||!finance.data||email.error)throw Error('FAILED');
+  const [counts,finance,email,connections]=await Promise.all([Promise.all(calls),db.rpc('finance_activity',{p_org:org,p_from:from,p_to:to}),db.rpc('mail_delivery_status',{p_org:org}),db.from('integration_connections').select('provider,status').eq('organization_id',org)]);
+  if(counts.some(r=>r.error||!Number.isSafeInteger(r.count)||r.count!<0)||finance.error||!finance.data||email.error||connections.error)throw Error('FAILED');
   const nonnegative=z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
   const money=z.object({cashReceivedCents:nonnegative,expenseCents:nonnegative,cashAfterExpensesCents:z.number().int().min(-Number.MAX_SAFE_INTEGER).max(Number.MAX_SAFE_INTEGER),issuedInvoicesCents:nonnegative,outstandingAsOfEndCents:nonnegative,paymentCount:nonnegative,expenseCount:nonnegative}).parse(finance.data);
-  const keys=['customers','requestsInPeriod','requestsToReview','upcomingVisits','proposals','working','paused','completed','quotes','messagesToCheck','rescheduleRequests'];
-  return NextResponse.json({checkedAt:new Date().toISOString(),from,to,timezone:company.data.timezone,finance:money,counts:Object.fromEntries(keys.map((k,i)=>[k,counts[i].count])),email:{enabled:email.data.enabled===true,automaticSending:process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true'}},{headers:{'Cache-Control':'private, no-store'}});
+  const keys=['customers','requestsInPeriod','requestsToReview','upcomingVisits','proposals','working','paused','completed','quotes','messagesToCheck','rescheduleRequests','deliveryExceptions'];
+  return NextResponse.json({checkedAt:new Date().toISOString(),from,to,timezone:company.data.timezone,finance:money,counts:Object.fromEntries(keys.map((k,i)=>[k,counts[i].count])),email:{enabled:email.data.enabled===true,automaticSending:process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true'},connections:connections.data},{headers:{'Cache-Control':'private, no-store'}});
  }catch(e){return failure(e)}
 }

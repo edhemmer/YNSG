@@ -1,0 +1,26 @@
+-- Foundation prefix creates active test companies; all changes roll back.
+update public.organizations set status='active' where id in('20000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000002');
+set local role service_role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+select pg_temp.assert_true(public.reserve_google_route_request(),'first route call allowed');
+do $$begin for n in 2..100 loop perform pg_temp.assert_true(public.reserve_google_route_request(),'daily allowance remains');end loop;end$$;
+select pg_temp.assert_true(not public.reserve_google_route_request(),'daily limit is fail closed');
+reset role;
+update private.google_route_budget set day=day-1,daily_calls=100,monthly_calls=4000;
+set local role service_role;
+select pg_temp.assert_true(not public.reserve_google_route_request(),'monthly cap applies across daily rollover');
+reset role;
+update private.google_route_budget set month=(month-interval '1 month')::date;
+set local role service_role;
+select pg_temp.assert_true(public.reserve_google_route_request(),'new billing month resets counters');
+select public.routes_connection_health('20000000-0000-4000-8000-000000000001','record',jsonb_build_object('fingerprint',repeat('a',64),'status','active'));
+select pg_temp.assert_true(public.routes_connection_health('20000000-0000-4000-8000-000000000001','read','{}')->>'status'='active','live probe is recorded');
+select pg_temp.assert_true(public.routes_connection_health('20000000-0000-4000-8000-000000000002','read','{}') is null,'other tenant has no probe record');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+do $$begin begin perform public.reserve_google_route_request();raise exception 'TEST FAILED public route budget';exception when insufficient_privilege then null;end;
+begin perform public.routes_connection_health('20000000-0000-4000-8000-000000000001','read','{}');raise exception 'TEST FAILED private probe';exception when insufficient_privilege then null;end;end$$;
+select pg_temp.assert_true(exists(select 1 from public.integration_connections where provider='maps' and status='active'),'owner sees safe provider status');
+select pg_temp.assert_true(not exists(select 1 from public.integration_connections where organization_id='20000000-0000-4000-8000-000000000002'),'tenant connection isolation remains');
+rollback;

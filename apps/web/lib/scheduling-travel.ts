@@ -1,7 +1,8 @@
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {googleRouteProvider} from './google-routes.ts';
-export async function schedulingTravel(db:SupabaseClient,org:string,requestId:string,appointmentId:string|null,resources:string[],operatorIds:string[],start:number,end:number,timezone:string,buffer:number){
- const provider=googleRouteProvider();if(!provider)return {before:0,after:0,status:'unavailable' as const};
+import type {RouteProvider} from './route-plan.ts';
+export async function schedulingTravel(db:SupabaseClient,org:string,requestId:string,appointmentId:string|null,resources:string[],operatorIds:string[],start:number,end:number,timezone:string,buffer:number,provider:RouteProvider|null=googleRouteProvider()){
+ if(!provider)return {before:0,after:0,status:'unavailable' as const};
  const operators=resources.filter(id=>operatorIds.includes(id));if(!operators.length)throw Error('INVALID_RESOURCES');
  const request=await db.from('service_requests').select('original_submission').eq('organization_id',org).eq('id',requestId).single();if(request.error)throw Error('ROUTE_UNAVAILABLE');
  const address=(r:Record<string,string>)=>[r.street,r.city].filter(Boolean).join(', '),destination=address(request.data.original_submission);if(!destination)throw Error('ROUTE_ADDRESS_REQUIRED');

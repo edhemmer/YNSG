@@ -1,0 +1,9 @@
+# Business assistant
+
+The dashboard uses full tenant-scoped counts and the finance ledger, not the first page of requests, to prepare a prioritized brief. Failed or uncertain automation comes first, then customer time changes, requests, proposals, routes, jobs, quotes and recorded unpaid balances. Pending automation is not described as a failed customer email. A quote count is not treated as proof that a quote is overdue. Errors never produce an all-clear result.
+
+Connection records are displayed separately from actual delivery outcomes. A Google Calendar record in test mode is not described as active. No AI or Maps provider is asserted unless present in the tenant's integration records. Server environment configuration and live provider execution still need verification.
+
+The marketing assistant produces editable social-post or flyer drafts using published company settings and approved catalog services. Held and review-only services are excluded. Hourly drafts use the configured standard rate and minimum duration; other pricing approaches require scope and price confirmation. Drafts include the published scope and exclusions, make no availability promises, and do not expose customer data or publish/send anything. Draft text is temporary and is lost when the editor closes or reloads.
+
+These features are deterministic decision support and draft preparation. They are not an autonomous language-model agent. No model provider credentials, marketing channel or advertising spend were activated. An autonomous marketing/advisory system still requires a verified model connection, approved channels, spending controls, durable action auditing and end-to-end acceptance tests. Existing calendar, mail, invoices and payment workflows retain their own verified state transitions and owner decisions.

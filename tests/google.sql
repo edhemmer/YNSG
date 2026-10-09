@@ -33,6 +33,7 @@ do $$declare claimed jsonb;begin
  perform public.google_store('20000000-0000-4000-8000-000000000001','projection_finish',jsonb_build_object('id',claimed->'item'->>'id','lease',claimed->'item'->>'lease_token','connectionRevision',5,'result','needs_review','eventId','synthetic-event','etag','external-change','reason','Synthetic external change'));
 end$$;
 reset role;
-select pg_temp.assert_true(not exists(select 1 from public.integration_connections where status='active'),'Google setup does not activate customer email');
+select pg_temp.assert_true(exists(select 1 from public.integration_connections where provider='google_calendar' and status='active'),'selected calendar is live, not test');
+select pg_temp.assert_true(not exists(select 1 from public.integration_connections where provider='gmail' and status='active'),'Google setup does not activate customer email');
 select 'PASS: Google owner access, tenant isolation, private credentials, OAuth replay, test retry and disconnect fencing' as evidence;
 rollback;
