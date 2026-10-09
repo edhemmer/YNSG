@@ -41,3 +41,20 @@ test('verifier storage rejects session and unrelated keys',()=>{
  assert.equal(storage.current(),null);
  assert.equal(storage.storage.getItem(EMAIL_STORAGE_KEY),null);
 });
+
+test('recovery PKCE carries its verified recovery destination across callback',async()=>{
+ let challenge='';
+ const token=['eyJhbGciOiJIUzI1NiJ9',Buffer.from(JSON.stringify({sub:'00000000-0000-4000-8000-000000000001',exp:Math.floor(Date.now()/1000)+3600})).toString('base64url'),'synthetic'].join('.');
+ const mock:typeof fetch=async(input,init)=>{
+  const url=new URL(String(input));const body=JSON.parse(String(init?.body||'{}'));
+  if(url.pathname==='/auth/v1/recover'){challenge=body.code_challenge;return new Response('{}',{status:200});}
+  assert.equal(createHash('sha256').update(body.code_verifier).digest('base64url'),challenge);
+  return new Response(JSON.stringify({access_token:token,refresh_token:'synthetic-refresh',expires_in:3600,token_type:'bearer',user:{id:'00000000-0000-4000-8000-000000000001'}}),{status:200});
+ };
+ const start=createEmailClient('https://synthetic.example.invalid','synthetic-key',null,mock);
+ assert.equal((await start.client.auth.resetPasswordForEmail('synthetic@example.invalid',{redirectTo:'https://crm.example.invalid/auth/confirm'})).error,null);
+ const callback=createEmailClient('https://synthetic.example.invalid','synthetic-key',start.currentVerifier(),mock);
+ const result=await callback.client.auth.exchangeCodeForSession('synthetic-code');
+ assert.equal(result.error,null);assert.equal(result.data.redirectType,'recovery');
+ assert.equal(callback.currentVerifier(),null);
+});
