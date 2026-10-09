@@ -81,3 +81,17 @@ test('password login after logout re-enables renewal only when login succeeds',a
   assert.equal(actions.includes('refresh'),accepted);
  }
 });
+
+test('password update renews an expired session before its single authenticated retry',async()=>{
+ let renewed=false,updates=0;
+ const request=createSessionFetch(async(path,init)=>{
+  if(init?.method==='POST') {
+   const action=JSON.parse(String(init.body)).action;
+   if(action==='refresh'){renewed=true;return result();}
+   if(action==='set-password'){updates++;return result(renewed?200:401);}
+  }
+  return result(401);
+ });
+ assert.ok((await request('/api/session',{method:'POST',body:'{"action":"set-password","password":"synthetic-test-password"}'})).ok);
+ assert.equal(updates,2);
+});
