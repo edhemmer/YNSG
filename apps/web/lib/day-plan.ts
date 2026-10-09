@@ -1,6 +1,7 @@
 export type DayCall = {
   id: string;
   requestId: string;
+  revision?: number;
   startAt: string;
   arrivalAt: string;
   endAt: string;
@@ -15,6 +16,9 @@ export type DayCall = {
   description: string;
 };
 export type DayPlan = {
+  operators?: {id:string;name:string}[];
+  selectedOperator?: string|null;
+  route?: import("./route-plan.js").RoutePlan;
   date: string;
   timezone: string;
   company: string;

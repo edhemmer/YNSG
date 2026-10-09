@@ -1,3 +1,4 @@
+import {delayMessage} from './delay-message';
 import {ownerRequestUrl} from './email-links';
 import {customerRequestEmail} from '../../../lib/customer-request-email.js';
 import {emailIdentity} from '../../../lib/email-layout.js';
@@ -86,6 +87,12 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
         .eq("organization_id", org).eq("id", item.object_id).single();
       if (request.error || request.data.original_submission.email !== item.payload.recipient) continue;
       ({ to, subject, body, html } = requestDeclinedMessage(config.data.settings.displayName, request.data.original_submission,identity));
+    } else if(item.kind==='appointment.delay_notice'){
+      const appointment=await db.from('appointments').select('request_id,timezone,status,revision').eq('organization_id',org).eq('id',item.object_id).single();
+      if(appointment.error||appointment.data.status!=='reserved'||appointment.data.revision!==item.payload.appointmentRevision)continue;
+      const request=await db.from('service_requests').select('original_submission').eq('organization_id',org).eq('id',appointment.data.request_id).single();
+      if(request.error||request.data.original_submission.email!==item.payload.recipient)continue;
+      try{({to,subject,body,html}=delayMessage(config.data.settings.displayName,request.data.original_submission.email,request.data.original_submission.name,String(item.payload.eta),appointment.data.timezone,identity));}catch{continue;}
     } else {
       const supported = [
         "appointment.owner_approval",

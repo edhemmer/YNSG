@@ -145,9 +145,9 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
   const [activeRequest,setActiveRequest]=useState<string|null>(null);
   const [mobileNav,setMobileNav]=useState(false);
   const [workRequest,setWorkRequest]=useState<string|null>(null);
-  const sections=[{key:'Dashboard',label:'Overview',icon:'dashboard'},{key:'Requests',label:'Requests',icon:'inbox'},{key:'Calendar',label:'Calendar',icon:'calendar'},{key:'Today',label:'Today’s route',icon:'pin'},{key:'Customers',label:'Customers',icon:'users'},{key:'Work',label:'Quotes & jobs',icon:'work'},{key:'Money',label:'Invoices & money',icon:'money'},{key:'Snapshot',label:'Reports',icon:'chart'},{key:'Activity',label:'Activity & messages',icon:'bell'},{key:'Settings',label:'Settings',icon:'settings'}];
-  const primarySections=sections.filter(s=>['Dashboard','Requests','Calendar','Work','Money'].includes(s.key));
-  const secondarySections=sections.filter(s=>['Today','Customers','Snapshot','Activity','Settings'].includes(s.key));
+  const sections=[{key:'Dashboard',label:'Overview',icon:'dashboard'},{key:'Requests',label:'Requests',icon:'inbox'},{key:'Calendar',label:'Calendar',icon:'calendar'},{key:'Today',label:'Day routes',icon:'pin'},{key:'Customers',label:'Customers',icon:'users'},{key:'Work',label:'Quotes & jobs',icon:'work'},{key:'Money',label:'Invoices & money',icon:'money'},{key:'Snapshot',label:'Reports',icon:'chart'},{key:'Activity',label:'Activity & messages',icon:'bell'},{key:'Settings',label:'Settings',icon:'settings'}];
+  const primarySections=sections.filter(s=>['Dashboard','Requests','Calendar','Today','Work','Money'].includes(s.key));
+  const secondarySections=sections.filter(s=>['Customers','Snapshot','Activity','Settings'].includes(s.key));
   const canSeeSection=(s:{key:string})=>['owner','admin'].includes(role||'')||(role==='dispatcher'?['Requests','Customers','Work','Today'].includes(s.key):role==='bookkeeper'?['Customers','Money'].includes(s.key):['Today','Work'].includes(s.key));
   function navigate(next:string){setPage(0);setMessage('');setError('');setSection(next);setMobileNav(false);if(next!=='Work'){setWorkRequest(null);const url=new URL(window.location.href);url.searchParams.delete('request');window.history.replaceState(null,'',url);}}
   function openWork(id:string){setActiveRequest(null);setWorkRequest(id);const url=new URL(window.location.href);url.searchParams.set('request',id);window.history.replaceState(null,'',url);setSection('Work');setPage(0);void refresh();}

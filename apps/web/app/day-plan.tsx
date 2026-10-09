@@ -8,6 +8,7 @@ import {
   navigationUrl,
   type DayPlan,
 } from "../lib/day-plan";
+import DelayNotice from './delay-notice';
 import PackingRuleEditor from "./packing-rule-editor";
 import { workKey } from "../lib/packing-plan";
 export default function DailyCallSheet({
@@ -22,10 +23,11 @@ export default function DailyCallSheet({
     [error, setError] = useState(""),
     [loading, setLoading] = useState(false),
     [reload, setReload] = useState(0),
+    [operator,setOperator]=useState(""),
     [savingRule, setSavingRule] = useState(false);
   const sequence = useRef(0);
   useEffect(() => {
-    setDate(localDate(new Date(), timezone));
+    setDate(localDate(new Date(), timezone));setOperator("");
   }, [organization, timezone]);
   useEffect(() => {
     const current = ++sequence.current;
@@ -34,7 +36,7 @@ export default function DailyCallSheet({
     setError("");
     setLoading(true);
     void sessionFetch(
-      `/api/day-plan?organization=${encodeURIComponent(organization)}&date=${encodeURIComponent(date)}`,
+      `/api/day-plan?organization=${encodeURIComponent(organization)}&date=${encodeURIComponent(date)}${operator?`&operator=${encodeURIComponent(operator)}`:""}`,
     )
       .then(async (r) => {
         const value = await r.json();
@@ -53,7 +55,7 @@ export default function DailyCallSheet({
     return () => {
       live = false;
     };
-  }, [organization, date, reload]);
+  }, [organization, date, operator, reload]);
   const time = (value: string) =>
     new Intl.DateTimeFormat("en-US", {
       timeZone: timezone,
@@ -64,7 +66,7 @@ export default function DailyCallSheet({
       className="card daily-call-sheet"
       aria-labelledby="day-plan-heading"
     >
-      <h2 id="day-plan-heading">Daily call sheet</h2>
+      <h2 id="day-plan-heading">Day route</h2>
       <div className="actions day-plan-controls">
         <label>
           Appointments for
@@ -83,7 +85,7 @@ export default function DailyCallSheet({
           disabled={loading || savingRule}
           onClick={() => setReload((v) => v + 1)}
         >
-          Refresh call sheet
+          Refresh route
         </button>
         <button
           type="button"
@@ -91,7 +93,7 @@ export default function DailyCallSheet({
           disabled={loading || savingRule || !plan || plan.date !== date}
           onClick={() => window.print()}
         >
-          Print call sheet
+          Print day plan
         </button>
       </div>
       <div className="actions day-plan-controls">
@@ -100,7 +102,7 @@ export default function DailyCallSheet({
           disabled={savingRule}
           className="secondary"
           onClick={() => {
-            setDate(localDate(new Date(), timezone));
+            setDate(localDate(new Date(), timezone));setOperator("");
             setReload((v) => v + 1);
           }}
         >
@@ -117,10 +119,7 @@ export default function DailyCallSheet({
           Tomorrow
         </button>
       </div>
-      <p>
-        In appointment order · {timezone}. Choose tomorrow’s date to plan the
-        next day. Press an address or Directions from my location to open Google Maps. Allow location access in Maps to start from where you are; otherwise, choose your starting point there.
-      </p>
+      <p>Choose any date to see its visits in appointment order. Open the route in Maps to navigate.</p>
       {error && (
         <p role="alert" className="error">
           {error}
@@ -129,6 +128,7 @@ export default function DailyCallSheet({
       {loading && <p role="status">Loading the complete day…</p>}
       {plan && plan.date === date && (
         <>
+          {(plan.operators?.length||0)>1&&<label>Operator route<select value={operator||plan.selectedOperator||''} disabled={savingRule} onChange={e=>setOperator(e.target.value)}>{plan.operators?.map(o=><option key={o.id} value={o.id}>{o.name}</option>)}</select></label>}
           <p>
             {plan.company} · {plan.date} · {plan.calls.length} appointment
             {plan.calls.length === 1 ? "" : "s"}
@@ -143,6 +143,85 @@ export default function DailyCallSheet({
               date.
             </p>
           )}
+          {plan.route&&<section className="route-summary" aria-label="Travel between visits">
+            <h3>Travel & schedule</h3>
+            <div className="actions day-plan-controls">{plan.route.mapsUrls.map((url,i)=><a key={url} className="button" href={url} target="_blank" rel="noopener noreferrer">{plan.route!.mapsUrls.length===1?'Open day route in Maps':`Open route segment ${i+1}`}</a>)}</div>
+            {plan.route.legs.length>0&&<p className="tiny">Google Maps travel estimates use each visit’s scheduled finish as departure. Times can change with traffic. Check supplier pickups separately.</p>}
+            {plan.route.warnings.map(w=><p key={w} className="note">{w}</p>)}
+            {plan.route.legs.filter(l=>l.lateMinutes!==null&&l.lateMinutes>0).map(l=><p key={l.toId} className="error">Travel to {plan.calls.find(c=>c.id===l.toId)?.name} needs {l.minutes} minutes; the schedule allows {l.gapMinutes}. Estimated {l.lateMinutes} minutes late. Review the appointment time below.</p>)}
+            {plan.route.grouping.map(g=><p className="note" key={g.nearbyId}>Nearby visits: {plan.calls.find(c=>c.id===g.firstId)?.name} and {plan.calls.find(c=>c.id===g.nearbyId)?.name}. The visit with {plan.calls.find(c=>c.id===g.betweenId)?.name} separates them with a longer drive. Consider grouping the nearby visits when rescheduling; customer times need confirmation.</p>)}
+          </section>}
+          {plan.calls.map((call, index) => {
+            const navigation = navigationUrl(call.address);
+            const leg=plan.route?.legs.find(l=>l.toId===call.id);
+            return (
+              <article key={call.id} className="row day-call">
+                <h3>
+                  {index + 1}. {time(call.arrivalAt)} — {call.name}
+                </h3>
+                {leg&&<p className="note">{leg.minutes===null?leg.reason:`From the previous visit: ${leg.minutes} min · ${((leg.meters||0)/1609.344).toFixed(1)} miles · ${leg.gapMinutes} min between visits${leg.lateMinutes?` · ${leg.lateMinutes} min short`:''}`}</p>}
+                <p>
+                  <strong>
+                    {call.status === "reserved"
+                      ? "Confirmed appointment"
+                      : "Needs scheduling review — check before traveling"}
+                  </strong>
+                  <br />
+                  Scheduled finish: {time(call.endAt)}
+                  <br />
+                  Customer response:{" "}
+                  {call.customerResponse === "confirmed"
+                    ? "Confirmed"
+                    : call.customerResponse === "reschedule_requested"
+                      ? "Requested another time"
+                      : "Awaiting response"}
+                </p>
+                <p>
+                  {navigation ? (
+                    <a href={navigation} target="_blank" rel="noopener noreferrer"
+                      aria-label={`Directions to ${call.name} at ${call.address}`}>
+                      {call.address}
+                    </a>
+                  ) : "Address needs review"}
+                  <br />
+                  {call.phone || "Phone needs review"}
+                  <br />
+                  {call.email || "Email needs review"}
+                </p>
+                <ul>
+                  {call.tasks.map((task, i) => (
+                    <li key={i}>{task}</li>
+                  ))}
+                </ul>
+                {call.description && <p>{call.description}</p>}
+                <div className="actions day-plan-controls">
+                  {navigation && (
+                    <a
+                      className="button"
+                      href={navigation}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Directions from my location
+                    </a>
+                  )}
+                  {call.phone && (
+                    <a href={`tel:${call.phone}`}>Call customer</a>
+                  )}
+                  <a
+                    href={`/?organization=${encodeURIComponent(organization)}&request=${encodeURIComponent(call.requestId)}`}
+                  >
+                    Open service order
+                  </a>
+                </div>
+                {call.status==='reserved'&&call.revision&&plan.date===localDate(new Date(),timezone)&&Date.parse(call.endAt)>Date.now()&&<DelayNotice key={organization+':'+call.id+':'+call.revision} organization={organization} appointment={call.id} revision={call.revision} email={call.email}/>}
+                <p className="tiny print-order-id">
+                  Service request: {call.requestId}
+                </p>
+              </article>
+            );
+          })}
+          <details className="day-packing"><summary>Equipment & supplies for this day</summary>
           <section
             className="packing-summary"
             aria-labelledby="packing-heading"
@@ -229,73 +308,7 @@ export default function DailyCallSheet({
               </div>
             )}
           </section>
-          {plan.calls.map((call, index) => {
-            const navigation = navigationUrl(call.address);
-            return (
-              <article key={call.id} className="row day-call">
-                <h3>
-                  {index + 1}. {time(call.arrivalAt)} — {call.name}
-                </h3>
-                <p>
-                  <strong>
-                    {call.status === "reserved"
-                      ? "Confirmed appointment"
-                      : "Needs scheduling review — check before traveling"}
-                  </strong>
-                  <br />
-                  Scheduled finish: {time(call.endAt)}
-                  <br />
-                  Customer response:{" "}
-                  {call.customerResponse === "confirmed"
-                    ? "Confirmed"
-                    : call.customerResponse === "reschedule_requested"
-                      ? "Requested another time"
-                      : "Awaiting response"}
-                </p>
-                <p>
-                  {navigation ? (
-                    <a href={navigation} target="_blank" rel="noopener noreferrer"
-                      aria-label={`Directions to ${call.name} at ${call.address}`}>
-                      {call.address}
-                    </a>
-                  ) : "Address needs review"}
-                  <br />
-                  {call.phone || "Phone needs review"}
-                  <br />
-                  {call.email || "Email needs review"}
-                </p>
-                <ul>
-                  {call.tasks.map((task, i) => (
-                    <li key={i}>{task}</li>
-                  ))}
-                </ul>
-                {call.description && <p>{call.description}</p>}
-                <div className="actions day-plan-controls">
-                  {navigation && (
-                    <a
-                      className="button"
-                      href={navigation}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Directions from my location
-                    </a>
-                  )}
-                  {call.phone && (
-                    <a href={`tel:${call.phone}`}>Call customer</a>
-                  )}
-                  <a
-                    href={`/?organization=${encodeURIComponent(organization)}&request=${encodeURIComponent(call.requestId)}`}
-                  >
-                    Open service order
-                  </a>
-                </div>
-                <p className="tiny print-order-id">
-                  Service request: {call.requestId}
-                </p>
-              </article>
-            );
-          })}
+          </details>
         </>
       )}
     </section>

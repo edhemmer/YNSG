@@ -12,6 +12,9 @@ import {
   requestedTasks,
   type DayCall,
 } from "../../../lib/day-plan";
+import {buildRoutePlan} from "../../../lib/route-plan";
+import {googleRouteProvider} from "../../../lib/google-routes";
+export const maxDuration=60;
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store" };
 export async function GET(request: Request) {
@@ -46,7 +49,7 @@ export async function GET(request: Request) {
     const appointments = await db
       .from("appointments")
       .select(
-        "id,request_id,start_at,arrival_at,end_at,status,customer_response,request:service_requests!appointments_organization_id_request_id_fkey(original_submission)",
+        "id,revision,request_id,start_at,arrival_at,end_at,status,customer_response,request:service_requests!appointments_organization_id_request_id_fkey(original_submission)",
         { count: "exact" },
       )
       .eq("organization_id", org)
@@ -69,9 +72,18 @@ export async function GET(request: Request) {
         },
         { status: 409, headers },
       );
+    const operatorResult=await db.from('resources').select('id,name').eq('organization_id',org).eq('kind','operator').order('name').limit(100);
+    if(operatorResult.error)throw operatorResult.error;
+    const operators=operatorResult.data;
+    const selectedOperator=params.get('operator')||operators[0]?.id||null;
+    if(selectedOperator&&!operators.some(o=>o.id===selectedOperator))return NextResponse.json({error:'Choose an operator in this workspace.'},{status:400,headers});
+    const assignments=selectedOperator?await db.from('resource_reservations').select('appointment_id',{count:'exact'}).eq('organization_id',org).eq('resource_id',selectedOperator).eq('active',true).in('appointment_id',appointments.data.length?appointments.data.map(a=>a.id):['00000000-0000-4000-8000-000000000000']).range(0,1000):null;
+    if(assignments?.error||assignments&&assignments.count!==assignments.data?.length)throw Error('INCOMPLETE_ROUTE_ASSIGNMENTS');
+    const assigned=new Set(assignments?.data?.map(a=>a.appointment_id)||[]);
     const calls: DayCall[] = appointments.data
       .filter(
         (a) =>
+          (!selectedOperator||assigned.has(a.id))&&
           localDate(new Date(a.arrival_at), company.data.timezone) === date,
       )
       .map((a) => {
@@ -81,6 +93,7 @@ export async function GET(request: Request) {
         return {
           id: a.id,
           requestId: a.request_id,
+          revision: a.revision,
           startAt: a.start_at,
           arrivalAt: a.arrival_at,
           endAt: a.end_at,
@@ -122,6 +135,7 @@ export async function GET(request: Request) {
       : [];
     return NextResponse.json(
       {
+        operators,selectedOperator,
         packing: packingRulesAvailable
           ? buildPackingPlan(calls, packingRules)
           : {
@@ -139,6 +153,7 @@ export async function GET(request: Request) {
         company: company.data.display_name,
         generatedAt: new Date().toISOString(),
         calls,
+        route: await buildRoutePlan(calls,googleRouteProvider()),
       },
       { headers },
     );
