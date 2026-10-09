@@ -8,10 +8,20 @@ export function initNeighborCarousel(root, env = window) {
   const live = root.querySelector('.neighbor-slides');
   const motion = env.matchMedia('(prefers-reduced-motion: reduce)');
   let index = 0, paused = motion.matches, timer, touchX;
+  // Layer complete figures in one grid cell. Opacity can crossfade without
+  // hiding the outgoing image or shifting the caption/photo frame.
+  live.classList.add('fade-ready');
+  function selectSlide(slide, active) {
+    slide.classList.toggle('is-active', active);
+    slide.setAttribute('aria-hidden', String(!active));
+    slide.inert = !active;
+    slide.hidden = false;
+  }
+  slides.forEach((slide, i) => selectSlide(slide, i === index));
   function syncTimer() {
     env.clearInterval(timer);
     timer = undefined;
-    if (!paused && !document.hidden) timer = env.setInterval(() => show(index + 1), 3000);
+    if (!paused && !document.hidden) timer = env.setInterval(() => show(index + 1), 5000);
     pause.setAttribute('aria-label', paused ? 'Play slideshow' : 'Pause slideshow');
     pause.querySelector('[data-play-symbol]').textContent = paused ? '▶' : 'Ⅱ';
     live.setAttribute('aria-live', paused ? 'polite' : 'off');
@@ -23,9 +33,9 @@ export function initNeighborCarousel(root, env = window) {
   }
   function show(next) {
     const candidate = slides[(next + slides.length) % slides.length].querySelector('img');
-    if (next !== 0 && !candidate.complete) { candidate.loading = 'eager'; return; }
+    if (!candidate.complete || candidate.naturalWidth === 0) { candidate.loading = 'eager'; return; }
     index = (next + slides.length) % slides.length;
-    slides.forEach((slide, i) => { slide.hidden = i !== index; });
+    slides.forEach((slide, i) => selectSlide(slide, i === index));
     pages.forEach((page, i) => page.setAttribute('aria-current', String(i === index)));
     warmNext();
   }
