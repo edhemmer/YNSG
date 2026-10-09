@@ -132,11 +132,10 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
     [error, setError] = useState(""),
     [message, setMessage] = useState("");
   const [email, setEmail] = useState(initialEmail),
-    [code, setCode] = useState(""),
     [password, setPassword] = useState(""),
-    [authMode, setAuthMode] = useState<"link" | "password" | "recover">("link"),
+    [showPassword, setShowPassword] = useState(false),
+    [authMode, setAuthMode] = useState<"password" | "recover">("password"),
     [sent, setSent] = useState(false),
-    [useEmailCode, setUseEmailCode] = useState(false),
     [pending, setPending] = useState(false);
   const [org, setOrg] = useState(""),
     [data, setData] = useState<Data | null>(null),
@@ -163,7 +162,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
       setError(previous=>previous.startsWith('We could not check your saved sign-in.')?'':previous);
       if(!initialWorkspaceChosen.current){initialWorkspaceChosen.current=true;const initial=s.memberships.find((m:Membership)=>m.organization_id===org)||s.memberships[0];if(initial?.role==='technician')setSection('Today');else if(initial?.role==='bookkeeper')setSection('Money');else if(initial?.role==='dispatcher')setSection('Requests');}
       setSession(s);
-      setMessage("");setSent(false);setCode("");setUseEmailCode(false);
+      setMessage("");setSent(false);setPassword("");setShowPassword(false);
       const locationParams = new URLSearchParams(window.location.search);
       const googleOrg = locationParams.get('googleOrganization') || locationParams.get('organization');
       setOrg((o: string) => o || s.memberships.find((m: Membership)=>m.organization_id===googleOrg)?.organization_id || s.memberships[0]?.organization_id || "");
@@ -235,29 +234,8 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
       finally { setPending(false); }
       return;
     }
-    if (sent && useEmailCode && !/^\d{6,10}$/.test(code.trim())) {
-      setError("Enter the numeric code from your email. A sign-in link should be opened in this browser.");
-      return;
-    }
-    setPending(true);
-    setError("");
-    try {
-      if (sent && !useEmailCode) {
-        await loadSession();
-      } else if (sent) {
-        await api("/api/session", { action: "verify", email, code: code.trim() });
-        await loadSession();
-      } else {
-        const r = await api("/api/session", { action: "send", email, destination: "owner",requestContext:ownerRequestContext(Object.fromEntries(new URLSearchParams(window.location.search)))||undefined });
-        setSent(true);setUseEmailCode(false);setCode("");
-        setMessage(r.message);
-      }
-    } catch (e) {
-      setError(publicError(e));
-    } finally {
-      setPending(false);
-    }
   }
+
   async function act(value: Record<string, unknown>) {
     setPending(true);
     setError("");
@@ -323,7 +301,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
         <nav aria-label="Workspace"><p className="nav-group-label">Workflow</p>{primarySections.filter(canSeeSection).map(s=><button key={s.key} aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span>{s.key==='Requests'&&data.requests.some(r=>r.status==='submitted')&&<i className="nav-attention" aria-label="New requests"/>}</button>)}<details className="sidebar-more" open={secondarySections.some(s=>s.key===section)}><summary><Icon name="settings"/><span>More workspace</span></summary>{secondarySections.filter(canSeeSection).map(s=><button key={s.key} aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span></button>)}</details></nav>
         <div className="sidebar-footer"><span className="sidebar-profile">{session.email.slice(0,2).toUpperCase()}</span><div><strong>{role==='owner'?'Business owner':'Team workspace'}</strong><small>{session.email}</small></div></div>
       </aside>}
-      {session&&<header className="crm-topbar"><div className="topbar-context"><button className="icon-button secondary mobile-menu" aria-expanded={mobileNav} aria-label="Toggle workspace menu" onClick={()=>setMobileNav(v=>!v)}><Icon name={mobileNav?'close':'menu'}/></button><span className="context-dot"/><strong>{data?.company.display_name||'Service workspace'}</strong></div><div className="topbar-actions"><ThemeToggle/>{operational&&<button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/><span>Requests</span></button>}{['owner','admin'].includes(role||'')&&<button className="icon-button secondary" aria-label="Activity and messages" onClick={()=>navigate('Activity')}><Icon name="bell"/></button>}<button className="icon-button secondary" aria-label="Sign out" onClick={async()=>{try{sessionSequence.current++;await api('/api/session',{action:'logout'});sessionSequence.current++;initialWorkspaceChosen.current=false;handledRequestLink.current=false;setSession(null);setSessionUnavailable(false);reloadSequence.current++;retryKeys.current.clear();setData(null);setOrg('');setEmail('');setCode('');setSent(false);setActiveRequest(null);}catch(e){setError(publicError(e));}}}><Icon name="logout"/></button></div></header>}
+      {session&&<header className="crm-topbar"><div className="topbar-context"><button className="icon-button secondary mobile-menu" aria-expanded={mobileNav} aria-label="Toggle workspace menu" onClick={()=>setMobileNav(v=>!v)}><Icon name={mobileNav?'close':'menu'}/></button><span className="context-dot"/><strong>{data?.company.display_name||'Service workspace'}</strong></div><div className="topbar-actions"><ThemeToggle/>{operational&&<button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/><span>Requests</span></button>}{['owner','admin'].includes(role||'')&&<button className="icon-button secondary" aria-label="Activity and messages" onClick={()=>navigate('Activity')}><Icon name="bell"/></button>}<button className="icon-button secondary" aria-label="Sign out" onClick={async()=>{try{sessionSequence.current++;await api('/api/session',{action:'logout'});sessionSequence.current++;initialWorkspaceChosen.current=false;handledRequestLink.current=false;setSession(null);setSessionUnavailable(false);reloadSequence.current++;retryKeys.current.clear();setData(null);setOrg('');setEmail('');setPassword('');setShowPassword(false);setSent(false);setActiveRequest(null);}catch(e){setError(publicError(e));}}}><Icon name="logout"/></button></div></header>}
       {session&&data&&<nav className="crm-mobile-dock" aria-label="Quick workspace navigation">{primarySections.filter(canSeeSection).map(s=><button key={s.key} type="button" aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span>{s.key==='Requests'&&data.requests.some(r=>r.status==='submitted')&&<i className="dock-attention" aria-label="New requests"/>}</button>)}</nav>}
       <main className={`shell${session?' workspace-main':''}`} id="main">
 
@@ -356,7 +334,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
           <form className="auth card" onSubmit={login}><ThemeToggle/>
             <p className="eyebrow">{loginBrand}</p>
             <h1>Sign in to your workspace</h1>
-            <p>{authMode === "recover" ? "Enter your email and we’ll send you a secure password reset link." : authMode === "password" ? "Use your workspace password for direct access." : "Enter your email and we’ll send you a secure sign-in link. Open the newest link in this same browser to continue."}</p>
+            <p>{authMode === "recover" ? "Enter your email to reset your password." : "Sign in with your email and password."}</p>
             {ownerGoogle?.enabled && <div>
               <button type="button" disabled={pending} onClick={async()=>{
                 setPending(true);setError("");
@@ -369,6 +347,8 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
               id="email"
               type="email"
               autoComplete="email"
+              autoCapitalize="none"
+              spellCheck={false}
               required
               disabled={pending || sent}
               value={email}
@@ -376,58 +356,20 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
             />
             {authMode === "password" && <>
               <label htmlFor="workspace-password">Password</label>
-              <input id="workspace-password" type="password" autoComplete="current-password" required disabled={pending} value={password} onChange={(e)=>setPassword(e.target.value)} />
+              <input id="workspace-password" type={showPassword ? "text" : "password"} autoComplete="current-password" autoCapitalize="none" autoCorrect="off" spellCheck={false} required disabled={pending} value={password} onChange={(e)=>setPassword(e.target.value)} />
+              <button type="button" className="secondary" aria-pressed={showPassword} disabled={pending} onClick={()=>setShowPassword(v=>!v)}>{showPassword ? "Hide password" : "Show password"}</button>
             </>}
             {authMode === "recover" && sent && <div><h2>Check your email</h2><p>Open the newest password reset link in this browser. The link will take you to a screen where you can choose a new password.</p></div>}
-            {authMode === "link" && sent && <div><h2>Check your email</h2><p>Open the newest sign-in link in the same browser where you requested it. If your mail app opens another browser, use that browser to request a fresh link.</p></div>}
-            {sent && useEmailCode && (
-              <>
-                <label htmlFor="code">Email code (if provided)</label>
-                <input
-                  id="code"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]{6,10}"
-                  minLength={6}
-                  maxLength={10}
-                  disabled={pending}
-                  autoComplete="one-time-code"
-                  required
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                />
-              </>
-            )}
             <div className="actions">
               <button disabled={pending || (authMode === "recover" && sent)}>
                 {pending
                   ? "Please wait…"
                   : authMode === "recover"
                     ? sent ? "Reset email sent" : "Send password reset"
-                  : authMode === "password"
-                    ? "Sign in with password"
-                  : sent
-                    ? useEmailCode ? "Sign in with code" : "Check sign-in"
-                    : "Email me a sign-in link"}
+                  : "Sign in with password"}
               </button>
-              {authMode === "recover" && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("link");setSent(false);setMessage("");setError("");}}>Back to sign in</button>}
-              {authMode === "password" && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("link");setPassword("");setError("");}}>Use email sign-in link</button>}
+              {authMode === "recover" && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("password");setSent(false);setMessage("");setError("");}}>Back to sign in</button>}
               {authMode !== "recover" && !sent && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("recover");setPassword("");setError("");}}>Forgot password</button>}
-              {authMode === "link" && !sent && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("password");setError("");}}>Use password instead</button>}
-              {sent && !useEmailCode && <button type="button" className="secondary" disabled={pending} onClick={()=>setUseEmailCode(true)}>My email includes a code</button>}
-              {sent && (
-                <button
-                  type="button"
-                  className="secondary"
-                  disabled={pending}
-                  onClick={() => {
-                    setSent(false);setUseEmailCode(false);setMessage("");setError("");
-                    setCode("");
-                  }}
-                >
-                  Request another email
-                </button>
-              )}
             </div>
           </form>
         ) : (
