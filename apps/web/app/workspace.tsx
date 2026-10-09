@@ -403,7 +403,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                 {pending
                   ? "Please wait…"
                   : authMode === "recover"
-                    ? "Reset email sent"
+                    ? sent ? "Reset email sent" : "Send password reset"
                   : authMode === "password"
                     ? "Sign in with password"
                   : sent
