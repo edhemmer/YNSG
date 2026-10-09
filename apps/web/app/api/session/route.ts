@@ -11,28 +11,30 @@ import {
 } from "../../../lib/session";
 import { emailClient, saveEmailVerifier } from "../../../lib/email-auth";
 import { recordOwnerSessionIp } from "../../../lib/owner-security";
+import { authProviderFailure } from "../../../lib/auth-flow";
+const emailAddress = z.string().trim().toLowerCase().pipe(z.email().max(254));
 const input = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("send"), email: z.email().max(254), destination: z.enum(["owner", "account"]).optional(), requestContext:z.object({request:z.uuid(),organization:z.uuid()}).strict().optional() }),
+  z.object({ action: z.literal("send"), email: emailAddress, destination: z.enum(["owner", "account"]).optional(), requestContext:z.object({request:z.uuid(),organization:z.uuid()}).strict().optional() }),
   z.object({
     action: z.literal("verify"),
-    email: z.email().max(254),
+    email: emailAddress,
     code: z.string().regex(/^\d{6,10}$/),
   }),
   z.object({
     action: z.literal("password"),
-    email: z.email().max(254),
+    email: emailAddress,
     password: z.string().min(1).max(128),
   }),
   z.object({
     action: z.literal("signup"),
-    email: z.email().max(254),
+    email: emailAddress,
     password: z.string().min(10).max(128),
     invitation: z
       .string()
       .regex(/^[A-Za-z0-9_-]{43}$/)
       .optional(),
   }),
-  z.object({ action: z.literal("recover"), email: z.email().max(254) }),
+  z.object({ action: z.literal("recover"), email: emailAddress }),
   z.object({
     action: z.literal("set-password"),
     password: z.string().min(10).max(128),
@@ -76,13 +78,15 @@ export async function POST(request: Request) {
           : await emailAuth.client.auth.resetPasswordForEmail(value.email, {
               redirectTo: callback,
             });
-      if (result.error)
+      if (result.error) {
+        const failed = authProviderFailure(result.error, value.action === 'recover');
         return NextResponse.json(
           {
-            error: "Account email could not be sent. Please try again later.",
+            error: failed.message,
           },
-          { status: 503, headers: { "Cache-Control": "no-store" } },
+          { status: failed.status, headers: { "Cache-Control": "no-store" } },
         );
+      }
       const response = saveEmailVerifier(
         NextResponse.json({
           ok: true,
@@ -122,10 +126,12 @@ export async function POST(request: Request) {
       if (bound.error) throw new Error("UNAUTHORIZED");
       const { error } = await db.auth.updateUser({ password: value.password });
       if (error) throw error;
-      return NextResponse.json(
+      const session = (await db.auth.getSession()).data.session;
+      if (!session) throw new Error('UNAUTHORIZED');
+      return saveSession(NextResponse.json(
         { ok: true },
         { headers: { "Cache-Control": "no-store" } },
-      );
+      ), session);
     }
     if (value.action === "send") {
       const emailAuth = await emailClient();
