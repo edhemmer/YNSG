@@ -133,6 +133,8 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
     [message, setMessage] = useState("");
   const [email, setEmail] = useState(initialEmail),
     [code, setCode] = useState(""),
+    [password, setPassword] = useState(""),
+    [authMode, setAuthMode] = useState<"link" | "password">("link"),
     [sent, setSent] = useState(false),
     [useEmailCode, setUseEmailCode] = useState(false),
     [pending, setPending] = useState(false);
@@ -211,6 +213,17 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
   }, [org,page]);
   async function login(event: FormEvent) {
     event.preventDefault();
+    if (authMode === "password") {
+      if (!password) { setError("Enter your workspace password."); return; }
+      setPending(true); setError("");
+      try {
+        await api("/api/session", { action: "password", email, password });
+        setPassword("");
+        await loadSession();
+      } catch (e) { setError(publicError(e)); }
+      finally { setPending(false); }
+      return;
+    }
     if (sent && useEmailCode && !/^\d{6,10}$/.test(code.trim())) {
       setError("Enter the numeric code from your email. A sign-in link should be opened in this browser.");
       return;
@@ -332,7 +345,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
           <form className="auth card" onSubmit={login}><ThemeToggle/>
             <p className="eyebrow">{loginBrand}</p>
             <h1>Sign in to your workspace</h1>
-            <p>Enter your email and we’ll send you a secure sign-in link. Open the newest link in this same browser to continue.</p>
+            <p>{authMode === "password" ? "Use your workspace password for direct access." : "Enter your email and we’ll send you a secure sign-in link. Open the newest link in this same browser to continue."}</p>
             {ownerGoogle?.enabled && <div>
               <button type="button" disabled={pending} onClick={async()=>{
                 setPending(true);setError("");
@@ -350,7 +363,11 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            {sent && <div><h2>Check your email</h2><p>Open the newest sign-in link in the same browser where you requested it. If your mail app opens another browser, use that browser to request a fresh link.</p></div>}
+            {authMode === "password" && <>
+              <label htmlFor="workspace-password">Password</label>
+              <input id="workspace-password" type="password" autoComplete="current-password" required disabled={pending} value={password} onChange={(e)=>setPassword(e.target.value)} />
+            </>}
+            {authMode === "link" && sent && <div><h2>Check your email</h2><p>Open the newest sign-in link in the same browser where you requested it. If your mail app opens another browser, use that browser to request a fresh link.</p></div>}
             {sent && useEmailCode && (
               <>
                 <label htmlFor="code">Email code (if provided)</label>
@@ -373,10 +390,14 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
               <button disabled={pending}>
                 {pending
                   ? "Please wait…"
+                  : authMode === "password"
+                    ? "Sign in with password"
                   : sent
                     ? useEmailCode ? "Sign in with code" : "Check sign-in"
                     : "Email me a sign-in link"}
               </button>
+              {authMode === "password" && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("link");setPassword("");setError("");}}>Use email sign-in link</button>}
+              {authMode === "link" && !sent && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("password");setError("");}}>Use password instead</button>}
               {sent && !useEmailCode && <button type="button" className="secondary" disabled={pending} onClick={()=>setUseEmailCode(true)}>My email includes a code</button>}
               {sent && (
                 <button
