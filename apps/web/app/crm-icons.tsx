@@ -1,5 +1,6 @@
 import type {ReactNode} from 'react';
 const paths:Record<string,ReactNode>={
+ menu:<path d="M4 6h16M4 12h16M4 18h16"/>,
  dashboard:<><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></>,
  inbox:<><path d="M4 4h16v15H4zM4 13h5l2 3h2l2-3h5"/><path d="M8 8h8"/></>,calendar:<><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18m-13 4h2m4 0h2"/></>,
  users:<><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3m0-16a3 3 0 0 1 0 6m3 4a5 5 0 0 1 3 4v2"/></>,
