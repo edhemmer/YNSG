@@ -608,6 +608,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                       <>
                       <div className="card">
                         <h2>Business preferences</h2>
+                        <p><a href="/account?password=change">Change my password</a></p>
                         <p className="badge">{data.company.status}</p>
                         <p>Timezone: {data.company.timezone}</p>
                         <p>
