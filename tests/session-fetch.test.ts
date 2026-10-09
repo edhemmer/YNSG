@@ -62,3 +62,22 @@ test('logout waits for pending renewal and prevents stale request revival',async
  release();assert.equal((await old).status,401);await logout;
  await request('/api/workspace');assert.deepEqual(actions,['refresh','logout']);
 });
+
+test('password login after logout re-enables renewal only when login succeeds',async()=>{
+ for(const accepted of [true,false]) {
+  let renewed=false;const actions:string[]=[];
+  const request=createSessionFetch(async(path,init)=>{
+   if(path==='/api/session'&&init?.method==='POST') {
+    const action=JSON.parse(String(init.body)).action;actions.push(action);
+    if(action==='password') return result(accepted?200:400);
+    if(action==='refresh') renewed=true;
+    return result();
+   }
+   return result(renewed?200:401);
+  });
+  await request('/api/session',{method:'POST',body:'{"action":"logout"}'});
+  await request('/api/session',{method:'POST',body:'{"action":"password"}'});
+  assert.equal((await request('/api/workspace')).status,accepted?200:401);
+  assert.equal(actions.includes('refresh'),accepted);
+ }
+});
