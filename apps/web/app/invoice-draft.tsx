@@ -2,10 +2,11 @@
 import { publicError } from "../lib/public-errors";
 import { useEffect, useRef, useState } from "react";
 import { sessionFetch } from "../lib/session-fetch";
+import {invoiceChargeCents} from "../lib/invoice-charge";
 type Line = {
   description: string;
   recordedMinutes: number;
-  chargedCents: number;
+  chargedAmount: string;
   waiverReason: string;
 };
 export default function InvoiceDraft({
@@ -31,10 +32,15 @@ export default function InvoiceDraft({
     [reviewed, setReviewed] = useState(false),
     [loaded, setLoaded] = useState(false),
     [savedDraft, setSavedDraft] = useState(false);
+  const mounted=useRef(true);
+  const currentTarget=useRef(organization+":"+job+":"+revision);
+  currentTarget.current=organization+":"+job+":"+revision;
   const retry = useRef<{ fingerprint: string; key: string } | null>(null);
-  useEffect(() => () => onBusy(false), [onBusy]);
+  useEffect(() => {mounted.current=true;return()=>{mounted.current=false;onBusy(false);};}, [onBusy]);
   useEffect(() => {
     let current = true;
+    const controller=new AbortController();
+    setBusy(false);onBusy(false);
     setLoaded(false);
     setSavedDraft(false);
     setLines([]);
@@ -43,12 +49,13 @@ export default function InvoiceDraft({
     retry.current = null;
     sessionFetch(
       "/api/invoice-draft?organization=" + organization + "&job=" + job,
+      {cache:"no-store",signal:controller.signal},
     )
       .then(async (r) => {
         const d = await r.json();
         if (!r.ok) throw Error(d.error);
         if (current) {
-          setLines(d.draft?.lines || []);
+          setLines((d.draft?.lines || []).map((line:{description:string;recordedMinutes:number;chargedCents:number;waiverReason:string})=>({description:line.description,recordedMinutes:line.recordedMinutes,waiverReason:line.waiverReason,chargedAmount:(line.chargedCents/100).toFixed(2)})));
           setLoaded(true);
           setSavedDraft(
             Boolean(d.draft?.lines?.length) && d.draft.jobRevision === revision,
@@ -59,9 +66,9 @@ export default function InvoiceDraft({
         if (current) setMessage(publicError(e));
       });
     return () => {
-      current = false;
+      current = false;controller.abort();
     };
-  }, [organization, job, revision]);
+  }, [organization, job, revision,onBusy]);
   function change(index: number, patch: Partial<Line>) {
     setReviewed(false);
     setSavedDraft(false);
@@ -72,11 +79,15 @@ export default function InvoiceDraft({
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (busy || blocked || !loaded || !reviewed) return;
+    if(lines.some(line=>invoiceChargeCents(line.chargedAmount)===null)){setMessage("Enter each charge as dollars with up to two decimal places.");return;}
+    const target=organization+":"+job+":"+revision;
     setBusy(true);
     onBusy(true);
     setMessage("");
     try {
-      const value = { organization, job, revision, lines };
+      const savedLines=lines.map(({chargedAmount,...line})=>({...line,chargedCents:invoiceChargeCents(chargedAmount)}));
+      if(savedLines.some(line=>line.chargedCents===null)){setMessage("Enter each charge as dollars with up to two decimal places. Nothing was saved.");return;}
+      const value = { organization, job, revision, lines:savedLines };
       const fingerprint = JSON.stringify(value);
       if (retry.current?.fingerprint !== fingerprint)
         retry.current = { fingerprint, key: crypto.randomUUID() };
@@ -87,21 +98,23 @@ export default function InvoiceDraft({
       });
       const d = await r.json();
       if (!r.ok) throw Error(d.error);
+      if(!mounted.current||currentTarget.current!==target)return;
       setMessage(
         "Draft saved. These charges will be used when you issue the invoice.",
       );
       retry.current = null;
       saved();
     } catch (e) {
-      setMessage(publicError(e));
+      if(mounted.current&&currentTarget.current===target)setMessage(publicError(e));
     } finally {
-      setBusy(false);
-      onBusy(false);
+      if(mounted.current&&currentTarget.current===target){setBusy(false);onBusy(false);}
     }
   }
   async function approve() {
     if (busy || blocked || !loaded || !savedDraft || !reviewed || !completed)
       return;
+    if(lines.some(line=>invoiceChargeCents(line.chargedAmount)===null)){setMessage("Enter each charge as dollars with up to two decimal places.");return;}
+    const target=organization+":"+job+":"+revision;
     setBusy(true);
     onBusy(true);
     setMessage("");
@@ -111,7 +124,7 @@ export default function InvoiceDraft({
         organizationId: organization,
         id: job,
         revision,
-        totalCents: lines.reduce((sum, line) => sum + line.chargedCents, 0),
+        totalCents: lines.reduce((sum, line) => sum + (invoiceChargeCents(line.chargedAmount)??0), 0),
         reviewed: true,
       };
       const fingerprint = JSON.stringify(value);
@@ -124,16 +137,16 @@ export default function InvoiceDraft({
       });
       const data = await response.json();
       if (!response.ok) throw Error(data.error);
+      if(!mounted.current||currentTarget.current!==target)return;
       retry.current = null;
       setMessage(
         "Invoice approved and issued. Open Money to review the invoice and separately request email delivery.",
       );
       saved();
     } catch (error) {
-      setMessage(publicError(error));
+      if(mounted.current&&currentTarget.current===target)setMessage(publicError(error));
     } finally {
-      setBusy(false);
-      onBusy(false);
+      if(mounted.current&&currentTarget.current===target){setBusy(false);onBusy(false);}
     }
   }
   return (
@@ -193,15 +206,14 @@ export default function InvoiceDraft({
               <label>
                 Charge ($)
                 <input
-                  type="number"
-                  min="0"
-                  max="9999999.99"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]{1,7}(\.[0-9]{1,2})?"
                   required
-                  value={l.chargedCents / 100}
+                  value={l.chargedAmount}
                   onChange={(e) =>
                     change(i, {
-                      chargedCents: Math.round(Number(e.target.value) * 100),
+                      chargedAmount: e.target.value,
                     })
                   }
                 />
@@ -209,8 +221,8 @@ export default function InvoiceDraft({
               <label>
                 Reason for no charge
                 <input
-                  required={l.chargedCents === 0}
-                  minLength={l.chargedCents === 0 ? 2 : 0}
+                  required={invoiceChargeCents(l.chargedAmount) === 0}
+                  minLength={invoiceChargeCents(l.chargedAmount) === 0 ? 2 : 0}
                   maxLength={1000}
                   value={l.waiverReason}
                   onChange={(e) => change(i, { waiverReason: e.target.value })}
@@ -238,7 +250,7 @@ export default function InvoiceDraft({
                 {
                   description: "",
                   recordedMinutes: 0,
-                  chargedCents: 0,
+                  chargedAmount: "0.00",
                   waiverReason: "",
                 },
               ]);
@@ -252,12 +264,7 @@ export default function InvoiceDraft({
             <>
               <p>
                 Invoice labor total:{" "}
-                {(
-                  lines.reduce((sum, l) => sum + l.chargedCents, 0) / 100
-                ).toLocaleString("en-US", {
-                  style: "currency",
-                  currency: "USD",
-                })}
+                {lines.some(l=>invoiceChargeCents(l.chargedAmount)===null)?"Check the charge amounts":(lines.reduce((sum,l)=>sum+(invoiceChargeCents(l.chargedAmount)??0),0)/100).toLocaleString("en-US",{style:"currency",currency:"USD"})}
               </p>
               <label>
                 <input

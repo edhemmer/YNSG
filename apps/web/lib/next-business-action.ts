@@ -1,4 +1,4 @@
-import type {BusinessSnapshot} from './business-snapshot';
+import type {BusinessSnapshot} from './business-snapshot.ts';
 type Totals=Pick<BusinessSnapshot,'counts'|'finance'>;
 type Action={title:string;description:string;label:string;section:string}|null;
 export function nextBusinessAction(data:Totals|null):Action{
