@@ -16,16 +16,24 @@ export function initNeighborCarousel(root, env = window) {
     pause.querySelector('[data-play-symbol]').textContent = paused ? '▶' : 'Ⅱ';
     live.setAttribute('aria-live', paused ? 'polite' : 'off');
   }
+  function warmNext() {
+    const next = slides[(index + 1) % slides.length].querySelector('img');
+    next.loading = 'eager';
+    if (next.decode) void next.decode().catch(() => {});
+  }
   function show(next) {
+    const candidate = slides[(next + slides.length) % slides.length].querySelector('img');
+    if (next !== 0 && !candidate.complete) { candidate.loading = 'eager'; return; }
     index = (next + slides.length) % slides.length;
     slides.forEach((slide, i) => { slide.hidden = i !== index; });
     pages.forEach((page, i) => page.setAttribute('aria-current', String(i === index)));
+    warmNext();
   }
   function manual(next) { paused = true; show(next); syncTimer(); }
   controls.hidden = false;
   pages.forEach(page => page.addEventListener('click', () => manual(Number(page.dataset.slide))));
-  root.querySelector('[data-carousel="previous"]').addEventListener('click', () => manual(index - 1));
-  root.querySelector('[data-carousel="next"]').addEventListener('click', () => manual(index + 1));
+  root.querySelector('[data-carousel="previous"]')?.addEventListener('click', () => manual(index - 1));
+  root.querySelector('[data-carousel="next"]')?.addEventListener('click', () => manual(index + 1));
   pause.addEventListener('click', () => { paused = !paused; syncTimer(); });
   root.addEventListener('focusin', event => { if (event.target !== pause) { paused = true; syncTimer(); } });
   root.addEventListener('pointerenter', event => { if (event.pointerType === 'mouse') { hovered = true; syncTimer(); } });
@@ -43,6 +51,8 @@ export function initNeighborCarousel(root, env = window) {
   }, {passive:true});
   document.addEventListener('visibilitychange', syncTimer);
   motion.addEventListener('change', () => { paused = motion.matches; syncTimer(); });
-  show(0); syncTimer();
+  const first = slides[0].querySelector('img');
+  if (first.decode) void first.decode().catch(() => {}).then(() => { warmNext(); syncTimer(); });
+  else { warmNext(); syncTimer(); }
 }
 if (typeof document !== 'undefined') document.querySelectorAll('[data-neighbor-carousel]').forEach(root => initNeighborCarousel(root));

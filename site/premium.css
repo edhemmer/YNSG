@@ -195,3 +195,10 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.95fr) minm
  .home-service{grid-template-columns:38px minmax(0,1fr) 18px;gap:10px}.home-service .service-symbol{display:grid;width:38px;height:38px}.service-symbol svg{width:24px;height:24px}
  .carousel-pages{gap:0}.carousel-arrows{gap:2px}.carousel-pages button{width:34px;min-width:34px}
 }
+
+/* A larger, quiet hero: the photograph carries the story. */
+body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minmax(0,1.4fr);gap:30px;padding-block:36px}
+.neighbor-carousel{position:relative;border-radius:18px}.neighbor-slide img{aspect-ratio:3/2}.neighbor-slide figcaption{padding:18px 62px 18px 20px;min-height:68px;font-size:1.1rem}
+.carousel-controls{position:absolute;right:12px;bottom:12px;padding:0;display:block}.carousel-controls button{width:40px;min-width:40px;height:40px;border:1px solid #d5dfd4;background:#f7faf5;font-size:.95rem;color:var(--forest)}
+.premium-hero .hero-motto{font-size:1.1rem;font-weight:700;color:var(--forest)}
+@media(max-width:850px){body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,1fr);padding-block:24px}.neighbor-slide figcaption{font-size:1rem;padding:14px 58px 14px 16px;min-height:84px}.carousel-controls{bottom:16px;right:10px}}
