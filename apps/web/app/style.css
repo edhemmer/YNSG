@@ -85,3 +85,48 @@
  .company-workspace input:not([type=checkbox]):not([type=radio]),.company-workspace select,.company-workspace textarea{font-size:16px;min-height:48px}.company-workspace .workflow-steps{gap:8px;display:grid;grid-template-columns:1fr 1fr}.company-workspace .workflow-steps button{justify-content:flex-start}
 }
 @media print{.crm-mobile-dock{display:none!important}}
+
+/* Request summaries put appointment information ahead of arrival metadata. */
+.request-summary-card{border:1px solid var(--line);border-radius:14px;padding:18px;background:var(--surface,#fff);margin-bottom:14px}
+.request-summary-card .request-list-row{display:flex;gap:16px;align-items:flex-start;padding:0;border:0;width:100%;color:var(--ink)}
+.request-summary-card .request-row-main{flex:1;min-width:0}.request-summary-card .request-row-next{position:static;flex:none;text-align:right;font-size:12px;display:grid;gap:3px}
+.request-summary-card .request-row-next time{display:block}.request-summary-card .request-work{display:block;white-space:normal;overflow:visible;text-overflow:clip;margin:12px 0 8px;line-height:1.6}
+.request-visit-time{display:flex;gap:9px;align-items:flex-start;margin-top:10px}.request-visit-time svg{margin-top:5px;width:20px;height:20px;flex:none;color:var(--green)}.request-visit-time small{display:block;font-size:12px;color:var(--muted,#607180)}.request-visit-time strong{display:block;font-size:16px;line-height:1.5}
+.request-action-buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.request-action-buttons button{min-width:110px}.request-quick-actions>p{margin:10px 0 0}.quick-decision{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}.quick-decision .schedule-review .card{margin:0 0 16px;padding:0;border:0;box-shadow:none;background:transparent}
+.theme-toggle{display:inline-flex;align-items:center;justify-content:center;gap:8px;color:var(--ink)}.auth>.theme-toggle{float:right;margin-bottom:16px}.auth h1{clear:both}
+@media(max-width:760px){.request-summary-card{padding:16px}.request-summary-card .request-row-next{display:none}.request-summary-card .request-row-main{padding-right:0}.request-action-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.request-action-buttons button{min-width:0;padding:10px 8px;gap:5px!important;font-size:14px!important}.request-action-buttons svg{width:18px;height:18px}.company-workspace .topbar-actions>.theme-toggle{display:inline-flex;min-width:44px;width:44px;padding:10px}.topbar-actions .theme-toggle span{display:none}.topbar-actions>button:has(>span):not(.theme-toggle){display:none}}
+
+/* Workspace appearance applies to dialogs, calendar, finance, settings and auth. */
+@media screen{
+html[data-theme=dark]{color-scheme:dark;--ink:#e6edf3;--paper:#101820;--line:#354450;--green:#315f47;--navy:#e6edf3}
+html[data-theme=dark] .company-workspace:not(.signed-out){--surface:#1a2631;--workspace-bg:#101820;--muted:#b3c2cd;--border:#354450}
+html[data-theme=dark] :is(.card,.account-card,.inbox-panel,.request-dialog,.invoice-document article,.month-grid td,.month-grid .calendar-day,.company-workspace .month-grid .calendar-day,.company-workspace button.metric-card,.company-workspace button.quick-action,.request-summary-card,.appointment-date-icon,.skip){background:#1a2631;color:var(--ink);border-color:#354450}
+html[data-theme=dark] :is(input,select,textarea){background:#121d27;color:var(--ink);border-color:#738795}
+html[data-theme=dark] :is(.crm-topbar,.crm-mobile-dock){background:#1a2631f5;border-color:#354450}
+html[data-theme=dark] :is(button.secondary,a.secondary,.request-dialog .secondary,.company-workspace:not(.signed-out) button.secondary,.company-workspace:not(.signed-out) a.secondary){background:#2b3b48;color:var(--ink)}
+html[data-theme=dark] :is(.detail-top,.customer-note,.empty-inline,.account-message,.calendar-key span,.company-workspace .calendar-key span,.workflow-strip i,.company-workspace .filter-tabs,.request-dialog .detail-tabs,.company-workspace .calendar-mini-visit,.calendar-week-day.is-today,.calendar-inbox-link,.automation-card,.workflow-guide,.company-workspace .workflow-steps button,.request-dialog .schedule-review>.card){background:#21313d;color:var(--ink);border-color:#354450}
+html[data-theme=dark] :is(.company-workspace .filter-tabs button[aria-pressed=true],.request-dialog .detail-tabs button[aria-pressed=true],.company-workspace .month-grid .calendar-day.is-selected,.month-grid .calendar-day:hover,.company-workspace .crm-mobile-dock button[aria-current=page]){background:#304a43;color:#dcf5e5}
+html[data-theme=dark] :is(.muted,.company-settings small,.request-work,.request-address,.request-row-next,.inbox-summary,.list-pagination,.empty-state,.request-facts dt,.service-checklist span,.detail-contact>span,.appointment-focus small,.request-dialog .schedule-review p,.automation-card p,.quick-action small,.calendar-mini-visit>span,.calendar-mini-visit small,.calendar-inbox-link span,.company-workspace .month-grid th,.company-workspace .calendar-more,.company-workspace .week-day-heading,.company-workspace .filter-tabs button,.request-dialog .detail-tabs button,.workflow-strip>span,.request-visit-time small){color:#b3c2cd}
+html[data-theme=dark] :is(.eyebrow,.customer-request .eyebrow,.service-checklist svg,.request-visit-time svg,.workflow-strip .is-done,.workflow-steps button .crm-icon){color:#a7d8b6}
+html[data-theme=dark] :is(.note,.appointment-focus.awaiting-approval){background:#342b1e;color:#f3dfb7;border-color:#c5a66b}
+html[data-theme=dark] .appointment-focus{background:#22382d;color:#dcf5e5}
+html[data-theme=dark] :is(.error,.customer-request .error){color:#ffb4a8}
+html[data-theme=dark] :is(.danger-ghost,.decision-form){background:#402b2a;color:#ffc1b4}
+html[data-theme=dark] :is(.tone-amber,.avatar-amber){background:#443722;color:#f6d495}
+html[data-theme=dark] :is(.tone-green,.avatar-green,.workflow-strip .is-done i,.badge,.automation-symbol){background:#254234;color:#bfe8cc}
+html[data-theme=dark] :is(.tone-blue,.avatar-blue){background:#263e55;color:#bedefa}
+html[data-theme=dark] :is(.tone-violet,.avatar-violet){background:#3b3150;color:#ddcaf6}
+html[data-theme=dark] :is(.tone-neutral,.avatar-neutral,.empty-icon){background:#30404d;color:#c9d7e1}
+html[data-theme=dark] .crm-sidebar{background:#102333}.crm-sidebar .sidebar-brand img{color-scheme:light}
+html[data-theme=dark] .command-hero{background:linear-gradient(115deg,#102333,#163d4c 72%,#264c43)}
+html[data-theme=dark] .company-workspace .command-hero button{color:#102333}
+html[data-theme=dark] :is(.account-shell,.account-shell a,.customer-request .notice){color:var(--ink)}
+html[data-theme=dark] .customer-request .notice{background:#22382d}
+html[data-theme=dark] :focus-visible{outline-color:#edbd6b}
+html[data-theme=dark] .request-dialog::backdrop{background:#0009}
+}
+@media print{.theme-toggle,.request-action-buttons,.request-quick-actions{display:none!important}}
+.request-summary-card .request-row-title strong{font-size:17px}.request-summary-card .request-row-title{flex-wrap:wrap}.request-summary-card .request-work{font-size:15px}.request-summary-card .request-address{font-size:14px}
+.quick-decision label:has(input[type=checkbox]){display:flex;gap:8px;align-items:center}.quick-decision fieldset{min-width:0;border:1px solid var(--line);border-radius:10px;margin-top:16px}
+@media screen{html[data-theme=dark] .quick-decision .schedule-review .card{background:transparent}html[data-theme=dark] .top{background:#102333}html[data-theme=dark] .nav button[aria-current=page]{background:#304a43;color:#dcf5e5}html[data-theme=dark] .snapshot-bar-track{background:#354450}html[data-theme=dark] .snapshot-bar.tone-2{background:#91b9d5}html[data-theme=dark] .linked-records svg{color:#b3c2cd}}
+@media screen{html[data-theme=dark] .company-workspace{--ink:#e6edf3!important;--paper:#101820!important}}
