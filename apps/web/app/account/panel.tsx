@@ -32,9 +32,12 @@ export default function Account() {
   >("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [recoverySent, setRecoverySent] = useState(false);
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [workspaceAccess, setWorkspaceAccess] = useState(false);
   const [signed, setSigned] = useState(false);
   const [checking, setChecking] = useState(true);
   const [sessionUnavailable, setSessionUnavailable] = useState(false);
@@ -52,12 +55,14 @@ export default function Account() {
     setSessionUnavailable(false);
     try {
       const r = await sessionFetch("/api/portal");
-      if (r.status === 401) { setSigned(false); setData(null); setOrg(""); setCompanies([]); return; }
+      if (r.status === 401) { setMode(m => m === "set-password" ? "recover" : m); setSigned(false); setData(null); setOrg(""); setCompanies([]); return; }
       if (!r.ok) throw Error('Account unavailable');
       const d = await r.json();
       const pending = await sessionFetch("/api/account-link");
       if (pending.ok && (await pending.json()).pending)
         setInvitation((i) => i || "pending");
+      const session = await sessionFetch("/api/session");
+      if (session.ok) { const details = await session.json(); setWorkspaceAccess((details.memberships || []).some((m: {role: string}) => ["owner", "admin", "staff"].includes(m.role))); }
       setSigned(true);
       setEmail(d.email || "");
       const allowed = new Set(
@@ -110,11 +115,12 @@ export default function Account() {
   }, [org, page, refresh]);
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (busy) return;
+    if (busy || (mode === "recover" && recoverySent)) return;
+    if (mode === "set-password" && password !== confirmation) { setMessage("Passwords do not match."); return; }
     setBusy(true);
     setMessage("");
     try {
-      const r = await fetch("/api/session", {
+      const r = await sessionFetch("/api/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -129,6 +135,9 @@ export default function Account() {
       const d = await r.json();
       if (!r.ok) throw Error(d.error);
       setPassword("");
+      setConfirmation("");
+      setVisible(false);
+      if (mode === "recover") setRecoverySent(true);
       setMessage(
         d.message ||
           (mode === "set-password" ? "Password saved." : "You are signed in."),
@@ -147,19 +156,28 @@ export default function Account() {
     <main id="main" className="account-shell">
       <header className="account-header">
         <a href="/account">My account</a>
+        {signed && <a href="/account?password=change">Change password</a>}
+        {signed && workspaceAccess && <a href="/owner">Workspace</a>}
         {signed && (
           <button
             disabled={busy}
             onClick={async () => {
               setBusy(true);
               try {
-                const r = await fetch("/api/session", {
+                const r = await sessionFetch("/api/session", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ action: "logout" }),
                 });
                 if (!r.ok) throw Error("Could not sign out. Try again.");
                 setSigned(false);
+                setMode("password");
+                setRecoverySent(false);
+                setMessage("");
+                setConfirmation("");
+                setPassword("");
+                setVisible(false);
+                setWorkspaceAccess(false);
                 setData(null);
                 setOrg("");
                 setCompanies([]);
@@ -177,6 +195,8 @@ export default function Account() {
       <h1>
         {checking
           ? "Checking your account"
+          : mode === "set-password"
+          ? "Set your password"
           : signed
           ? "Your appointments and service history"
           : mode === "signup"
@@ -185,7 +205,7 @@ export default function Account() {
               ? "Reset your password"
               : "Sign in"}
       </h1>
-      <p>Keep your requests, appointments and invoices together.</p>
+      <p>{mode === "set-password" ? "Choose a new password for your account." : "Keep your requests, appointments and invoices together."}</p>
       {message && (
         <p role="status" className="account-message">
           {message}
@@ -202,6 +222,8 @@ export default function Account() {
                 required
                 type="email"
                 autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -215,6 +237,9 @@ export default function Account() {
                 minLength={mode === "password" ? 1 : 10}
                 maxLength={128}
                 type={visible ? "text" : "password"}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 autoComplete={
                   mode === "password" ? "current-password" : "new-password"
                 }
@@ -236,7 +261,8 @@ export default function Account() {
               )}
             </label>
           )}
-          <button disabled={busy} type="submit">
+          {mode === "set-password" && <label>Confirm new password<input required type={visible ? "text" : "password"} autoComplete="new-password" autoCapitalize="none" autoCorrect="off" spellCheck={false} minLength={10} maxLength={128} value={confirmation} onChange={e => setConfirmation(e.target.value)} /></label>}
+          <button disabled={busy || (mode === "recover" && recoverySent)} type="submit">
             {busy
               ? "Please wait…"
               : mode === "signup"
@@ -254,6 +280,9 @@ export default function Account() {
               hidden={mode === "password"}
               onClick={() => {
                 setMode("password");
+                setRecoverySent(false);
+                setMessage("");
+                setConfirmation("");
                 setPassword("");
               }}
             >
@@ -276,6 +305,8 @@ export default function Account() {
               hidden={mode === "recover" || mode === "set-password"}
               onClick={() => {
                 setMode("recover");
+                setRecoverySent(false);
+                setMessage("");
                 setPassword("");
               }}
             >
@@ -284,7 +315,7 @@ export default function Account() {
           </div>
         </form>
       )}
-      {signed && invitation && (
+      {signed && mode !== "set-password" && invitation && (
         <section className="account-card">
           <h2>Connect your service history</h2>
           <p>Use the email the business invited.</p>
@@ -317,7 +348,7 @@ export default function Account() {
           </button>
         </section>
       )}
-      {signed && companies.length === 0 && (
+      {signed && mode !== "set-password" && companies.length === 0 && (
         <section className="account-card">
           <h2>No connected service records yet</h2>
           <p>
@@ -327,7 +358,7 @@ export default function Account() {
           </p>
         </section>
       )}
-      {signed && companies.length > 1 && (
+      {signed && mode !== "set-password" && companies.length > 1 && (
         <label>
           Choose your business
           <select
@@ -346,10 +377,10 @@ export default function Account() {
           </select>
         </label>
       )}
-      {signed && org && <RepeatRequest organization={org} onSaved={()=>{setPage(0);setRefresh(n=>n+1);}}/>}
-      {signed && org && historyLoading && <p role="status">Loading your service history…</p>}
-      {signed && org && historyFailed && <button type="button" onClick={()=>setRefresh(n=>n+1)}>Try loading service history again</button>}
-      {data && (
+      {signed && mode !== "set-password" && org && <RepeatRequest organization={org} onSaved={()=>{setPage(0);setRefresh(n=>n+1);}}/>}
+      {signed && mode !== "set-password" && org && historyLoading && <p role="status">Loading your service history…</p>}
+      {signed && mode !== "set-password" && org && historyFailed && <button type="button" onClick={()=>setRefresh(n=>n+1)}>Try loading service history again</button>}
+      {signed && mode !== "set-password" && data && (
         <>
           <h2>{data.company.display_name}</h2>
           <section className="account-card">
