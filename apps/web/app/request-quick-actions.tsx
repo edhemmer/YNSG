@@ -7,7 +7,7 @@ import SchedulingReviewPanel from './scheduling-review-panel';
 import Icon from './crm-icons';
 export default function RequestQuickActions({request,organization,canManage,onReview,onChanged}:{request:InboxRequest;organization:string;canManage:boolean;onReview:()=>void;onChanged:()=>void}) {
  const [action,setAction]=useState<'approve'|'decline'|null>(null),[pending,setPending]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
- const keys=useRef(new Map<string,string>());
+ const keys=useRef(new Map<string,string>()),reviewedRevision=useRef<number|null>(null);
  const proposal=request.appointments.find(v=>visitState(v)==='proposal');
  const confirmed=request.appointments.some(v=>visitState(v)==='reserved');
  const manageable=canManage&&['submitted','reviewing','quoted'].includes(request.status);
@@ -18,7 +18,7 @@ export default function RequestQuickActions({request,organization,canManage,onRe
  }
  async function approve() {
   if(pending||!proposal)return;setPending(true);setError('');setMessage('');
-  try {if(request.status==='submitted')await command('/api/commands',{command:'ReviewRequest',id:request.id,revision:request.revision,status:'reviewing'});setAction('approve');}
+  try {if(request.status==='submitted'&&reviewedRevision.current!==request.revision){await command('/api/commands',{command:'ReviewRequest',id:request.id,revision:request.revision,status:'reviewing'});reviewedRevision.current=request.revision;onChanged();}setAction('approve');}
   catch(e){setError(publicError(e));}finally{setPending(false);}
  }
  async function decline(form:HTMLFormElement) {
@@ -30,7 +30,7 @@ export default function RequestQuickActions({request,organization,canManage,onRe
   }catch(e){setError(publicError(e));}finally{setPending(false);}
  }
  return <div className="request-quick-actions">
-  <div className="request-action-buttons">
+  <div className="request-action-buttons" role="group" aria-label={'Actions for '+request.original_submission.name}>
    {manageable&&(Boolean(proposal)||!confirmed)&&<><button type="button" disabled={pending||!proposal} onClick={()=>void approve()} title={!proposal?'Choose an appointment time in Review':undefined}><Icon name="check"/>Approve</button><button type="button" className="danger-ghost" disabled={pending||(!proposal&&request.status==='quoted')} onClick={()=>{setError('');setMessage('');setAction('decline');}}><Icon name="close"/>Decline</button></>}
    <button type="button" className="secondary" disabled={pending} onClick={onReview}><Icon name="search"/>Review<span className="sr-only"> request for {request.original_submission.name}</span></button>
   </div>
