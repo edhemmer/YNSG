@@ -8,6 +8,8 @@ import {
   navigationUrl,
   type DayPlan,
 } from "../lib/day-plan";
+import RouteCalendar from './route-calendar';
+import RouteMap from './route-map';
 import DelayNotice from './delay-notice';
 import PackingRuleEditor from "./packing-rule-editor";
 import { workKey } from "../lib/packing-plan";
@@ -56,6 +58,11 @@ export default function DailyCallSheet({
       live = false;
     };
   }, [organization, date, operator, reload]);
+  useEffect(()=>{
+    if(!plan||plan.date!==date)return;let live=true,inFlight=false;const controller=new AbortController();
+    const check=async()=>{if(inFlight||document.visibilityState!=='visible')return;inFlight=true;try{const r=await sessionFetch('/api/day-plan?'+new URLSearchParams({organization,date,metadata:'1',...(operator?{operator}:{})}),{signal:controller.signal});if(!r.ok)throw Error();const value=await r.json();if(live&&value.fingerprint!==plan.fingerprint)setReload(v=>v+1);}catch{if(live&&!controller.signal.aborted)setError('Schedule update check failed. Refresh before departure.');}finally{inFlight=false;}};
+    const timer=setInterval(()=>void check(),60000);return()=>{live=false;controller.abort();clearInterval(timer);};
+  },[organization,date,operator,plan]);
   const time = (value: string) =>
     new Intl.DateTimeFormat("en-US", {
       timeZone: timezone,
@@ -66,7 +73,8 @@ export default function DailyCallSheet({
       className="card daily-call-sheet"
       aria-labelledby="day-plan-heading"
     >
-      <h2 id="day-plan-heading">Day route</h2>
+      <h2 id="day-plan-heading">Choose your day</h2>
+      <RouteCalendar organization={organization} date={date} timezone={timezone} onSelect={setDate} revision={reload}/>
       <div className="actions day-plan-controls">
         <label>
           Appointments for
@@ -119,7 +127,7 @@ export default function DailyCallSheet({
           Tomorrow
         </button>
       </div>
-      <p>Choose any date to see its visits in appointment order. Open the route in Maps to navigate.</p>
+      <p>Select a calendar day to see its appointments and route.</p>
       {error && (
         <p role="alert" className="error">
           {error}
@@ -134,7 +142,7 @@ export default function DailyCallSheet({
             {plan.calls.length === 1 ? "" : "s"}
           </p>
           <p className="tiny">
-            Updated {time(plan.generatedAt)}. Refresh before leaving; printed
+            Updated {time(plan.generatedAt)}. Appointment edits are checked every minute. Refresh travel before leaving; printed
             copies do not update.
           </p>
           {!plan.calls.length && (
@@ -143,6 +151,7 @@ export default function DailyCallSheet({
               date.
             </p>
           )}
+          <RouteMap plan={plan}/>
           {plan.route&&<section className="route-summary" aria-label="Travel between visits">
             <h3>Travel & schedule</h3>
             <div className="actions day-plan-controls">{plan.route.mapsUrls.map((url,i)=><a key={url} className="button" href={url} target="_blank" rel="noopener noreferrer">{plan.route!.mapsUrls.length===1?'Open day route in Maps':`Open route segment ${i+1}`}</a>)}</div>

@@ -80,7 +80,7 @@ export async function GET(request: Request) {
       delivery:(await db.rpc('mail_delivery_status',{p_org:org})).data,
       dispatcherEnabled:process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true',
       calendarSyncEnabled:process.env.GOOGLE_CALENDAR_WORKER_ENABLED==='true',
-      maps:{keyConfigured:Boolean(googleRoutesKey()),connection:maps.data},
+      maps:{browserKeyConfigured:Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY),keyConfigured:Boolean(googleRoutesKey()),connection:maps.data},
       redirectUri: process.env.APP_ORIGIN
         ? callbackUri(process.env.APP_ORIGIN)
         : null,

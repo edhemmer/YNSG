@@ -23,6 +23,8 @@ test('marketing uses published prices, minimum and exclusions; other companies k
  const franchise=marketingDraft({...settings,displayName:'Another Neighbor Company',cities:['Another Town'],hourly:{...settings.hourly,standardCents:7500}},{...service,pricing_mode:'quote'},'flyer');assert.match(franchise,/Another Neighbor Company/);assert.match(franchise,/Another Town/);assert.doesNotMatch(franchise,/DeKalb|\$60|Ed Hemmer/);assert.match(franchise,/price confirmed/);
 });
 test('unapproved services cannot become marketing offers',()=>{
- for(const compliance of ['held','review'])assert.throws(()=>marketingDraft(settings,{...service,compliance},'post'));
+ for(const compliance of ['held'])assert.throws(()=>marketingDraft(settings,{...service,compliance},'post'));
  assert.throws(()=>marketingDraft(settings,{...service,exclusions:''},'post'));
 });
+
+test('published review services can produce conditional drafts without globally approving work',()=>{assert.match(marketingDraft(settings,{...service,compliance:'review'},'post'),/reviewed individually before work is accepted/);});

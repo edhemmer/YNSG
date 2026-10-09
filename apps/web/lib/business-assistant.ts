@@ -20,10 +20,11 @@ export function businessBrief(data:BusinessSnapshot):BusinessTask[]{
 
 export type MarketingService={name:string;scope:string;exclusions:string;compliance:string;pricing_mode:string};
 export function marketingDraft(settings:CompanySettings,service:MarketingService,format:'post'|'flyer'):string{
- if(service.compliance!=='approved'||!service.name.trim()||!service.scope.trim()||!service.exclusions.trim())throw Error('Choose a published, approved service.');
+ if(!['approved','review'].includes(service.compliance)||!service.name.trim()||!service.scope.trim()||!service.exclusions.trim())throw Error('Choose a published service that is not on hold.');
  const name=settings.displayName.trim(),area=settings.cities.join(', ');
  const rate=(settings.hourly.standardCents/100).toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:0});
  const pricing=service.pricing_mode==='hourly'?`Standard rate: ${rate}/hour. ${settings.hourly.minimumMinutes/60}-hour minimum.`:'Scope and price confirmed before work begins.';
- const intro=format==='flyer'?`${service.name}\n${name}`:`A few jobs on your list? ${name} offers ${service.name.toLowerCase()} in ${area}.`;
- return `${intro}\n\n${service.scope.trim()}\n\n${pricing}\n\nService area: ${area}.\nConditions: ${service.exclusions.trim()}\n\nRequest service appt. Work, price and timing are confirmed together.`;
+ const intro=format==='flyer'?`${service.name}\n${name}`:`A few jobs on your list? ${name} handles ${service.name.toLowerCase()} requests in ${area}.`;
+ const review=service.compliance==='review'?'Requests are reviewed individually before work is accepted.\n\n':'';
+ return `${intro}\n\n${review}${service.scope.trim()}\n\n${pricing}\n\nService area: ${area}.\nConditions: ${service.exclusions.trim()}\n\nRequest service appt. Work, price and timing are confirmed together.`;
 }

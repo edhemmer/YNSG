@@ -1,6 +1,6 @@
 import type {DayCall} from './day-plan.js';
-export type RouteEstimate={minutes:number;meters:number};
-export type RouteLeg={fromId:string;toId:string;departureAt:string;gapMinutes:number;minutes:number|null;meters:number|null;lateMinutes:number|null;reason?:string};
+export type RouteEstimate={minutes:number;meters:number;polyline?:string};
+export type RouteLeg={fromId:string;toId:string;departureAt:string;gapMinutes:number;minutes:number|null;meters:number|null;lateMinutes:number|null;reason?:string;polyline?:string};
 export type RoutePlan={legs:RouteLeg[];warnings:string[];grouping:{firstId:string;nearbyId:string;betweenId:string}[];complete:boolean;mapsUrls:string[]};
 export type RouteProvider=(from:string,to:string,departure:string)=>Promise<RouteEstimate>;
 // Mobile Maps supports at most three intermediate waypoints. Split long days,
@@ -30,7 +30,7 @@ export async function buildRoutePlan(calls:DayCall[],provider:RouteProvider|null
   else if(!previous.address.trim()||!next.address.trim())leg.reason='A complete customer address is required.';
   else if(Date.parse(previous.endAt)<=now.getTime())leg.reason='This departure is in the past. Use Maps for a current route.';
   else if(!provider)leg.reason='Live travel estimates are not connected. Check travel in Maps before confirming the schedule.';
-  else try{const estimate=await provider(previous.address,next.address,previous.endAt);if(!Number.isFinite(estimate.minutes)||estimate.minutes<0||!Number.isFinite(estimate.meters)||estimate.meters<0)throw Error();leg.minutes=Math.ceil(estimate.minutes);leg.meters=estimate.meters;leg.lateMinutes=Math.max(0,leg.minutes-leg.gapMinutes);}catch{leg.reason='Travel could not be verified. Check this leg in Maps.';}
+  else try{const estimate=await provider(previous.address,next.address,previous.endAt);if(!Number.isFinite(estimate.minutes)||estimate.minutes<0||!Number.isFinite(estimate.meters)||estimate.meters<0)throw Error();if(estimate.polyline)leg.polyline=estimate.polyline;leg.minutes=Math.ceil(estimate.minutes);leg.meters=estimate.meters;leg.lateMinutes=Math.max(0,leg.minutes-leg.gapMinutes);}catch{leg.reason='Travel could not be verified. Check this leg in Maps.';}
   if(leg.reason){route.complete=false;route.warnings.push(leg.reason);}
  }));
  // Flag A → B → C where A and C are much closer. This is a geographic review

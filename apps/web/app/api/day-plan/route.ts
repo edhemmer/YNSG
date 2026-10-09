@@ -7,6 +7,7 @@ import {
 } from "../../../lib/packing-plan";
 import { authenticated, failure } from "../../../lib/session";
 import {
+  dayPlanFingerprint,
   daySearchBounds,
   localDate,
   requestedTasks,
@@ -115,6 +116,8 @@ export async function GET(request: Request) {
           description: r.description || "",
         };
       });
+    const fingerprint=dayPlanFingerprint(calls);
+    if(params.get("metadata")==="1")return NextResponse.json({fingerprint},{headers});
     const selectedWork = [
       ...new Map(
         calls
@@ -135,7 +138,7 @@ export async function GET(request: Request) {
       : [];
     return NextResponse.json(
       {
-        operators,selectedOperator,
+        fingerprint,operators,selectedOperator,
         packing: packingRulesAvailable
           ? buildPackingPlan(calls, packingRules)
           : {

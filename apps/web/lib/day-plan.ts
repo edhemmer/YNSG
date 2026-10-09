@@ -15,7 +15,9 @@ export type DayCall = {
   workItems: { service: string; task: string }[];
   description: string;
 };
+export function dayPlanFingerprint(calls:DayCall[]){return JSON.stringify(calls.map(c=>[c.id,c.revision,c.startAt,c.endAt,c.arrivalAt,c.status,c.customerResponse,c.address,c.name,c.tasks]));}
 export type DayPlan = {
+  fingerprint?:string;
   operators?: {id:string;name:string}[];
   selectedOperator?: string|null;
   route?: import("./route-plan.js").RoutePlan;
