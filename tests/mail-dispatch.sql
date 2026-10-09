@@ -58,6 +58,18 @@ set local role authenticated;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select pg_temp.assert_true(public.mail_delivery_status('20000000-0000-4000-8000-000000000001')->>'enabled'='true','token refresh retains authorization');
 reset role;
+-- Cosmetic settings do not silently pause previously approved customer/owner mail.
+insert into public.configuration_versions(organization_id,version,settings)
+ select organization_id,3,settings||'{"displayName":"New display name"}'::jsonb from public.configuration_versions where organization_id='20000000-0000-4000-8000-000000000001' and version=2;
+select pg_temp.assert_true(private.gmail_delivery_enabled('20000000-0000-4000-8000-000000000001'),'unrelated settings preserve approved sending');
+insert into public.configuration_versions(organization_id,version,settings) select organization_id,4,settings||'{"notificationRecipient":"different@example.invalid"}'::jsonb from public.configuration_versions where organization_id='20000000-0000-4000-8000-000000000001' and version=3;
+select pg_temp.assert_true(not private.gmail_delivery_enabled('20000000-0000-4000-8000-000000000001'),'changed recipient needs fresh authorization');
+insert into public.configuration_versions(organization_id,version,settings) select organization_id,5,settings||'{"sender":"different@example.invalid"}'::jsonb from public.configuration_versions where organization_id='20000000-0000-4000-8000-000000000001' and version=2;
+select pg_temp.assert_true(not private.gmail_delivery_enabled('20000000-0000-4000-8000-000000000001'),'changed sender needs fresh authorization');
+insert into public.configuration_versions(organization_id,version,settings) select organization_id,6,settings from public.configuration_versions where organization_id='20000000-0000-4000-8000-000000000001' and version=2;
+update private.mail_delivery_controls set enabled=false where organization_id='20000000-0000-4000-8000-000000000001';
+select pg_temp.assert_true(not private.gmail_delivery_enabled('20000000-0000-4000-8000-000000000001'),'owner pause remains effective');
+update private.mail_delivery_controls set enabled=true where organization_id='20000000-0000-4000-8000-000000000001';
 update private.google_accounts set subject='different-account';
 set local role authenticated;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);

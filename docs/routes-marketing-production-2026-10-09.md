@@ -9,7 +9,7 @@
 - Save posting reminder in Google Calendar stores the edited draft in a private transparent event on the existing selected owned calendar. One deterministic event ID per tenant/attempt; same retry recovers it, different input on the same key rejects. No customer invitations/sendUpdates, no appointment time blocked.
 - Direct Google Business Profile publishing is not implemented or connected. Google API approval and business.manage OAuth permission are separate from Maps keys. The interface offers the actual Google Business Profile application for manual publishing.
 - Automated checks: 196 tests pass, web TypeScript and optimized build pass. New tests cover reference polyline geometry, malformed paths, private/nonblocking events, tenant ID separation, lost-response recovery and changed retries, day edit fingerprints.
-- Live acceptance remains pending: no Maps keys are available to this CRM runtime, and owner session in the agent browser is awaiting its email link. No real marketing event or customer appointment created merely as a test.
+- Live route-provider check passed at 2026-10-09T18:51:01Z: maps active, worker HTTP 200. User supplied screenshots confirm Routes and Geocoding enabled. Interactive map acceptance still needs browser-key/Maps JavaScript access verified; owner session in the agent browser remains signed out. No real marketing event or customer appointment created merely as a test.
 
 ## Exact Google configuration
 
@@ -18,3 +18,7 @@ GOOGLE_ROUTES_API_KEY: server key with Routes API restriction. Do not use HTTP r
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: separate browser key, restrict APIs to Maps JavaScript API and Geocoding API; restrict website origin to https://ynsg-repo-git-codex-crm-workflow-edhemmer-5018s-projects.vercel.app/* and separately approved custom CRM domains.
 Set both on Preview and Production as requested; redeploy CRM after changes. Google Cloud billing must be enabled. Set Google quotas for map loads, geocoding and Routes; billing-budget alerts alone are not a spending cap.
 Existing Google Calendar connection is used for marketing planning; no broader OAuth scopes are requested.
+
+## Notification continuity repair
+
+Existing delivery approval was for configuration version 2; current published version is 4. Sender and owner notification recipient are unchanged (verified via equality checks without exposing credentials). All database suites passed after changing the approval rule to preserve the existing approved mail identity across unrelated configuration edits. New recipients/senders, new account subject, owner pause, missing CRM entitlement and unconfirmed provider receipt remain blocked. Approved configuration and receipt evidence are preserved; no new blanket authorization is created.
