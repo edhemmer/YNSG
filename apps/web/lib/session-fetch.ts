@@ -21,7 +21,7 @@ export function createSessionFetch(fetcher:typeof fetch=fetch,lock?:(run:()=>Pro
   const currentGeneration=generation;
   const response=await fetcher(path,{...init,cache:'no-store'});
   if(['verify','password'].includes(action)&&response.ok)signedOut=false;
-  if(response.status!==401||(path==='/api/session'&&init.method==='POST'))return response;
+  if(response.status!==401||(path==='/api/session'&&init.method==='POST'&&action!=='set-password'))return response;
   if(signedOut||currentGeneration!==generation)return response;
   if(!refreshing){
    const pending=lock?lock(renew):renew();
