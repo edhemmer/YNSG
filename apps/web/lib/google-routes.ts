@@ -1,7 +1,8 @@
 import type {RouteEstimate,RouteProvider} from './route-plan.js';
 import {reserveRouteRequest} from './route-budget.ts';
+import {googleRoutesKey} from './google-routes-key.ts';
 // Server only: key and customer addresses never appear in a client-side API call.
-export function googleRouteProvider(key=process.env.GOOGLE_ROUTES_API_KEY,send:typeof fetch=fetch,reserve:()=>Promise<boolean>=reserveRouteRequest):RouteProvider|null{
+export function googleRouteProvider(key=googleRoutesKey(),send:typeof fetch=fetch,reserve:()=>Promise<boolean>=reserveRouteRequest):RouteProvider|null{
  if(!key)return null;
  return async(from,to,departure):Promise<RouteEstimate>=>{
   if(!await reserve())throw Error('ROUTE_BUDGET_LIMIT');

@@ -16,7 +16,7 @@ test('owner sees separate approve, decline and review actions; dispatcher gets r
 });
 test('missing or expired slots cannot be approved and confirmed visits cannot be reapproved',()=>{
  for(const appointments of [[],[{...proposal,expires_at:'2000-01-01T00:00Z'}]]){
-  const html=render({...request,appointments});assert.match(html,/<button[^>]*disabled=""[^>]*>[\s\S]*?Approve<\/button>/);assert.match(html,/Choose a time in Review before approving/);
+  const html=render({...request,appointments});assert.match(html,/>Schedule<\/button>/);assert.doesNotMatch(html,/>Approve<\/button>/);assert.match(html,/Choose a date and time to book this visit/);
  }
  assert.doesNotMatch(render({...request,appointments:[{...proposal,status:'reserved'}]}),/>Approve<|>Decline</);
  assert.match(render({...request,appointments:[{...proposal,status:'reserved'},proposal]}),/>Approve<\/button>/);

@@ -33,7 +33,7 @@ export default function RequestDetail({organization,requestId,timezone,canManage
   if(request.status==='submitted'&&!await command('/api/commands',{command:'ReviewRequest',id:request.id,revision:request.revision,status:'reviewing'}))return;
   setAppointment(target);setPanel('schedule');
  }
- function changed(status:string){setBusy(false);setPanel('overview');setMessage(status==='reserved'?'Appointment confirmed. Calendar updates and the customer confirmation are queued.':'Proposed time saved. Select Accept proposed time to confirm it.');setReload(n=>n+1);onChanged();}
+ function changed(status:string,outcome?:string){setBusy(false);setPanel('overview');setMessage(outcome||(status==='reserved'?'Appointment booked. Check Activity for calendar and email delivery.':'Proposed time saved. Select Accept proposed time to confirm it.'));setReload(n=>n+1);onChanged();}
  async function decline(form:HTMLFormElement){
   if(!request)return;const f=new FormData(form),choice=String(f.get('choice'));
   if(proposal){if(await command('/api/scheduling',{schemaVersion:1,input:{action:choice,id:proposal.id,revision:proposal.revision,reason:f.get('reason')}})){if(choice==='decline_time'&&panel==='reschedule'){setAppointment(null);setPanel('schedule');}else setPanel('overview');}}

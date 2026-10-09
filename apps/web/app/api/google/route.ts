@@ -26,6 +26,7 @@ import {
 } from "../../../lib/google-core";
 import { syncGoogleCalendar } from "../../../lib/google-sync";
 import { dispatchGoogleMail } from "../../../lib/google-mail";
+import {googleRoutesKey} from '../../../lib/google-routes-key';
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
@@ -79,7 +80,7 @@ export async function GET(request: Request) {
       delivery:(await db.rpc('mail_delivery_status',{p_org:org})).data,
       dispatcherEnabled:process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true',
       calendarSyncEnabled:process.env.GOOGLE_CALENDAR_WORKER_ENABLED==='true',
-      maps:{keyConfigured:Boolean(process.env.GOOGLE_ROUTES_API_KEY),connection:maps.data},
+      maps:{keyConfigured:Boolean(googleRoutesKey()),connection:maps.data},
       redirectUri: process.env.APP_ORIGIN
         ? callbackUri(process.env.APP_ORIGIN)
         : null,

@@ -22,6 +22,7 @@ try {
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/operations.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/availability.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/scheduling-review.sql','utf8'));
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/owner-confirmed-scheduling.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/customer-actions.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/mail-dispatch.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/owner-blocks.sql','utf8'));

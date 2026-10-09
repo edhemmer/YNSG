@@ -12,30 +12,22 @@ export const runtime='nodejs';
 export const dynamic='force-dynamic';
 export const maxDuration=60;
 function json(value:unknown,status=200){return NextResponse.json(value,{status,headers:{'Cache-Control':'private, no-store'}});}
-const messages:Record<string,string>={
- ROUTE_UNAVAILABLE:'Travel could not be verified. Check routing before scheduling.',
- ROUTE_TRAVEL_CONFLICT:'There is not enough driving time between these visits. Choose another appointment time.',
- ROUTE_ADDRESS_REQUIRED:'A customer address needs review before travel can be checked.',
- ROUTE_PICKUP_REVIEW:'A neighboring visit includes a supplier pickup. Review its location before scheduling.',
- ROUTE_DEPARTURE_PAST:'A previous visit has already ended. Review current travel before scheduling.',
- STALE_REVISION:'The request, calendar or settings changed. Refresh and review again.',
- SERVICE_REVIEW_REQUIRED:'Every selected service needs compliance review before scheduling.',
- CAPACITY_CONFLICT:'There is not enough free time for the visit, travel and buffer.',
- GOOGLE_BUSY_CONFLICT:'Your Google calendar has conflicting busy time.',
- PROVIDER_FACTS_REQUIRED:'Current Google calendar checks are required.',
- FEASIBILITY_REVIEW_REQUIRED:'The review expired or changed. Refresh and review again.',
- DURATION_REVIEW_REQUIRED:'Review the quoted duration before scheduling. An accepted duration requires a change approval.',
- OUTSIDE_BOOKING_WINDOW:'Choose a start inside your configured booking window.',
- OUTSIDE_OPERATING_HOURS:'Choose a start and duration inside your operating hours.',
- OWNER_BLOCK:'This time overlaps an owner block.',
- RESOURCE_UNAVAILABLE:'A selected resource is unavailable.',
- REQUEST_UNAVAILABLE:'Review the service request first.',
- PENDING_LIMIT:'Resolve the existing proposed time before adding another.',
- REPLACEMENT_REQUIRED:'Keep the original and explicitly propose a replacement.',
- ORIGINAL_UNAVAILABLE:'The original appointment changed. Refresh before rescheduling.',
- IDEMPOTENCY_CONFLICT:'This retry has different details. Refresh before continuing.',
- TRANSITION:'This proposal expired or is no longer awaiting approval.',
-};
+import {schedulingMessages as messages} from '../../../lib/scheduling-errors';
+import {syncGoogleCalendar} from '../../../lib/google-sync';
+import {dispatchGoogleMail} from '../../../lib/google-mail';
+async function completed(db:Awaited<ReturnType<typeof authorizeGoogle>>['db'],org:string,result:{id:string;status:string},replay=false){
+ if(result.status==='reserved'){
+  // Durable outbox/cron remains the retry authority if either provider is down.
+  await Promise.allSettled([
+   process.env.GOOGLE_CALENDAR_WORKER_ENABLED==='true'?syncGoogleCalendar(org):Promise.resolve(),
+   process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true'?dispatchGoogleMail(org,db):Promise.resolve()
+  ]);
+  let delivery=null;
+  try{const status=await db.rpc('appointment_delivery_status',{p_org:org,p_appointment:result.id});if(!status.error)delivery=status.data;}catch{/* Booking is committed; delivery remains independently retryable. */}
+  return json({ok:true,result,replay,delivery});
+ }
+ return json({ok:true,result,replay});
+}
 async function context(db:Awaited<ReturnType<typeof authorizeGoogle>>['db'],org:string,request:string,appointment:string|null){
  const r=await db.rpc('scheduling_review_context',{p_org:org,p_request:request,p_appointment:appointment});
  if(r.error)throw new Error(r.error.message);return r.data;
@@ -58,8 +50,9 @@ export async function POST(request:Request){
   const text=await request.text();if(Buffer.byteLength(text)>16000)return json({error:'Request too large.'},413);
   const input=schedulingReview.parse(JSON.parse(text));const {db,user,access}=await authorizeGoogle(input.organizationId);
   const key=hash('reviewed-schedule:'+input.key);
-  const prior=await db.rpc('commit_reviewed_schedule',{p_org:input.organizationId,p_input:input,p_key:key,p_evidence:null});
-  if(prior.error)throw new Error(prior.error.message);if(prior.data)return json({ok:true,result:prior.data,replay:true});
+  const commit=input.confirmImmediately&&!input.appointmentId?'commit_confirmed_schedule':'commit_reviewed_schedule';
+  const prior=await db.rpc(commit,{p_org:input.organizationId,p_input:input,p_key:key,p_evidence:null});
+  if(prior.error)throw new Error(prior.error.message);if(prior.data)return completed(db,input.organizationId,prior.data,true);
   const ctx=await context(db,input.organizationId,input.requestId,input.appointmentId);
   const start=localInstant(input.localStart,ctx.settings.timezone),end=start+input.durationMinutes*60000;
   const {token,account}=await accessToken(input.organizationId);if(!account.calendar_id)throw new GoogleFailure('CALENDAR_REQUIRED');
@@ -78,7 +71,7 @@ export async function POST(request:Request){
   const normalized={...effective,startAt:new Date(start).toISOString(),endAt:new Date(end).toISOString(),arrivalAt:new Date(start+input.arrivalOffsetMinutes*60000).toISOString(),commandInput:input};
   const review=await serverDatabase().rpc('record_scheduling_review',{p_org:input.organizationId,p_actor:user.id,p_session:session,p_key:hash(input.key+':facts:'+busy.checkedAt),p_input:normalized,p_provider:{...busy,travel,connectionRevision:account.revision,windowStart:new Date(start-(buffer+effective.travelBeforeMinutes)*60000).toISOString(),windowEnd:new Date(end+(buffer+effective.travelAfterMinutes)*60000).toISOString()}});
   if(review.error)throw new Error(review.error.message);
-  const result=await db.rpc('commit_reviewed_schedule',{p_org:input.organizationId,p_input:input,p_key:key,p_evidence:review.data.evidenceId});
-  if(result.error)throw new Error(result.error.message);return json({ok:true,result:result.data});
+  const result=await db.rpc(commit,{p_org:input.organizationId,p_input:input,p_key:key,p_evidence:review.data.evidenceId});
+  if(result.error)throw new Error(result.error.message);return completed(db,input.organizationId,result.data);
  }catch(e){return failed(e);}
 }

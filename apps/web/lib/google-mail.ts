@@ -99,6 +99,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
         "appointment.confirmation",
         "appointment.reminder",
         "appointment.owner_reminder",
+        "appointment.owner_confirmation",
         "appointment.declined_time",
         "appointment.declined_service",
         "appointment.reschedule_requested",
@@ -128,6 +129,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
         ![
           "appointment.owner_approval",
           "appointment.owner_reminder",
+        "appointment.owner_confirmation",
           "appointment.reschedule_requested",
         ].includes(item.kind)
       ) {

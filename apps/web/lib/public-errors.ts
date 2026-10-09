@@ -1,4 +1,5 @@
 import { googleMessages } from "./google-messages.ts";
+import {schedulingMessages} from './scheduling-errors.ts';
 // Only reviewed messages reach product screens. Provider text, exception messages,
 // database details and unknown future codes always fall back to plain language.
 const messages:Record<string,string>={
@@ -11,6 +12,7 @@ const messages:Record<string,string>={
  RECONNECT_REQUIRED:'Google access expired or was revoked. Reconnect in Settings.',
 };
 const approved=new Set([
+ ...Object.values(schedulingMessages),
  'The appointment changed. Refresh the request.',
  'This visit includes a supplier pickup. Open Review to confirm its arrangements.',
  'Set a standard travel/setup buffer or confirm travel in Review.',

@@ -24,5 +24,5 @@ export async function confirmRequestedAppointment(organization:string,request:st
  const value=await response.json();
  if(!response.ok){if(response.status===400||response.status===409)attempt.current=null;throw Error(value.error);}
  if(value.result?.status!=='reserved')throw Error('The time has not been confirmed. Open Review to check its status.');
- return value.result;
+ return {...value.result,delivery:value.delivery};
 }

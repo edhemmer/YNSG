@@ -3,6 +3,7 @@ export const schedulingReview = z.object({
  organizationId:z.uuid(),requestId:z.uuid(),requestRevision:z.number().int().positive(),
  configurationVersion:z.number().int().positive(),scheduleRevision:z.number().int().nonnegative(),
  replacesId:z.uuid().nullable().default(null),
+ confirmImmediately:z.boolean().default(false),
  appointmentId:z.uuid().nullable(),appointmentRevision:z.number().int().positive().nullable(),
  localStart:z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/),durationMinutes:z.number().int().min(120).max(1440).multipleOf(30),
  arrivalOffsetMinutes:z.number().int().min(0).max(1439),resources:z.array(z.uuid()).min(1).max(30),

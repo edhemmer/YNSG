@@ -1,6 +1,7 @@
 import {createHash} from 'node:crypto';
 import {routeDatabase} from './route-budget.ts';
 import {googleRouteProvider} from './google-routes.ts';
+import {googleRoutesKey} from './google-routes-key.ts';
 export type RoutesHealth={key_fingerprint:string;status:'active'|'error'|'disabled';checked_at:string}|null;
 export function needsRoutesProbe(saved:RoutesHealth,fingerprint:string,now=Date.now()){
  const checked=Date.parse(saved?.checked_at||'');
@@ -9,7 +10,7 @@ export function needsRoutesProbe(saved:RoutesHealth,fingerprint:string,now=Date.
 // One public-town route verifies the connection without sending customer data.
 // It uses the same provider and atomic call budget as real planning.
 export async function verifyRoutesConnection(organization:string){
- const key=process.env.GOOGLE_ROUTES_API_KEY||'',fingerprint=createHash('sha256').update(key).digest('hex'),db=routeDatabase();
+ const key=googleRoutesKey(),fingerprint=createHash('sha256').update(key).digest('hex'),db=routeDatabase();
  const saved=await db.rpc('routes_connection_health',{p_org:organization,p_action:'read',p_input:{}});
  if(saved.error)throw Error('ROUTES_HEALTH_UNAVAILABLE');
  if(!needsRoutesProbe(saved.data,fingerprint))return saved.data.status;

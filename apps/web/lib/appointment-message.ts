@@ -16,6 +16,7 @@ export type AppointmentMessageInput = {
     | "appointment.confirmation"
     | "appointment.reminder"
     | "appointment.owner_reminder"
+    | "appointment.owner_confirmation"
     | "appointment.declined_time"
     | "appointment.declined_service"
     | "appointment.reschedule_requested";
@@ -52,10 +53,10 @@ function appointmentText(v: AppointmentMessageInput) {
       subject: ownerSubject,
       body: `A new appointment request is ready for you to review.\n\n${v.request.name || "Customer"}\n${address}\nPhone: ${v.request.phone || "See service request"}\nEmail: ${v.request.email || "See service request"}\nArrival: ${when}\n\n${services}\n\nCheck the work, any material pickups, and the time needed before you confirm the visit:\n${v.ownerUrl}`,
     };
-  if (v.kind === "appointment.owner_reminder")
+  if (v.kind === "appointment.owner_reminder" || v.kind === "appointment.owner_confirmation")
     return {
       to: v.notificationRecipient,
-      subject: "Tomorrow’s service appointment",
+      subject: v.kind === "appointment.owner_confirmation" ? "Service appointment booked" : "Tomorrow’s service appointment",
       body: `Your upcoming appointment with ${v.request.name || "the customer"} is confirmed.\n\nArrival: ${when}\n${work}\nPhone: ${v.request.phone || "See service order"}\nEmail: ${v.request.email || "See service order"}\n\nCheck the job details, material pickups, and equipment before loading up:\n${v.ownerUrl}\n\nCheck your calendar before heading out in case the visit has changed.`,
     };
   if (v.kind === "appointment.reschedule_requested")
@@ -95,13 +96,14 @@ export function appointmentMessage(v: AppointmentMessageInput) {
  const titles:Record<AppointmentMessageInput['kind'],string>={
   'appointment.owner_approval':'Appointment to review',
   'appointment.owner_reminder':'Your upcoming visit',
+  'appointment.owner_confirmation':'Appointment booked',
   'appointment.reschedule_requested':'A new time requested',
   'appointment.confirmation':'Your appointment is confirmed',
   'appointment.reminder':'Your appointment reminder',
   'appointment.declined_time':'Let’s find another time',
   'appointment.declined_service':'An update on your request',
  };
- const owner=['appointment.owner_approval','appointment.owner_reminder','appointment.reschedule_requested'].includes(v.kind);
+ const owner=['appointment.owner_approval','appointment.owner_reminder','appointment.owner_confirmation','appointment.reschedule_requested'].includes(v.kind);
  const actions=new Map<string,string>();
  if(owner)actions.set(v.ownerUrl,'Open service request');
  else {
