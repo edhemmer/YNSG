@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { emailClient, saveEmailVerifier } from "../../../lib/email-auth";
 import { signInTarget } from "../../../lib/sign-in-target";
 import { authClient, saveSession } from "../../../lib/session";
+import { recoveryDestination } from "../../../lib/auth-flow";
 
 export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
       status: 503,
       headers: { "Cache-Control": "no-store" },
     });
-  const destination = (await cookies()).get("ynsg-auth-destination")?.value;
+  let destination = (await cookies()).get("ynsg-auth-destination")?.value;
   let context:unknown=null;try{context=JSON.parse((await cookies()).get('ynsg-owner-request')?.value||'null');}catch{/* Invalid navigation hints never affect authentication. */}
   let target = ownerReturnTarget(signInTarget(destination, []),context);
   const redirect = (failed: boolean) =>
@@ -38,7 +39,7 @@ export async function GET(request: Request) {
   // Supabase can send either a PKCE code or a token-hash verification link,
   // depending on the configured email template. Support both so recovery and
   // sign-in links work consistently across production templates.
-  if ((!code && !tokenHash) || (code && code.length > 2048) || (tokenHash && tokenHash.length > 2048)) return redirect(true);
+  if ((!code && !tokenHash) || (code && tokenHash) || (code && code.length > 2048) || (tokenHash && (tokenHash.length > 2048 || !['email','recovery'].includes(tokenType || '')))) return redirect(true);
   try {
     const auth = await emailClient();
     const result = code
@@ -51,6 +52,8 @@ export async function GET(request: Request) {
       });
     const { data, error } = result;
     if (error || !data.session) return saveEmailVerifier(redirect(true), null);
+    destination = recoveryDestination(destination, code ? ('redirectType' in data ? data.redirectType as string | null : null) : tokenType);
+    target = ownerReturnTarget(signInTarget(destination, []),context);
     if (!destination) {
       const membership = await authClient(data.session.access_token).from('memberships')
         .select('role,revoked_at').eq('user_id', data.session.user.id);
