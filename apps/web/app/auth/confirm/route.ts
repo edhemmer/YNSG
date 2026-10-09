@@ -7,7 +7,10 @@ import { authClient, saveSession } from "../../../lib/session";
 
 export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
-  const code = new URL(request.url).searchParams.get("code");
+  const params = new URL(request.url).searchParams;
+  const code = params.get("code");
+  const tokenHash = params.get("token_hash");
+  const tokenType = params.get("type");
   const origin = process.env.APP_ORIGIN;
   if (!origin)
     return new NextResponse("Sign-in is not configured.", {
@@ -32,13 +35,21 @@ export async function GET(request: Request) {
         },
       },
     );
-  // Default Supabase email verification returns a single-use PKCE code.
-  // Arbitrary redirect targets and unbound token_hash links are not accepted.
-  if (!code || code.length > 2048) return redirect(true);
+  // Supabase can send either a PKCE code or a token-hash verification link,
+  // depending on the configured email template. Support both so recovery and
+  // sign-in links work consistently across production templates.
+  if ((!code && !tokenHash) || (code && code.length > 2048) || (tokenHash && tokenHash.length > 2048)) return redirect(true);
   try {
     const auth = await emailClient();
-    if (!auth.currentVerifier()) return redirect(true);
-    const { data, error } = await auth.client.auth.exchangeCodeForSession(code);
+    const result = code
+      ? auth.currentVerifier()
+        ? await auth.client.auth.exchangeCodeForSession(code)
+        : { data: { session: null }, error: new Error("PKCE verifier missing") }
+      : await auth.client.auth.verifyOtp({
+        token_hash: tokenHash!,
+        type: tokenType === "recovery" ? "recovery" : "email",
+      });
+    const { data, error } = result;
     if (error || !data.session) return saveEmailVerifier(redirect(true), null);
     if (!destination) {
       const membership = await authClient(data.session.access_token).from('memberships')
