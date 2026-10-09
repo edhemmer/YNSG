@@ -168,3 +168,30 @@ body:has(#request-form) .page-hero h1{font-size:clamp(1.9rem,3.5vw,2.8rem)}
 .picker-instructions{border-left:3px solid var(--gold);padding:12px 16px;background:#f7f7f0;border-radius:0 10px 10px 0;margin-top:18px}.picker-instructions .field-note{font-weight:400;margin-bottom:8px}.picker-instructions .selection-instruction{margin-bottom:0}.service-picker legend{margin-bottom:18px}
 
 .service-picker>.field-note:not(#service-count){font-weight:400;margin-bottom:14px}.form-top{margin-bottom:18px;padding-bottom:18px}
+
+/* Human stories, with captions kept outside the photographs. */
+body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.95fr) minmax(0,1.2fr);gap:36px;align-items:center}
+.neighbor-carousel{min-width:0;width:100%;border:1px solid #d5dfd4;border-radius:20px;background:#fff;overflow:hidden;box-shadow:0 16px 40px #10283c0a}
+.neighbor-slide{margin:0}.neighbor-slide[hidden],.carousel-controls[hidden]{display:none}
+.neighbor-slide img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:contain;background:#f4f2e9}
+.neighbor-slide figcaption{padding:18px 20px 8px;color:var(--forest);font-size:1.15rem;font-weight:650;line-height:1.4;min-height:78px}
+.carousel-controls{display:flex;align-items:center;justify-content:space-between;padding:0 12px 12px;gap:8px}
+.carousel-pages,.carousel-arrows{display:flex;align-items:center;gap:2px}
+.carousel-controls button{display:grid;place-items:center;width:44px;min-width:44px;height:44px;padding:0;border-radius:50%;border:1px solid transparent;background:transparent;color:var(--navy);font:600 1.15rem var(--font-ui);cursor:pointer}
+.carousel-arrows button{border-color:#d2ded3}.carousel-controls button:hover{background:#edf3e9}.carousel-controls button:focus-visible{outline:3px solid var(--forest);outline-offset:2px}
+.carousel-pages button span{width:9px;height:9px;border-radius:50%;background:#a6b5aa}.carousel-pages button[aria-current=true] span{width:22px;border-radius:6px;background:var(--forest)}
+.ui-icon{width:22px;height:22px;flex:none;vertical-align:middle}.nav-desktop a,.nav-mobile nav a,.footer-contact a{gap:9px;display:flex;align-items:center}.nav-mobile nav .ui-icon{color:var(--forest)}
+@media(max-width:1100px){.nav-desktop{gap:16px}.nav-desktop .ui-icon{width:18px;height:18px}.hero-buttons{flex-direction:column}}
+@media(max-width:850px){
+ body:has(.home-services) .hero-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+ .premium-hero .hero-copy{display:contents}.premium-hero .hero-copy>.overline{grid-row:1}.premium-hero .hero-copy>h1{grid-row:2}
+ .neighbor-carousel{grid-row:3;margin-bottom:20px;border-radius:16px}
+ .premium-hero .hero-buttons{grid-row:4}.premium-hero .hero-lead{grid-row:5}.premium-hero .hero-foot{grid-row:6}
+ .neighbor-slide figcaption{font-size:1.05rem;padding:14px 16px 6px;min-height:66px}
+ .carousel-controls{padding:0 8px 8px}.carousel-controls button{width:44px;min-width:44px}
+ .mobile-rail a{gap:6px}.mobile-rail a:first-child{flex-basis:88px;flex-direction:column;font-size:.85rem}.mobile-rail a:last-child{gap:6px;font-size:.94rem}.mobile-rail .ui-icon{width:20px;height:20px}
+}
+@media(max-width:590px){
+ .home-service{grid-template-columns:38px minmax(0,1fr) 18px;gap:10px}.home-service .service-symbol{display:grid;width:38px;height:38px}.service-symbol svg{width:24px;height:24px}
+ .carousel-pages{gap:0}.carousel-arrows{gap:2px}.carousel-pages button{width:34px;min-width:34px}
+}
