@@ -1,4 +1,4 @@
-// Four-second rotation; customer control always takes precedence.
+// Three-second rotation; customer control always takes precedence.
 export function initNeighborCarousel(root, env = window) {
   const slides = [...root.querySelectorAll('.neighbor-slide')];
   if (slides.length < 2) return;
@@ -7,11 +7,11 @@ export function initNeighborCarousel(root, env = window) {
   const pause = root.querySelector('[data-carousel="pause"]');
   const live = root.querySelector('.neighbor-slides');
   const motion = env.matchMedia('(prefers-reduced-motion: reduce)');
-  let index = 0, paused = motion.matches, hovered = false, timer, touchX;
+  let index = 0, paused = motion.matches, timer, touchX;
   function syncTimer() {
     env.clearInterval(timer);
     timer = undefined;
-    if (!paused && !hovered && !document.hidden) timer = env.setInterval(() => show(index + 1), 4000);
+    if (!paused && !document.hidden) timer = env.setInterval(() => show(index + 1), 3000);
     pause.setAttribute('aria-label', paused ? 'Play slideshow' : 'Pause slideshow');
     pause.querySelector('[data-play-symbol]').textContent = paused ? '▶' : 'Ⅱ';
     live.setAttribute('aria-live', paused ? 'polite' : 'off');
@@ -36,8 +36,6 @@ export function initNeighborCarousel(root, env = window) {
   root.querySelector('[data-carousel="next"]')?.addEventListener('click', () => manual(index + 1));
   pause.addEventListener('click', () => { paused = !paused; syncTimer(); });
   root.addEventListener('focusin', event => { if (event.target !== pause) { paused = true; syncTimer(); } });
-  root.addEventListener('pointerenter', event => { if (event.pointerType === 'mouse') { hovered = true; syncTimer(); } });
-  root.addEventListener('pointerleave', () => { hovered = false; syncTimer(); });
   root.addEventListener('keydown', event => {
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
       event.preventDefault(); manual(index + (event.key === 'ArrowRight' ? 1 : -1));
@@ -51,8 +49,6 @@ export function initNeighborCarousel(root, env = window) {
   }, {passive:true});
   document.addEventListener('visibilitychange', syncTimer);
   motion.addEventListener('change', () => { paused = motion.matches; syncTimer(); });
-  const first = slides[0].querySelector('img');
-  if (first.decode) void first.decode().catch(() => {}).then(() => { warmNext(); syncTimer(); });
-  else { warmNext(); syncTimer(); }
+  warmNext(); syncTimer();
 }
 if (typeof document !== 'undefined') document.querySelectorAll('[data-neighbor-carousel]').forEach(root => initNeighborCarousel(root));

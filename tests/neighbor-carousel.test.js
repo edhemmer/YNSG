@@ -21,8 +21,8 @@ function fixture(reduced=false){
  return {root,slides,images,pause,doc,motion,controls,delay:()=>delay,tick:()=>timer?.(),running:()=>!!timer};
 }
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
-test('rotates all four photos every four seconds and wraps; pause holds the selected photo',async()=>{
- const f=fixture();await settle();assert.equal(f.delay(),4000);
+test('rotates all four photos every three seconds and wraps; pause holds the selected photo',async()=>{
+ const f=fixture();await settle();assert.equal(f.delay(),3000);
  for(const selected of [1,2,3,0]){f.tick();assert.equal(f.slides.findIndex(s=>!s.hidden),selected);}
  f.pause.emit('click');assert.equal(f.running(),false);assert.equal(f.pause.attributes['aria-label'],'Play slideshow');f.tick();assert.equal(f.slides[0].hidden,false);
  f.pause.emit('click');assert.equal(f.running(),true);
@@ -35,4 +35,9 @@ test('reduced motion and background tabs stop rotation; swipe works without visi
 });
 test('slow-loading next photo never replaces a visible image with an empty frame',async()=>{
  const f=fixture();await settle();f.images[1].complete=false;f.tick();assert.equal(f.slides[0].hidden,false);assert.equal(f.images[1].loading,'eager');f.images[1].complete=true;f.tick();assert.equal(f.slides[1].hidden,false);
+});
+
+test('autoplay starts immediately and keeps running while a mouse rests over the photo',()=>{
+ const f=fixture();assert.equal(f.running(),true);assert.equal(f.delay(),3000);
+ f.root.emit('pointerenter',{pointerType:'mouse'});f.tick();assert.equal(f.slides[1].hidden,false);
 });
