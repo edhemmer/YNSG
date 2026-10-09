@@ -166,3 +166,5 @@ body:has(#request-form) .page-hero h1{font-size:clamp(1.9rem,3.5vw,2.8rem)}
 @media(prefers-reduced-motion:reduce){.button{transition:none}}
 
 .picker-instructions{border-left:3px solid var(--gold);padding:12px 16px;background:#f7f7f0;border-radius:0 10px 10px 0;margin-top:18px}.picker-instructions .field-note{font-weight:400;margin-bottom:8px}.picker-instructions .selection-instruction{margin-bottom:0}.service-picker legend{margin-bottom:18px}
+
+.service-picker>.field-note:not(#service-count){font-weight:400;margin-bottom:14px}.form-top{margin-bottom:18px;padding-bottom:18px}
