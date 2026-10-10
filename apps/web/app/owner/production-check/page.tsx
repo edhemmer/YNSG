@@ -19,12 +19,12 @@ export default function ProductionCheck(){
  async function send(){if(!data?.suite||!data.run||sending.current)return;sending.current=true;setBusy(true);setError('');
  try{for(const [index,m] of data.suite.messages.entries()){
  if(!mounted.current)break;
- const existing=data.results?.find(r=>r.template===m.id);if(existing){if(existing.status!=='accepted'){setProgress('Stopped: '+m.label+' is '+existing.status.replaceAll('_',' ')+'. Review its saved result before any resend.');return;}continue;}
+ const existing=data.results?.find(r=>r.template===m.id);if(existing){if(!['accepted','pending'].includes(existing.status)){setProgress('Stopped: '+m.label+' is '+existing.status.replaceAll('_',' ')+'. Review its saved result before any resend.');return;}continue;}
  setProgress('Sending sample '+(index+1)+' of '+data.suite.messages.length+': '+m.label);
  const d=await post({action:'send',run:data.run,template:m.id,reviewed:true});
  await load(organization,data.run);
- if(d.status!=='accepted'){setProgress('Stopped: '+m.label+' is '+d.status.replaceAll('_',' ')+'. Review before sending again.');return;}
- }if(mounted.current)setProgress('Sample requests finished. Accepted means Gmail accepted the message; check your inbox for receipt.');
+ if(!['accepted','pending'].includes(d.status)){setProgress('Stopped: '+m.label+' is '+d.status.replaceAll('_',' ')+'. Review before sending again.');return;}
+ }if(mounted.current)setProgress('Samples queued for background delivery. You can close this page. Refresh results to check acceptance, then check your inbox for receipt.');
  }catch(e){if(mounted.current)setError(publicError(e));}finally{sending.current=false;if(mounted.current)setBusy(false);}}
  const message=data?.suite?.messages.find(m=>m.id===selected);
  return <main id="main" className="shell invoice-document">
