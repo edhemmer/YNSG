@@ -53,7 +53,7 @@ begin
  select version,data into v,profile from private.tax_profiles where organization_id=p_org order by version desc limit 1;
  v:=coalesce(v,0);
  if p_version is distinct from v then raise exception 'TAX_PROFILE_CHANGED';end if;
- if coalesce(p_data->>'year','')!~'^[0-9]{4}$' or (p_data->>'year')::integer not between 2026 and 2100 then raise exception 'VALIDATION';end if;
+ if jsonb_typeof(p_data->'year') is distinct from 'number' or coalesce(p_data->>'year','')!~'^[0-9]{4}$' or (p_data->>'year')::integer not between 2026 and 2100 then raise exception 'VALIDATION';end if;
  if p_action='profile' then
   if exists(select 1 from jsonb_object_keys(p_data) k where k not in ('year','state','entity','federalAnnualPaymentCents','stateAnnualPaymentCents','federalSource','stateSource','reviewedOn','reviewNote','rules'))
    or coalesce(p_data->>'state','')!~'^[A-Z]{2}$' or coalesce(p_data->>'entity','') not in ('individual_calendar','other')
@@ -68,7 +68,7 @@ begin
   if not (p_data ? 'federalAnnualPaymentCents' and p_data ? 'stateAnnualPaymentCents') then raise exception 'VALIDATION';end if;
   for rule in select value from jsonb_array_elements(p_data->'rules') loop
    if jsonb_typeof(rule) is distinct from 'object' or exists(select 1 from jsonb_object_keys(rule) k where k not in ('id','label','state','county','city','jurisdictionEvidence','scope','effectiveFrom','effectiveTo','reviewedOn','sourceUrl','components','rounding','reviewed'))
-    or coalesce(rule->>'reviewed','')<>'true' or coalesce(rule->>'rounding','')<>'component_half_up'
+    or rule->'reviewed' is distinct from 'true'::jsonb or coalesce(rule->>'rounding','')<>'component_half_up'
     or rule->>'state' is distinct from p_data->>'state' or coalesce(rule->>'sourceUrl','')!~'^https://[^[:space:]]+$' or length(rule->>'sourceUrl')>1000
     or coalesce(rule->>'effectiveFrom','')!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' or coalesce(rule->>'effectiveTo','')!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
     or coalesce(rule->>'reviewedOn','')!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
@@ -84,7 +84,7 @@ begin
    for c in select value from jsonb_array_elements(rule->'components') loop
     if jsonb_typeof(c) is distinct from 'object' or exists(select 1 from jsonb_object_keys(c) k where k not in ('kind','label','ratePpm'))
      or coalesce(c->>'kind','') not in ('state','county','city','district') or length(trim(coalesce(c->>'label',''))) not between 2 and 500
-     or coalesce(c->>'ratePpm','')!~'^[0-9]+$' or (c->>'ratePpm')::bigint>250000 then raise exception 'VALIDATION';end if;
+     or jsonb_typeof(c->'ratePpm') is distinct from 'number' or coalesce(c->>'ratePpm','')!~'^[0-9]+$' or (c->>'ratePpm')::bigint>250000 then raise exception 'VALIDATION';end if;
     rate:=rate+(c->>'ratePpm')::bigint;
    end loop;
    if rate>250000 then raise exception 'VALIDATION';end if;
@@ -106,7 +106,7 @@ begin
    or coalesce(p_data->>'date','')!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
    or coalesce(p_data->>'sourceUrl','')!~'^https://[^[:space:]]+$' or length(p_data->>'sourceUrl')>1000
    or coalesce(p_data->>'paymentUrl','')!~'^https://[^[:space:]]+$' or length(p_data->>'paymentUrl')>1000
-   or coalesce(p_data->>'reviewed','')<>'true' then raise exception 'VALIDATION';end if;
+   or p_data->'reviewed' is distinct from 'true'::jsonb then raise exception 'VALIDATION';end if;
   perform (p_data->>'date')::date;
   if p_action='payment' and ((p_data->>'amountCents')::bigint=0 or (p_data->>'date')::date>today or length(trim(coalesce(p_data->>'reference',''))) not between 2 and 500) then raise exception 'VALIDATION';end if;
   if p_action='payment' then
@@ -391,9 +391,9 @@ begin
  d:=replace(d,old,old||',''billingBasis'',''billingMinutes'',''unitRateCents''');
  old:='total:=total+(line->>''chargedCents'')::bigint;';
  if strpos(d,old)=0 then raise exception 'invoice charge baseline changed';end if;
- execute replace(d,old,'if line ? ''billingBasis'' and coalesce(line->>''billingBasis'','''') not in (''hourly'',''fixed'') then raise exception ''VALIDATION'';end if;
+ execute replace(d,old,'if jsonb_typeof(line->''recordedMinutes'') is distinct from ''number'' or jsonb_typeof(line->''chargedCents'') is distinct from ''number'' then raise exception ''VALIDATION'';end if; if line ? ''billingBasis'' and coalesce(line->>''billingBasis'','''') not in (''hourly'',''fixed'') then raise exception ''VALIDATION'';end if;
  if line->>''billingBasis''=''hourly'' then
-  if coalesce(line->>''billingMinutes'','''')!~''^[0-9]+$'' or coalesce(line->>''unitRateCents'','''')!~''^[0-9]+$'' or (line->>''billingMinutes'')::bigint>1440 or (line->>''unitRateCents'')::bigint>999999999 then raise exception ''VALIDATION'';end if;
+  if jsonb_typeof(line->''billingMinutes'') is distinct from ''number'' or jsonb_typeof(line->''unitRateCents'') is distinct from ''number'' or coalesce(line->>''billingMinutes'','''')!~''^[0-9]+$'' or coalesce(line->>''unitRateCents'','''')!~''^[0-9]+$'' or (line->>''billingMinutes'')::bigint>1440 or (line->>''unitRateCents'')::bigint>999999999 then raise exception ''VALIDATION'';end if;
   if ((line->>''billingMinutes'')::bigint*(line->>''unitRateCents'')::bigint+30)/60<>(line->>''chargedCents'')::bigint then raise exception ''INVOICE_TOTAL_CHANGED'';end if;
  end if; '||old);
 end $migration$;

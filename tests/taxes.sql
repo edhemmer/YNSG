@@ -37,6 +37,9 @@ do $$begin
  begin perform public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),4,4500,true,'bypass-tax-synthetic');raise exception 'TEST FAILED bypass';exception when raise_exception then if sqlerrm<>'TAX_REVIEW_REQUIRED' then raise;end if;end;
  begin perform public.approve_taxed_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),4,'50000000-0000-4000-8000-000000000001','Synthetic approval',4500,'wrong-tax-total-001');raise exception 'TEST FAILED stale total';exception when raise_exception then if sqlerrm<>'INVOICE_TOTAL_CHANGED' then raise;end if;end;
 end$$;
+do $$begin
+ begin perform public.tax_command('20000000-0000-4000-8000-000000000001','profile',1,jsonb_set(public.tax_workspace('20000000-0000-4000-8000-000000000001',2026)->'profile'->'data','{rules,0,components,0,ratePpm}','"62500"'::jsonb),'tax-malformed-type01');raise exception 'TEST FAILED numeric string accepted';exception when raise_exception then if sqlerrm<>'VALIDATION' then raise;end if;end;
+end$$;
 select pg_temp.assert_true((select revision=4 from public.jobs),'failed combined approval rolls back tax review revision');
 select public.approve_taxed_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),4,'50000000-0000-4000-8000-000000000001','Synthetic accepted total plus exact address review',4860,'tax-invoice-issue-001');
 select public.approve_taxed_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),4,'50000000-0000-4000-8000-000000000001','Synthetic accepted total plus exact address review',4860,'tax-invoice-issue-001');

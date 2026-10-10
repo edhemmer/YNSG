@@ -21,7 +21,7 @@ Status: implemented and locally verified; production database migration rejected
 
 ## Activation steps
 
-1. Review `supabase/migrations/20261010011809_tax_workspace.sql`. Automatic approval review rejected the apply attempt because it is a large production migration changing constraints and existing financial functions, with Stripe live behavior unverified. No workaround or indirect apply was attempted. The tested CRM release must stay isolated until approved.
+1. Review `supabase/migrations/20261010011809_tax_workspace.sql`. Automatic approval review rejected the apply attempt because it is a large production migration changing constraints and existing financial functions, with Stripe live behavior unverified. No workaround or indirect apply was attempted. A read-only follow-up confirmed zero new tax/card tables and zero actual owner invoices or payments. The production website deployment attempt also returned HTTP 402 with a 86400-second retry; no Vercel CLI is installed for a credentialed fallback. The tested CRM release must stay isolated until approved.
 2. Resolve Vercel's existing daily deployment limit (HTTP 402, `api-deployments-free-per-day`). Wait for reset or choose the appropriate team plan yourself. No billing change was made. Publish the independent website franchise change after quota is available; publish CRM only after the database migration.
 3. In Vercel project `ynsg-repo` → Settings → Environment Variables, add server-only Production variables. Do not paste secrets into chat or use `NEXT_PUBLIC_` names:
    - `STRIPE_SECRET_KEY`: the live account/platform secret key (`sk_live_...`).
