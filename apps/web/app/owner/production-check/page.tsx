@@ -9,6 +9,16 @@ export default function ProductionCheck(){
  const [data,setData]=useState<RecordData|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[selected,setSelected]=useState(''),[view,setView]=useState<'owner'|'customer'>('owner');
  const sending=useRef(false),createKey=useRef(''),mounted=useRef(true),[progress,setProgress]=useState('');
  const [organization,setOrganization]=useState('');
+ const [paymentStatus,setPaymentStatus]=useState(''),[checkingPayment,setCheckingPayment]=useState(false);
+ async function checkPayments(){
+  setCheckingPayment(true);setPaymentStatus('');
+  try{
+   const r=await sessionFetch('/api/production-check?'+new URLSearchParams({organization,check:'payments'}));
+   const d=await r.json();if(!r.ok)throw Error('verification unavailable');
+   if(mounted.current)setPaymentStatus((d.workspaceOriginMatches?'Workspace address verified. ':'Workspace address does not match the configured sign-in and save address. ')+(d.status==='merchant_verified'?'Live card merchant verified. A signed-webhook and actual-payment check are still required.':d.status==='connection_required'?'The live card connection is not configured.':'The card merchant could not be verified.'));
+  }catch{if(mounted.current)setPaymentStatus('Connection verification is unavailable. No charge was created.');}
+  finally{if(mounted.current)setCheckingPayment(false);}
+ }
  async function load(org:string,run?:string){
  const q=new URLSearchParams({organization:org,...(run?{run}:{})});
  const r=await sessionFetch('/api/production-check?'+q),d=await r.json();if(!r.ok)throw Error(d.error);if(mounted.current)setData(d);
@@ -30,6 +40,7 @@ export default function ProductionCheck(){
  return <main id="main" className="shell invoice-document">
  <div className="invoice-actions"><a href="/owner">Back to workspace</a><button disabled={busy} onClick={()=>void load(organization,data?.run||undefined).catch(e=>setError(publicError(e)))}>Refresh results</button></div>
  <h1>Production checks</h1><p>Review the customer and owner messages, then send one sample of each to your approved owner inbox. These samples use the production templates. They do not book visits, issue bills or record payments.</p>
+ <section className="card"><h2>Card payment connection</h2><p>This check verifies the live merchant without creating a charge.</p><button disabled={!organization||checkingPayment} onClick={()=>void checkPayments()}>{checkingPayment?'Checking connection…':'Check card connection'}</button>{paymentStatus&&<p role="status">{paymentStatus}</p>}</section>
  {error&&<p role="alert" className="note">{error}</p>}
  {!data&&!error&&<p role="status">Loading checks…</p>}
  {data&&<><p>Sample recipient: <strong>{data.recipient}</strong></p>{!data.run?<button disabled={busy} onClick={()=>void create()}>Create sample invoice and emails</button>:<>

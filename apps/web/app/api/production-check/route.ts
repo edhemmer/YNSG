@@ -22,7 +22,10 @@ async function context(org:string){
 export async function GET(request:Request){try{
  const q=new URL(request.url).searchParams,org=z.uuid().parse(q.get('organization'));
  const c=await context(org);
- if(q.get('check')==='payments')return json(await paymentReadiness(stripeConfigured(org),()=>merchantFor(org)));
+ if(q.get('check')==='payments')return json({
+  ...await paymentReadiness(stripeConfigured(org),()=>merchantFor(org)),
+  workspaceOriginMatches:new URL(request.url).origin===process.env.APP_ORIGIN,
+ });
  let record;
  if(q.has('run'))record=await c.server.from('outbox').select('id,payload').eq('organization_id',org).eq('id',z.uuid().parse(q.get('run'))).eq('kind','diagnostic.sample_suite').maybeSingle();
  else record=await c.server.from('outbox').select('id,payload').eq('organization_id',org).eq('kind','diagnostic.sample_suite').order('created_at',{ascending:false}).limit(1).maybeSingle();

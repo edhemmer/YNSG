@@ -59,6 +59,9 @@ const ynsgCatalog = (): CatalogItem[] =>
     pricingMode: name === "Something else" ? "review" : "hourly",
   }));
 function settingsError(error: unknown): string {
+  const message=error instanceof Error?error.message:'';
+  if(message==='Request not accepted.')return 'This workspace address could not be verified for saving. Your changes have not been saved.';
+  if(message==='Settings were not published. Check your access and required fields.')return message;
   return settingsIssue(error)?.message || publicError(error, "Settings could not be saved. Refresh and try again.");
 }
 function template(name: string, organization: string): CompanySettings {
