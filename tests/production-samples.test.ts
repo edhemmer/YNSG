@@ -8,7 +8,7 @@ const settings={displayName:'Synthetic Business',sellerLegalName:'Synthetic Lega
 const suite=()=>productionSamples(settings,'00000000-0000-4000-8000-000000000001','owner@example.invalid','https://crm.example.invalid','00000000-0000-4000-8000-000000000002',new Date('2026-10-10T00:00:00Z'));
 test('sample set covers every current business template and routes only to the owner',()=>{
  const result=suite();assert.equal(result.messages.length,15);assert.equal(new Set(result.messages.map(m=>m.id)).size,15);
- for(const m of result.messages){assert.equal(m.to,'owner@example.invalid');assert.match(m.subject,/^\[SAMPLE /);assert.match(m.body,/No appointment, bill or payment/);assert.ok(!m.body.includes(settings.review.url));assert.ok(!m.html.includes(settings.review.url));assert.ok(!m.html.includes('/request/manage'));}
+ for(const m of result.messages){assert.equal(m.to,'owner@example.invalid');assert.match(m.subject,/^\[SAMPLE /);assert.match(m.body,/No appointment, bill or payment/);if(m.id==='invoice.paid'){assert.ok(m.body.includes(settings.review.url));assert.ok(m.html.includes(settings.review.url));assert.match(m.body,/do not submit a review/);}else{assert.ok(!m.body.includes(settings.review.url));assert.ok(!m.html.includes(settings.review.url));}assert.ok(!m.html.includes('/request/manage'));}
  assert.ok(result.messages.some(m=>m.audience==='owner'));assert.ok(result.messages.some(m=>m.audience==='customer'));assert.equal(result.messages.filter(m=>m.pdf).length,1);
 });
 test('saved invoice preview preserves money arithmetic, sample label and missing-settings guidance',()=>{

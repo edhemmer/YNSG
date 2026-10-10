@@ -21,7 +21,7 @@ export function productionSamples(settings:Record<string,any>,org:string,recipie
  invoice.sample=true;
  let messages:SampleMessage[]=[];
  function add(id:string,label:string,audience:'owner'|'customer',m:{subject:string;body:string;html:string},pdf=false){
- const note='SAMPLE ONLY — '+audience+' template: '+label+'. No appointment, bill or payment has been created. Preview buttons open the sample screen and cannot act on a customer record.';
+ const note='SAMPLE ONLY — '+audience+' template: '+label+'. No appointment, bill or payment has been created. Appointment buttons open the sample screen and cannot act on a customer record. The review button opens the real public review page; do not submit a review for this sample.';
  messages.push({id,label,audience,to:recipient,subject:'[SAMPLE '+audience.toUpperCase()+'] '+m.subject,body:note+'\n\n'+m.body,html:m.html.replace(/(<body[^>]*>)/,'$1<div style="background:#fff3cd;color:#10283c;padding:18px;font:16px Arial">'+note+'</div>'),...(pdf?{pdf:true}:{})});
  }
  const owner=ownerRequestEmail(request,request.services,run,company,'',url,identity);
@@ -35,7 +35,5 @@ export function productionSamples(settings:Record<string,any>,org:string,recipie
  add('invoice.delivery','Invoice and PDF','customer',invoiceMessage(invoice,identity),true);
  add('invoice.paid','Payment thank-you and review','customer',paidInvoiceMessage({...invoice,paidCents:12000,balanceCents:0},settings.review,identity));
  add('connection.test','Gmail connection test','owner',googleTestMessage(company,identity));
- // A sample must never generate a public review or real attendance action.
- messages=messages.map(m=>({...m,body:m.body.replaceAll(settings.review?.url||'__none__',url),html:m.html.replaceAll(settings.review?.url||'__none__',url)}));
  return {invoice,messages,createdAt:now.toISOString(),settingsWarnings:[...(!settings.invoiceTerms?['Publish invoice terms in Settings before issuing real invoices.']:[]),...(settings.sellerVerified!==true?['Confirm the seller identity in Settings.']:[]),...(settings.taxTreatmentVerified!==true?['Confirm tax treatment in Settings before issuing real invoices.']:[])]};
 }
