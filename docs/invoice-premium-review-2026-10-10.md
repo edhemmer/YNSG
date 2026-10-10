@@ -8,6 +8,6 @@ Active request: reject generic invoice; redesign the web/customer/PDF presentati
 - [x] Readable mobile and dark mode; long labels/text wrap; multipage PDF headers/footers do not collide.
 - [x] PDF visually inspected: short example fits one page; 36-service stress example retains all rows/totals across 10 pages, within margins. All 223 tests, root/web types and optimized web build pass.
 - [x] Screenshots interpreted by exact visible key/scope; no secret changes or invented values.
-- [ ] Selected source changes published and actual serving deployment checked before calling changes live.
+- [x] Design source a53693a1 is READY; signed-in owner/customer-context preview reviewed on the actual .app CRM. Final zero-balance status and narrow-screen wrapping hardening also pass 223 tests and build; serving deployment will be checked after publication.
 
-Deployment/browser acceptance is pending. Full-product production certification remains outside this invoice acceptance.
+The invoice design has browser acceptance. Customer-context preview uses the real component but does not verify independent customer authentication. Mobile/dark layouts are implemented; physical phone/inbox rendering is not certified. Full-product production certification remains outside this invoice acceptance.

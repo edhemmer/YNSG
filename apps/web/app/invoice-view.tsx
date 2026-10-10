@@ -3,7 +3,7 @@ import {billingLabel} from "../lib/invoice-billing";
 import type {InvoiceDocument} from "../lib/invoice-document";
 const money=(c:number)=>(c/100).toLocaleString("en-US",{style:"currency",currency:"USD"});
 export default function InvoiceView({invoice}:{invoice:InvoiceDocument}) {
- const status=invoice.sample?"Sample invoice":invoice.balanceCents===0?"Paid":invoice.paidCents>0?"Partially paid":"Payment due";
+ const status=invoice.sample?"Sample invoice":invoice.balanceCents===0?(invoice.paidCents>0?"Paid":"No balance due"):invoice.paidCents>0?"Partially paid":"Payment due";
  return <article className="branded-invoice">
   {invoice.sample&&<p role="note" className="invoice-sample"><strong>SAMPLE — NOT A BILL.</strong> No work, payment or amount due has been recorded.</p>}
   <header className="invoice-brand"><img src="/brand/ynsg-logo.jpg" alt="Your Neighborhood Service Guy logo" width="210" height="140"/><div className="invoice-identity"><p className="invoice-kicker">Service invoice</p><h1>Invoice <span>#{invoice.number}</span></h1><span className="invoice-status">{status}</span></div></header>

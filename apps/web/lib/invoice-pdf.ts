@@ -31,7 +31,7 @@ export async function invoicePdf(invoice:InvoiceDocument){
   page.drawImage(logo,{x:48,y:650,width:180,height:120});
   draw('SERVICE INVOICE',370,741,9,bold,green);
   const identity=wrap(`Invoice #${invoice.number}`,194,24,bold);let identityY=707;for(const value of identity){draw(value,370,identityY,24,bold);identityY-=29;}
-  const status=invoice.sample?'SAMPLE INVOICE':invoice.balanceCents===0?'PAID':invoice.paidCents>0?'PARTIALLY PAID':'PAYMENT DUE';
+  const status=invoice.sample?'SAMPLE INVOICE':invoice.balanceCents===0?(invoice.paidCents>0?'PAID':'NO BALANCE DUE'):invoice.paidCents>0?'PARTIALLY PAID':'PAYMENT DUE';
   draw(status,370,identityY-3,9,bold,green);
   y=Math.min(650,identityY-14);page.drawRectangle({x:48,y,width:516,height:3,color:gold});y-=26;
   if(invoice.sample){draw('SAMPLE - NOT A BILL. No work or payment has been recorded.',48,y,10,bold,green);y-=25;}
