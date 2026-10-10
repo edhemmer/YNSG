@@ -3,7 +3,7 @@ import {NextResponse} from 'next/server';
 import {z} from 'zod';
 import {sameOrigin,failure} from '../../../lib/session';
 import {authorizeGoogle,serverDatabase,accessToken} from '../../../lib/google-server';
-import {emailRaw,sendEmail,GoogleFailure} from '../../../lib/google-core';
+import {emailRaw} from '../../../lib/google-core';
 import {productionSamples,type SampleSuite} from '../../../lib/production-samples';
 import {invoicePdf} from '../../../lib/invoice-pdf';
 export const runtime='nodejs';export const maxDuration=60;
@@ -54,11 +54,8 @@ export async function POST(request:Request){
  const eventKey='sample:'+v.run+':'+v.template;
  const before=await c.server.from('outbox').select('id,status').eq('organization_id',v.organization).eq('event_key',eventKey).maybeSingle();if(before.error)throw before.error;if(before.data)return json({status:before.data.status,replay:true});
  const id=randomUUID();
- const started=await c.server.from('outbox').insert({organization_id:v.organization,id,event_key:eventKey,kind:'diagnostic.template_preview',object_id:v.run,payload:{actor:c.user.id,template:v.template,recipient:c.recipient,subject:message.subject},status:'sending',attempts:1,lease_until:new Date(Date.now()+120000).toISOString()});
- if(started.error){if(started.error.code==='23505')return json({status:'sending',replay:true});throw started.error;}
- let status='needs_reconciliation',providerId:string|null=null;
- try{providerId=await sendEmail(token,rawEmail);status='accepted';}catch(e){if(e instanceof GoogleFailure&&e.status>=400&&e.status<500)status='failed';}
- const finished=await c.server.from('outbox').update({status,lease_until:null,payload:{actor:c.user.id,template:v.template,recipient:c.recipient,subject:message.subject,providerId}}).eq('organization_id',v.organization).eq('id',id).eq('status','sending').select('id');
- return json({status:finished.error||finished.data?.length!==1?'needs_reconciliation':status});
+ const started=await c.server.from('outbox').insert({organization_id:v.organization,id,event_key:eventKey,kind:'diagnostic.template_preview',object_id:v.run,payload:{actor:c.user.id,template:v.template,recipient:c.recipient,subject:message.subject},status:'pending'});
+ if(started.error){if(started.error.code==='23505')return json({status:'pending',replay:true});throw started.error;}
+ return json({status:'pending'});
  }catch(e){return failure(e)}
 }
