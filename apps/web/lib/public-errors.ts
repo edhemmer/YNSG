@@ -12,6 +12,11 @@ const messages:Record<string,string>={
  RECONNECT_REQUIRED:'Google access expired or was revoked. Reconnect in Settings.',
 };
 const approved=new Set([
+ 'A recent sample set is available. Open it instead of creating another.',
+ 'This sample does not match the approved owner address.',
+ 'Email sending is paused. Check your Google connection in Settings.',
+ 'Verify your Gmail sender in Settings before sending samples.',
+
  ...Object.values(schedulingMessages),
  'The appointment changed. Refresh the request.',
  'This visit includes a supplier pickup. Open Review to confirm its arrangements.',
