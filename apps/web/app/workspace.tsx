@@ -62,6 +62,7 @@ type Invoice = {
   number: number;
   total_cents: number;
   issued_at: string;
+  snapshot:{recipient?:{name?:string;street?:string;city?:string};scope?:string;taxCents?:number;recordedWork?:{description:string;chargedCents:number}[]};
   payments: { cents: number }[];
 };
 type Appointment = {
@@ -89,6 +90,7 @@ type Data = {
   quotes: Quote[];
   jobs: Job[];
   invoices: Invoice[];
+  invoiceAdmin:Record<string,{dueDate:string|null;archived:boolean;cardPending:boolean}>;
   outbox: { id: string; kind: string; status: string; created_at: string }[];
   appointments: Appointment[];
   schedulingPreferences: {id:string;request_id:string;appointment_id:string;preferred_local_start:string|null;timezone:string;note:string;created_at:string}[];
@@ -555,6 +557,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                     {section === "Money" && (
                       <>
                         {["owner","admin"].includes(role||"")&&<p><a href={"/owner/production-check?"+new URLSearchParams({organization:org})}>View sample invoice and email checks</a></p>}
+                        {finance && <p><a href={"/owner/taxes?"+new URLSearchParams({organization:org})}>Taxes · rules, due dates, payments and exports</a></p>}
                         {finance && <FinanceActivity key={org} organization={org} companyName={data.company.display_name}/>}
                         <p>
                           Issued amounts remain fixed. Payment status comes from
@@ -585,12 +588,15 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                                     ? "Partially paid"
                                     : "Unpaid"}
                               </span>
-                              <h2>Invoice {i.number}</h2>
+                              {data.invoiceAdmin?.[i.id]?.archived&&<span className="badge">Archived</span>}{data.invoiceAdmin?.[i.id]?.cardPending&&<span className="badge">Card payment pending</span>}
+                              <h2>Invoice {i.number} · {i.snapshot?.recipient?.name||"Customer on issued invoice"}</h2>
+                              <p>{[i.snapshot?.recipient?.street,i.snapshot?.recipient?.city].filter(Boolean).join(", ")}</p><p>{i.snapshot?.scope}</p>
                               <a href={"/invoice?"+new URLSearchParams({organization:org,invoice:i.id})}>View / print invoice</a>
+                              <p>Payment due: {data.invoiceAdmin?.[i.id]?.dueDate||"See invoice terms"}</p>
                               <p className="amount">
                                 {usd(balance)} outstanding
                               </p>
-                              <p>Issued total {usd(i.total_cents)}</p>
+                              <p>Subtotal {usd(i.total_cents-(i.snapshot?.taxCents||0))} · sales tax {usd(i.snapshot?.taxCents||0)} · issued total {usd(i.total_cents)}</p><p>Confirmed paid {usd(i.total_cents-balance)}. Open the invoice for due dates, partial / mixed payments, Stripe checkout and archive controls.</p>
                               {["owner","admin"].includes(role||"")&&<InvoiceDelivery organization={org} invoice={i.id}/>}
                               {finance && balance > 0 && (
                                 <PaymentForm

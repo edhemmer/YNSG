@@ -41,6 +41,8 @@ const command = z.discriminatedUnion("command", [
     revision: z.number().int().positive(),
     totalCents: z.number().int().min(0).max(999999999),
     reviewed: z.literal(true),
+    taxRuleId:z.uuid().optional(),
+    taxEvidence:z.string().trim().min(2).max(1000).optional(),
   }),
   z.object({
     ...base,
@@ -67,6 +69,9 @@ const command = z.discriminatedUnion("command", [
   }),
 ]);
 const messages: Record<string, string> = {
+  TAX_REVIEW_REQUIRED:"Review the applicable tax rule and customer-approved total before issuing this invoice.",
+  TAX_JURISDICTION_MISMATCH:"This tax rule does not match the service location.",
+  CARD_PAYMENT_PENDING:"A card checkout is pending. Resolve or cancel it before recording cash or Zelle.",
   INVOICE_REVIEW_REQUIRED: "Review the saved invoice before approving it.",
   INVOICE_DRAFT_REQUIRED: "Save the invoice draft before approving it.",
   INVOICE_TOTAL_CHANGED:
@@ -151,13 +156,13 @@ export async function POST(request: Request) {
         };
         break;
       case "ApproveInvoice":
-        name = "approve_invoice";
+        name = c.taxRuleId ? "approve_taxed_invoice" : "approve_invoice";
         args = {
           p_org: c.organizationId,
           p_job: c.id,
           p_revision: c.revision,
           p_total: c.totalCents,
-          p_reviewed: c.reviewed,
+          ...(c.taxRuleId ? {p_rule:c.taxRuleId,p_evidence:c.taxEvidence||""} : {p_reviewed:c.reviewed}),
           p_key: c.key,
         };
         break;

@@ -44,7 +44,7 @@ export async function GET(request: Request) {
         .range(from,to),
       db
         .from("invoices")
-        .select("id,job_id,number,total_cents,issued_at,payments(cents)")
+        .select("id,job_id,number,total_cents,issued_at,snapshot,payments(cents)")
         .eq("organization_id", org)
         .order("id")
         .range(from,to),
@@ -76,7 +76,7 @@ export async function GET(request: Request) {
       const jobs=quoteIds.length?await db.from('jobs').select('id,customer_id,quote_id,status,revision,invoices(id,number)').eq('organization_id',org).in('quote_id',quoteIds).order('id').limit(1001):{data:[],error:null};
       if(jobs.error||jobs.data!.length>1000)throw Error('FAILED');
       const jobIds=jobs.data!.map(j=>j.id);
-      const invoices=jobIds.length?await db.from('invoices').select('id,job_id,number,total_cents,issued_at,payments(cents)').eq('organization_id',org).in('job_id',jobIds).order('id').limit(1001):{data:[],error:null};
+      const invoices=jobIds.length?await db.from('invoices').select('id,job_id,number,total_cents,issued_at,snapshot,payments(cents)').eq('organization_id',org).in('job_id',jobIds).order('id').limit(1001):{data:[],error:null};
       if(invoices.error||invoices.data!.length>1000)throw Error('FAILED');
       results[3]!.data=quotes.data.slice(from,to+1);results[4]!.data=jobs.data!.slice(from,to+1);results[5]!.data=invoices.data!.slice(from,to+1);
       const customerIds=[...new Set([...quotes.data,...jobs.data!].map(v=>v.customer_id).filter(Boolean))];
@@ -86,6 +86,7 @@ export async function GET(request: Request) {
     const ready=await db.rpc('production_workflows_ready',{p_org:org});
     const hasMore=results.slice(1).some(r=>Array.isArray(r.data)&&r.data.length>50);
     for(const result of results.slice(1))if(Array.isArray(result.data))result.data=result.data.slice(0,50);
+    const invoiceAdmin=await db.rpc("invoice_admin_summary",{p_org:org,p_invoices:(results[5]!.data||[]).map(i=>i.id)});if(invoiceAdmin.error)throw Error("FAILED");
     return NextResponse.json(
       {
         pagination:{page,hasMore,appointmentFrom},
@@ -97,6 +98,7 @@ export async function GET(request: Request) {
         quotes: results[3]!.data,
         jobs: results[4]!.data,
         invoices: results[5]!.data,
+        invoiceAdmin:invoiceAdmin.data,
         outbox: results[6]!.data,
         appointments: results[7]!.data,
         schedulingPreferences: results[8]!.data,
