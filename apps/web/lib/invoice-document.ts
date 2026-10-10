@@ -1,5 +1,5 @@
 export type InvoiceRecipient = {name:string;email:string;phone:string;street:string;city:string;region:string;postalCode:string};
-export type InvoiceDocument = { recipient:InvoiceRecipient|null; businessEmail:string; number:number; issuedAt:string; businessName:string; terms:string;timezone:string; lines:{description:string;chargedCents:number}[]; totalCents:number; paidCents:number; balanceCents:number };
+export type InvoiceDocument = { sample?:boolean; recipient:InvoiceRecipient|null; businessEmail:string; number:number; issuedAt:string; businessName:string; terms:string;timezone:string; lines:{description:string;chargedCents:number}[]; totalCents:number; paidCents:number; balanceCents:number };
 export function invoiceDocument(invoice:{number:number;issued_at:string;total_cents:number;snapshot:Record<string,unknown>;payments:{cents:number}[]}):InvoiceDocument {
  const cents=(n:unknown):number=>{if(typeof n!=="number"||!Number.isSafeInteger(n)||n<0)throw Error("INVALID_INVOICE");return n};
  const total=cents(invoice.total_cents),paid=invoice.payments.reduce((sum,p)=>sum+cents(p.cents),0);
