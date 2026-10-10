@@ -10,15 +10,18 @@ Fifteen business template examples cover owner/customer intake, approval, bookin
 
 The first live sample send failed in MIME validation before any provider call or send record. Corrected identifiers and attachment naming now pass exact production formatting tests. Durable background sample delivery has been implemented with existing enabled-company leases, a membership/current-recipient check, compare-and-set before send, saved provider results and no automatic resend of failed or uncertain outcomes. SQL selector migration was applied and verified. The diagnostic sender is isolated from the actual customer-message adapter.
 
-Validation: 209 application tests pass, including actual sample MIME/PDF rendering, recipient rejection, revoked ownership, duplicate sends, compare-and-set race and uncertain transport outcomes. Root and web TypeScript checks, whitespace checks, all database migration/fixture suites, and optimized local webpack build pass. Database assertions verify enabled/paused diagnostic company selection and exclusion from the actual message adapter.
+Validation: the current 222 application tests pass, including actual sample MIME/PDF rendering, recipient rejection, revoked ownership, duplicate sends, compare-and-set race and uncertain transport outcomes. Root and web TypeScript checks, whitespace checks, all database migration/fixture suites, and optimized local webpack build pass. Database assertions verify enabled/paused diagnostic company selection and exclusion from the actual message adapter.
 
-Production deployment limitation: Vercel returned HTTP 402, api-deployments-free-per-day, more than 100 deployments, retry after 86400 seconds. Corrected background sender source is committed on codex/crm-workflow (a6b8ec833f821a4b8d94c7737d38ba701a8c2d92 before this report). Latest ready deploy at this checkpoint is 2cf2f08c23f8a934f4592fe38e755bdb714c85be, which does not contain the complete fix. Do not call the sample email test completed. Hosted final evidence: one saved sample suite, zero sample-send records, zero real invoices.
+Live follow-up October 10: all 15 samples were queued through the signed-in owner UI and accepted by Gmail. Read-only database verification found 15 saved provider identifiers. The sample invoice PDF was downloaded through the live UI and visually reviewed; the owner and customer display contexts match. Actual inbox/phone receipt remains for the owner to confirm. The sample did not create or pay an actual financial invoice.
+
+Production builds for source 7ae9900 completed for both projects. Website deployment dpl_B6Wk3HDF2GX16YMoaZKZ5R8ihpc9 uses the .com domains. CRM deployment dpl_2dQXUTE7WkRoiZpVU1TXU3ahGKEe uses .app; the apex alias was moved from its preview build to this Production-environment build. Money and Taxes loaded under the authenticated owner session. The former deployment quota blocker has cleared.
 
 Required owner inputs:
-1. Resolve Vercel deployment quota by waiting for the daily reset or choosing an appropriate plan in team Billing. No plan or billing changes were made.
-2. CRM Settings / company configuration: enter Invoice terms.
-3. Confirm actual labor tax treatment. The currently implemented choice only supports reviewed non-taxable labor; do not select it without review. Taxable labor requires further invoice implementation.
-4. After publishing the corrected sender, enqueue the sample set and verify all 15 provider results, PDF download, and actual inbox receipt.
-5. Complete the separate real website → request → Google booking → work completion → issued invoice → actual received-payment verification. The paid email example is a rendering example, not evidence of money received.
+1. Confirm actual receipt of the 15 sample messages and the invoice attachment in the owner inbox/phone.
+2. Publish actual customer invoice terms in CRM Settings.
+3. Confirm actual labor/material tax treatment and any applicable reviewed jurisdiction rules in Money → Taxes; no rate is inferred from the owner's state alone.
+4. Verify the actual live Stripe merchant, signing secret and production webhook. The implementation supports card-only checkout and retrieved exact fees; environment metadata access returned HTTP403, and no real charge or bank settlement has been demonstrated.
+5. Complete the separate actual website → request → Google booking → work completion → issued invoice → money received → signed provider processing → receipt/reconciliation check. A paid-message sample is a rendering example, not evidence that funds were received.
 
 Email/calendar cron jobs are enabled every minute and recent cron launches succeeded. This does not alone prove downstream HTTP processing or phone receipt. Payment UI records money received elsewhere; no card-checkout integration was demonstrated. Full production certification remains pending.
+

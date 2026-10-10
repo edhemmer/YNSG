@@ -15,14 +15,14 @@ Reviewed requirements: active YNSG conversation, current website and CRM source,
 | Territory | 15-mile straight-line radius from verified approved operating point in ZIP; signed map; no franchise operating location inside protected area; no invented lead exclusivity | Pass in reviewed private packet |
 | Insurance | GL $1M occurrence/$2M aggregate, auto $500K CSL, applicable WC regardless of W2/1099 label; AI/WOS where legally available and policy-compatible | Pass in reviewed private packet |
 | Equipment | Owner-selected tools/equipment, subject to safe lawful delivery | Pass in reviewed private packet |
-| Brand | Official existing logo/name retained; no unauthorized replacement logo | Pass: API guard and database trigger; owner UI release pending deployment |
+| Brand | Official existing logo/name retained; no unauthorized replacement logo | Pass: API guard and database trigger; owner UI source deployed |
 | Language | No Request help CTA, no earnings or guaranteed security/SEO/reliability promises | Pass on current franchise source |
 | Financial authority | Exact cents, immutable issued invoice/tax snapshots, actual provider confirmations; no AI-created amounts or fabricated paid status | Local tests pass; production migration approved and applied |
 | Privacy | No keys, passwords, private operational IDs or customer records in prospect material | Pass in reviewed prospect packet |
 | Legal completeness | FTC/state disclosures, financial statements, actual franchisor identity and state addenda required before offers/sales; no invented FDD or registration | Research verified; execution material pending actual records |
 | End to end | Real lead/calendar/email/payment/receipt/phone and reconciliation evidence | Incomplete |
-| Production delivery | Correct source deployed to both custom domains and browser checked | Incomplete: API deployment HTTP402; current CRM source 00ebffa; new release not yet verified |
+| Production delivery | Correct source deployed to both custom domains and browser checked | Pass for 7ae9900: production builds and custom domains; live financial acceptance still open |
 | iOS | Defer until web stabilization and demonstrated acceptance | Pass |
 | Final label | No whole-product production-ready or constraint-passed claim while any required gate is blocked | Open |
 
-Automatic approval review initially rejected the financial migration. The owner expressly approved it in the next message. The normal Supabase apply tool then succeeded; follow-up read-only verification found tax/card tables, payment RPC and zero RLS gaps. No financial data was fabricated. Production application deployment remains blocked by the daily hosting quota.
+Automatic approval review initially rejected the financial migration. The owner expressly approved it in the next message. The normal Supabase apply tool then succeeded; follow-up read-only verification found tax/card tables, payment RPC and zero RLS gaps. No financial data was fabricated. The hosting quota cleared; source 7ae9900 is now built in Production for both projects and routed to the custom domains. All 15 sample emails have saved provider acceptance identifiers. Actual inbox/phone receipt and live payment acceptance remain open.

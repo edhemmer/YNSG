@@ -1,4 +1,4 @@
-import type {CompanySettings} from '../../../packages/contracts';
+import type {CompanySettings} from '../../../packages/contracts/index.ts';
 
 export const FRANCHISE_NAME='Your Neighborhood Service Guy';
 export const FRANCHISE_LOGO='https://www.yourneighborhoodserviceguy.com/assets/logo.jpg';

@@ -6,6 +6,8 @@ import {authorizeGoogle,serverDatabase,accessToken} from '../../../lib/google-se
 import {emailRaw} from '../../../lib/google-core';
 import {productionSamples,type SampleSuite} from '../../../lib/production-samples';
 import {invoicePdf} from '../../../lib/invoice-pdf';
+import {stripeConfigured,merchantFor} from '../../../lib/stripe-server';
+import {paymentReadiness} from '../../../lib/payment-readiness';
 export const runtime='nodejs';export const maxDuration=60;
 const headers={'Cache-Control':'private, no-store'};
 const json=(data:unknown,status=200)=>NextResponse.json(data,{status,headers});
@@ -20,6 +22,7 @@ async function context(org:string){
 export async function GET(request:Request){try{
  const q=new URL(request.url).searchParams,org=z.uuid().parse(q.get('organization'));
  const c=await context(org);
+ if(q.get('check')==='payments')return json(await paymentReadiness(stripeConfigured(org),()=>merchantFor(org)));
  let record;
  if(q.has('run'))record=await c.server.from('outbox').select('id,payload').eq('organization_id',org).eq('id',z.uuid().parse(q.get('run'))).eq('kind','diagnostic.sample_suite').maybeSingle();
  else record=await c.server.from('outbox').select('id,payload').eq('organization_id',org).eq('kind','diagnostic.sample_suite').order('created_at',{ascending:false}).limit(1).maybeSingle();

@@ -1,6 +1,6 @@
 # Your Neighborhood Service Guy Platform Operations and Acceptance
 
-October 9 2026
+October 10 2026
 
 This internal operating specification assigns platform and owner responsibilities and defines evidence required before a new owner's website and CRM launch. It is not prospect marketing material. A completed source build or configured provider is not a substitute for demonstrated delivery through the production custom domains.
 
@@ -54,6 +54,8 @@ If a required check is unavailable or failed, report the exact affected function
 
 ## Current release record
 
-The Money/Tax migration was explicitly approved by Ed and applied through the normal Supabase migration tool. Read-only verification confirmed protected tax/card tables and zero public/private tables missing RLS. The connected CRM branch includes the approved source release. The deployment API still returns HTTP402 for the daily deployment quota, and project environment metadata access returns HTTP403. Live card credentials and actual production web acceptance remain unverified.
+The Money/Tax migration was explicitly approved by Ed and applied through the normal Supabase migration tool. Read-only verification confirmed protected tax/card tables and zero public/private tables missing RLS. The licensed-brand database trigger is active. Reviewed source 7ae9900 was built in the production environment for both website and CRM; the custom domains now route to those production builds. The earlier deployment quota blocker has cleared. Project environment metadata access still returns HTTP403; actual card credential, merchant and signed-webhook acceptance require separate verification.
+
+The signed-in owner successfully queued all 15 production-template samples to the verified owner inbox. The saved results contain 15 provider acceptances and 15 provider message identifiers. The owner/customer sample invoice views and downloaded PDF agree on $120 labor, a no-charge courtesy task, zero payments and a SAMPLE NOT A BILL designation. Provider acceptance does not establish inbox/phone receipt or a real customer payment. Money and the Tax workspace were checked through the production custom domain.
 
 The existing public site remains a single local website with hardcoded area/form categories. Automatic provisioning, territory reservation/enforcement, owner-site synchronization and Stripe connected-account onboarding are separate implementation work. The contract's proposed franchise support does not prove these capabilities are already automated. Seller invoice terms and actual labor tax review also remain owner inputs. Do not hide these facts behind a generic connection-ready label.
