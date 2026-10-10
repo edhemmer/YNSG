@@ -21,7 +21,7 @@ export default function ProductionCheck(){
  }
  async function load(org:string,run?:string){
  const q=new URLSearchParams({organization:org,...(run?{run}:{})});
- const r=await sessionFetch('/api/production-check?'+q),d=await r.json();if(!r.ok)throw Error(d.error);if(mounted.current)setData(d);
+ const r=await sessionFetch('/api/production-check?'+q),d=await r.json();if(!r.ok){if(r.status===401&&run){location.replace('/sample/request');return;}throw Error(d.error);}if(mounted.current)setData(d);
  }
  useEffect(()=>{mounted.current=true;const q=new URLSearchParams(location.search),org=q.get('organization')||'';setOrganization(org);void load(org,q.get('run')||undefined).catch(e=>{if(mounted.current)setError(publicError(e))});return()=>{mounted.current=false;};},[]);
  async function post(body:Record<string,unknown>){const r=await sessionFetch('/api/production-check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({organization,...body})});const d=await r.json();if(!r.ok)throw Error(d.error);return d;}

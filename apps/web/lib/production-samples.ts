@@ -1,3 +1,4 @@
+import {sampleInvoiceNumber} from "./invoice-number.ts";
 import {emailIdentity} from '../../../lib/email-layout.js';
 import {customerRequestEmail} from '../../../lib/customer-request-email.js';
 import {ownerRequestEmail} from '../../../lib/owner-request-email.js';
@@ -15,13 +16,14 @@ export function productionSamples(settings:Record<string,any>,org:string,recipie
  if(!company||!recipient||settings.notificationRecipient?.toLowerCase()!==recipient.toLowerCase())throw Error('APPROVED_SAMPLE_RECIPIENT_REQUIRED');
  const base=new URL(origin);if(base.protocol!=='https:'||base.username||base.password)throw Error('INVALID_SAMPLE_ORIGIN');
  const url=base.origin+'/owner/production-check?'+new URLSearchParams({organization:org,run});
+ const customerSampleUrl=base.origin+'/sample/request';
  const arrivalAt=new Date(now.getTime()+3*86400000).toISOString(),timezone=settings.timezone||'America/Chicago';
  const request={name:'Sample Customer — demonstration only',phone:'202-555-0148',email:recipient,street:'100 Example Street (sample address)',city:'DeKalb',region:'IL',postalCode:'60115',description:'SAMPLE ONLY. No visit or payment is being requested.',communityRate:'No',preferredTime:'To be arranged',services:[{service:'Home tasks',task:'Furniture assembly'},{service:'Home tasks',task:'Door adjustment'}]};
- const invoice=invoiceDocument({number:1,issued_at:now.toISOString(),total_cents:12000,payments:[],snapshot:{configuration:{sellerLegalName:settings.sellerLegalName||company,timezone,notificationRecipient:recipient,invoiceTerms:settings.invoiceTerms||'SAMPLE — NOT A BILL. Example terms only; publish your actual invoice terms before issuing a customer invoice.'},recipient:{name:request.name,email:recipient,phone:request.phone,street:request.street,city:request.city,region:'IL',postalCode:'60115'},recordedWork:[{description:'SAMPLE: Furniture assembly — two hours of labor',chargedCents:12000},{description:'SAMPLE: Door adjustment — courtesy task',chargedCents:0}]}});
+ const invoice=invoiceDocument({number:sampleInvoiceNumber(now,timezone),issued_at:now.toISOString(),total_cents:12000,payments:[],snapshot:{configuration:{sellerLegalName:settings.sellerLegalName||company,timezone,notificationRecipient:recipient,invoiceTerms:settings.invoiceTerms||'SAMPLE — NOT A BILL. Example terms only; publish your actual invoice terms before issuing a customer invoice.'},recipient:{name:request.name,email:recipient,phone:request.phone,street:request.street,city:request.city,region:'IL',postalCode:'60115'},recordedWork:[{description:'SAMPLE: Furniture assembly — two hours of labor',chargedCents:12000},{description:'SAMPLE: Door adjustment — courtesy task',chargedCents:0}]}});
  invoice.sample=true;
  let messages:SampleMessage[]=[];
  function add(id:string,label:string,audience:'owner'|'customer',m:{subject:string;body:string;html:string},pdf=false){
- const note='SAMPLE ONLY — '+audience+' template: '+label+'. No appointment, bill or payment has been created. Appointment buttons open the sample screen and cannot act on a customer record. The review button opens the real public review page; do not submit a review for this sample.';
+ const note='SAMPLE ONLY — '+audience+' template: '+label+'. No appointment, bill or payment has been created. Customer appointment buttons open a public demonstration and cannot act on a customer record. The review button opens the real public review page; do not submit a review for this sample.';
  messages.push({id,label,audience,to:recipient,subject:'[SAMPLE '+audience.toUpperCase()+'] '+m.subject,body:note+'\n\n'+m.body,html:m.html.replace(/(<body[^>]*>)/,'$1<div style="background:#fff3cd;color:#10283c;padding:18px;font:16px Arial">'+note+'</div>'),...(pdf?{pdf:true}:{})});
  }
  const owner=ownerRequestEmail(request,request.services,run,company,'',url,identity);
@@ -29,7 +31,7 @@ export function productionSamples(settings:Record<string,any>,org:string,recipie
  add('request.customer_receipt','Request received','customer',customerRequestEmail(company,request,identity));
  const kinds:AppointmentMessageInput['kind'][]=['appointment.owner_approval','appointment.confirmation','appointment.owner_confirmation','appointment.reminder','appointment.owner_reminder','appointment.declined_time','appointment.declined_service','appointment.reschedule_requested'];
  const labels=['Appointment awaiting approval','Appointment confirmed','Owner booking confirmation','Customer reminder','Owner reminder','Requested time declined','Appointment service declined','Reschedule requested'];
- kinds.forEach((kind,i)=>add(kind,labels[i]!,['appointment.owner_approval','appointment.owner_confirmation','appointment.owner_reminder','appointment.reschedule_requested'].includes(kind)?'owner':'customer',appointmentMessage({kind,company,identity,recipient,notificationRecipient:recipient,request,arrivalAt,timezone,ownerUrl:url,manageUrl:url,confirmUrl:url,rescheduleUrl:url,reason:'Sample explanation for this preview.',preference:{preferred_local_start:'2026-10-15T10:00',note:'Sample request for a different time.'}})));
+ kinds.forEach((kind,i)=>add(kind,labels[i]!,['appointment.owner_approval','appointment.owner_confirmation','appointment.owner_reminder','appointment.reschedule_requested'].includes(kind)?'owner':'customer',appointmentMessage({kind,company,identity,recipient,notificationRecipient:recipient,request,arrivalAt,timezone,ownerUrl:url,manageUrl:customerSampleUrl,rescheduleUrl:customerSampleUrl+'?action=reschedule',confirmUrl:customerSampleUrl+'?action=confirm',reason:'Sample explanation for this preview.',preference:{preferred_local_start:'2026-10-15T10:00',note:'Sample request for a different time.'}})));
  add('request.declined','Service request declined','customer',requestDeclinedMessage(company,request,identity));
  add('appointment.delay_notice','Running late','customer',delayMessage(company,recipient,request.name,new Date(Date.parse(arrivalAt)+15*60000).toISOString(),timezone,identity));
  add('invoice.delivery','Invoice and PDF','customer',invoiceMessage(invoice,identity),true);

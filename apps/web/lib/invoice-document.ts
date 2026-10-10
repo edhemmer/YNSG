@@ -1,7 +1,8 @@
+import {invoiceNumber} from "./invoice-number.ts";
 import {hourlyCharge} from "./invoice-billing.ts";
 export type InvoiceRecipient = {name:string;email:string;phone:string;street:string;city:string;region:string;postalCode:string};
 export type InvoiceTaxComponent={label:string;kind:string;ratePpm:number;baseCents:number;taxCents:number};
-export type InvoiceDocument = { dueDate?:string|null; subtotalCents?:number; taxCents?:number; taxComponents?:InvoiceTaxComponent[]; sample?:boolean; recipient:InvoiceRecipient|null; businessEmail:string; number:number; issuedAt:string; businessName:string; terms:string;timezone:string; lines:{description:string;chargedCents:number;billingBasis?:string;billingMinutes?:number;unitRateCents?:number;recordedMinutes?:number}[]; totalCents:number; paidCents:number; balanceCents:number };
+export type InvoiceDocument = { dueDate?:string|null; subtotalCents?:number; taxCents?:number; taxComponents?:InvoiceTaxComponent[]; sample?:boolean; recipient:InvoiceRecipient|null; businessEmail:string; number:number|string; issuedAt:string; businessName:string; terms:string;timezone:string; lines:{description:string;chargedCents:number;billingBasis?:string;billingMinutes?:number;unitRateCents?:number;recordedMinutes?:number}[]; totalCents:number; paidCents:number; balanceCents:number };
 export function invoiceDocument(invoice:{number:number;issued_at:string;total_cents:number;snapshot:Record<string,unknown>;payments:{cents:number}[]}):InvoiceDocument {
  const cents=(n:unknown):number=>{if(typeof n!=="number"||!Number.isSafeInteger(n)||n<0)throw Error("INVALID_INVOICE");return n};
  const total=cents(invoice.total_cents),paid=invoice.payments.reduce((sum,p)=>{if(!Number.isSafeInteger(p.cents))throw Error("INVALID_INVOICE");return sum+p.cents},0);
@@ -27,5 +28,5 @@ export function invoiceDocument(invoice:{number:number;issued_at:string;total_ce
   recipient={name:field("name"),email:field("email"),phone:field("phone"),street:field("street"),city:field("city"),region:field("region"),postalCode:field("postalCode",false)};
  }
  const businessEmail=typeof cfg?.notificationRecipient==="string"?cfg.notificationRecipient:"";
- return {subtotalCents:subtotal,taxCents,taxComponents,recipient,businessEmail,timezone,number:invoice.number,issuedAt:invoice.issued_at,businessName,terms,lines,totalCents:total,paidCents:paid,balanceCents:total-paid};
+ return {subtotalCents:subtotal,taxCents,taxComponents,recipient,businessEmail,timezone,number:invoiceNumber(invoice.number),issuedAt:invoice.issued_at,businessName,terms,lines,totalCents:total,paidCents:paid,balanceCents:total-paid};
 }

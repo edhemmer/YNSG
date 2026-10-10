@@ -1,3 +1,4 @@
+import {invoiceNumber} from "../../../lib/invoice-number";
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
 import {authenticated,sameOrigin,failure} from '../../../lib/session';
@@ -17,8 +18,8 @@ export async function GET(request:Request){try{
  if(q.get('format')==='csv'){
   const d=r.data,rows:Record<string,string|number|null>[]=[];
   for(const i of d.invoices){const components=i.tax?.components||[];
-   if(!components.length)rows.push({record_type:'invoice',id:i.id,invoice_number:i.number,tax_year:year,date:i.issuedAt,subtotal_cents:i.subtotalCents,tax_cents:i.taxCents,total_cents:i.totalCents,paid_cents:i.paidCents,balance_cents:i.totalCents-i.paidCents,treatment:'Legacy reviewed non-taxable labor; see invoice configuration'});
-   else {rows.push({record_type:"invoice",id:i.id,invoice_number:i.number,tax_year:year,date:i.issuedAt,subtotal_cents:i.subtotalCents,tax_cents:i.taxCents,total_cents:i.totalCents,paid_cents:i.paidCents,balance_cents:i.totalCents-i.paidCents});for(const c of components)rows.push({record_type:'invoice_tax_component',id:i.id,invoice_number:i.number,tax_year:year,date:i.issuedAt,tax_kind:c.kind,jurisdiction:c.label,rate_ppm:c.ratePpm,tax_base_cents:c.baseCents,component_tax_cents:c.taxCents,source_url:i.tax.rule.sourceUrl,rule_id:i.tax.rule.id,profile_version:i.tax.profileVersion,treatment:i.tax.rule.scope});}
+   if(!components.length)rows.push({record_type:'invoice',id:i.id,invoice_number:invoiceNumber(i.number),tax_year:year,date:i.issuedAt,subtotal_cents:i.subtotalCents,tax_cents:i.taxCents,total_cents:i.totalCents,paid_cents:i.paidCents,balance_cents:i.totalCents-i.paidCents,treatment:'Legacy reviewed non-taxable labor; see invoice configuration'});
+   else {rows.push({record_type:"invoice",id:i.id,invoice_number:invoiceNumber(i.number),tax_year:year,date:i.issuedAt,subtotal_cents:i.subtotalCents,tax_cents:i.taxCents,total_cents:i.totalCents,paid_cents:i.paidCents,balance_cents:i.totalCents-i.paidCents});for(const c of components)rows.push({record_type:'invoice_tax_component',id:i.id,invoice_number:invoiceNumber(i.number),tax_year:year,date:i.issuedAt,tax_kind:c.kind,jurisdiction:c.label,rate_ppm:c.ratePpm,tax_base_cents:c.baseCents,component_tax_cents:c.taxCents,source_url:i.tax.rule.sourceUrl,rule_id:i.tax.rule.id,profile_version:i.tax.profileVersion,treatment:i.tax.rule.scope});}
   }
   for(const r of d.records)rows.push({record_type:r.recordType,id:r.id,tax_year:year,date:r.data.date||r.recordedAt,tax_kind:r.data.kind||'',jurisdiction:r.data.label||'',period:r.data.period||'',amount_cents:r.data.amountCents??null,reference:r.data.reference||'',source_url:r.data.sourceUrl||'',payment_url:r.data.paymentUrl||'',reverses_id:r.data.recordId||'',deadline_id:r.data.deadlineId||'',notes:r.data.reason||''});
   if(d.profile?.data.year===year)for(const p of estimatedInstallments(taxProfileSchema.parse(d.profile.data)))rows.push({record_type:'planned_installment',id:p.id,tax_year:year,date:p.dueDate,tax_kind:p.kind,jurisdiction:p.label,period:p.period,amount_cents:p.amountCents,source_url:p.sourceUrl,payment_url:p.paymentUrl,profile_version:d.profile.version});

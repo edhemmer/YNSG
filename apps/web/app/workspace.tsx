@@ -1,4 +1,5 @@
 "use client";
+import {invoiceNumber} from "../lib/invoice-number";
 import {paymentInput} from '../lib/payment-input';
 import {ownerRequestContext} from '../lib/email-links';
 import { publicError } from "../lib/public-errors";
@@ -589,7 +590,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                                     : "Unpaid"}
                               </span>
                               {data.invoiceAdmin?.[i.id]?.archived&&<span className="badge">Archived</span>}{data.invoiceAdmin?.[i.id]?.cardPending&&<span className="badge">Card payment pending</span>}
-                              <h2>Invoice {i.number} · {i.snapshot?.recipient?.name||"Customer on issued invoice"}</h2>
+                              <h2>Invoice {invoiceNumber(i.number)} · {i.snapshot?.recipient?.name||"Customer on issued invoice"}</h2>
                               <p>{[i.snapshot?.recipient?.street,i.snapshot?.recipient?.city].filter(Boolean).join(", ")}</p><p>{i.snapshot?.scope}</p>
                               <a href={"/invoice?"+new URLSearchParams({organization:org,invoice:i.id})}>View / print invoice</a>
                               <p>Payment due: {data.invoiceAdmin?.[i.id]?.dueDate||"See invoice terms"}</p>

@@ -1,4 +1,5 @@
 "use client";
+import {invoiceNumber} from "../../lib/invoice-number";
 import { publicError } from "../../lib/public-errors";
 import { useEffect, useState } from "react";
 import { sessionFetch } from "../../lib/session-fetch";
@@ -430,7 +431,7 @@ export default function Account() {
             ) : (
               data.invoices.map((i) => (
                 <div key={i.id}>
-                  <strong>Invoice {i.number}</strong>
+                  <strong>Invoice {invoiceNumber(i.number)}</strong>
                   <p><a href={"/invoice?"+new URLSearchParams({organization:org,invoice:i.id,return:"account"})}>Open invoice and download PDF</a></p>
                   <p>
                     Total{" "}

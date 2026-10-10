@@ -32,6 +32,14 @@ select public.save_invoice_labor('20000000-0000-4000-8000-000000000001',(select 
 select public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),4,13500,true,'approved-invoice-key');
 select public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),4,13500,true,'approved-invoice-key');
 select pg_temp.assert_true((select count(*)=1 from public.invoices),'one authoritative invoice');
+select pg_temp.assert_true((select number/1000000=to_char(now() at time zone 'UTC','YYYYMM')::bigint and number%1000000=1 from public.invoices limit 1),'monthly first invoice and idempotent retry');
+reset role;
+select pg_temp.assert_true(private.next_monthly_invoice_number('20000000-0000-4000-8000-000000000001',now(),'UTC')=(select number+1 from public.invoices limit 1),'existing monthly invoice advances sequence');
+select pg_temp.assert_true(private.next_monthly_invoice_number('20000000-0000-4000-8000-000000000002','2027-01-01T00:30Z','America/Chicago')=202612000001,'seller local year boundary');
+select pg_temp.assert_true(private.next_monthly_invoice_number('20000000-0000-4000-8000-000000000002','2027-01-01T06:30Z','America/Chicago')=202701000001,'new year resets sequence');
+select pg_temp.assert_true(private.next_monthly_invoice_number('20000000-0000-4000-8000-000000000002',now(),'UTC')%1000000=1,'organizations have independent counters');
+set local role authenticated;
+
 select pg_temp.assert_true((select total_cents=13500 from public.invoices limit 1),'invoice matches accepted version');
 do $$begin begin
  perform public.record_payment('20000000-0000-4000-8000-000000000001',(select id from public.invoices limit 1),3000,'zelle','Customer said sent',now(),false,'test-payment-unconfirmed');raise exception 'TEST FAILED unconfirmed payment';

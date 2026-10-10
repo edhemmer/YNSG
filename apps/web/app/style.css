@@ -150,3 +150,5 @@ html[data-theme=dark] .business-brief .brief-checked{color:#b3c2cd}
 .invoice-document .branded-invoice section{margin-block:0}
 
 .invoice-balance span{overflow-wrap:anywhere}
+
+.invoice-brand h1 span{display:block;font-size:26px;white-space:nowrap}.invoice-brand{flex-wrap:wrap}.invoice-identity{min-width:155px}@media(max-width:600px){.invoice-brand h1 span{font-size:20px}}

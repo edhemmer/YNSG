@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {invoiceNumber,sampleInvoiceNumber} from '../apps/web/lib/invoice-number.ts';
+test('monthly identifiers pad the sequence and preserve issued historical identifiers',()=>{assert.equal(invoiceNumber(202610000001),'202610-0001');assert.equal(invoiceNumber(202610000154),'202610-0154');assert.equal(invoiceNumber(202701000008),'202701-0008');assert.equal(invoiceNumber(202701010001),'202701-10001');assert.equal(invoiceNumber(12),'12');assert.throws(()=>invoiceNumber(202613000001));assert.throws(()=>invoiceNumber(0));});
+test('sample numbering uses the seller timezone across year rollover without reserving a real number',()=>{assert.equal(invoiceNumber(sampleInvoiceNumber(new Date('2027-01-01T00:30Z'),'America/Chicago')),'202612-0001');assert.equal(invoiceNumber(sampleInvoiceNumber(new Date('2027-01-01T06:30Z'),'America/Chicago')),'202701-0001');});

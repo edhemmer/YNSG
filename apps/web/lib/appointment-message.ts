@@ -87,7 +87,7 @@ function appointmentText(v: AppointmentMessageInput) {
     subject: declinedTime
       ? "Please choose another appointment time"
       : "Update on your service request",
-    body: `Hi ${v.request.name || "there"},\n\n${declinedTime ? "We couldn’t confirm the requested time. Your service request and work details are still saved." : "We’re unable to take on this job."}${v.reason ? "\n" + v.reason : ""}\n\n${work}\n\n${declinedTime ? "Choose another time on the same request:" : "Review this appointment update:"}\n${v.manageUrl}\n\n${declinedTime ? "A new time needs review and approval before it is booked.\n\n" : ""}Reply to this email with any questions.`,
+    body: `Hi ${v.request.name || "there"},\n\n${declinedTime ? "We are not able to schedule your preferred appointment time. Please visit your request and select a new date and time. Your service details are still saved." : "We’re unable to take on this job."}${v.reason ? "\n" + v.reason : ""}\n\n${work}\n\n${declinedTime ? "Choose another time on the same request:" : "Review this appointment update:"}\n${v.manageUrl}\n\n${declinedTime ? "A new time needs review and approval before it is booked.\n\n" : ""}Reply to this email with any questions.`,
   };
 }
 
@@ -113,7 +113,7 @@ export function appointmentMessage(v: AppointmentMessageInput) {
  }
  const content=message.body.split('\n\n').map(block=>{
   const parts:string[]=[];let lines:string[]=[];
-  const flush=()=>{if(lines.length){parts.push(emailParagraph(lines.join('\n')));lines=[];}};
+  const flush=()=>{if(lines.length){const text=lines.join('\n');parts.push(/^(Arrival:|Requested work:|Preferred time:)/.test(text)?'<div class="mail-detail">'+emailParagraph(text)+'</div>':emailParagraph(text));lines=[];}};
   for(const line of block.split('\n')){
    const label=actions.get(line);
    if(label){flush();parts.push(emailButton(label,line,label==='Request another time'));}

@@ -32,3 +32,5 @@ test('every sample survives the exact production MIME header and attachment vali
  if(m.pdf)assert.match(Buffer.from(raw,'base64url').toString(),/filename="invoice-1.pdf"/);
  }
 });
+
+test('customer sample actions never require the owner workspace login',()=>{for(const m of suite().messages.filter(m=>m.audience==='customer')){assert.ok(!m.html.includes('/owner/production-check'),m.id);}assert.match(suite().messages.find(m=>m.id==='appointment.declined_time')!.body,/select a new date and time/);assert.equal(suite().invoice.number,'202610-0001');});
