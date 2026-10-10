@@ -12,3 +12,10 @@ test('PDF refuses absent recipient and unsupported characters instead of silentl
  await assert.rejects(invoicePdf({...pdfFixture,recipient:null}));
  await assert.rejects(invoicePdf({...pdfFixture,businessName:'Test \u{10ffff}'}),/UNSUPPORTED_CHARACTER/);
 });
+
+test('branded PDF keeps a short invoice on one page and paginates long services without losing metadata',async()=>{
+ const {PDFDocument}=await import('../apps/web/node_modules/pdf-lib/cjs/index.js');
+ const short=await PDFDocument.load(await invoicePdf(pdfFixture));assert.equal(short.getPageCount(),1);assert.equal(short.getAuthor(),pdfFixture.businessName);
+ const long=await PDFDocument.load(await invoicePdf({...pdfFixture,businessName:'Long recorded seller name '.repeat(12),lines:Array.from({length:36},(_,i)=>({...pdfFixture.lines[0]!,description:`Service ${i+1}: `+'Long approved service description. '.repeat(8)}))}));
+ assert.ok(long.getPageCount()>1);assert.ok(long.getPageCount()<100);for(const page of long.getPages()){assert.equal(page.getWidth(),612);assert.equal(page.getHeight(),792);}
+});
