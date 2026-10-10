@@ -1,6 +1,6 @@
 # Money, taxes and franchise release — October 10, 2026
 
-Status: implemented and locally verified; production database migration rejected by automatic approval review. Do not deploy the CRM files before the migration has been approved and applied. The public franchise page is independent of the database release.
+Status update October 9 evening America/Chicago: Ed expressly approved the reviewed production migration. The normal Supabase apply tool succeeded; read-only verification confirmed tax/card tables, the payment RPC and zero RLS gaps. PR 6 was merged to codex/crm-workflow at 00948057fbfe7cdd014bc5839e06351f6cedde2c. Application activation still needs the deployed source, Stripe credentials/webhook and actual owner/customer acceptance. The public franchise page is independent of the financial release.
 
 ## Implemented
 
@@ -17,11 +17,11 @@ Status: implemented and locally verified; production database migration rejected
 
 ## Verification
 
-220 application tests pass; new cases cover fixed-precision sales tax, verified dates, Illinois threshold/rounding, explicit billing arithmetic, invoice/refund balances, malicious CSV values, webhook signatures/timestamp tolerance, exact provider fee facts and merchant separation. All PostgreSQL migration/fixture suites pass from an empty schema (PGlite), including atomic taxed issue rollback/replay, tenant denial, cash/Zelle/card split, card-pending conflict, actual fee/net journal balance, partial refund replay, archive preservation and fee reporting. Root/web TypeScript checks, optimized webpack production build and the 10-page static website build pass. These are controlled local tests; no real invoice, card charge, refund, tax filing or authority payment was created by these tests. Browser QA of the new UI and live Stripe receipt/delivery were not completed.
+221 application tests pass; new cases cover fixed-precision sales tax, verified dates, Illinois threshold/rounding, explicit billing arithmetic, invoice/refund balances, malicious CSV values, webhook signatures/timestamp tolerance, exact provider fee facts and merchant separation. All PostgreSQL migration/fixture suites pass from an empty schema (PGlite), including atomic taxed issue rollback/replay, tenant denial, cash/Zelle/card split, card-pending conflict, actual fee/net journal balance, partial refund replay, archive preservation and fee reporting. Root/web TypeScript checks, optimized webpack production build and the 10-page static website build pass. These are controlled local tests; no real invoice, card charge, refund, tax filing or authority payment was created by these tests. Browser QA of the new UI and live Stripe receipt/delivery were not completed.
 
 ## Activation steps
 
-1. Review `supabase/migrations/20261010011809_tax_workspace.sql`. Automatic approval review rejected the apply attempt because it is a large production migration changing constraints and existing financial functions, with Stripe live behavior unverified. No workaround or indirect apply was attempted. A read-only follow-up confirmed zero new tax/card tables and zero actual owner invoices or payments. The production website deployment attempt also returned HTTP 402 with a 86400-second retry; no Vercel CLI is installed for a credentialed fallback. The tested CRM release must stay isolated until approved.
+1. The owner-approved tax migration is applied and verified. Preserve its immutable issued-document and payment rules. The earlier automatic review rejection was resolved by explicit owner approval; no indirect apply or workaround was used.
 2. Resolve Vercel's existing daily deployment limit (HTTP 402, `api-deployments-free-per-day`). Wait for reset or choose the appropriate team plan yourself. No billing change was made. Publish the independent website franchise change after quota is available; publish CRM only after the database migration.
 3. In Vercel project `ynsg-repo` → Settings → Environment Variables, add server-only Production variables. Do not paste secrets into chat or use `NEXT_PUBLIC_` names:
    - `STRIPE_SECRET_KEY`: the live account/platform secret key (`sk_live_...`).

@@ -64,7 +64,7 @@ function settingsError(error: unknown): string {
 function template(name: string, organization: string): CompanySettings {
   return {
     schemaVersion: 1,
-    displayName: name,
+    displayName: "Your Neighborhood Service Guy",
     timezone: "America/Chicago",
     currency: "USD",
     region: "IL",
@@ -77,7 +77,7 @@ function template(name: string, organization: string): CompanySettings {
       gold: "#edbd6b",
       cream: "#f8f6ef",
       ownerName: organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" ? "Ed Hemmer" : null,
-      logoUrl: organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" ? "https://www.yourneighborhoodserviceguy.com/assets/logo.jpg" : null,
+      logoUrl: "https://www.yourneighborhoodserviceguy.com/assets/logo.jpg",
     },
     sender: "edhemmer@gmail.com",
     notificationRecipient: "edhemmer@gmail.com",
@@ -373,12 +373,12 @@ export default function CompanySettingsPanel({
           <fieldset disabled={pending}>
             <legend>Business and email</legend>
             <label>
-              Name shown to customers
+              Licensed brand name
               <input
                 required
                 name="displayName"
                 value={draft.displayName}
-                onChange={(e) => change({ displayName: e.target.value })}
+                readOnly
               />
             </label>
             <label>
@@ -452,7 +452,7 @@ export default function CompanySettingsPanel({
           <fieldset disabled={pending}>
             <legend>Email logo and signature</legend>
             <label>Owner name for email signature<input name="brand.ownerName" maxLength={160} value={draft.brand.ownerName || ""} placeholder="Your name" onChange={e=>change({brand:{...draft.brand,ownerName:e.target.value||null}})}/><small>Emails close with Best Regards, followed by this name.</small></label>
-            <label>Logo image link<input name="brand.logoUrl" type="url" maxLength={2048} value={draft.brand.logoUrl || ""} placeholder="https://your-website.com/logo.png" onChange={e=>change({brand:{...draft.brand,logoUrl:e.target.value||null}})}/><small>Use a publicly accessible HTTPS image. Email readers may choose to hide images.</small></label>
+            <p>The licensed name, official logo and colors are managed centrally. Personalization uses your owner name, contact details and approved services.</p>
           </fieldset>
           <fieldset disabled={pending}>
             <legend>After an invoice is paid</legend>
@@ -695,25 +695,9 @@ export default function CompanySettingsPanel({
             </p>
           </fieldset>
           <fieldset disabled={pending}>
-            <legend>Colors</legend>
-            {(["navy", "forest", "gold", "cream"] as const).map((key) => (
-              <label key={key}>
-                {key}
-                <input
-                  name={"brand."+key}
-                  type="color"
-                  value={draft.brand[key]}
-                  onChange={(e) =>
-                    change({ brand: { ...draft.brand, [key]: e.target.value } })
-                  }
-                />
-              </label>
-            ))}
-          </fieldset>
-          <fieldset disabled={pending}>
             <legend>Company service catalog</legend>
             <p>
-              Set this company's services, exclusions and pricing approach. Keep
+              Choose the services you offer, their scope and pricing approach. Only offer work you are qualified, insured and legally permitted to perform. Keep
               a published name for historical references; mark a retired service
               Held instead of deleting it.
             </p>
