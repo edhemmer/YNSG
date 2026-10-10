@@ -1,13 +1,13 @@
 import {emailIdentity} from '../../../lib/email-layout.js';
 import {customerRequestEmail} from '../../../lib/customer-request-email.js';
 import {ownerRequestEmail} from '../../../lib/owner-request-email.js';
-import {appointmentMessage,type AppointmentMessageInput} from './appointment-message.js';
-import {requestDeclinedMessage} from './request-message.js';
-import {delayMessage} from './delay-message.js';
-import {invoiceDocument,type InvoiceDocument} from './invoice-document.js';
-import {invoiceMessage} from './invoice-message.js';
-import {paidInvoiceMessage} from './paid-invoice-message.js';
-import {googleTestMessage} from './google-test-message.js';
+import {appointmentMessage,type AppointmentMessageInput} from './appointment-message.ts';
+import {requestDeclinedMessage} from './request-message.ts';
+import {delayMessage} from './delay-message.ts';
+import {invoiceDocument,type InvoiceDocument} from './invoice-document.ts';
+import {invoiceMessage} from './invoice-message.ts';
+import {paidInvoiceMessage} from './paid-invoice-message.ts';
+import {googleTestMessage} from './google-test-message.ts';
 export type SampleMessage={id:string;label:string;audience:'owner'|'customer';to:string;subject:string;body:string;html:string;pdf?:boolean};
 export type SampleSuite={invoice:InvoiceDocument;messages:SampleMessage[];createdAt:string;settingsWarnings:string[]};
 export function productionSamples(settings:Record<string,any>,org:string,recipient:string,origin:string,run:string,now=new Date()):SampleSuite {
