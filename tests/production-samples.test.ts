@@ -27,7 +27,7 @@ test('every sample survives the exact production MIME header and attachment vali
  const result=suite();
  for(const m of result.messages){
  const bytes=m.pdf?await invoicePdf(result.invoice):null;
- const raw=emailRaw(settings.sender,m.to,m.subject,m.body,'ynsg-sample-00000000-0000-4000-8000-000000000002-'+m.id.replaceAll('.','-'),{fromName:settings.displayName,html:m.html,...(bytes?{attachment:{filename:'invoice-1.pdf',bytes}}:{})});
+ const raw=emailRaw(settings.sender,m.to,m.subject,m.body,'ynsg-sample-00000000-0000-4000-8000-000000000002-'+m.id.replace(/[^a-z0-9-]/g,'-'),{fromName:settings.displayName,html:m.html,...(bytes?{attachment:{filename:'invoice-1.pdf',bytes}}:{})});
  assert.match(Buffer.from(raw,'base64url').toString(),/MIME-Version: 1.0/);
  if(m.pdf)assert.match(Buffer.from(raw,'base64url').toString(),/filename="invoice-1.pdf"/);
  }
