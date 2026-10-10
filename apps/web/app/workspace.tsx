@@ -554,6 +554,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                     )}
                     {section === "Money" && (
                       <>
+                        {["owner","admin"].includes(role||"")&&<p><a href={"/owner/production-check?"+new URLSearchParams({organization:org})}>View sample invoice and email checks</a></p>}
                         {finance && <FinanceActivity key={org} organization={org} companyName={data.company.display_name}/>}
                         <p>
                           Issued amounts remain fixed. Payment status comes from
