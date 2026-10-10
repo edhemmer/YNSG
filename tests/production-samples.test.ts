@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {productionSamples} from '../apps/web/lib/production-samples.ts';
+import {emailRaw} from '../apps/web/lib/google-core.ts';
 import {invoicePdf} from '../apps/web/lib/invoice-pdf.ts';
 import {PDFDocument} from '../apps/web/node_modules/pdf-lib/cjs/index.js';
 const settings={displayName:'Synthetic Business',sellerLegalName:'Synthetic Legal Business',timezone:'America/Chicago',notificationRecipient:'owner@example.invalid',sender:'owner@example.invalid',invoiceTerms:null,review:{enabled:true,url:'https://review.example.invalid/real-business-review'}};
@@ -20,4 +21,14 @@ test('preview refuses arbitrary recipients and unsafe application origins',()=>{
 });
 test('sample PDF is a real invoice PDF with explicit sample metadata',async()=>{
  const document=await PDFDocument.load(await invoicePdf(suite().invoice));assert.match(document.getTitle()||'',/SAMPLE - NOT A BILL/);assert.ok(document.getPageCount()>0);
+});
+
+test('every sample survives the exact production MIME header and attachment validation',async()=>{
+ const result=suite();
+ for(const m of result.messages){
+ const bytes=m.pdf?await invoicePdf(result.invoice):null;
+ const raw=emailRaw(settings.sender,m.to,m.subject,m.body,'ynsg-sample-00000000-0000-4000-8000-000000000002-'+m.id.replaceAll('.','-'),{fromName:settings.displayName,html:m.html,...(bytes?{attachment:{filename:'invoice-1.pdf',bytes}}:{})});
+ assert.match(Buffer.from(raw,'base64url').toString(),/MIME-Version: 1.0/);
+ if(m.pdf)assert.match(Buffer.from(raw,'base64url').toString(),/filename="invoice-1.pdf"/);
+ }
 });
