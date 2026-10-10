@@ -3,6 +3,7 @@ import {schedulingMessages} from './scheduling-errors.ts';
 // Only reviewed messages reach product screens. Provider text, exception messages,
 // database details and unknown future codes always fall back to plain language.
 const messages:Record<string,string>={
+ CARD_PAYMENT_PENDING:"A card checkout is pending. Resolve or cancel it before recording cash or Zelle.",
  UNAUTHORIZED:'Sign in to continue.',
  OWNER_ACCESS_REQUIRED:'Owner access is required.',
  STALE_REVISION:'This record changed. Refresh before continuing.',

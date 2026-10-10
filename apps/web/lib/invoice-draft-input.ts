@@ -1,3 +1,4 @@
+import {hourlyCharge} from "./invoice-billing.ts";
 import { z } from "zod";
 const line = z
   .object({
@@ -5,9 +6,13 @@ const line = z
     recordedMinutes: z.number().int().min(0).max(1440),
     chargedCents: z.number().int().min(0).max(999999999),
     waiverReason: z.string().max(1000),
+    billingBasis:z.enum(["hourly","fixed"]).optional(),
+    billingMinutes:z.number().int().min(0).max(1440).optional(),
+    unitRateCents:z.number().int().min(0).max(999999999).optional(),
   })
   .strict()
-  .refine((v) => v.chargedCents > 0 || v.waiverReason.trim().length >= 2);
+  .refine((v) => v.chargedCents > 0 || v.waiverReason.trim().length >= 2)
+  .refine(v=>v.billingBasis!=="hourly"||(v.billingMinutes!==undefined&&v.unitRateCents!==undefined&&hourlyCharge(v.billingMinutes,v.unitRateCents)===v.chargedCents));
 const draft = z
   .object({
     organization: z.uuid(),

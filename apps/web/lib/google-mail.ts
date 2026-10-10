@@ -78,6 +78,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       if(invoice.error) continue;
       try {
         const document = invoiceDocument(invoice.data);
+        const administration=await db.rpc("invoice_mail_admin",{p_org:org,p_invoice:item.object_id});if(administration.error)throw Error("INVOICE_ADMIN_UNAVAILABLE");document.dueDate=administration.data?.dueDate||null;
         const rendered = item.kind === "invoice.paid" ? paidInvoiceMessage(document,item.payload.review,identity) : invoiceMessage(document,identity);
         if(rendered.to !== item.payload.recipient) continue;
         ({to,subject,body,html} = rendered);

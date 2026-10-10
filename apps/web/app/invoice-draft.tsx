@@ -3,7 +3,13 @@ import { publicError } from "../lib/public-errors";
 import { useEffect, useRef, useState } from "react";
 import { sessionFetch } from "../lib/session-fetch";
 import {invoiceChargeCents} from "../lib/invoice-charge";
+import {salesTax,type TaxRule,type TaxComponent} from "../lib/taxes";
+type TaxContext={required:boolean;rules:TaxRule[];valid:boolean;tax:{taxCents:number;rule?:TaxRule;customerApprovalEvidence?:string}|null};
+import {hourlyCharge} from "../lib/invoice-billing";
 type Line = {
+  billingBasis:"fixed"|"hourly";
+  billingMinutes:number;
+  hourlyAmount:string;
   description: string;
   recordedMinutes: number;
   chargedAmount: string;
@@ -32,6 +38,11 @@ export default function InvoiceDraft({
     [reviewed, setReviewed] = useState(false),
     [loaded, setLoaded] = useState(false),
     [savedDraft, setSavedDraft] = useState(false);
+  const [taxContext,setTaxContext]=useState<TaxContext|null>(null),[taxRule,setTaxRule]=useState(""),[taxEvidence,setTaxEvidence]=useState("");
+  const subtotal=lines.reduce((sum,line)=>sum+(invoiceChargeCents(line.chargedAmount)??0),0);
+  const selectedRule=taxContext?.rules.find(r=>r.id===taxRule);
+  let taxPreview:{taxCents:number;totalCents:number;components:TaxComponent[]}|null=null;
+  try{if(selectedRule)taxPreview=salesTax(subtotal,selectedRule);}catch{}
   const mounted=useRef(true);
   const currentTarget=useRef(organization+":"+job+":"+revision);
   currentTarget.current=organization+":"+job+":"+revision;
@@ -43,7 +54,7 @@ export default function InvoiceDraft({
     setBusy(false);onBusy(false);
     setLoaded(false);
     setSavedDraft(false);
-    setLines([]);
+    setLines([]);setTaxContext(null);setTaxRule("");setTaxEvidence("");
     setReviewed(false);
     setMessage("");
     retry.current = null;
@@ -55,7 +66,8 @@ export default function InvoiceDraft({
         const d = await r.json();
         if (!r.ok) throw Error(d.error);
         if (current) {
-          setLines((d.draft?.lines || []).map((line:{description:string;recordedMinutes:number;chargedCents:number;waiverReason:string})=>({description:line.description,recordedMinutes:line.recordedMinutes,waiverReason:line.waiverReason,chargedAmount:(line.chargedCents/100).toFixed(2)})));
+          setLines((d.draft?.lines || []).map((line:{description:string;recordedMinutes:number;chargedCents:number;waiverReason:string;billingBasis?:"fixed"|"hourly";billingMinutes?:number;unitRateCents?:number})=>({billingBasis:line.billingBasis||"fixed",billingMinutes:line.billingMinutes??line.recordedMinutes,hourlyAmount:((line.unitRateCents??0)/100).toFixed(2),description:line.description,recordedMinutes:line.recordedMinutes,waiverReason:line.waiverReason,chargedAmount:(line.chargedCents/100).toFixed(2)})));
+          setTaxContext(d.tax);setTaxRule(d.tax?.valid?d.tax?.tax?.rule?.id||"":"");setTaxEvidence(d.tax?.valid?d.tax?.tax?.customerApprovalEvidence||"":"");
           setLoaded(true);
           setSavedDraft(
             Boolean(d.draft?.lines?.length) && d.draft.jobRevision === revision,
@@ -73,7 +85,7 @@ export default function InvoiceDraft({
     setReviewed(false);
     setSavedDraft(false);
     setLines((items) =>
-      items.map((item, i) => (i === index ? { ...item, ...patch } : item)),
+      items.map((item, i) => (i === index ? (()=>{const next={...item,...patch};if(next.billingBasis==="hourly"){const rate=invoiceChargeCents(next.hourlyAmount);if(rate!==null){try{next.chargedAmount=(hourlyCharge(next.billingMinutes,rate)/100).toFixed(2);}catch{next.chargedAmount="";}}else next.chargedAmount="";}return next;})() : item)),
     );
   }
   async function save(e: React.FormEvent) {
@@ -85,7 +97,7 @@ export default function InvoiceDraft({
     onBusy(true);
     setMessage("");
     try {
-      const savedLines=lines.map(({chargedAmount,...line})=>({...line,chargedCents:invoiceChargeCents(chargedAmount)}));
+      const savedLines=lines.map(({chargedAmount,hourlyAmount,billingMinutes,billingBasis,...line})=>({...line,billingBasis,...(billingBasis==="hourly"?{billingMinutes,unitRateCents:invoiceChargeCents(hourlyAmount)}:{}),chargedCents:invoiceChargeCents(chargedAmount)}));
       if(savedLines.some(line=>line.chargedCents===null)){setMessage("Enter each charge as dollars with up to two decimal places. Nothing was saved.");return;}
       const value = { organization, job, revision, lines:savedLines };
       const fingerprint = JSON.stringify(value);
@@ -113,6 +125,7 @@ export default function InvoiceDraft({
   async function approve() {
     if (busy || blocked || !loaded || !savedDraft || !reviewed || !completed)
       return;
+    if(taxContext?.required&&(!taxPreview||!taxEvidence.trim())){setMessage("Choose the reviewed tax rule and record the customer-approved total.");return;}
     if(lines.some(line=>invoiceChargeCents(line.chargedAmount)===null)){setMessage("Enter each charge as dollars with up to two decimal places.");return;}
     const target=organization+":"+job+":"+revision;
     setBusy(true);
@@ -124,7 +137,8 @@ export default function InvoiceDraft({
         organizationId: organization,
         id: job,
         revision,
-        totalCents: lines.reduce((sum, line) => sum + (invoiceChargeCents(line.chargedAmount)??0), 0),
+        totalCents: taxContext?.required ? taxPreview!.totalCents : subtotal,
+        ...(taxContext?.required?{taxRuleId:taxRule,taxEvidence}:{}),
         reviewed: true,
       };
       const fingerprint = JSON.stringify(value);
@@ -158,7 +172,7 @@ export default function InvoiceDraft({
       </summary>
       <p>
         Record the work, including anything you choose not to charge for. These
-        lines replace the labor total; materials and tax are not supported here.
+        lines replace the labor total. Materials and mixed taxable/exempt work require a separately reviewed invoice; do not include them here.
         Charges cannot exceed approved labor.
       </p>
       <p>
@@ -203,6 +217,7 @@ export default function InvoiceDraft({
                   }
                 />
               </label>
+              <label>Billing basis<select value={l.billingBasis} onChange={e=>change(i,{billingBasis:e.target.value as "fixed"|"hourly"})}><option value="fixed">Fixed approved amount</option><option value="hourly">Time × hourly rate</option></select></label>{l.billingBasis==="hourly"&&<><label>Billed minutes (may include the agreed minimum)<input type="number" min="0" max="1440" required value={l.billingMinutes} onChange={e=>change(i,{billingMinutes:Number(e.target.value)})}/></label><label>Hourly rate ($)<input required inputMode="decimal" value={l.hourlyAmount} onChange={e=>change(i,{hourlyAmount:e.target.value})}/></label></>}
               <label>
                 Charge ($)
                 <input
@@ -210,6 +225,7 @@ export default function InvoiceDraft({
                   inputMode="decimal"
                   pattern="[0-9]{1,7}(\.[0-9]{1,2})?"
                   required
+                  readOnly={l.billingBasis==="hourly"}
                   value={l.chargedAmount}
                   onChange={(e) =>
                     change(i, {
@@ -248,6 +264,7 @@ export default function InvoiceDraft({
               setLines((items) => [
                 ...items,
                 {
+                  billingBasis:"fixed",billingMinutes:0,hourlyAmount:"0.00",
                   description: "",
                   recordedMinutes: 0,
                   chargedAmount: "0.00",
@@ -266,6 +283,7 @@ export default function InvoiceDraft({
                 Invoice labor total:{" "}
                 {lines.some(l=>invoiceChargeCents(l.chargedAmount)===null)?"Check the charge amounts":(lines.reduce((sum,l)=>sum+(invoiceChargeCents(l.chargedAmount)??0),0)/100).toLocaleString("en-US",{style:"currency",currency:"USD"})}
               </p>
+              {completed&&taxContext?.required&&<section><h3>Invoice tax</h3><label>Reviewed rule for all recorded work<select value={taxRule} onChange={e=>{setTaxRule(e.target.value);setReviewed(false);}}><option value="">Choose the applicable rule</option>{taxContext.rules.map(r=><option key={r.id} value={r.id}>{r.label} — {r.city}, {r.state}</option>)}</select></label>{selectedRule&&<><p>{selectedRule.scope}</p><p>Effective {selectedRule.effectiveFrom} through {selectedRule.effectiveTo}. Verify county / district boundaries for this exact address.</p><a href={selectedRule.sourceUrl} target="_blank" rel="noopener noreferrer">Rule source</a></>}{taxPreview&&<><p>Subtotal {(subtotal/100).toLocaleString("en-US",{style:"currency",currency:"USD"})}</p>{taxPreview.components.map((c,i)=><p key={i}>{c.label} ({c.ratePpm/10000}%): {(c.taxCents/100).toLocaleString("en-US",{style:"currency",currency:"USD"})}</p>)}<p>Invoice total <strong>{(taxPreview.totalCents/100).toLocaleString("en-US",{style:"currency",currency:"USD"})}</strong></p></>}<label>Customer approval and jurisdiction review evidence<textarea value={taxEvidence} minLength={2} maxLength={1000} onChange={e=>{setTaxEvidence(e.target.value);setReviewed(false);}} placeholder="Record acceptance of subtotal plus tax, and verify that this rule applies to every work item and the service address."/></label></section>}
               <label>
                 <input
                   type="checkbox"
@@ -273,13 +291,13 @@ export default function InvoiceDraft({
                   checked={reviewed}
                   onChange={(e) => setReviewed(e.target.checked)}
                 />
-                I reviewed all recorded work and these final labor charges.
+                I reviewed the work, final charges and any applicable tax. The customer accepted the total; the rule applies to all work and the exact address.
               </label>
               <button disabled={busy || !reviewed}>Save invoice draft</button>
               {completed && (
                 <button
                   type="button"
-                  disabled={busy || !reviewed || !savedDraft}
+                  disabled={busy || !reviewed || !savedDraft || Boolean(taxContext?.required&&(!taxPreview||taxEvidence.trim().length<2))}
                   onClick={() => void approve()}
                 >
                   Approve and issue invoice

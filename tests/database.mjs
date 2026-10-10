@@ -41,5 +41,6 @@ try {
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/website-slot-holds.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/delay-notice.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/routes-health.sql','utf8'));
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/taxes.sql','utf8'));
  console.log('PASS: empty-schema migrations plus foundation, commercial, scheduling, Google, owner setup, operations, availability, reviewed scheduling, customer actions and mail dispatch PostgreSQL assertions (PGlite). Live auth, provider delivery, and multi-connection races require separate evidence.');
 }catch(error){console.error('Database check failed:',error.message, '\nContext:',error.where??'none');process.exitCode=1;}finally{await db.close();}

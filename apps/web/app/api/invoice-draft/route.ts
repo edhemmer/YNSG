@@ -11,8 +11,10 @@ export async function GET(request: Request) {
       p_job: z.uuid().parse(q.get("job")),
     });
     if (r.error) throw r.error;
+    const tax=await db.rpc("invoice_tax_context",{p_org:z.uuid().parse(q.get("organization")),p_job:z.uuid().parse(q.get("job"))});
+    if(tax.error)throw tax.error;
     return NextResponse.json(
-      { draft: r.data },
+      { draft: r.data, tax:tax.data },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e) {

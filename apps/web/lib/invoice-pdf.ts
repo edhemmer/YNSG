@@ -1,3 +1,4 @@
+import {billingLabel} from "./invoice-billing.ts";
 import {PDFDocument,rgb,type PDFPage} from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import {readFile} from 'node:fs/promises';
@@ -26,12 +27,13 @@ export async function invoicePdf(invoice:InvoiceDocument){
  function text(value:string,size=12,gap=10){for(const paragraph of clean(value).split('\n')){const lines=wrap(paragraph,516,size);if(lines.length*(size+7)<=450)ensure(lines.length*(size+7));for(const line of lines){ensure(size+7);page.drawText(line,{x:48,y,size,font,color:ink});y-=size+7;}}y-=gap;}
  newPage();
  if(invoice.businessEmail)text(invoice.businessEmail,11,10);
+ if(invoice.dueDate)text('Recorded payment due date: '+invoice.dueDate,12,10);
  text('Customer and service address',14,4);
  const c=invoice.recipient;text([c.name,c.street,[c.city,c.region,c.postalCode].filter(Boolean).join(', '),c.email,c.phone].join('\n'),12,16);
  text('Recorded work and approved charges',14,4);work=true;
- for(const item of invoice.lines){const lines=wrap(item.description,390);if(lines.length*18+10<=450)ensure(lines.length*18+10);let first=true;for(const line of lines){ensure(18);page.drawText(line,{x:48,y,size:12,font,color:ink});if(first){const charge=item.chargedCents?money(item.chargedCents):'No charge';page.drawText(charge,{x:564-font.widthOfTextAtSize(charge,12),y,size:12,font,color:ink});first=false;}y-=18;}y-=10;}
+ for(const item of invoice.lines){const lines=wrap(item.description+"\n"+billingLabel(item),390);if(lines.length*18+10<=450)ensure(lines.length*18+10);let first=true;for(const line of lines){ensure(18);page.drawText(line,{x:48,y,size:12,font,color:ink});if(first){const charge=item.chargedCents?money(item.chargedCents):'No charge';page.drawText(charge,{x:564-font.widthOfTextAtSize(charge,12),y,size:12,font,color:ink});first=false;}y-=18;}y-=10;}
  work=false;ensure(110);y-=8;
- for(const [label,value] of [['Invoice total',invoice.totalCents],['Confirmed payments',invoice.paidCents],['Remaining balance',invoice.balanceCents]] as const){ensure(22);page.drawText(label,{x:48,y,size:13,font,color:ink});const amount=money(value);page.drawText(amount,{x:564-font.widthOfTextAtSize(amount,13),y,size:13,font,color:ink});y-=24;}
+ for(const [label,value] of [['Subtotal',invoice.subtotalCents??invoice.totalCents],...(invoice.taxComponents?.length?invoice.taxComponents.map(c=>[`${c.label} (${c.ratePpm/10000}%)`,c.taxCents] as const):[['Sales tax',invoice.taxCents??0] as const]),['Invoice total',invoice.totalCents],['Confirmed payments',invoice.paidCents],['Remaining balance',invoice.balanceCents]] as const){const labels=wrap(label,390,13);ensure(labels.length*20+4);const start=y;for(const line of labels){page.drawText(line,{x:48,y,size:13,font,color:ink});y-=20;}const amount=money(value);page.drawText(amount,{x:564-font.widthOfTextAtSize(amount,13),y:start,size:13,font,color:ink});y-=4;}
  y-=16;ensure(50);text('Invoice terms',14,4);text(invoice.terms.trimEnd(),11);
  const pages=pdf.getPages();for(let i=0;i<pages.length;i++){if(invoice.sample)pages[i]!.drawText('SAMPLE - NOT A BILL. No payment is due.',{x:48,y:770,size:11,font,color:ink});pages[i]!.drawText(`Invoice ${invoice.number} | Page ${i+1} of ${pages.length}`,{x:48,y:36,size:10,font,color:ink});}
  await pdf.attach(await fontAsset('LICENSE'),'DejaVu-font-license.txt',{mimeType:'text/plain',description:'License for the embedded DejaVu Sans font'});
