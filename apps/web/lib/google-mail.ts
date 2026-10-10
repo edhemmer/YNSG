@@ -1,3 +1,4 @@
+import {dispatchSampleMail} from './sample-mail';
 import {delayMessage} from './delay-message';
 import {ownerRequestUrl} from './email-links';
 import {customerRequestEmail} from '../../../lib/customer-request-email.js';
@@ -231,5 +232,6 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       status: finish.error ? "needs_reconciliation" : status,
     });
   }
+  results.push(...await dispatchSampleMail(org,db,token,account.email!,config.data.settings,results.length?1:3));
   return results;
 }
