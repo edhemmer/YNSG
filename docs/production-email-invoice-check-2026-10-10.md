@@ -25,3 +25,11 @@ Required owner inputs:
 
 Email/calendar cron jobs are enabled every minute and recent cron launches succeeded. This does not alone prove downstream HTTP processing or phone receipt. Payment UI records money received elsewhere; no card-checkout integration was demonstrated. Full production certification remains pending.
 
+
+## Production-environment follow-up
+
+The owner selected payment due when the agreed work is completed. The attempted Settings publication failed; do not claim it saved. Under a Production-environment deployment, sample-suite loading, card checks and connection-status checks failed while ordinary owner reads still worked. Vercel refused the authorized APP_ORIGIN Production upsert with HTTP403 (additional production-variable permissions required). The exact missing or invalid variable cannot be inferred from those errors. The .app domain is branch-bound to codex/crm-workflow, so automatic preview builds can retake its alias.
+
+The apex CRM alias was restored to the last verified working release dpl_GkDy9GW9V6k9eSRF7YHVyH4E9mPa (7ae9900). This is a Preview-environment build serving the live portal, not a claim of Production-environment acceptance. The .com website remains on its reviewed Production build. Operator actions: Vercel ynsg-repo Settings → Domains → Edit .app → connect to Production; review Production APP_ORIGIN, Supabase server/client credentials and Google worker/account settings using the secure dashboard; redeploy the reviewed source; verify the settings write, worker execution, sample suite and card check before reassigning the CRM alias. Card-only live acceptance remains separate. No real invoice or payment was created.
+
+On the restored 7ae9900 portal, completion payment terms were published successfully as settings version 5. Tax review remains unreviewed; actual invoice issuance stays gated.
