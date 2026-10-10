@@ -75,4 +75,17 @@ set local role authenticated;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select pg_temp.assert_true(public.mail_delivery_status('20000000-0000-4000-8000-000000000001')->>'enabled'='false','different account invalidates previous receipt');
 reset role;
+-- Diagnostic previews retain the enabled-company gate and never enter the real adapter.
+update private.google_accounts set subject='synthetic-account';
+insert into public.outbox(organization_id,kind,event_key,object_id,payload) values('20000000-0000-4000-8000-000000000001','diagnostic.template_preview','synthetic-preview','70000000-0000-4000-8000-000000000002','{}');
+set local role service_role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+select pg_temp.assert_true(public.claim_mail_company()->>'organization'='20000000-0000-4000-8000-000000000001','enabled diagnostic work selects company');
+select pg_temp.assert_true((select count(*)=0 from public.claim_outbox('20000000-0000-4000-8000-000000000001',5)),'real adapter cannot claim diagnostic message');
+reset role;
+update private.mail_delivery_controls set enabled=false,worker_lease_until=null;
+set local role service_role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+select pg_temp.assert_true(public.claim_mail_company() is null,'paused diagnostic mail cannot select company');
+reset role;
 rollback;
