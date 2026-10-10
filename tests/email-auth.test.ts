@@ -55,6 +55,6 @@ test('recovery PKCE carries its verified recovery destination across callback',a
  assert.equal((await start.client.auth.resetPasswordForEmail('synthetic@example.invalid',{redirectTo:'https://crm.example.invalid/auth/confirm'})).error,null);
  const callback=createEmailClient('https://synthetic.example.invalid','synthetic-key',start.currentVerifier(),mock);
  const result=await callback.client.auth.exchangeCodeForSession('synthetic-code');
- assert.equal(result.error,null);assert.equal(result.data.redirectType,'recovery');
+ assert.equal(result.error,null);assert.equal(('redirectType' in result.data ? result.data.redirectType : null),'recovery');
  assert.equal(callback.currentVerifier(),null);
 });
