@@ -50,7 +50,7 @@ export async function POST(request:Request){
  const permission=await c.db.rpc('mail_delivery_status',{p_org:v.organization});if(permission.error||!permission.data?.enabled||process.env.GOOGLE_GMAIL_DELIVERY_ENABLED!=='true')return json({error:'Email sending is paused. Check your Google connection in Settings.'},409);
  const {token,account}=await accessToken(v.organization);if(account.gmail_test!=='accepted'||account.email?.toLowerCase()!==c.settings.sender?.toLowerCase())return json({error:'Verify your Gmail sender in Settings before sending samples.'},409);
  const bytes=message.pdf?await invoicePdf(suite.invoice):null;
- const rawEmail=emailRaw(account.email!,c.recipient,message.subject,message.body,'ynsg-sample-'+v.run+'-'+v.template,{fromName:c.settings.displayName,html:message.html,...(bytes?{attachment:{filename:'sample-invoice-not-a-bill.pdf',bytes}}:{})});
+ const rawEmail=emailRaw(account.email!,c.recipient,message.subject,message.body,'ynsg-sample-'+v.run+'-'+v.template.replaceAll('.','-'),{fromName:c.settings.displayName,html:message.html,...(bytes?{attachment:{filename:'invoice-1.pdf',bytes}}:{})});
  const eventKey='sample:'+v.run+':'+v.template;
  const before=await c.server.from('outbox').select('id,status').eq('organization_id',v.organization).eq('event_key',eventKey).maybeSingle();if(before.error)throw before.error;if(before.data)return json({status:before.data.status,replay:true});
  const id=randomUUID();
