@@ -151,7 +151,7 @@ export default function GoogleControls({
             ? "Google disconnected. Existing calendar events were retained."
             : publicError(v.message, "Google disconnected. Check Settings before reconnecting."),
         );
-        await load();
+        await load(false);
       }
       if (action === "test_email" && ['accepted','failed'].includes(v.connection.gmailTest)) testKey.current=null;
       if (action === "test_email")
