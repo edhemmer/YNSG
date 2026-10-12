@@ -41,6 +41,7 @@ try {
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/website-slot-holds.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/independent-calendar.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/independent-mail-feed.sql','utf8'));
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/central-mail.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/delay-notice.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/routes-health.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/taxes.sql','utf8'));

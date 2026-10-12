@@ -15,7 +15,7 @@ export async function GET(request:Request){
    db.rpc('mail_delivery_status',{p_org:org}),
   ]);
   if(configuration.error||operators.error||entitlement.error||delivery.error)throw Error('READ');
-  const authority=await calendarAuthority(org),managedMail=await mailTransport(org);
+  const authority=await calendarAuthority(org),transport=await mailTransport(org),managedMail=transport?.ready?transport:null;
   const account=missingGoogleConfiguration().length?null:await store(org,'read');
   const rules=configuration.data?.settings?.scheduling;
   let schedulerStatus=null,executionHealth=null;

@@ -430,7 +430,7 @@ export default function CompanySettingsPanel({
               />
             </label>
             <label>
-              Gmail sender
+              Customer reply email
               <input
                 type="email"
                 required

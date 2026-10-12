@@ -34,7 +34,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
     .limit(1)
     .single();
   if(config.error)throw new GoogleFailure('APPROVED_SENDER_REQUIRED');
-  const service=await mailTransport(org);
+  const service=await mailTransport(org);if(service&&!service.ready)throw Error('MAIL_SERVICE_REQUIRED');
   const {token,account}=service?{token:'',account:{email:config.data.settings.sender,gmail_test:'accepted'}}:await accessToken(org);
   if(!service&&(process.env.GOOGLE_GMAIL_DELIVERY_ENABLED!=='true'||account.gmail_test!=='accepted'))throw new GoogleFailure('GMAIL_TEST_REQUIRED');
   if(!service&&config.data.settings.sender?.toLowerCase()!==account.email?.toLowerCase())throw new GoogleFailure('APPROVED_SENDER_REQUIRED');
@@ -47,7 +47,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
   const results = [];
   for (const item of (data || []) as Intent[]) {
     let to: string, subject: string, body: string;
-    let html: string | undefined, replyTo: string | undefined = config.data.settings.notificationRecipient;
+    let html: string | undefined, replyTo: string | undefined = config.data.settings.sender;
     let attachment: {filename:string;bytes:Uint8Array} | undefined;
     if (item.kind === "request.owner_notification") {
       to = config.data.settings.notificationRecipient;
@@ -222,7 +222,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       p_lease: item.lease_token,
       p_status: status,
       p_provider_id: providerId,
-      p_error: status === "accepted" ? null : "Google delivery requires review",
+      p_error: status === "accepted" ? null : "Email delivery requires review",
     });
     results.push({
       id: item.id,
