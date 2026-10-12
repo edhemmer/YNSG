@@ -36,6 +36,6 @@ export function productionSamples(settings:Record<string,any>,org:string,recipie
  add('appointment.delay_notice','Running late','customer',delayMessage(company,recipient,request.name,new Date(Date.parse(arrivalAt)+15*60000).toISOString(),timezone,identity));
  add('invoice.delivery','Invoice and PDF','customer',invoiceMessage(invoice,identity),true);
  add('invoice.paid','Payment thank-you and review','customer',paidInvoiceMessage({...invoice,paidCents:12000,balanceCents:0},settings.review,identity));
- add('connection.test','Gmail connection test','owner',googleTestMessage(company,identity));
+ add('connection.test','Business email connection test','owner',googleTestMessage(company,identity,'business'));
  return {invoice,messages,createdAt:now.toISOString(),settingsWarnings:[...(!settings.invoiceTerms?['Publish invoice terms in Settings before issuing real invoices.']:[]),...(settings.sellerVerified!==true?['Confirm the seller identity in Settings.']:[]),...(settings.taxTreatmentVerified!==true?['Confirm tax treatment in Settings before issuing real invoices.']:[])]};
 }
