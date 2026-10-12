@@ -1,0 +1,5 @@
+import {randomBytes,createHash} from 'node:crypto';import {NextResponse} from 'next/server';import {z} from 'zod';import {authenticated,sameOrigin,failure} from '../../../lib/session';
+export async function POST(request:Request){if(!sameOrigin(request))return NextResponse.json({error:'Request not accepted.'},{status:403});try{
+ const v=z.object({organization:z.uuid(),action:z.enum(['create','revoke']),includeDetails:z.boolean().default(false)}).strict().parse(await request.json());const {db}=await authenticated(),token=randomBytes(32).toString('base64url');const r=await db.rpc('calendar_feed_command',{p_org:v.organization,p_action:v.action,p_hash:createHash('sha256').update(token).digest('hex'),p_details:v.includeDetails});if(r.error)throw Error(r.error.message);
+ return NextResponse.json(v.action==='create'?{url:new URL('/api/calendar-feed?token='+token,process.env.APP_ORIGIN!).toString()}:{revoked:true},{headers:{'Cache-Control':'private, no-store','Referrer-Policy':'no-referrer'}});
+}catch(e){return failure(e)}}

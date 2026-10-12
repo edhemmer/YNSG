@@ -1,3 +1,4 @@
+import {calendarFacts} from "../../../lib/calendar-authority";
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
 import {sameOrigin} from '../../../lib/session';
@@ -24,13 +25,12 @@ export async function POST(request:Request){
   if(chosen.length!==input.resources.length||chosen.some((r:{status:string})=>r.status!=='available')||!chosen.some((r:{kind:string})=>r.kind==='operator'))return reply({error:'Select an available operator and all required equipment.'},409);
   const series=weeklyDates(day),start=localInstant(input.localStart,timezone),last=localInstant(series.dates.at(-1)!+'T'+input.localStart.slice(11),timezone);
   const padding=(360+180)*60000,begin=new Date(start-padding).toISOString(),finish=new Date(last+input.durationMinutes*60000+padding).toISOString();
-  const [reservations,blocks,connection]=await Promise.all([
+  const [reservations,blocks]=await Promise.all([
    db.from('resource_reservations').select('during',{count:'exact'}).eq('organization_id',input.organization).in('resource_id',input.resources).eq('active',true).overlaps('during',`[${begin},${finish})`).limit(1001),
    db.from('availability_exceptions').select('starts_at,ends_at',{count:'exact'}).eq('organization_id',input.organization).lt('starts_at',finish).gt('ends_at',begin).limit(1001),
-   accessToken(input.organization),
   ]);
-  if(reservations.error||blocks.error||reservations.count===null||blocks.count===null||reservations.count>1000||blocks.count>1000||reservations.data.length!==reservations.count||blocks.data.length!==blocks.count||!connection.account.calendar_id)throw Error('UNVERIFIED');
-  const external=await busyTimes(connection.token,connection.account.calendar_id,begin,finish);
+  if(reservations.error||blocks.error||reservations.count===null||blocks.count===null||reservations.count>1000||blocks.count>1000||reservations.data.length!==reservations.count||blocks.data.length!==blocks.count)throw Error('UNVERIFIED');
+  const external=await calendarFacts(input.organization,begin,finish);
   const intervals=[...external.busy.map(v=>({start:Date.parse(v.start),end:Date.parse(v.end)})),...blocks.data.map(v=>({start:Date.parse(v.starts_at),end:Date.parse(v.ends_at)})),...reservations.data.map(v=>{
    const range=/^\["?([^",]+)"?,"?([^"\)]+)"?\)$/.exec(v.during);if(!range)throw Error('RANGE');return {start:Date.parse(range[1]!),end:Date.parse(range[2]!)};
   })];
@@ -39,5 +39,5 @@ export async function POST(request:Request){
   const result=recurringPreview({...input,timezone,clock:Date.now(),rules:ctx.settings.scheduling,busy:intervals,verifiedUntil:validUntil});
   if(Date.now()>=validUntil)throw Error('STALE');
   return reply(result);
- }catch{return reply({error:'The weekly schedule could not be checked. Refresh, confirm your settings and Google connection, then try again. No appointments were booked.'},409);}
+ }catch{return reply({error:'The weekly schedule could not be checked. Refresh, confirm your scheduling settings, then try again. No appointments were booked.'},409);}
 }

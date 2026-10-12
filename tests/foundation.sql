@@ -12,6 +12,8 @@ insert into auth.sessions(id,user_id,aal) values
 insert into public.organizations(id,slug,display_name,timezone) values
  ('20000000-0000-4000-8000-000000000001','test-one','Synthetic One','America/Chicago'),
  ('20000000-0000-4000-8000-000000000002','test-two','Synthetic Two','America/Los_Angeles');
+-- Legacy integration tests explicitly exercise Google-authoritative mode.
+update private.calendar_authorities set source='google';
 insert into public.memberships(organization_id,user_id,role) values
  ('20000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','owner'),
  ('20000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000002','owner');

@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server';
+import {calendarFacts,calendarAuthority} from "../../../lib/calendar-authority";
+import { NextResponse,after } from 'next/server';
 import { z } from 'zod';
 import { sameOrigin } from '../../../lib/session';
 import { authorizeGoogle, accessToken, serverDatabase } from '../../../lib/google-server';
@@ -18,10 +19,10 @@ import {dispatchGoogleMail} from '../../../lib/google-mail';
 async function completed(db:Awaited<ReturnType<typeof authorizeGoogle>>['db'],org:string,result:{id:string;status:string},replay=false){
  if(result.status==='reserved'){
   // Durable outbox/cron remains the retry authority if either provider is down.
-  await Promise.allSettled([
+  after(async()=>{await Promise.allSettled([
    process.env.GOOGLE_CALENDAR_WORKER_ENABLED==='true'?syncGoogleCalendar(org):Promise.resolve(),
-   process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true'?dispatchGoogleMail(org,db):Promise.resolve()
-  ]);
+   dispatchGoogleMail(org,db)
+  ]);});
   let delivery=null;
   try{const status=await db.rpc('appointment_delivery_status',{p_org:org,p_appointment:result.id});if(!status.error)delivery=status.data;}catch{/* Booking is committed; delivery remains independently retryable. */}
   return json({ok:true,result,replay,delivery});
@@ -55,21 +56,21 @@ export async function POST(request:Request){
   if(prior.error)throw new Error(prior.error.message);if(prior.data)return completed(db,input.organizationId,prior.data,true);
   const ctx=await context(db,input.organizationId,input.requestId,input.appointmentId);
   const start=localInstant(input.localStart,ctx.settings.timezone),end=start+input.durationMinutes*60000;
-  const {token,account}=await accessToken(input.organizationId);if(!account.calendar_id)throw new GoogleFailure('CALENDAR_REQUIRED');
+  const authority=await calendarAuthority(input.organizationId);const account=authority.source==='google'?(await accessToken(input.organizationId)).account:null;
   let own:OwnEvent|null=null;
-  if(ctx.projection?.eventId){
-   if(ctx.projection.calendarId!==account.calendar_id||ctx.projection.state!=='synced'||ctx.projection.revision!==ctx.appointment.revision)throw new GoogleFailure('GOOGLE_EVENT_CHANGED');
+  if(authority.source==='google'&&ctx.projection?.eventId){
+   if(ctx.projection.calendarId!==account!.calendar_id||ctx.projection.state!=='synced'||ctx.projection.revision!==ctx.appointment.revision)throw new GoogleFailure('GOOGLE_EVENT_CHANGED');
    own={id:ctx.projection.eventId,etag:ctx.projection.etag,organization:input.organizationId,appointment:input.appointmentId!,revision:ctx.appointment.revision,start:ctx.appointment.start_at,end:ctx.appointment.end_at};
   }
   const buffer=ctx.settings.scheduling.bufferMinutes;if(buffer===null)throw new Error('SETUP_REQUIRED');
   const travel=input.arrivalOffsetMinutes?{before:0,after:0,status:'pickup_review'}:await schedulingTravel(db,input.organizationId,input.requestId,input.appointmentId,input.resources,ctx.resources.filter((r:{kind:string})=>r.kind==='operator').map((r:{id:string})=>r.id),start,end,ctx.settings.timezone,buffer);
   const effective={...input,travelBeforeMinutes:Math.max(input.travelBeforeMinutes,travel.before),travelAfterMinutes:Math.max(input.travelAfterMinutes,travel.after)};
-  const busy=await reviewedBusy(token,account.calendar_id,new Date(start-(buffer+effective.travelBeforeMinutes)*60000).toISOString(),new Date(end+(buffer+effective.travelAfterMinutes)*60000).toISOString(),ctx.settings.timezone,own);
+  const busy=await calendarFacts(input.organizationId,new Date(start-(buffer+effective.travelBeforeMinutes)*60000).toISOString(),new Date(end+(buffer+effective.travelAfterMinutes)*60000).toISOString(),ctx.settings.timezone,own);
   // getUser + owner-access RPC have validated this JWT before extracting its session identifier.
   const claims=JSON.parse(Buffer.from(access.split('.')[1]!,'base64url').toString('utf8'));
   const session=z.uuid().parse(claims.session_id);
   const normalized={...effective,startAt:new Date(start).toISOString(),endAt:new Date(end).toISOString(),arrivalAt:new Date(start+input.arrivalOffsetMinutes*60000).toISOString(),commandInput:input};
-  const review=await serverDatabase().rpc('record_scheduling_review',{p_org:input.organizationId,p_actor:user.id,p_session:session,p_key:hash(input.key+':facts:'+busy.checkedAt),p_input:normalized,p_provider:{...busy,travel,connectionRevision:account.revision,windowStart:new Date(start-(buffer+effective.travelBeforeMinutes)*60000).toISOString(),windowEnd:new Date(end+(buffer+effective.travelAfterMinutes)*60000).toISOString()}});
+  const review=await serverDatabase().rpc('record_scheduling_review',{p_org:input.organizationId,p_actor:user.id,p_session:session,p_key:hash(input.key+':facts:'+busy.checkedAt),p_input:normalized,p_provider:{...busy,travel,windowStart:new Date(start-(buffer+effective.travelBeforeMinutes)*60000).toISOString(),windowEnd:new Date(end+(buffer+effective.travelAfterMinutes)*60000).toISOString()}});
   if(review.error)throw new Error(review.error.message);
   const result=await db.rpc(commit,{p_org:input.organizationId,p_input:input,p_key:key,p_evidence:review.data.evidenceId});
   if(result.error)throw new Error(result.error.message);return completed(db,input.organizationId,result.data);

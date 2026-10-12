@@ -1,3 +1,4 @@
+import {calendarFacts} from "../../../lib/calendar-authority";
 import {validGuardSignature} from '../../../../../lib/website-guard.js';
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
@@ -35,14 +36,13 @@ export async function GET(request:Request){
   const operator=operators.data[0]!.id,end=localInstant(addDays(last,1)+'T00:00',settings.timezone),begin=new Date(clock).toISOString(),finish=new Date(end+86400000).toISOString();
   // Bound response sizes and fail closed if more data needs pagination. Return slots only, never private rows.
   stage='calendar_and_reservations';
-  const [reservations,blocks,account]=await Promise.all([
+  const [reservations,blocks]=await Promise.all([
    db.rpc('website_reserved_times',{p_org:org,p_resource:operator,p_begin:begin,p_finish:finish}),
    db.from('availability_exceptions').select('starts_at,ends_at',{count:'exact'}).eq('organization_id',org).lt('starts_at',finish).gt('ends_at',begin).limit(1001),
-   accessToken(org),
   ]);
-  if(reservations.error||blocks.error||!Array.isArray(reservations.data)||blocks.count===null||reservations.data.length>1000||blocks.count>1000||blocks.data.length!==blocks.count||!account.account.calendar_id)return unavailable(stage);
+  if(reservations.error||blocks.error||!Array.isArray(reservations.data)||blocks.count===null||reservations.data.length>1000||blocks.count>1000||blocks.data.length!==blocks.count)return unavailable(stage);
   stage='google_busy_times';
-  const external=await busyTimes(account.token,account.account.calendar_id,begin,finish),checkedAt=Date.parse(external.checkedAt);
+  const external=await calendarFacts(org,begin,finish),checkedAt=Date.parse(external.checkedAt);
   if(Date.now()-checkedAt>60000)return unavailable(stage);
   stage='busy_intervals';
   const busy=[...external.busy.map(t=>({start:Date.parse(t.start),end:Date.parse(t.end)})),...blocks.data.map(t=>({start:Date.parse(t.starts_at),end:Date.parse(t.ends_at)})),...reservations.data.map((t:{during:string})=>{

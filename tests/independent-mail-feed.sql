@@ -1,0 +1,24 @@
+-- Isolated synthetic owner, rolled back by the foundation transaction.
+insert into public.entitlements values('20000000-0000-4000-8000-000000000001','scheduling',true);
+update public.organizations set status='active';
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select public.calendar_feed_command('20000000-0000-4000-8000-000000000001','create',repeat('a',64),false);
+do $$begin begin perform public.calendar_feed_command('20000000-0000-4000-8000-000000000002','create',repeat('b',64),true);raise exception 'TEST FAILED cross tenant feed';exception when insufficient_privilege then null;end;end$$;
+reset role;
+set local role service_role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+select pg_temp.assert_true(public.calendar_feed_read(repeat('a',64))->>'name'='Synthetic One','private feed bound to its organization');
+select public.activate_transactional_mail('20000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','https://website.example.invalid','notifications@example.invalid');
+select pg_temp.assert_true(public.transactional_mail_status('20000000-0000-4000-8000-000000000001')->>'enabled'='true','transactional service activated independently of Google');
+reset role;
+select pg_temp.assert_true(private.gmail_delivery_enabled('20000000-0000-4000-8000-000000000001'),'message capability works without a Google account');
+select pg_temp.assert_true(not has_function_privilege('anon','public.crm_calendar_facts(uuid,timestamptz,timestamptz)','EXECUTE'),'anonymous caller cannot invent CRM facts');
+select pg_temp.assert_true(not has_function_privilege('authenticated','public.activate_transactional_mail(uuid,uuid,uuid,text,text)','EXECUTE'),'browser cannot assert provider verification');
+update public.memberships set revoked_at=now() where organization_id='20000000-0000-4000-8000-000000000001';
+select pg_temp.assert_true(not private.transactional_mail_enabled('20000000-0000-4000-8000-000000000001'),'revoked approving owner disables managed mail');
+set local role service_role;
+select pg_temp.assert_true(public.calendar_feed_read(repeat('a',64)) is null,'membership revocation invalidates subscription');
+reset role;
+select 'PASS: independent mail activation, feed isolation, revocation and public API restrictions' as evidence;
+rollback;

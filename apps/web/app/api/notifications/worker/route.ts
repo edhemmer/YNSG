@@ -25,11 +25,6 @@ async function run(request: Request) {
       { error: "Access is required." },
       { status: 401, headers },
     );
-  if (process.env.GOOGLE_GMAIL_DELIVERY_ENABLED !== "true")
-    return NextResponse.json(
-      { error: "Email delivery is paused." },
-      { status: 503, headers },
-    );
   let db: ReturnType<typeof serverDatabase>;
   let claimed;
   try {

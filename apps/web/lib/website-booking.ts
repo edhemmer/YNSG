@@ -1,3 +1,4 @@
+import {calendarFacts} from "./calendar-authority";
 import {z} from 'zod';
 import {accessToken,serverDatabase} from './google-server';
 import {busyTimes} from './google-core';
@@ -8,7 +9,7 @@ export async function websiteBookingFacts(org:string,start:string){
  const buffer=cfg.data?.settings?.scheduling?.bufferMinutes;
  if(cfg.error||!Number.isInteger(buffer)||buffer<0||buffer>180)throw Error('SETUP_REQUIRED');
  const when=Date.parse(start);if(!Number.isFinite(when))throw Error('VALIDATION');
- const {token,account}=await accessToken(org);if(!account.calendar_id)throw Error('SETUP_REQUIRED');
+ 
  const windowStart=new Date(when-buffer*60000).toISOString(),windowEnd=new Date(when+(120+buffer)*60000).toISOString();
- return {...await busyTimes(token,account.calendar_id,windowStart,windowEnd),calendarId:account.calendar_id,connectionRevision:account.revision,windowStart,windowEnd};
+ return calendarFacts(org,windowStart,windowEnd);
 }

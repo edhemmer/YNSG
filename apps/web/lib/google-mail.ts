@@ -1,3 +1,4 @@
+import {mailTransport,sendBusinessEmail} from "./transactional-mail";
 import {dispatchSampleMail} from './sample-mail';
 import {delayMessage} from './delay-message';
 import {ownerRequestUrl} from './email-links';
@@ -25,11 +26,6 @@ type Intent = {
   payload: Record<string, unknown>;
 };
 export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
-  if (process.env.GOOGLE_GMAIL_DELIVERY_ENABLED !== "true")
-    throw new GoogleFailure("CUSTOMER_DELIVERY_DISABLED");
-  const { token, account } = await accessToken(org);
-  if (account.gmail_test !== "accepted")
-    throw new GoogleFailure("GMAIL_TEST_REQUIRED");
   const config = await db
     .from("configuration_versions")
     .select("settings")
@@ -37,11 +33,11 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
     .order("version", { ascending: false })
     .limit(1)
     .single();
-  if (
-    config.error ||
-    config.data.settings.sender?.toLowerCase() !== account.email?.toLowerCase()
-  )
-    throw new GoogleFailure("APPROVED_SENDER_REQUIRED");
+  if(config.error)throw new GoogleFailure('APPROVED_SENDER_REQUIRED');
+  const service=await mailTransport(org);
+  const {token,account}=service?{token:'',account:{email:config.data.settings.sender,gmail_test:'accepted'}}:await accessToken(org);
+  if(!service&&(process.env.GOOGLE_GMAIL_DELIVERY_ENABLED!=='true'||account.gmail_test!=='accepted'))throw new GoogleFailure('GMAIL_TEST_REQUIRED');
+  if(!service&&config.data.settings.sender?.toLowerCase()!==account.email?.toLowerCase())throw new GoogleFailure('APPROVED_SENDER_REQUIRED');
   const identity=emailIdentity(config.data.settings,org);
   const { data, error } = await db.rpc("claim_outbox", {
     p_org: org,
@@ -214,10 +210,10 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
     let status = "needs_reconciliation",
       providerId: string | null = null;
     try {
-      providerId = await sendEmail(token, raw);
+      providerId = service?await sendBusinessEmail(org,item.id,{to,subject,body,html,replyTo,attachment}):await sendEmail(token, raw);
       status = "accepted";
     } catch (e) {
-      if (e instanceof GoogleFailure && e.status >= 400 && e.status < 500)
+      if (typeof (e as {status?:number})?.status==='number' && (e as {status:number}).status >= 400 && (e as {status:number}).status < 500)
         status = "failed";
     }
     const finish = await db.rpc("finish_delivery", {
@@ -233,6 +229,6 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       status: finish.error ? "needs_reconciliation" : status,
     });
   }
-  results.push(...await dispatchSampleMail(org,db,token,account.email!,config.data.settings,results.length?1:3));
+  results.push(...await dispatchSampleMail(org,db,token,account.email!,config.data.settings,results.length?1:3,fetch,service?(id,m)=>sendBusinessEmail(org,id,m):undefined));
   return results;
 }

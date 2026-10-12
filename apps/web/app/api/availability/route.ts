@@ -1,3 +1,4 @@
+import {calendarFacts} from "../../../lib/calendar-authority";
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { companySettings, DomainError } from '../../../../../packages/contracts/index';
@@ -28,13 +29,11 @@ export async function GET(request: Request) {
     if (!query.has('resources')) return json({ resources: snapshot.resources, timezone: snapshot.settings.timezone });
     const selectedResources = z.array(z.uuid()).min(1).max(30).parse(query.get('resources')!.split(','));
     const durationMinutes = z.coerce.number().int().min(120).max(1440).multipleOf(30).parse(query.get('durationMinutes') || '120');
-    const { token, account } = await accessToken(org);
-    if (!account.calendar_id) throw new GoogleFailure('CALENDAR_REQUIRED');
     const clock = Date.now();
     const rules = snapshot.settings.scheduling;
     const windowEnd = Math.min(clock + rules.horizonMinutes * 60000, clock + 7 * 24 * 60 * 60000);
     const buffer = (rules.bufferMinutes ?? 0) * 60000;
-    const external = await busyTimes(token, account.calendar_id,
+    const external = await calendarFacts(org,
       new Date(clock).toISOString(), new Date(windowEnd + durationMinutes * 60000 + buffer).toISOString());
     // A response is a short-lived observation, never a claim on capacity. Hold/approval must recheck.
     const checkedAt = Date.parse(external.checkedAt);

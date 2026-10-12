@@ -1,0 +1,2 @@
+import {relayEmail,MailFailure} from '../lib/transactional-email.js';
+export default async function handler(req,res){res.setHeader('Cache-Control','no-store');if(req.method!=='POST'){res.setHeader('Allow','POST');return res.status(405).json({error:'Method not allowed.'});}try{return res.status(200).json(await relayEmail(req));}catch(e){return res.status(e instanceof MailFailure?e.status:503).json({error:'Business email is unavailable.'});}}

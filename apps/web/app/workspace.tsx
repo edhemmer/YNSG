@@ -14,6 +14,7 @@ import OwnerSecurity from './owner-security';
 import BusinessSnapshot from './business-snapshot';
 import FinanceActivity from './finance-activity';
 import GoogleControls from './google-controls';
+import CalendarConnections from './calendar-connections';
 import OwnerSetup from './owner-setup';
 import InvoiceDraft from './invoice-draft';
 import InvoiceDelivery from './invoice-delivery';
@@ -428,7 +429,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                       <div className="calendar-inbox-link"><div><strong>New requests start in your inbox.</strong><span>Review proposed times here; schedule requests without a time from Requests.</span></div><button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/>Open requests</button></div><MonthCalendar key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={setActiveRequest}/>
                     </>}
                     {section === "Settings" && ['owner','admin'].includes(role||'') && <>
-                      <GoogleControls key={org} organization={org} view="settings"/>
+                      <CalendarConnections key={"calendar-"+org} organization={org}/><details><summary>Optional Google calendar export</summary><GoogleControls key={org} organization={org} view="settings"/></details>
                       <OwnerSecurity key={org} organization={org}/>
                     </>}
                     {section === "Settings" && ['owner','admin'].includes(role||'') && <SchedulingReadiness organization={org}/>}
