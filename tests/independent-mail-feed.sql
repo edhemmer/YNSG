@@ -12,6 +12,22 @@ select pg_temp.assert_true(public.calendar_feed_read(repeat('a',64))->>'name'='S
 select public.activate_transactional_mail('20000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','https://website.example.invalid','notifications@example.invalid');
 select pg_temp.assert_true(public.transactional_mail_status('20000000-0000-4000-8000-000000000001')->>'enabled'='true','transactional service activated independently of Google');
 reset role;
+insert into public.outbox(organization_id,id,kind,event_key,object_id,payload) values('20000000-0000-4000-8000-000000000001','71000000-0000-4000-8000-000000000001','request.owner_notification','independent-synthetic-notice','51000000-0000-4000-8000-000000000001','{}');
+set local role service_role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+do $$declare company jsonb;item public.outbox;result jsonb;begin
+ company:=public.claim_mail_company();
+ if company->>'organization' is distinct from '20000000-0000-4000-8000-000000000001' then raise exception 'TEST FAILED independent company claim';end if;
+ select * into item from public.claim_outbox('20000000-0000-4000-8000-000000000001',5) where id='71000000-0000-4000-8000-000000000001';
+ if item.id is null then raise exception 'TEST FAILED independent outbox claim without Google';end if;
+ result:=public.begin_delivery(item.organization_id,item.id,item.lease_token);
+ if result->>'status' is distinct from 'sending' then raise exception 'TEST FAILED independent delivery begin';end if;
+ -- Simulated provider result in isolated local test; no external email is sent.
+ perform public.finish_delivery(item.organization_id,item.id,item.lease_token,'accepted','synthetic-provider-result',null);
+ perform public.finish_mail_company(item.organization_id,(company->>'lease')::uuid);
+end$$;
+reset role;
+select pg_temp.assert_true((select status='accepted' from public.outbox where id='71000000-0000-4000-8000-000000000001'),'independent worker records simulated provider outcome without Google');
 select pg_temp.assert_true(private.gmail_delivery_enabled('20000000-0000-4000-8000-000000000001'),'message capability works without a Google account');
 select pg_temp.assert_true(not has_function_privilege('anon','public.crm_calendar_facts(uuid,timestamptz,timestamptz)','EXECUTE'),'anonymous caller cannot invent CRM facts');
 select pg_temp.assert_true(not has_function_privilege('authenticated','public.activate_transactional_mail(uuid,uuid,uuid,text,text)','EXECUTE'),'browser cannot assert provider verification');
