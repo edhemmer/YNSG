@@ -17,7 +17,7 @@ export async function dispatchSampleMail(org:string,db:SupabaseClient,token:stri
  }
  let raw:string;
  try{const bytes=message.pdf?await invoicePdf(suite.invoice):null;
- raw=emailRaw(sender,recipient,message.subject,message.body,'ynsg-sample-'+item.id,{fromName:settings.displayName,html:message.html,...(bytes?{attachment:{filename:'invoice-1.pdf',bytes}}:{})});}
+ raw=emailRaw(sender,recipient,message.subject,message.body,'ynsg-sample-'+item.id,{fromName:settings.displayName,html:message.html,...(bytes?{attachment:{filename:`sample-invoice-${suite.invoice.number}-not-a-bill.pdf`,bytes}}:{})});}
  catch{await db.from('outbox').update({status:'failed'}).eq('organization_id',org).eq('id',item.id).eq('status','pending');results.push({id:item.id,status:'failed'});continue;}
  const claim=await db.from('outbox').update({status:'sending',attempts:1,lease_until:new Date(Date.now()+120000).toISOString()}).eq('organization_id',org).eq('id',item.id).eq('status','pending').select('id');
  if(claim.error||claim.data?.length!==1)continue;

@@ -194,7 +194,8 @@ export default function GoogleControls({
         </button>
       ) : (
         <>
-          <p><strong>Google connected</strong> · {connection.email}</p>
+          <p><strong>{connection.health==='reconnect_required'?'Google reconnection required':'Google account connected'}</strong> · {connection.email}</p>
+          {connection.health==='reconnect_required'&&<div role="alert"><p>Google authorization has expired or been revoked. Website appointment times and Gmail sending are unavailable.</p><p>Open “Disconnect Google” below, disconnect this account, then press “Connect Google” and sign in to the same Google account. Choose your existing business calendar again and send the Gmail test.</p></div>}
           {view !== "email" && <>
             <p>Automatic calendar updates: <strong>{calendarSyncEnabled&&connection.calendarId?'enabled':'paused'}</strong>.</p>
             <p>{connection.calendarId ? "Business calendar: " + (calendars.find(c => c.id === connection.calendarId)?.summary || "Saved calendar") : "Choose an existing calendar or create a separate one for your business."}</p>

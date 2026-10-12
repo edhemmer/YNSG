@@ -34,7 +34,13 @@ if(form&&picker){
  }
  async function selectTime(slot){
   if(locked())return;
-  if(Date.now()>=validUntil){await load();return;}
+  if(Date.now()>=validUntil){
+   await load(selectedDate);
+   if(!availabilityKnown)return;
+   const fresh=times.find(t=>Date.parse(t.start)===Date.parse(slot.start));
+   if(!fresh){status.textContent='That time is no longer available. Choose another time for this date.';return;}
+   slot=fresh;
+  }
   holding=true;form.dataset.appointmentHolding='true';picker.setAttribute('aria-busy','true');
   const key=selectionKey(),controls=[...picker.querySelectorAll('button,input[type=radio]')].map(element=>({element,disabled:element.disabled}));
   for(const {element} of controls)element.disabled=true;
@@ -74,19 +80,20 @@ if(form&&picker){
    const button=document.createElement('button');button.type='button';button.className='appointment-day';button.textContent=String(day);button.disabled=!open;button.setAttribute('aria-label',`${dateLabel(key)}${open?', open times':availabilityKnown?', unavailable':', open times not checked'}`);button.setAttribute('aria-pressed',String(selectedDate===key));
    button.addEventListener('click',async()=>{
     if(locked())return;
-    if(Date.now()>=validUntil){await load();return;}
+    if(Date.now()>=validUntil){await load(key);if(!availabilityKnown)return;}
+    if(!times.some(t=>localDay(Date.parse(t.start))===key)){status.textContent=`No open times remain for ${dateLabel(key)}. Please choose another date.`;return;}
     const previous=held;clearTimeout(expiryTimer);held=null;selectedStart='';selectedDate=key;draw();showTimes();updateSelection();status.textContent=`Choose a time for ${dateLabel(key)}.`;choices.querySelector('button')?.focus();
     if(previous)void release(previous.key,previous.token);
    });grid.append(button);
   }
  }
- async function load(){
+ async function load(preserveDate=''){
   if(locked())return;
   controller?.abort();controller=new AbortController();const current=++generation;
   picker.setAttribute('aria-busy','true');
   picker.querySelectorAll('.calendar-toolbar,.appointment-weekdays,#appointment-days').forEach(el=>el.hidden=false);
   const previous=held;clearTimeout(expiryTimer);held=null;
-  times=[];availabilityKnown=false;selectedStart='';selectedDate='';validUntil=0;draw();showTimes();updateSelection();status.textContent='Checking open times…';
+  times=[];availabilityKnown=false;selectedStart='';selectedDate=preserveDate;validUntil=0;draw();showTimes();updateSelection();status.dataset.state='loading';status.textContent='Checking open times…';
   const refresh=picker.querySelector('#calendar-refresh');refresh.disabled=true;
   const requestController=controller,timeout=setTimeout(()=>requestController.abort(),15000);
   try{
@@ -94,9 +101,9 @@ if(form&&picker){
    const response=await fetch('/api/availability',{cache:'no-store',signal:requestController.signal});const data=await response.json();
    if(current!==generation)return;
    if(!response.ok||data.reserved!==false||data.timezone!=='America/Chicago'||!Array.isArray(data.times)||!Number.isFinite(Date.parse(data.validUntil))||Date.parse(data.validUntil)<=Date.now())throw Error('UNAVAILABLE');
-   times=data.times.filter(t=>{try{return !!appointmentSelection({mode:'once',start:t.start}).start;}catch{return false;}});validUntil=Date.parse(data.validUntil);availabilityKnown=true;
+   times=data.times.filter(t=>{try{return !!appointmentSelection({mode:'once',start:t.start}).start;}catch{return false;}});validUntil=Date.parse(data.validUntil);availabilityKnown=true;status.dataset.state='ready';showTimes();
    status.textContent=times.length?'Press or click an open date to see the times. Dates shown in gray are unavailable.':'No open times are showing in the next 30 days. Send your request without a time, or call 770-630-2094.';draw();
-  }catch{if(current===generation)status.textContent='Open times couldn’t load. The gray dates haven’t been checked. Press “Check open times again” to retry, or send your request and we’ll arrange a time with you.';}
+  }catch{if(current===generation){status.dataset.state='error';status.textContent='Appointment times couldn’t load. Dates cannot be selected right now. Press “Check open times again,” or send your service request without a time and we’ll arrange it with you. You can also call 770-630-2094.';}}
   finally{clearTimeout(timeout);if(current===generation){refresh.disabled=false;picker.setAttribute('aria-busy','false');}}
  }
  picker.querySelector('#calendar-refresh').addEventListener('click',()=>void load());

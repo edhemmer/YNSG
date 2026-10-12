@@ -62,5 +62,5 @@ export async function GET(request:Request){
   }
   if(Date.now()>=checkedAt+60000)return unavailable(stage);
   return NextResponse.json({times,timezone:settings.timezone,validUntil:new Date(checkedAt+60000).toISOString(),reserved:false},{headers:{'Cache-Control':'no-store'}});
- }catch{return unavailable(stage);}
+ }catch(error){const code=error instanceof Error?error.message:'';if(['RECONNECT_REQUIRED','GOOGLE_DISCONNECTED','ENCRYPTION_KEY_REQUIRED','GOOGLE_CLIENT_CONFIGURATION_REQUIRED','SERVER_DATABASE_AUTH_REQUIRED','SERVER_DATABASE_PERMISSION_REQUIRED'].includes(code))console.warn('public_availability_connection_required',{code});return unavailable(stage);}
 }

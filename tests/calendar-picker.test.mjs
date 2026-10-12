@@ -55,3 +55,16 @@ test('uncertain delivery retains selection and blocks refresh, clearing and rele
 test('saved request never releases its reservation when leaving the page',async()=>{
  const h=await harness([available()]);await h.select();h.form.hidden=true;h.window.handlers.pagehide();assert.equal(h.holdCalls.length,1);
 });
+
+test('one date click after availability expires refreshes and opens that date times',async()=>{
+ const fresh=await available().json();fresh.validUntil=new Date(Date.now()+180000).toISOString();
+ const h=await harness([available(),Response.json(fresh)]);const button=h.get('#appointment-days').children.find(el=>el.handlers.click&&!el.disabled);h.advance(61000);await button.handlers.click();await h.settle();assert.equal(h.calls(),2);assert.equal(h.get('#appointment-times').children.length,1);assert.match(h.get('#calendar-status').textContent,/Choose a time for/);
+});
+test('one expired time click rechecks and holds the same still-available time',async()=>{
+ const fresh=await available().json();fresh.validUntil=new Date(Date.now()+180000).toISOString();
+ const h=await harness([available(),Response.json(fresh)]);const day=h.get('#appointment-days').children.find(el=>el.handlers.click&&!el.disabled);await day.handlers.click();const time=h.get('#appointment-times').children[0];h.advance(61000);await time.handlers.click();await h.settle();assert.equal(h.calls(),2);assert.equal(h.holdCalls.filter(c=>c.action==='select').length,1);assert.match(h.get('#appointment-selection').textContent,/Selected:/);
+});
+test('refresh never holds a stale time that disappeared',async()=>{
+ const fresh=await available().json();fresh.validUntil=new Date(Date.now()+180000).toISOString();fresh.times=[];
+ const h=await harness([available(),Response.json(fresh)]);await h.get('#appointment-days').children.find(el=>el.handlers.click&&!el.disabled).handlers.click();const time=h.get('#appointment-times').children[0];h.advance(61000);await time.handlers.click();await h.settle();assert.equal(h.holdCalls.length,0);assert.match(h.get('#calendar-status').textContent,/no longer available/);
+});
