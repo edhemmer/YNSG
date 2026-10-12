@@ -14,7 +14,7 @@ export async function POST(request:Request){if(!sameOrigin(request))return NextR
  const {organization:org,key}=z.object({organization:z.uuid(),key:z.uuid()}).strict().parse(await request.json());const s=await authorizeGoogle(org);
  const cfg=await s.db.from('configuration_versions').select('settings').eq('organization_id',org).order('version',{ascending:false}).limit(1).single();if(cfg.error||s.user.email?.toLowerCase()!==cfg.data.settings.notificationRecipient?.toLowerCase())throw Error('OWNER_RECIPIENT_REQUIRED');
  const destination=origin(org),status=await mailRelay(org,destination,'status');if(!status.ready)throw Error('MAIL_SERVICE_REQUIRED');
- const identity=emailIdentity(cfg.data.settings,org),m=googleTestMessage(cfg.data.settings.displayName,identity);
+ const identity=emailIdentity(cfg.data.settings,org),m=googleTestMessage(cfg.data.settings.displayName,identity,'business');
  const result=await mailRelay(org,destination,'send',key,{to:cfg.data.settings.notificationRecipient,subject:'[SAMPLE OWNER] Business email connection test',body:m.body.replaceAll('Gmail','business email'),html:m.html.replaceAll('Gmail','business email'),replyTo:cfg.data.settings.notificationRecipient});if(!result.accepted)throw Error('MAIL_PROVIDER_UNAVAILABLE');
  const verified=await serverDatabase().rpc('activate_transactional_mail',{p_org:org,p_actor:s.user.id,p_session:verifiedSessionId(s.access),p_origin:destination,p_sender:status.sender});if(verified.error)throw Error('MAIL_ACTIVATION_UNAVAILABLE');
  return NextResponse.json({accepted:true,provider:'resend',sender:status.sender,enabled:true,id:result.id},{headers:{'Cache-Control':'no-store'}});

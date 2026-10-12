@@ -28,6 +28,10 @@ This is the best fit based on the existing engine and franchise requirements; no
 Google Calendar recommends incremental synchronization using persisted sync tokens, including full resync after HTTP410; push notifications reduce polling cost. https://developers.google.com/workspace/calendar/api/guides/sync and https://developers.google.com/workspace/calendar/api/guides/push
 Microsoft Graph requires handling reauthorization, removed subscriptions and missed notifications, plus reconciliation/delta reads. https://learn.microsoft.com/en-us/graph/change-notifications-lifecycle-events
 
-## Release decision
+## Architecture review decision (before implementation)
 
-Architecture recommendation accepted by technical review; implementation NOT production-ready. Existing calendar click/reconnect UI repairs are deployed, but independent scheduling and independent transaction email are not implemented. Do not mark the above pending checks passed or restore booking by bypassing Google validation without the explicit CRM authority path.
+At this review checkpoint, architecture recommendation accepted by technical review; implementation was NOT production-ready. At that checkpoint calendar click/reconnect UI repairs were deployed, but independent scheduling and independent transaction email were not implemented. Do not mark the above pending checks passed or restore booking by bypassing Google validation without the explicit CRM authority path.
+
+## Implementation follow-through
+
+The CRM-owned calendar and independent-mail relay have now been implemented and deployed. See `independent-calendar-build-acceptance-2026-10-12.md` for the current evidence, hosted race and browser checks, sender-domain rejection and remaining email acceptance gates. The above pass/fail list describes the pre-build architecture checkpoint and must not be treated as current status.
