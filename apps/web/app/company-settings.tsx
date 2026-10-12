@@ -459,7 +459,7 @@ export default function CompanySettingsPanel({
           </fieldset>
           <fieldset disabled={pending}>
             <legend>After an invoice is paid</legend>
-            <p>A thank-you email queues when confirmed payments cover the full invoice. Sending requires your verified Google connection and enabled email delivery.</p>
+            <p>A thank-you email queues when confirmed payments cover the full invoice. Sending requires a verified business email service and enabled email delivery.</p>
             <label className="check"><input type="checkbox" checked={draft.review.enabled} onChange={e=>change({review:{...draft.review,enabled:e.target.checked}})} />Include a review request in the thank-you email</label>
             <label>Review page link (optional until enabled)<input name="review.url" type="url" placeholder="https://" required={draft.review.enabled} value={draft.review.url||''} onChange={e=>change({review:{...draft.review,url:e.target.value||null}})} /></label>
             {organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" && <button type="button" className="secondary" onClick={()=>change({review:{enabled:true,url:"https://g.page/r/CWxW2KabD1UWECE/review"}})}>Use our Google review link</button>}
