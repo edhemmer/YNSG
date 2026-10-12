@@ -11,3 +11,14 @@ test('relay gives precise safe configuration failures and does not guess the cau
   await assert.rejects(()=>relayEmail(request(data),env,async()=>Response.json({name:'validation_error',message},{status:403})),e=>e.message===code&&e.status===403);
  }
 });
+test('provider diagnostics retain actionable categories without disclosing provider text or contact values',async()=>{
+ const data={action:'send',organization:org,id:'70000000-0000-4000-8000-000000000001',to:'owner@example.invalid',subject:'Test',body:'Test',html:'<p>Test</p>'};
+ const original=console.warn,logs=[];console.warn=(...args)=>logs.push(args);
+ try{
+  await assert.rejects(()=>relayEmail(request(data),env,async()=>Response.json({name:'validation_error',message:'Invalid `from` field: private@example.invalid synthetic-key'},{status:422})),e=>e.status===422);
+  await assert.rejects(()=>relayEmail(request(data),env,async()=>Response.json({name:'private@example.invalid',message:'synthetic-key'},{status:403})),e=>e.status===403);
+ }finally{console.warn=original;}
+ assert.deepEqual(logs[0][1],{status:422,category:'validation_error',field:'from'});
+ assert.deepEqual(logs[1][1],{status:403,category:'unclassified',field:null});
+ assert.ok(!JSON.stringify(logs).includes('private@example.invalid'));assert.ok(!JSON.stringify(logs).includes('synthetic-key'));
+});
