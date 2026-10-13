@@ -1,5 +1,7 @@
 # Service workflow repair — 13 October 2026
 
+Historical release evidence. Use [the current launch checklist](remaining-launch-checks-2026-10-13.md) for current completion and remaining gates.
+
 This release repairs the customer and owner workflow. Stripe setup, purchases and live charges are outside the current scope. The original branding, service exclusions, $60 standard / $45 Community rates and two-hour minimum remain in place.
 
 ## Acceptance checklist
