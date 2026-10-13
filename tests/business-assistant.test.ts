@@ -28,3 +28,5 @@ test('unapproved services cannot become marketing offers',()=>{
 });
 
 test('published review services can produce conditional drafts without globally approving work',()=>{assert.match(marketingDraft(settings,{...service,compliance:'review'},'post'),/reviewed individually before work is accepted/);});
+
+test('approved work without a sufficient confirmed visit requests calendar review before starting',()=>{const tasks=businessBrief(snapshot({jobsNeedingSchedule:1,jobsReadyToStart:0}));assert.deepEqual(tasks.map(t=>t.id),['work-window']);assert.match(tasks[0]!.detail,/Reserve enough time/);assert.doesNotMatch(tasks[0]!.title,/ready for work/);});
