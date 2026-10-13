@@ -43,7 +43,7 @@ Automatic approval review rejected submitting a marked QA form using the owner's
 
 ## Verified local checks
 
-267 application tests pass. Empty-schema migrations and rollback-only PostgreSQL business assertions pass, including website hold → attached proposal → owner review/approval → one confirmation and 24-hour reminders, replay, cancellation/decline, resource isolation, expired holds and independent CRM authority. Root/web TypeScript, website syntax, eleven-page build, all internal page/fragment links and optimized Next.js build pass. No real provider success is inferred from the fixtures.
+268 application tests pass. Empty-schema migrations and rollback-only PostgreSQL business assertions pass, including website hold → attached proposal → owner review/approval → one confirmation and 24-hour reminders, replay, cancellation/decline, resource isolation, expired holds and independent CRM authority. Root/web TypeScript, website syntax, eleven-page build, all internal page/fragment links and optimized Next.js build pass. No real provider success is inferred from the fixtures.
 
 ## Remaining owner/platform actions
 
@@ -59,3 +59,11 @@ Primary references checked October 13, 2026:
 - https://support.google.com/business/answer/9157481
 - https://vercel.com/docs/plans/hobby
 
+
+## Deployed calendar verification
+
+Source release `724ac08846fdc8430f05934618a3cd2372d9714b` reached READY on both Production projects and both custom domains. Hosted snapshot migration verified: 32-day coverage, owner membership gate and expired-hold filter retained.
+
+After deployment, the public browser loaded the visible calendar and five quick dates. Choosing October 20, 2026 at 9:00 AM created a live temporary two-hour hold. The authenticated owner time list for that day excluded the held time and overlapping buffer, starting at 11:30 AM. Releasing the public hold returned the complete 8:00 AM–3:00 PM start list to owner scheduling. Selecting a valid owner time enabled Schedule appointment. The test hold was released; no test service request or confirmed appointment was created. Real user/customer records were not changed.
+
+Owner quick-date buttons were added to reduce dependence on segmented native date entry; they check availability for the chosen day without booking it. Native date input also listens to input/change events. Real submitted request → approval → customer confirmation → cancellation remains blocked by the explicit automatic-approval boundary above. The source is not marked fully launch-ready.

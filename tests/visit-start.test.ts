@@ -24,3 +24,10 @@ test('one-time and weekly request preferences prefill separate fields',()=>{
  assert.deepEqual(preferredVisitStart('Weekly Friday 09:00; 2026-10-09 to before 2027-10-09; America/Chicago; 12 months. Owner approval required.'),{date:'2026-10-09',time:'09:00'});
  assert.deepEqual(preferredVisitStart(),{date:'',time:''});
 });
+
+import {nextVisitDates} from '../apps/web/lib/visit-start.ts';
+test('owner quick dates honor lead time, weekdays and the booking horizon',()=>{
+ const hours={weekdays:[1,2,3,4,5],earliestStart:480,latestStart:900,endOfDay:1020,leadMinutes:1440,horizonMinutes:43200};
+ assert.deepEqual(nextVisitDates(hours,'America/Chicago',Date.parse('2026-10-13T10:00Z')),['2026-10-14','2026-10-15','2026-10-16','2026-10-19','2026-10-20']);
+ assert.deepEqual(nextVisitDates({...hours,horizonMinutes:1500},'America/Chicago',Date.parse('2026-10-13T23:00Z')),[]);
+});
