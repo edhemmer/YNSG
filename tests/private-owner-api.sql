@@ -1,0 +1,18 @@
+update private.calendar_authorities set source='crm';
+select pg_temp.assert_true(not exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in('calendar_authority','calendar_feed_command','transactional_mail_status') and p.prosecdef),'public owner API wrappers run as invoker');
+select pg_temp.assert_true(not has_function_privilege('anon','public.calendar_authority(uuid)','EXECUTE'),'anonymous calendar authority denied');
+select pg_temp.assert_true(not has_function_privilege('service_role','public.calendar_feed_command(uuid,text,text,boolean)','EXECUTE'),'service role cannot create an owner calendar feed');
+select pg_temp.assert_true(exists(select 1 from pg_policies where schemaname='private' and tablename='owner_signin_events' and qual='false' and with_check='false'),'explicit private sign-in log denial');
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select pg_temp.assert_true(public.calendar_authority('20000000-0000-4000-8000-000000000001')->>'source'='crm','owner retains authority access');
+select pg_temp.assert_true(public.transactional_mail_status('20000000-0000-4000-8000-000000000001')->>'enabled'='false','owner retains mail-status access');
+select public.calendar_feed_command('20000000-0000-4000-8000-000000000001','create',repeat('a',64),false);
+select public.calendar_feed_command('20000000-0000-4000-8000-000000000001','revoke',null,false);
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+do $$begin begin perform public.calendar_authority('20000000-0000-4000-8000-000000000001');raise exception 'TEST FAILED: cross-tenant authority';exception when insufficient_privilege then null;end;
+ begin perform public.transactional_mail_status('20000000-0000-4000-8000-000000000001');raise exception 'TEST FAILED: cross-tenant mail';exception when insufficient_privilege then null;end;
+ begin perform public.calendar_feed_command('20000000-0000-4000-8000-000000000001','create',repeat('b',64),false);raise exception 'TEST FAILED: cross-tenant feed';exception when insufficient_privilege then null;end;
+end$$;
+reset role;
+rollback;

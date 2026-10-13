@@ -1,0 +1,21 @@
+name: YNSG independent production check
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: production-watchdog
+  cancel-in-progress: false
+jobs:
+  public-pages-and-workers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: codex/crm-workflow
+          persist-credentials: false
+      - name: Check website, CRM and worker/mail health without credentials
+        run: node scripts/check-production.mjs

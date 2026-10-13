@@ -1,0 +1,48 @@
+// Synthetic-only PostgreSQL 17 checks inside the explicitly named CI service.
+// No production database URL, account credentials, mail provider or customer data.
+import {spawn} from 'node:child_process';
+import {readFile,readdir,mkdtemp,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import assert from 'node:assert/strict';
+const container=process.env.YNSG_TEST_POSTGRES_CONTAINER;
+assert.ok(/^[a-f0-9]{12,64}$/.test(container||''),'Use only the disposable PostgreSQL CI service container');
+async function run(args,input,binary=false){
+ return new Promise((resolve,reject)=>{const child=spawn('docker',['exec','-i',container,...args],{stdio:['pipe','pipe','pipe']});const output=[],errors=[];let size=0;
+ child.stdout.on('data',b=>{size+=b.length;if(size>64*1024*1024){child.kill();reject(Error('Fixture output exceeded limit'));}else output.push(b);});child.stderr.on('data',b=>errors.push(b));child.on('error',reject);child.on('exit',code=>{const out=Buffer.concat(output);if(code!==0)reject(Error(Buffer.concat(errors).toString().slice(-3000)||'Fixture command failed'));else resolve(binary?out:out.toString());});child.stdin.end(input);
+ });
+}
+const sql=(input,database='ynsg_test')=>run(['psql','-U','postgres','-d',database,'-X','-q','-A','-t','-v','ON_ERROR_STOP=1'],input);
+const testSource=await readFile('tests/database.mjs','utf8');
+const bootstrap=testSource.match(/await db\.exec\(`([\s\S]*?)`\);/)?.[1];assert.ok(bootstrap,'Auth fixture bootstrap not found');
+await sql(bootstrap);
+for(const path of (await readdir('supabase/migrations')).filter(p=>p.endsWith('.sql')).sort())await sql(await readFile('supabase/migrations/'+path,'utf8'));
+const foundation=await readFile('tests/foundation.sql','utf8'),prefix=foundation.split('set local role service_role;')[0];
+await sql(foundation);
+const fixtures=[...new Set([...testSource.matchAll(/readFile\('tests\/([^']+\.sql)'/g)].map(m=>m[1]))].filter(p=>!['foundation.sql','service-lifecycle.sql'].includes(p));
+for(const file of fixtures){await sql(prefix+await readFile('tests/'+file,'utf8'));console.log('PASS: native PostgreSQL '+file);}
+const marker="set local role service_role;\nselect set_config('request.jwt.claims','{\"role\":\"service_role\"}',true);\nselect public.website_slot_hold('20000000-0000-4000-8000-000000000001','select','70000000-0000-4000-8000-000000000006'";
+const booking=(await readFile('tests/independent-calendar.sql','utf8')).split(marker)[0];assert.ok(!booking.includes('rollback;'),'Booking fixture split changed');
+const lifecycle=await readFile('tests/service-lifecycle.sql','utf8');assert.ok(lifecycle.trim().endsWith('rollback;'));
+await sql(prefix+booking+lifecycle.replace(/rollback;\s*$/,'commit;'));
+console.log('PASS: canonical service → quote → work → invoice → split receipts committed in synthetic database');
+await sql(`create schema qa_fixture;grant usage on schema qa_fixture to service_role;
+ create function qa_fixture.start() returns timestamptz language sql as $$select ((date_trunc('week',clock_timestamp() at time zone 'America/Chicago')+interval '21 days 8 hours') at time zone 'America/Chicago')$$;
+ create function qa_fixture.facts() returns jsonb language sql as $$select public.crm_calendar_facts('20000000-0000-4000-8000-000000000001',qa_fixture.start()-interval '1 hour',qa_fixture.start()+interval '3 hours')$$;`);
+const hold=n=>`select public.website_slot_hold('20000000-0000-4000-8000-000000000001','select','80000000-0000-4000-8000-${String(n).padStart(12,'0')}',repeat('${n}',64),repeat('${n+2}',64),repeat('${n+4}',64),qa_fixture.start(),qa_fixture.facts());`;
+const claim=`begin;set local role service_role;select set_config('request.jwt.claims','{"role":"service_role"}',true);`;
+const race=await Promise.allSettled([sql(claim+hold(1)+'select pg_sleep(1);commit;'),sql(claim+hold(2)+'select pg_sleep(1);commit;')]);
+assert.equal(race.filter(r=>r.status==='fulfilled').length,1,'Exactly one simultaneous booking must win');const failed=race.find(r=>r.status==='rejected');assert.match(failed.reason.message,/CAPACITY_CONFLICT|conflicting key|exclusion constraint/);
+const winner=race[0].status==='fulfilled'?1:2;
+await sql(claim+hold(winner)+'commit;');
+assert.equal((await sql("select count(*) from public.appointments where start_at=qa_fixture.start() and status='held';")).trim(),'1');
+console.log('PASS: two independent PostgreSQL connections raced the canonical website hold; one reservation, conflict loser and idempotent retry');
+const snapshotSql=`select jsonb_build_object('invoices',(select jsonb_agg(to_jsonb(i) order by id) from public.invoices i),'payments',(select jsonb_agg(to_jsonb(p) order by id) from public.payments p),'journal',(select jsonb_agg(to_jsonb(j) order by entry_id,account) from public.journal_lines j),'appointments',(select jsonb_agg(to_jsonb(a) order by id) from public.appointments a),'reservations',(select jsonb_agg(to_jsonb(r) order by appointment_id,resource_id) from public.resource_reservations r))::text;`;
+const before=JSON.parse((await sql(snapshotSql)).trim());assert.equal(before.invoices.length,1);assert.equal(before.payments.length,2);assert.equal(before.payments.reduce((n,p)=>n+p.cents,0),12000);
+const dump=await run(['pg_dump','-U','postgres','--format=custom','ynsg_test'],undefined,true);
+const temp=await mkdtemp(join(tmpdir(),'ynsg-synthetic-restore-'));await writeFile(join(temp,'synthetic.dump'),dump,{mode:0o600});
+await sql('create database ynsg_restore;');
+await run(['pg_restore','-U','postgres','--exit-on-error','--dbname=ynsg_restore'],dump);
+const after=JSON.parse((await sql(snapshotSql,'ynsg_restore')).trim());assert.deepEqual(after,before,'Restored money, appointment and capacity records must match');
+assert.equal((await sql('select sum(debit_cents::bigint-credit_cents) from public.journal_lines;','ynsg_restore')).trim(),'0');
+console.log('PASS: full PostgreSQL dump restored into a second isolated database; invoices, receipts, journal, appointments and reservations match exactly');

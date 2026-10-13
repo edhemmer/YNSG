@@ -15,6 +15,8 @@ try {
  for(const f of (await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')).sort())await db.exec(await readFile(`supabase/migrations/${f}`,'utf8'));
  const foundation=await readFile('tests/foundation.sql','utf8');
  await db.exec(foundation);
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/operations-health.sql','utf8'));
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/private-owner-api.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/commercial.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/scheduler.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/google.sql','utf8'));
