@@ -8,11 +8,12 @@ class Element {
  children=[];hidden=false;disabled=false;dataset={};attributes={};handlers={};value='once';textContent='';
  setAttribute(k,v){this.attributes[k]=v;} getAttribute(k){return this.attributes[k];} addEventListener(k,fn){this.handlers[k]=fn;} append(el){this.children.push(el);} replaceChildren(){this.children=[];} focus(){} querySelector(){return this.children[0];}
 }
-async function harness(responses,{holdError=false}={}){
+async function harness(responses,{holdError=false,collapsed=false}={}){
  const elements=new Map();const get=id=>{if(!elements.has(id))elements.set(id,new Element());return elements.get(id);};
  const form=new Element(),picker=new Element(),window=new Element();form.querySelector=get;picker.querySelector=get;
  const sections=['.calendar-toolbar','.appointment-weekdays','#appointment-days'].map(get);picker.querySelectorAll=selector=>selector.startsWith('.calendar-toolbar')?sections:[];
- const document=new Element();document.querySelector=id=>id==='#request-form'?form:picker;document.createElement=()=>new Element();
+ const disclosure=new Element();disclosure.open=false;
+ const document=new Element();document.querySelector=id=>id==='#request-form'?form:id==='#appointment-picker'?picker:id==='#appointment-disclosure'&&collapsed?disclosure:null;document.createElement=()=>new Element();
  let calls=0,key=0;const holdCalls=[],timers=new Map();let clock=Date.now();
  class Clock extends Date {static now(){return clock;}}
  vm.runInNewContext(source,{document,window,localDay,addDays,appointmentSelection,Intl,Date:Clock,AbortController,
@@ -21,7 +22,7 @@ async function harness(responses,{holdError=false}={}){
   fetch:async()=>{const r=responses[calls++];if(r instanceof Error)throw r;return r;}});
  const settle=async()=>{for(let n=0;n<30;n++)await Promise.resolve();};await settle();
  const select=async()=>{const open=get('#appointment-days').children.find(el=>el.handlers.click&&!el.disabled);assert.ok(open);await open.handlers.click();await get('#appointment-times').children[0].handlers.click();await settle();};
- return {get,form,picker,window,document,sections,settle,select,holdCalls,advance:ms=>{clock+=ms;},calls:()=>calls};
+ return {get,form,picker,window,document,disclosure,sections,settle,select,holdCalls,advance:ms=>{clock+=ms;},calls:()=>calls};
 }
 const available=()=>{
  let day=addDays(localDay(),1);while([0,6].includes(new Date(day+'T12:00Z').getUTCDay()))day=addDays(day,1);
@@ -67,4 +68,11 @@ test('one expired time click rechecks and holds the same still-available time',a
 test('refresh never holds a stale time that disappeared',async()=>{
  const fresh=await available().json();fresh.validUntil=new Date(Date.now()+180000).toISOString();fresh.times=[];
  const h=await harness([available(),Response.json(fresh)]);await h.get('#appointment-days').children.find(el=>el.handlers.click&&!el.disabled).handlers.click();const time=h.get('#appointment-times').children[0];h.advance(61000);await time.handlers.click();await h.settle();assert.equal(h.holdCalls.length,0);assert.match(h.get('#calendar-status').textContent,/no longer available/);
+});
+
+test('collapsed appointment calendar loads once when opened, then keeps single-click date selection',async()=>{
+ const h=await harness([available()],{collapsed:true});assert.equal(h.calls(),0);
+ h.disclosure.open=true;h.disclosure.handlers.toggle();await h.settle();assert.equal(h.calls(),1);
+ h.disclosure.open=false;h.disclosure.handlers.toggle();h.disclosure.open=true;h.disclosure.handlers.toggle();await h.settle();assert.equal(h.calls(),1);
+ await h.select();assert.equal(h.holdCalls.filter(c=>c.action==='select').length,1);
 });
