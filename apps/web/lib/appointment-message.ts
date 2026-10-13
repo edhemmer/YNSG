@@ -51,13 +51,13 @@ function appointmentText(v: AppointmentMessageInput) {
     return {
       to: v.notificationRecipient,
       subject: ownerSubject,
-      body: `A new appointment request is ready for you to review.\n\n${v.request.name || "Customer"}\n${address}\nPhone: ${v.request.phone || "See service request"}\nEmail: ${v.request.email || "See service request"}\nArrival: ${when}\n\n${services}\n\nCheck the work, any material pickups, and the time needed before you confirm the visit:\n${v.ownerUrl}`,
+      body: `A customer has requested an appointment.\n\n${v.request.name || "Customer"}\n${address}\nPhone: ${v.request.phone || "See service request"}\nEmail: ${v.request.email || "See service request"}\nArrival: ${when}\n\n${services}\n\nCheck the work, any material pickups, and the time needed before you confirm the visit:\n${v.ownerUrl}`,
     };
   if (v.kind === "appointment.owner_reminder" || v.kind === "appointment.owner_confirmation")
     return {
       to: v.notificationRecipient,
       subject: v.kind === "appointment.owner_confirmation" ? "Service appointment booked" : "Tomorrow’s service appointment",
-      body: `Your upcoming appointment with ${v.request.name || "the customer"} is confirmed.\n\nArrival: ${when}\n${work}\nPhone: ${v.request.phone || "See service order"}\nEmail: ${v.request.email || "See service order"}\n\nCheck the job details, material pickups, and equipment before loading up:\n${v.ownerUrl}\n\nCheck your calendar before heading out in case the visit has changed.`,
+      body: `${v.kind === "appointment.owner_confirmation" ? "The appointment is booked" : "A reminder about tomorrow’s appointment"} with ${v.request.name || "the customer"}.\n\nArrival: ${when}\n${work}\nPhone: ${v.request.phone || "See service order"}\nEmail: ${v.request.email || "See service order"}\n\nReview the job details and anything you'll need to bring:\n${v.ownerUrl}`,
     };
   if (v.kind === "appointment.reschedule_requested")
     return {
@@ -78,7 +78,7 @@ function appointmentText(v: AppointmentMessageInput) {
       subject: reminder
         ? "Reminder: your service appointment"
         : "Your appointment is confirmed",
-      body: `Hi ${v.request.name || "there"},\n\n${reminder ? "A reminder of your appointment with" : "Your appointment is confirmed with"} ${v.company}.\n\nArrival: ${when}\n${work}\n\nPlease confirm you’ll be there:\n${v.confirmUrl}\n\nNeed another time?\n${v.rescheduleUrl}\nYour current appointment stays booked until a replacement is approved.\n\nYou can review your appointment before making any changes. Confirming attendance does not approve additional work.\n\n${reminder ? "If you need to reschedule, please reply to this email right away." : "Reply to this email if you need to reach us."}`,
+      body: `Hi ${v.request.name || "there"},\n\n${reminder ? "Just a reminder about your appointment with" : "You're booked with"} ${v.company}.\n\nArrival: ${when}\n${work}\n\nPlease confirm you’ll be there:\n${v.confirmUrl}\n\nNeed another time?\n${v.rescheduleUrl}\nYour current appointment stays booked until a replacement is approved.\n\nYou can review your appointment before making any changes. Confirming attendance does not approve additional work.\n\n${reminder ? "If you need to reschedule, please reply to this email right away." : "Reply to this email if you need to reach us."}`,
     };
   }
   const declinedTime = v.kind === "appointment.declined_time";
@@ -87,7 +87,7 @@ function appointmentText(v: AppointmentMessageInput) {
     subject: declinedTime
       ? "Please choose another appointment time"
       : "Update on your service request",
-    body: `Hi ${v.request.name || "there"},\n\n${declinedTime ? "We are not able to schedule your preferred appointment time. Please visit your request and select a new date and time. Your service details are still saved." : "We’re unable to take on this job."}${v.reason ? "\n" + v.reason : ""}\n\n${work}\n\n${declinedTime ? "Choose another time on the same request:" : "Review this appointment update:"}\n${v.manageUrl}\n\n${declinedTime ? "A new time needs review and approval before it is booked.\n\n" : ""}Reply to this email with any questions.`,
+    body: `Hi ${v.request.name || "there"},\n\n${declinedTime ? "Unfortunately, we're not available at the date and time you requested. We'd still be happy to help. You can choose another available time using the link below, and we'll review it as soon as we can. Your service details are saved." : "Thanks for reaching out. Unfortunately, we won't be able to take on this job."}${v.reason ? "\n" + v.reason : ""}\n\n${work}\n\n${declinedTime ? "Choose another time on the same request:" : "Review this appointment update:"}\n${v.manageUrl}\n\n${declinedTime ? "We'll confirm the new time once we've reviewed your request.\n\n" : ""}Reply to this email with any questions.`,
   };
 }
 
