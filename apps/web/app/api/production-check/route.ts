@@ -64,5 +64,5 @@ export async function POST(request:Request){
  const started=await c.server.from('outbox').insert({organization_id:v.organization,id,event_key:eventKey,kind:'diagnostic.template_preview',object_id:v.run,payload:{actor:c.user.id,template:v.template,recipient:c.recipient,subject:message.subject},status:'pending'});
  if(started.error){if(started.error.code==='23505')return json({status:'pending',replay:true});throw started.error;}
  return json({status:'pending'});
- }catch(e){return failure(e)}
+ }catch(e){const problem=e as NodeJS.ErrnoException;console.warn('Sample email operation failed',{code:e instanceof Error&&/^[A-Z_]{1,80}$/.test(e.message)?e.message:'UNCLASSIFIED',fileCode:['ENOENT','EACCES'].includes(problem?.code||'')?problem.code:null,asset:/(?:^|\/)(DejaVuSans(?:-Bold)?\.ttf|LICENSE|ynsg-logo\.jpg)$/.exec(problem?.path||'')?.[1]||null});return failure(e)}
 }
