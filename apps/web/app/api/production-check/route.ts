@@ -55,6 +55,7 @@ export async function POST(request:Request){
  }
  const record=await c.server.from('outbox').select('payload').eq('organization_id',v.organization).eq('id',v.run).eq('kind','diagnostic.sample_suite').single();if(record.error)throw record.error;
  const suite=record.data.payload.suite as SampleSuite,message=suite.messages.find(m=>m.id===v.template);
+ if(suite.templateVersion!=='2026-10-13-email-ux')return json({error:'Create an updated sample set before sending. Your saved results are retained.'},409);
  if(!message||message.to.toLowerCase()!==c.recipient)return json({error:'This sample does not match the approved owner address.'},409);
  const permission=await c.db.rpc('mail_delivery_status',{p_org:v.organization});if(permission.error||!permission.data?.enabled)return json({error:'Email sending is paused. Review Business email in Settings.'},409);
  const service=await mailTransport(v.organization);if(service&&!service.ready)return json({error:'Business email needs attention. Contact your platform administrator.'},409);const {token,account}=service?{token:'',account:{email:c.settings.sender,gmail_test:'accepted'}}:await accessToken(v.organization);if(account.gmail_test!=='accepted'||account.email?.toLowerCase()!==c.settings.sender?.toLowerCase())return json({error:'Verify your business email service before sending samples.'},409);

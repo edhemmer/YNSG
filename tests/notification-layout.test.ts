@@ -19,3 +19,13 @@ test('email action links reject unsafe protocols and credential-bearing destinat
  for(const url of ['javascript:alert(1)','http://example.invalid','https://user:secret@example.invalid'])assert.throws(()=>emailButton('Open',url));
  assert.ok(emailButton('Request another time','https://example.invalid/#token=a&action=reschedule',true).includes('a&amp;action=reschedule'));
 });
+
+test('confirmed customer visits have two distinct actions without a third overlapping button',()=>{
+ for(const kind of ['appointment.confirmation','appointment.reminder'] as const){
+  const m=appointmentMessage({...base,kind});
+  assert.equal((m.html.match(/<a class="mail-button/g)||[]).length,2);
+  assert.ok(!m.html.includes('View appointment update'));
+  assert.match(m.body,/stays booked until a replacement is approved/);
+  assert.match(m.body,/discuss any additional work with you first/);
+ }
+});

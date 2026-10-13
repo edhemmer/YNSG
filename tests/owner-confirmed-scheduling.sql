@@ -38,7 +38,8 @@ select pg_temp.assert_true((select count(*)=1 from public.appointments where sta
 select pg_temp.assert_true((select count(*)=0 from public.appointments where status in('proposal','held')),'no incomplete owner proposal');
 select pg_temp.assert_true((select count(*)=1 from public.resource_reservations where active),'one resource reservation');
 select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='appointment.confirmation' and status='pending'),'one customer confirmation');
-select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='appointment.owner_confirmation' and status='pending'),'one owner confirmation');
+select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='appointment.owner_reminder' and status='pending'),'useful owner reminder retained');
+select pg_temp.assert_true((select count(*)=0 from public.outbox where kind='appointment.owner_confirmation'),'no redundant owner confirmation');
 select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='calendar.upsert' and status='pending'),'one current calendar intent');
 select pg_temp.assert_true((select count(*)=0 from public.outbox where kind='appointment.owner_approval' and status='pending'),'no redundant approval notice');
 select pg_temp.assert_true(public.appointment_delivery_status('20000000-0000-4000-8000-000000000001',(select (result->>'id')::uuid from pg_temp.owner_results))->>'customerEmail'='pending','delivery status is honest');

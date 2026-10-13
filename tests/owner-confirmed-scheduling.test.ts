@@ -32,3 +32,11 @@ test('owner receives booked visit details without a customer bearer link or appr
  assert.match(v.body,/Synthetic Customer/);assert.match(v.body,/Mowing/);assert.match(v.body,/8:00/);
  assert.doesNotMatch(v.body,/ready for you to review|Confirm attendance/);
 });
+
+test('intentionally omitted owner booking email is not a delivery failure',()=>{
+ for(const ownerEmail of ['not_queued','suppressed']){
+  const text=appointmentDeliveryMessage({appointmentStatus:'reserved',revision:3,calendar:'synced',customerEmail:'pending',ownerEmail});
+  assert.match(text,/Customer email queued/);
+  assert.doesNotMatch(text,/Owner email/);
+ }
+});
