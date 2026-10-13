@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { syncGoogleCalendar } from "../../../../lib/google-sync";
 import {verifyRoutesConnection} from '../../../../lib/routes-health';
+import {store} from '../../../../lib/google-server';
+import {calendarExportRun} from '../../../../lib/calendar-export-run';
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export async function POST(request: Request) {
@@ -16,8 +18,6 @@ export async function POST(request: Request) {
     !timingSafeEqual(Buffer.from(secret), Buffer.from(provided))
   )
     return NextResponse.json({ error: "Access is required." }, { status: 401 });
-  if (process.env.GOOGLE_CALENDAR_WORKER_ENABLED !== "true")
-    return NextResponse.json({ error: "Calendar updates are paused." }, { status: 503 });
   const org = z.uuid().safeParse(process.env.GOOGLE_WORKER_ORGANIZATION_ID);
   if (!org.success)
     return NextResponse.json(
@@ -25,13 +25,12 @@ export async function POST(request: Request) {
       { status: 503 },
     );
   try {
-    const result = await syncGoogleCalendar(org.data);
-    let maps='verification_unavailable';
-    try{maps=await verifyRoutesConnection(org.data);}catch{console.error('routes_health_unavailable');}
-    return NextResponse.json(
-      { processed: result.results.length,maps },
-      { headers: { "Cache-Control": "no-store" } },
-    );
+    const result=await calendarExportRun(process.env.GOOGLE_CALENDAR_WORKER_ENABLED==='true',{
+      readConnection:async()=>Boolean((await store(org.data,'read')).encrypted_tokens),
+      sync:()=>syncGoogleCalendar(org.data),
+      checkMaps:()=>verifyRoutesConnection(org.data),
+    });
+    return NextResponse.json(result,{headers:{'Cache-Control':'no-store'}});
   } catch {
     return NextResponse.json(
       { error: "Calendar updates need attention." },
