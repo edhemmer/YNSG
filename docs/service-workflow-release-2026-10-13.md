@@ -27,7 +27,7 @@ This release repairs the customer and owner workflow. Stripe setup, purchases an
 ## Still required before an unrestricted go-live claim
 
 1. **Tax review:** the hosted business's saved tax treatment is unreviewed. The owner must configure reviewed tax rules and review the applicable customer-approved total. This release does not fabricate fiscal approval.
-2. **Approved disposable live lifecycle:** submission, owner confirmation, reschedule/cancel, invoice/PDF delivery, recorded test receipts, and inbox checks. Earlier automatic approval review blocked a durable request/email test; no alternate submission path was used.
+2. **Approved disposable live lifecycle:** submission, owner confirmation, reschedule/cancel, invoice/PDF delivery, owner receipt-entry walkthrough, and inbox checks. Synthetic receipts belong in an isolated test environment; live receipts must reflect actual money received. Earlier automatic approval review blocked a durable request/email test; no alternate submission path was used.
 3. **Independent operations:** prove off-site restore, independent failure alerts, worker outage recovery and multi-connection booking races. Historic successful workers do not prove recovery.
 4. **Actual device/accessibility review:** mobile keyboard, zoom, focus recovery and VoiceOver/TalkBack on physical devices; fresh customer account/recovery flow.
 5. **Local search accounts:** verify Google Business Profile ownership and Search Console/sitemap submission. SEO metadata is not a ranking or indexing guarantee.
@@ -38,3 +38,9 @@ This release repairs the customer and owner workflow. Stripe setup, purchases an
 The earlier launch audit remains historical evidence. This release updates the non-Stripe service workflow; it does not declare every launch gate passed.
 
 React interaction tests run in an isolated test-mode subprocess, including when Vercel inherits production mode. The Next.js application still compiles and runs in production mode.
+
+## Safe live checks during release
+
+The public calendar returned real open dates/times, created a temporary selection with an expiry deadline, and released it through “Arrange a time with me instead.” No request was submitted and no test email was sent. The live owner sign-in remains valid. Both background workers had nine completed successful HTTP responses in the ten-minute check; the latest requests were still in flight. This is worker execution evidence, not inbox delivery.
+
+Hosted migration names were checked. The cancellation migration is installed and denies anonymous/service-role execution; authenticated execution still requires an owner/admin membership inside the function. Hosted and repository migration timestamps are historically different: reconcile the deployment history before using a blind CLI database push. Do not reapply migrations that are already installed by name.

@@ -36,7 +36,7 @@ test('failed check retains a disabled month grid, explains failure and enables r
 });
 test('retry replaces failure with fresh dates and a canonical held time',async()=>{
  const h=await harness([Response.json({},{status:503}),available()]);await h.get('#calendar-refresh').handlers.click();await h.settle();await h.select();
- assert.match(h.get('#appointment-selection').textContent,/Selected:.*Held until .*Central Time while/);assert.ok(h.form.dataset.appointmentStart.endsWith('.000Z'));assert.equal(h.form.dataset.appointmentHoldToken,'a'.repeat(64));assert.equal(h.calls(),2);
+ assert.match(h.get('#appointment-selection').textContent,/Selected:.*Held until [A-Z][a-z]{2}, [A-Z][a-z]{2} \d+ at .*Central Time while/);assert.ok(h.form.dataset.appointmentStart.endsWith('.000Z'));assert.equal(h.form.dataset.appointmentHoldToken,'a'.repeat(64));assert.equal(h.calls(),2);
  assert.equal(h.get('#appointment-times').children[0].attributes['aria-pressed'],'true');
 });
 test('lost selection never displays a held time and cancels by selection key',async()=>{
