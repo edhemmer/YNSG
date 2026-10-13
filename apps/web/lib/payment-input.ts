@@ -8,5 +8,9 @@ export function paymentInput(form:FormData,timezone:string){
  const cents=Number(whole)*100+Number(fraction.padEnd(2,'0'));
  if(cents<1||cents>999999999)throw Error('Enter an amount greater than zero.');
  const receivedAt=new Date(localInstant(String(form.get('receivedAt')||''),timezone)).toISOString();
- return {cents,receivedAt,method:form.get('method'),reference:form.get('reference')};
+ const method=String(form.get('method')||'');
+ if(method!=='cash'&&method!=='zelle')throw Error('Choose cash or Zelle for a received payment.');
+ const reference=String(form.get('reference')||'').trim();
+ if(!reference||reference.length>300)throw Error('Enter a receipt reference with up to 300 characters.');
+ return {cents,receivedAt,method,reference};
 }

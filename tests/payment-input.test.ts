@@ -15,3 +15,12 @@ test('payment form rejects zero, exponent, negative, excessive precision and ove
 test('payment receipt time rejects invalid dates and ambiguous or missing DST times',()=>{
  for(const date of ['2026-02-30T09:30','2026-11-01T01:30','2026-03-08T02:30',''])assert.throws(()=>paymentInput(form('60',date),'America/Chicago'));
 });
+
+test('received payments require an allowed method and a usable receipt reference',()=>{
+ const f=form();f.set('method','zelle');f.set('reference','  synthetic Zelle receipt  ');
+ assert.equal(paymentInput(f,'America/Chicago').reference,'synthetic Zelle receipt');
+ assert.equal(paymentInput(f,'America/Chicago').method,'zelle');
+ for(const method of ['stripe','card','']){f.set('method',method);assert.throws(()=>paymentInput(f,'America/Chicago'));}
+ f.set('method','cash');
+ for(const reference of ['', '   ', 'x'.repeat(301)]){f.set('reference',reference);assert.throws(()=>paymentInput(f,'America/Chicago'));}
+});
