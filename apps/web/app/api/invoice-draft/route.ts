@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { authenticated, sameOrigin, failure } from "../../../lib/session";
 import { parseInvoiceDraft } from "../../../lib/invoice-draft-input";
+import {invoiceIssuanceReadiness} from '../../../lib/service-workflow';
 export async function GET(request: Request) {
   try {
     const q = new URL(request.url).searchParams;
@@ -13,8 +14,13 @@ export async function GET(request: Request) {
     if (r.error) throw r.error;
     const tax=await db.rpc("invoice_tax_context",{p_org:z.uuid().parse(q.get("organization")),p_job:z.uuid().parse(q.get("job"))});
     if(tax.error)throw tax.error;
+    const org=z.uuid().parse(q.get('organization')),job=z.uuid().parse(q.get('job'));
+    const record=await db.from('jobs').select('quote_id,approved_version').eq('organization_id',org).eq('id',job).single();
+    if(record.error)throw record.error;
+    const quote=await db.from('quote_versions').select('snapshot').eq('organization_id',org).eq('quote_id',record.data.quote_id).eq('version',record.data.approved_version).single();
+    if(quote.error)throw quote.error;
     return NextResponse.json(
-      { draft: r.data, tax:tax.data },
+      { draft: r.data, tax:tax.data,readiness:invoiceIssuanceReadiness(quote.data.snapshot?.configuration||null,tax.data?.required===true) },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e) {

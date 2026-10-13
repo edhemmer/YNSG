@@ -1,6 +1,5 @@
 "use client";
 import {invoiceNumber} from "../lib/invoice-number";
-import {paymentInput} from '../lib/payment-input';
 import {ownerRequestContext} from '../lib/email-links';
 import { publicError } from "../lib/public-errors";
 import {companyTheme} from "../lib/company-brand";
@@ -16,7 +15,8 @@ import FinanceActivity from './finance-activity';
 import GoogleControls from './google-controls';
 import CalendarConnections from './calendar-connections';
 import OwnerSetup from './owner-setup';
-import InvoiceDraft from './invoice-draft';
+import ServiceWorkflow from './service-workflow';
+import InvoicePayments from './invoice-payments';
 import InvoiceDelivery from './invoice-delivery';
 import CustomerInvite from './customer-invite';
 import RelationshipNotes from './relationship-notes';
@@ -36,11 +36,12 @@ type RequestRecord = {
   status: string;
   revision: number;
   created_at: string;
-  original_submission: {name:string;phone:string;email:string;street:string;city:string;service?:string;task?:string;description?:string;services?:{service:string;task:string}[]};
+  original_submission: {name:string;phone:string;email:string;street:string;city:string;service?:string;task?:string;description?:string;preferredTime?:string;communityRate?:string;services?:{service:string;task:string}[]};
 };
 type Quote = {
   id: string;
   customer_id: string;
+  request_id: string;
   current_version: number;
   status: string;
   quote_versions: {
@@ -150,12 +151,12 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
   const [activeRequest,setActiveRequest]=useState<string|null>(null);
   const [mobileNav,setMobileNav]=useState(false);
   const [workRequest,setWorkRequest]=useState<string|null>(null);
-  const sections=[{key:'Dashboard',label:'Overview',icon:'dashboard'},{key:'Requests',label:'Requests',icon:'inbox'},{key:'Calendar',label:'Calendar',icon:'calendar'},{key:'Today',label:'Day routes',icon:'pin'},{key:'Customers',label:'Customers',icon:'users'},{key:'Work',label:'Quotes & jobs',icon:'work'},{key:'Money',label:'Invoices & money',icon:'money'},{key:'Snapshot',label:'Reports',icon:'chart'},{key:'Activity',label:'Activity & messages',icon:'bell'},{key:'Settings',label:'Settings',icon:'settings'}];
+  const sections=[{key:'Dashboard',label:'Overview',icon:'dashboard'},{key:'Requests',label:'Requests',icon:'inbox'},{key:'Calendar',label:'Calendar',icon:'calendar'},{key:'Today',label:'Day routes',icon:'pin'},{key:'Customers',label:'Customers',icon:'users'},{key:'Work',label:'Service workflows',icon:'work'},{key:'Money',label:'Invoices & money',icon:'money'},{key:'Snapshot',label:'Reports',icon:'chart'},{key:'Activity',label:'Activity & messages',icon:'bell'},{key:'Settings',label:'Settings',icon:'settings'}];
   const primarySections=sections.filter(s=>['Dashboard','Requests','Calendar','Today','Work','Money'].includes(s.key));
   const secondarySections=sections.filter(s=>['Customers','Snapshot','Activity','Settings'].includes(s.key));
   const canSeeSection=(s:{key:string})=>['owner','admin'].includes(role||'')||(role==='dispatcher'?['Requests','Customers','Work','Today'].includes(s.key):role==='bookkeeper'?['Customers','Money'].includes(s.key):['Today','Work'].includes(s.key));
-  function navigate(next:string){setPage(0);setMessage('');setError('');setSection(next);setMobileNav(false);if(next!=='Work'){setWorkRequest(null);const url=new URL(window.location.href);url.searchParams.delete('request');window.history.replaceState(null,'',url);}}
-  function openWork(id:string){setActiveRequest(null);setWorkRequest(id);const url=new URL(window.location.href);url.searchParams.set('request',id);window.history.replaceState(null,'',url);setSection('Work');setPage(0);void refresh();}
+  function navigate(next:string){setPage(0);setMessage('');setError('');setSection(next);setMobileNav(false);const url=new URL(window.location.href);url.searchParams.set('section',next);if(next!=='Work'){setWorkRequest(null);url.searchParams.delete('request');}window.history.replaceState(null,'',url);void refresh();}
+  function openWork(id:string){setActiveRequest(null);setWorkRequest(id);const url=new URL(window.location.href);url.searchParams.set('request',id);url.searchParams.set('section','Work');window.history.replaceState(null,'',url);setSection('Work');setPage(0);void refresh();}
 
   async function loadSession() {
     const sequence=++sessionSequence.current;
@@ -171,7 +172,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
       const googleOrg = locationParams.get('googleOrganization') || locationParams.get('organization');
       setOrg((o: string) => o || s.memberships.find((m: Membership)=>m.organization_id===googleOrg)?.organization_id || s.memberships[0]?.organization_id || "");
       if(new URLSearchParams(window.location.search).has('google'))setSection('Settings');
-      const linkedRequest=new URLSearchParams(window.location.search).get('request');if(linkedRequest&&!handledRequestLink.current){handledRequestLink.current=true;setSection('Requests');setActiveRequest(linkedRequest);}
+      const requestedSection=locationParams.get('section');if(requestedSection&&sections.some(x=>x.key===requestedSection))setSection(requestedSection);const linkedRequest=locationParams.get('request');if(linkedRequest&&!handledRequestLink.current){handledRequestLink.current=true;if(requestedSection==='Work'){setSection('Work');setWorkRequest(linkedRequest);}else{setSection('Requests');setActiveRequest(linkedRequest);}}
     } catch (e) {
       if(sequence!==sessionSequence.current)return;
       if(e instanceof SessionApiError&&e.status===401){
@@ -285,7 +286,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
       setPending(false);
     }
   }
-  async function fieldAction(j:Job,action:'start'|'pause'|'resume') {
+  async function fieldAction(j:Pick<Job,'id'|'revision'>,action:'start'|'pause'|'resume') {
     setPending(true);setError('');const value={organizationId:org,id:j.id,revision:j.revision,action,note:''};const fingerprint=JSON.stringify(value);
     if(!retryKeys.current.has(fingerprint))retryKeys.current.set(fingerprint,crypto.randomUUID());
     try{await api('/api/jobs',{...value,key:retryKeys.current.get(fingerprint)});setMessage('Job and time record saved.');await refresh();}catch(e){setError(publicError(e));}finally{setPending(false);}
@@ -420,11 +421,11 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                       </h1>
                       <div className="heading-actions"><span className="tiny">{new Intl.DateTimeFormat('en-US',{timeZone:data.company.timezone,dateStyle:'full'}).format(new Date())}</span><button className="secondary" onClick={()=>void refresh()}><Icon name="refresh"/>Refresh</button></div>
                     </div>
-                    {["Customers","Work","Money"].includes(section) && <div className="actions" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1} · 50 records per page</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>}
+                    {(["Customers","Money"].includes(section)||(section==='Work'&&role==='technician')) && <div className="actions" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1} · 50 records per page</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>}
                     {section==='Dashboard'&&['owner','admin'].includes(role||'')&&<CommandCenter key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={setActiveRequest} onNavigate={navigate}/>}
                     {section==='Requests'&&operational&&<RequestInbox key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={setActiveRequest} canManage={['owner','admin'].includes(role||'')}/>}
                     {section==='Activity'&&['owner','admin'].includes(role||'')&&<NotificationAttention organization={org}/>}
-                    {section === "Snapshot" && ["owner","admin"].includes(role||"") && <BusinessSnapshot key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={s=>navigate(s==='Work'?'Requests':s)}/>}
+                    {section === "Snapshot" && ["owner","admin"].includes(role||"") && <BusinessSnapshot key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={navigate}/>}
                     {section === "Calendar" && ['owner','admin'].includes(role||'') && <>
                       <div className="calendar-inbox-link"><div><strong>New requests start in your inbox.</strong><span>Review proposed times here; schedule requests without a time from Requests.</span></div><button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/>Open requests</button></div><MonthCalendar key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={setActiveRequest}/>
                     </>}
@@ -457,105 +458,12 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                         </p>
                       </div>
                     )}
-                    {section === "Work" && (
-                      <>
-                        {new URLSearchParams(window.location.search).has('request') && <div className="note"><p>You’re viewing the request opened from your link.</p><button type="button" className="secondary" onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('request');window.history.replaceState(null,'',url);setWorkRequest(null);setPage(0);void refresh();}}>Show all service requests</button></div>}
-                        <div className="work-context-bar"><div><p className="eyebrow">Connected service workflow</p><p>{workRequest?'Quote and job records linked to the selected request.':'Prepare quotes, record customer approvals, work the job and review its invoice.'}</p></div><button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/>Open request inbox</button></div>
-                        {data.requests.filter(r=>!workRequest||r.id===workRequest).map(r=><section className="card work-request" key={r.id}><div className="section-heading"><div><span className="badge">{r.status.replaceAll('_',' ')}</span><h2>{r.original_submission.name}</h2><p>{requestServices(r).join(' · ')}</p></div><button className="secondary" onClick={()=>setActiveRequest(r.id)}>Open request details</button></div>{operational&&r.status==='submitted'&&<button disabled={pending} onClick={()=>void act({command:'ReviewRequest',id:r.id,revision:r.revision,status:'reviewing'})}>Start quote review</button>}{operational&&['reviewing','quoted'].includes(r.status)&&<QuoteForm request={r} pending={pending} submit={act}/>}</section>)}
-                        <h2>Quotes and approvals</h2>
-                        {data.quotes.length ? (
-                          data.quotes.map((q) => {
-                            const v = q.quote_versions.find(
-                              (v) => v.version === q.current_version,
-                            );
-                            return (
-                              <article className="card" key={q.id}>
-                                <span className="badge">
-                                  {q.status} · Version {q.current_version}
-                                </span>
-                                <h3>{customerName(q.customer_id)}</h3>
-                                <p>{v?.scope}</p>
-                                <p className="amount">
-                                  {usd(v?.labor_cents || 0)}
-                                </p>
-                                <p>
-                                  Approved hourly labor · {v?.duration_minutes}{" "}
-                                  minutes. Separate costs require separate
-                                  approval.
-                                </p>
-                                {["owner", "admin"].includes(role || "") &&
-                                  q.status === "sent" && (
-                                    <form
-                                      onSubmit={(e) => {
-                                        e.preventDefault();
-                                        const f = new FormData(e.currentTarget);
-                                        void act({
-                                          command: "ApproveQuote",
-                                          id: q.id,
-                                          version: q.current_version,
-                                          evidence: f.get("evidence"),
-                                        });
-                                      }}
-                                    >
-                                      <label>
-                                        Record the customer's actual approval
-                                        <input
-                                          name="evidence"
-                                          minLength={10}
-                                          maxLength={2000}
-                                          required
-                                          placeholder="Who approved, when and how"
-                                        />
-                                      </label>
-                                      <div className="actions">
-                                        <button disabled={pending}>
-                                          Record approval
-                                        </button>
-                                      </div>
-                                    </form>
-                                  )}
-                              </article>
-                            );
-                          })
-                        ) : (
-                          <p>No quotes yet.</p>
-                        )}
-                        <h2>Jobs</h2>
-                        {data.jobs.map((j) => (
-                          <article className="card" key={j.id}>
-                            <span className="badge">
-                              {j.status.replaceAll("_", " ")}
-                            </span>
-                            <h3>{customerName(j.customer_id)}</h3>
-                            {data.features?.productionWorkflows&&['owner','admin','technician'].includes(role||'') && <div className="actions">
-                              {['approved','scheduled','en_route','arrived'].includes(j.status)&&<button disabled={pending || invoiceBusy} onClick={()=>void fieldAction(j,'start')}>Start work</button>}
-                              {j.status==='working'&&<button disabled={pending || invoiceBusy} onClick={()=>void fieldAction(j,'pause')}>Pause work</button>}
-                              {j.status==='paused'&&<button disabled={pending || invoiceBusy} onClick={()=>void fieldAction(j,'resume')}>Resume work</button>}
-                            </div>}
-                            {["working","paused","completed"].includes(j.status)&&j.invoices.length === 0&&["owner","admin"].includes(role||"")&&<InvoiceDraft organization={org} job={j.id} revision={j.revision} completed={j.status==="completed"} blocked={pending || invoiceBusy} onBusy={setInvoiceBusy} saved={()=>void refresh()}/>}
-                            {["working", "paused"].includes(j.status) &&
-                            ["owner", "admin"].includes(role || "") ? (
-                              <button
-                                disabled={pending || invoiceBusy}
-                                onClick={() =>
-                                  void act({
-                                    command: "CompleteServiceCall",
-                                    id: j.id,
-                                    revision: j.revision,
-                                  })
-                                }
-                              >
-                                Complete service call
-                              </button>
-                            ) : (
-                              <p>
-                                {j.status === "completed" ? (j.invoices.length > 0 ? "Service call completed. The approved invoice is in Money." : "Service call completed. Review and approve the invoice draft when ready. Nothing has been emailed.") : j.status === "canceled" ? "This service call was canceled." : "Start work when you arrive. Complete the service call before approving its invoice."}
-                              </p>
-                            )}
-                          </article>
-                        ))}
-                      </>
-                    )}
+                    {section === "Work" && <>
+                      <div className="work-context-bar"><div><p className="eyebrow">Service workflow</p><p>{workRequest?'Appointment, agreed price, work, invoice and payment for this request.':'Choose a customer request to continue its complete workflow.'}</p></div><button className="secondary" onClick={()=>navigate('Requests')}>Open request inbox</button></div>
+                      {workRequest&&<button type="button" className="secondary" onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('request');window.history.replaceState(null,'',url);setWorkRequest(null);setPage(0);void refresh();}}>Back to all service workflows</button>}
+                      {role==='technician'?<section className="card"><h2>Work assigned to your company</h2>{data.jobs.map(j=><article className="card" key={j.id}><h3>{data.customers.find(c=>c.id===j.customer_id)?.display_name||'Service call'}</h3><p>{j.status.replaceAll('_',' ')}</p>{data.features?.productionWorkflows&&<div className="actions">{['approved','scheduled','en_route','arrived'].includes(j.status)&&<button disabled={pending} onClick={()=>void fieldAction(j,'start')}>Start work</button>}{j.status==='working'&&<button disabled={pending} onClick={()=>void fieldAction(j,'pause')}>Pause work</button>}{j.status==='paused'&&<button disabled={pending} onClick={()=>void fieldAction(j,'resume')}>Resume work</button>}</div>}<p>The owner reviews completion, invoices and payments.</p></article>)}{!data.jobs.length&&<p>No work on this records page.</p>}</section>:workRequest?data.requests.filter(r=>r.id===workRequest).map(r=><ServiceWorkflow key={r.id} organization={org} request={{...r,appointments:data.appointments.filter(a=>a.request_id===r.id)}} quotes={data.quotes.filter(q=>q.request_id===r.id)} jobs={data.jobs.filter(j=>data.quotes.some(q=>q.id===j.quote_id&&q.request_id===r.id))} invoices={data.invoices.filter(i=>data.jobs.some(j=>j.id===i.job_id&&data.quotes.some(q=>q.id===j.quote_id&&q.request_id===r.id)))} timezone={data.company.timezone} canManage={['owner','admin'].includes(role||'')} canQuote={operational} canWork={Boolean(data.features?.productionWorkflows)&&['owner','admin','technician'].includes(role||'')} busy={pending||invoiceBusy} onBusy={setInvoiceBusy} onReview={()=>setActiveRequest(r.id)} act={act} fieldAction={fieldAction} onChanged={()=>void refresh()}/>):<RequestInbox key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={openWork} initialFilter="all" reviewLabel="Continue workflow"/>}
+                      {role!=='technician'&&!data.requests.length&&<div className="card"><h2>No service workflows in this view</h2><p>Open a request from the inbox to begin. Check another records page for older work.</p><button className="secondary" onClick={()=>navigate('Requests')}>Open requests</button></div>}
+                    </>}
                     {section === "Money" && (
                       <>
                         {["owner","admin"].includes(role||"")&&<p><a href={"/owner/production-check?"+new URLSearchParams({organization:org})}>View sample invoice and email checks</a></p>}
@@ -598,16 +506,9 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                               <p className="amount">
                                 {usd(balance)} outstanding
                               </p>
-                              <p>Subtotal {usd(i.total_cents-(i.snapshot?.taxCents||0))} · sales tax {usd(i.snapshot?.taxCents||0)} · issued total {usd(i.total_cents)}</p><p>Confirmed paid {usd(i.total_cents-balance)}. Open the invoice for due dates, partial / mixed payments, Stripe checkout and archive controls.</p>
+                              <p>Subtotal {usd(i.total_cents-(i.snapshot?.taxCents||0))} · sales tax {usd(i.snapshot?.taxCents||0)} · issued total {usd(i.total_cents)}</p><p>Confirmed paid {usd(i.total_cents-balance)}. Record each cash or Zelle amount when received. Open the invoice for its PDF, due date and history.</p>
                               {["owner","admin"].includes(role||"")&&<InvoiceDelivery organization={org} invoice={i.id}/>}
-                              {finance && balance > 0 && (
-                                <PaymentForm
-                                  invoice={i}
-                                  timezone={data.company.timezone}
-                                  pending={pending}
-                                  submit={act}
-                                />
-                              )}
+                              {finance&&<InvoicePayments organization={org} invoice={i.id} totalCents={i.total_cents} timezone={data.company.timezone} onChanged={()=>void refresh()}/>}
                             </article>
                           );
                         })}
@@ -640,133 +541,5 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
       </main>
       {session&&data&&activeRequest&&<RequestDetail key={org+activeRequest} organization={org} requestId={activeRequest} timezone={data.company.timezone} canManage={['owner','admin'].includes(role||'')} onClose={()=>{setActiveRequest(null);const url=new URL(window.location.href);url.searchParams.delete('request');window.history.replaceState(null,'',url);}} onChanged={()=>void refresh()} onWork={openWork}/>}
     </div>
-  );
-}
-function QuoteForm({
-  request,
-  pending,
-  submit,
-}: {
-  request: RequestRecord;
-  pending: boolean;
-  submit: (v: Record<string, unknown>) => Promise<unknown>;
-}) {
-  return (
-    <details>
-      <summary>Prepare an hourly quote</summary>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const f = new FormData(e.currentTarget);
-          void submit({
-            command: "PublishQuote",
-            id: request.id,
-            revision: request.revision,
-            scope: f.get("scope"),
-            minutes: Number(f.get("minutes")),
-            community: f.get("community") === "on",
-            eligibilityReviewed: f.get("reviewed") === "on",
-            customerId: null,
-          });
-        }}
-      >
-        <label>
-          Exact scope
-          <textarea
-            name="scope"
-            required
-            minLength={10}
-            maxLength={5000}
-            defaultValue={[...requestServices(request), request.original_submission.description || ''].filter(Boolean).join('\n')}
-          />
-        </label>
-        <label>
-          Approved duration
-          <select name="minutes">
-            <option value="120">2 hours</option>
-            <option value="150">2½ hours</option>
-            <option value="180">3 hours</option>
-            <option value="210">3½ hours</option>
-            <option value="240">4 hours</option>
-          </select>
-        </label>
-        <label className="check">
-          <input type="checkbox" name="community" />
-          Community Rate
-        </label>
-        <label className="check">
-          <input type="checkbox" name="reviewed" />
-          Customer eligibility reviewed
-        </label>
-        <p>
-          Publishing saves this quote as a new version. It does not send an
-          email or schedule the job.
-        </p>
-        <button disabled={pending}>Save quote version</button>
-      </form>
-    </details>
-  );
-}
-function PaymentForm({
-  invoice,
-  timezone,
-  pending,
-  submit,
-}: {
-  invoice: Invoice;
-  timezone: string;
-  pending: boolean;
-  submit: (v: Record<string, unknown>) => Promise<unknown>;
-}) {
-  const [key,setKey] = useState(() => crypto.randomUUID());
-  const [inputError,setInputError] = useState("");
-  return (
-    <details>
-      <summary>Record a received payment</summary>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if(pending)return;
-          const form=e.currentTarget;
-          setInputError("");
-          try {
-            const value=paymentInput(new FormData(form),timezone);
-            void submit({command:"RecordPayment",key,id:invoice.id,...value,confirmed:true}).then(result=>{
-              if(result){form.reset();setKey(crypto.randomUUID());}
-            });
-          }catch(error){setInputError(publicError(error));}
-        }}
-      >
-        <label>
-          Amount received (USD)
-          <input
-            name="amount"
-            inputMode="decimal"
-            pattern="[0-9]+(\.[0-9]{1,2})?"
-            required
-          />
-        </label>
-        <label>
-          Method
-          <select name="method">
-            <option value="cash">Cash</option>
-            <option value="zelle">Zelle</option>
-          </select>
-        </label>
-        <label>
-          Received at ({timezone})
-          <input name="receivedAt" type="datetime-local" required />
-        </label>
-        <label>
-          Receipt reference
-          <input name="reference" maxLength={300} required />
-        </label>
-        <label className="check">
-          <input type="checkbox" required />I confirmed the money was received.
-        </label>
-        {inputError&&<p role="alert">{inputError}</p>}
-        <button disabled={pending}>Record confirmed payment</button>
-      </form>
-    </details>
   );
 }

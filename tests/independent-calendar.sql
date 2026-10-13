@@ -1,11 +1,12 @@
 -- Synthetic, transaction-scoped fixtures. No hosted owner identity is impersonated.
 insert into public.entitlements values('20000000-0000-4000-8000-000000000001','scheduling',true);
+insert into public.entitlements values('20000000-0000-4000-8000-000000000001','finance',true);
 insert into public.configuration_versions(organization_id,version,settings)
-select organization_id,2,settings||'{"timezone":"America/Chicago","scheduling":{"weekdays":[1,2,3,4,5],"earliestStart":480,"latestStart":900,"endOfDay":1020,"bufferMinutes":15,"leadMinutes":0,"horizonDays":90,"selectionMinutes":10,"proposalMinutes":120,"pendingLimit":2}}'::jsonb from public.configuration_versions;
+select organization_id,2,settings||'{"region":"IL","hourly":{"standardCents":6000,"communityCents":4500},"policyVersion":"synthetic","sellerVerified":true,"sellerLegalName":"Synthetic test only","taxTreatmentVerified":true,"laborTaxTreatment":"reviewed_non_taxable","invoiceTerms":"Synthetic due on completion","timezone":"America/Chicago","scheduling":{"weekdays":[1,2,3,4,5],"earliestStart":480,"latestStart":900,"endOfDay":1020,"bufferMinutes":15,"leadMinutes":0,"horizonDays":90,"selectionMinutes":10,"proposalMinutes":120,"pendingLimit":2}}'::jsonb from public.configuration_versions;
 insert into public.resources(organization_id,id,name,kind) values
  ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','Synthetic operator','operator'),
  ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','Synthetic mower','equipment');
-update public.catalog_services set compliance='approved';
+update public.catalog_services set compliance='approved',pricing_mode='hourly';
 insert into private.google_accounts(organization_id,revision,encrypted_tokens,calendar_id,health) values('20000000-0000-4000-8000-000000000001',1,null,null,'disconnected');
 update private.calendar_authorities set source='crm',revision=revision+1 where organization_id='20000000-0000-4000-8000-000000000001';
 create function pg_temp.future_start() returns timestamptz language sql as $$select ((date_trunc('week',now() at time zone 'America/Chicago')+interval '14 days 8 hours') at time zone 'America/Chicago')$$;

@@ -2,6 +2,8 @@ import {NextResponse} from 'next/server';
 import {z} from 'zod';
 import {authenticated,failure} from '../../../lib/session';
 import {snapshotWindow} from '../../../lib/business-snapshot';
+import {mailTransport} from '../../../lib/transactional-mail';
+import {mailDeliveryReady} from '../../../lib/mail-delivery-readiness';
 export const dynamic='force-dynamic';
 export async function GET(request:Request){
  try{
@@ -23,12 +25,14 @@ export async function GET(request:Request){
    count('outbox').in('status',['pending','failed','leased','sending','needs_reconciliation','dead_letter']).lte('next_attempt_at',now),
    count('customer_schedule_preferences').eq('status','pending'),
    count('outbox').in('status',['failed','needs_reconciliation','dead_letter']),
+   db.from('jobs').select('id,invoices(id)',{count:'exact',head:true}).eq('organization_id',org).eq('status','completed').is('invoices','null'),
+   count('jobs').in('status',['approved','scheduled','en_route','arrived']),
   ];
-  const [counts,finance,email,connections]=await Promise.all([Promise.all(calls),db.rpc('finance_activity',{p_org:org,p_from:from,p_to:to}),db.rpc('mail_delivery_status',{p_org:org}),db.from('integration_connections').select('provider,status').eq('organization_id',org)]);
+  const [counts,finance,email,connections,transport]=await Promise.all([Promise.all(calls),db.rpc('finance_activity',{p_org:org,p_from:from,p_to:to}),db.rpc('mail_delivery_status',{p_org:org}),db.from('integration_connections').select('provider,status').eq('organization_id',org),mailTransport(org)]);
   if(counts.some(r=>r.error||!Number.isSafeInteger(r.count)||r.count!<0)||finance.error||!finance.data||email.error||connections.error)throw Error('FAILED');
   const nonnegative=z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
   const money=z.object({cashReceivedCents:nonnegative,expenseCents:nonnegative,cashAfterExpensesCents:z.number().int().min(-Number.MAX_SAFE_INTEGER).max(Number.MAX_SAFE_INTEGER),issuedInvoicesCents:nonnegative,outstandingAsOfEndCents:nonnegative,paymentCount:nonnegative,expenseCount:nonnegative}).parse(finance.data);
-  const keys=['customers','requestsInPeriod','requestsToReview','upcomingVisits','proposals','working','paused','completed','quotes','messagesToCheck','rescheduleRequests','deliveryExceptions'];
-  return NextResponse.json({checkedAt:new Date().toISOString(),from,to,timezone:company.data.timezone,finance:money,counts:Object.fromEntries(keys.map((k,i)=>[k,counts[i].count])),email:{enabled:email.data.enabled===true,automaticSending:process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true'},connections:connections.data},{headers:{'Cache-Control':'private, no-store'}});
+  const keys=['customers','requestsInPeriod','requestsToReview','upcomingVisits','proposals','working','paused','completed','quotes','messagesToCheck','rescheduleRequests','deliveryExceptions','jobsNeedingInvoice','jobsReadyToStart'];
+  return NextResponse.json({checkedAt:new Date().toISOString(),from,to,timezone:company.data.timezone,finance:money,counts:Object.fromEntries(keys.map((k,i)=>[k,counts[i].count])),email:{enabled:email.data.enabled===true,automaticSending:mailDeliveryReady(email.data.enabled===true,transport,process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true')},connections:connections.data},{headers:{'Cache-Control':'private, no-store'}});
  }catch(e){return failure(e)}
 }

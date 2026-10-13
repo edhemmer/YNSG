@@ -12,7 +12,7 @@ test('pending scheduling decisions and failed messages take priority over visits
 });
 test('paused jobs remain actionable and money is shown only for positive balances',()=>{
  assert.equal(nextBusinessAction(totals({paused:1},100))!.section,'Work');
- assert.equal(nextBusinessAction(totals({quotes:1}))!.title,'Follow up on a sent quote');
+ assert.equal(nextBusinessAction(totals({quotes:1}))!.title,'Review an estimate awaiting agreement');
  assert.equal(nextBusinessAction(totals({},100))!.section,'Money');
  assert.notEqual(nextBusinessAction(totals({},-100))!.section,'Money');
 });

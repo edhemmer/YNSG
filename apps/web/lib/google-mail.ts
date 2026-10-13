@@ -100,6 +100,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
         "appointment.owner_confirmation",
         "appointment.declined_time",
         "appointment.declined_service",
+        "appointment.canceled",
         "appointment.reschedule_requested",
       ];
       if (!supported.includes(item.kind)) continue;
@@ -112,6 +113,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
         .eq("id", item.object_id)
         .single();
       if (appointment.error) continue;
+      if(item.kind==='appointment.canceled'&&(appointment.data.status!=='canceled'||appointment.data.revision!==item.payload.appointmentRevision))continue;
       const request = await db
         .from("service_requests")
         .select("original_submission")
@@ -123,7 +125,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
         | { manageUrl: string; confirmUrl: string; rescheduleUrl: string }
         | undefined;
       let recipient = request.data.original_submission.email;
-      if (
+      if (item.kind!=='appointment.canceled'&&
         ![
           "appointment.owner_approval",
           "appointment.owner_reminder",

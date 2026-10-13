@@ -1,0 +1,43 @@
+-- Continues the canonical website submission and owner-approved booking fixture.
+-- No job statuses, invoice totals or payment records are manufactured directly.
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select public.publish_hourly_quote('20000000-0000-4000-8000-000000000001',(select id from public.service_requests),(select revision from public.service_requests),'Synthetic agreed leaf management scope',120,false,false,null,'lifecycle-price-01');
+select public.approve_quote('20000000-0000-4000-8000-000000000001',(select id from public.quotes),1,'Synthetic customer agreement for isolated local test');
+select public.job_action('20000000-0000-4000-8000-000000000001',(select id from public.jobs),1,'start','Synthetic work starts','lifecycle-start-01');
+select public.job_action('20000000-0000-4000-8000-000000000001',(select id from public.jobs),1,'start','Synthetic work starts','lifecycle-start-01');
+select public.job_action('20000000-0000-4000-8000-000000000001',(select id from public.jobs),2,'pause','','lifecycle-pause-01');
+select public.job_action('20000000-0000-4000-8000-000000000001',(select id from public.jobs),3,'resume','','lifecycle-resume-01');
+select public.save_invoice_labor('20000000-0000-4000-8000-000000000001',(select id from public.jobs),4,'[{"description":"Synthetic recorded leaf management","recordedMinutes":120,"chargedCents":12000,"waiverReason":""}]','lifecycle-draft-01');
+select public.complete_service_call('20000000-0000-4000-8000-000000000001',(select id from public.jobs),5,'lifecycle-complete-01');
+select pg_temp.assert_true((select count(*)=0 from public.invoices),'completion does not silently issue invoice');
+select public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs),6,12000,true,'lifecycle-invoice-01');
+select public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs),6,12000,true,'lifecycle-invoice-01');
+select pg_temp.assert_true((select count(*)=1 from public.invoices),'one issued invoice after retried owner review');
+reset role;
+update public.organizations set status='active';
+set local role service_role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+-- Local simulated setup; no provider requests or external messages.
+select public.activate_central_mail('20000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','https://website.example.invalid','notifications@example.invalid');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select public.request_invoice_delivery('20000000-0000-4000-8000-000000000001',(select id from public.invoices),true,'lifecycle-mail-key-01');
+select public.request_invoice_delivery('20000000-0000-4000-8000-000000000001',(select id from public.invoices),true,'lifecycle-mail-key-02');
+select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='invoice.delivery'),'one logical invoice email across repeated send clicks');
+select public.record_payment('20000000-0000-4000-8000-000000000001',(select id from public.invoices),5000,'cash','Synthetic partial cash receipt',now(),true,'lifecycle-cash-key-01');
+select public.record_payment('20000000-0000-4000-8000-000000000001',(select id from public.invoices),5000,'cash','Synthetic partial cash receipt',now(),true,'lifecycle-cash-key-01');
+select pg_temp.assert_true((select total_cents-(select sum(cents) from public.payments)=7000 from public.invoices),'partial cash retry leaves exactly seventy dollars due');
+select pg_temp.assert_true((select count(*)=0 from public.outbox where kind='invoice.paid'),'partial receipt does not send fully-paid message');
+select public.record_payment('20000000-0000-4000-8000-000000000001',(select id from public.invoices),7000,'zelle','Synthetic actual Zelle receipt',now(),true,'lifecycle-zelle-key-01');
+select public.record_payment('20000000-0000-4000-8000-000000000001',(select id from public.invoices),7000,'zelle','Synthetic actual Zelle receipt',now(),true,'lifecycle-zelle-key-01');
+reset role;
+select pg_temp.assert_true((select count(*)=2 and sum(cents)=12000 from public.payments),'one cash and one Zelle receipt settle exact issued total');
+select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='invoice.paid'),'one paid milestone after full settlement');
+select pg_temp.assert_true((select sum(debit_cents::bigint-credit_cents)=0 from public.journal_lines),'full service workflow ledger balances');
+select pg_temp.assert_true((select count(*)=1 from public.service_requests),'customer request retained through payment');
+select pg_temp.assert_true((select count(*)=1 from public.appointments where status='reserved'),'confirmed appointment retained through payment');
+select pg_temp.assert_true((select count(*)=0 from public.work_sessions where ended_at is null),'completed work has no running timer');
+set constraints all immediate;
+rollback;

@@ -6,6 +6,7 @@ import {invoiceChargeCents} from "../lib/invoice-charge";
 import {salesTax,type TaxRule,type TaxComponent} from "../lib/taxes";
 type TaxContext={required:boolean;rules:TaxRule[];valid:boolean;tax:{taxCents:number;rule?:TaxRule;customerApprovalEvidence?:string}|null};
 import {hourlyCharge} from "../lib/invoice-billing";
+import {invoiceDraftFingerprint} from '../lib/service-workflow';
 type Line = {
   billingBasis:"fixed"|"hourly";
   billingMinutes:number;
@@ -23,6 +24,8 @@ export default function InvoiceDraft({
   completed,
   blocked,
   onBusy,
+  initialExpanded=false,
+  suggestedWork,
 }: {
   organization: string;
   job: string;
@@ -31,6 +34,8 @@ export default function InvoiceDraft({
   completed: boolean;
   blocked: boolean;
   onBusy: (busy: boolean) => void;
+  initialExpanded?:boolean;
+  suggestedWork?:{description:string;chargedCents:number};
 }) {
   const [lines, setLines] = useState<Line[]>([]),
     [busy, setBusy] = useState(false),
@@ -47,6 +52,9 @@ export default function InvoiceDraft({
   const currentTarget=useRef(organization+":"+job+":"+revision);
   currentTarget.current=organization+":"+job+":"+revision;
   const retry = useRef<{ fingerprint: string; key: string } | null>(null);
+  const ownSaved=useRef<{revision:number;lines:string}|null>(null);
+  const [readiness,setReadiness]=useState<{ready:boolean;reasons:string[]}|null>(null);
+  const [loadRetry,setLoadRetry]=useState(0);
   useEffect(() => {mounted.current=true;return()=>{mounted.current=false;onBusy(false);};}, [onBusy]);
   useEffect(() => {
     let current = true;
@@ -54,8 +62,8 @@ export default function InvoiceDraft({
     setBusy(false);onBusy(false);
     setLoaded(false);
     setSavedDraft(false);
-    setLines([]);setTaxContext(null);setTaxRule("");setTaxEvidence("");
-    setReviewed(false);
+    setLines([]);setReadiness(null);setTaxContext(null);setTaxRule("");setTaxEvidence("");
+    if(ownSaved.current?.revision!==revision)setReviewed(false);
     setMessage("");
     retry.current = null;
     sessionFetch(
@@ -66,7 +74,10 @@ export default function InvoiceDraft({
         const d = await r.json();
         if (!r.ok) throw Error(d.error);
         if (current) {
-          setLines((d.draft?.lines || []).map((line:{description:string;recordedMinutes:number;chargedCents:number;waiverReason:string;billingBasis?:"fixed"|"hourly";billingMinutes?:number;unitRateCents?:number})=>({billingBasis:line.billingBasis||"fixed",billingMinutes:line.billingMinutes??line.recordedMinutes,hourlyAmount:((line.unitRateCents??0)/100).toFixed(2),description:line.description,recordedMinutes:line.recordedMinutes,waiverReason:line.waiverReason,chargedAmount:(line.chargedCents/100).toFixed(2)})));
+          const sourceLines=d.draft?.lines?.length?d.draft.lines:suggestedWork?[{...suggestedWork,description:suggestedWork.description.length<=1000?suggestedWork.description:'',recordedMinutes:0,waiverReason:''}]:[];
+          setLines(sourceLines.map((line:{description:string;recordedMinutes:number;chargedCents:number;waiverReason:string;billingBasis?:"fixed"|"hourly";billingMinutes?:number;unitRateCents?:number})=>({billingBasis:line.billingBasis||"fixed",billingMinutes:line.billingMinutes??line.recordedMinutes,hourlyAmount:((line.unitRateCents??0)/100).toFixed(2),description:line.description,recordedMinutes:line.recordedMinutes,waiverReason:line.waiverReason,chargedAmount:(line.chargedCents/100).toFixed(2)})));
+          setReadiness(d.readiness||null);
+          if(!ownSaved.current||ownSaved.current.revision!==revision||ownSaved.current.lines!==invoiceDraftFingerprint(d.draft?.lines||[]))setReviewed(false);
           setTaxContext(d.tax);setTaxRule(d.tax?.valid?d.tax?.tax?.rule?.id||"":"");setTaxEvidence(d.tax?.valid?d.tax?.tax?.customerApprovalEvidence||"":"");
           setLoaded(true);
           setSavedDraft(
@@ -80,7 +91,7 @@ export default function InvoiceDraft({
     return () => {
       current = false;controller.abort();
     };
-  }, [organization, job, revision,onBusy]);
+  }, [organization, job, revision,onBusy,loadRetry]);
   function change(index: number, patch: Partial<Line>) {
     setReviewed(false);
     setSavedDraft(false);
@@ -111,6 +122,10 @@ export default function InvoiceDraft({
       const d = await r.json();
       if (!r.ok) throw Error(d.error);
       if(!mounted.current||currentTarget.current!==target)return;
+      if(!Number.isSafeInteger(d.result?.revision)||d.result.revision<=revision)throw Error('The saved draft could not be confirmed. Refresh the work record.');
+      ownSaved.current={revision:d.result.revision,lines:invoiceDraftFingerprint(savedLines)};
+      setSavedDraft(true);
+      setLoaded(false);
       setMessage(
         "Draft saved. These charges will be used when you issue the invoice.",
       );
@@ -123,7 +138,7 @@ export default function InvoiceDraft({
     }
   }
   async function approve() {
-    if (busy || blocked || !loaded || !savedDraft || !reviewed || !completed)
+    if (busy || blocked || !loaded || !savedDraft || !reviewed || !completed || readiness?.ready!==true)
       return;
     if(taxContext?.required&&(!taxPreview||!taxEvidence.trim())){setMessage("Choose the reviewed tax rule and record the customer-approved total.");return;}
     if(lines.some(line=>invoiceChargeCents(line.chargedAmount)===null)){setMessage("Enter each charge as dollars with up to two decimal places.");return;}
@@ -154,7 +169,7 @@ export default function InvoiceDraft({
       if(!mounted.current||currentTarget.current!==target)return;
       retry.current = null;
       setMessage(
-        "Invoice approved and issued. Open Money to review the invoice and separately request email delivery.",
+        "Invoice approved and issued. Review the invoice below and separately request email delivery.",
       );
       saved();
     } catch (error) {
@@ -164,7 +179,7 @@ export default function InvoiceDraft({
     }
   }
   return (
-    <details>
+    <details open={initialExpanded||completed}>
       <summary>
         {completed
           ? "Review and approve invoice"
@@ -175,6 +190,10 @@ export default function InvoiceDraft({
         lines replace the labor total. Materials and mixed taxable/exempt work require a separately reviewed invoice; do not include them here.
         Charges cannot exceed approved labor.
       </p>
+      {readiness?.ready===false&&<div className="note" role="status"><strong>Before this invoice can be issued</strong><ul>{readiness.reasons.map(reason=><li key={reason}>{reason}</li>)}</ul><p>Your work and draft can still be saved.</p><a href={'/owner/taxes?'+new URLSearchParams({organization})}>Open tax rules and review</a><br/><a href={'/owner?'+new URLSearchParams({organization,section:'Settings'})}>Open business settings</a></div>}
+      <p className="invoice-draft-step" role="status">{!loaded?'Loading work record…':!lines.length?'Add the work performed.':!savedDraft?'Step 1: review the work and save this draft.':!completed?'Draft saved. Finish the work before issuing the invoice.':!reviewed?'Step 2: confirm the saved charges below, then issue the invoice.':'Draft reviewed. You can issue the invoice when business tax settings are ready.'}</p>
+      {loaded&&!savedDraft&&suggestedWork&&suggestedWork.description.length>1000&&<p>The agreed scope is shown above. Summarize the actual work in up to 1,000 characters per item, or add separate work items.</p>}{loaded&&!savedDraft&&suggestedWork&&<p>The starting amount comes from the customer’s agreed estimate. Enter the actual work time and review the charge before saving.</p>}
+      {!loaded&&message&&<button type="button" className="secondary" onClick={()=>setLoadRetry(n=>n+1)}>Retry loading the work record</button>}
       <p>
         {completed
           ? "Save any changes, then review the saved draft before approving. Approval fixes the issued charges; it does not email the customer."
@@ -297,7 +316,7 @@ export default function InvoiceDraft({
               {completed && (
                 <button
                   type="button"
-                  disabled={busy || !reviewed || !savedDraft || Boolean(taxContext?.required&&(!taxPreview||taxEvidence.trim().length<2))}
+                  disabled={busy || !reviewed || !savedDraft || readiness?.ready!==true || Boolean(taxContext?.required&&(!taxPreview||taxEvidence.trim().length<2))}
                   onClick={() => void approve()}
                 >
                   Approve and issue invoice

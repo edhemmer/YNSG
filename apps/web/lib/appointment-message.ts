@@ -19,7 +19,8 @@ export type AppointmentMessageInput = {
     | "appointment.owner_confirmation"
     | "appointment.declined_time"
     | "appointment.declined_service"
-    | "appointment.reschedule_requested";
+    | "appointment.reschedule_requested"
+    | "appointment.canceled";
   company: string;
   identity?: EmailIdentity;
   recipient: string;
@@ -65,6 +66,7 @@ function appointmentText(v: AppointmentMessageInput) {
       subject: "Customer requested another appointment time",
       body: `${v.request.name || "The customer"} requested another time.\n\n${work}\n\nPreferred time: ${requestTiming(v.preference?.preferred_local_start || undefined, "See the customer’s message")}\n${v.preference?.note || ""}\n\nIf there is already a confirmed appointment, it stays booked until you approve a replacement. A declined time is no longer reserved.\nReview the same request:\n${v.ownerUrl}`,
     };
+  if(v.kind==='appointment.canceled')return {to:v.recipient,subject:'Your appointment has been canceled',body:`Hi ${v.request.name||'there'},\n\nThe visit with ${v.company} scheduled for ${when} has been canceled.${v.reason?'\n\n'+v.reason:''}\n\n${work}\n\nYour service request is still saved. Reply to this email if you’d like to arrange another time. This update does not change any agreed charges or payment records.`};
   if (!v.manageUrl) throw Error("CUSTOMER_LINK_REQUIRED");
   if (
     v.kind === "appointment.confirmation" ||
@@ -102,6 +104,7 @@ export function appointmentMessage(v: AppointmentMessageInput) {
   'appointment.reminder':'Your appointment reminder',
   'appointment.declined_time':'Let’s find another time',
   'appointment.declined_service':'An update on your request',
+  'appointment.canceled':'Your appointment is canceled',
  };
  const owner=['appointment.owner_approval','appointment.owner_reminder','appointment.owner_confirmation','appointment.reschedule_requested'].includes(v.kind);
  const actions=new Map<string,string>();

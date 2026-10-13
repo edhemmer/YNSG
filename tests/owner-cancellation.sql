@@ -1,0 +1,45 @@
+-- Local synthetic records only. The whole fixture rolls back.
+insert into public.entitlements values('20000000-0000-4000-8000-000000000001','scheduling',true);
+insert into public.resources(organization_id,id,name,kind) values('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','Synthetic operator','operator');
+insert into public.service_requests(organization_id,id,service_id,original_submission,privacy_version,status) select '20000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001',id,'{"name":"Synthetic Test","email":"test@example.invalid"}','test-only','reviewing' from public.catalog_services limit 1;
+insert into public.appointments(organization_id,id,request_id,start_at,end_at,arrival_at,timezone,status) values('20000000-0000-4000-8000-000000000001','60000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001',now()+interval '14 days',now()+interval '14 days 2 hours',now()+interval '14 days','America/Chicago','reserved');
+insert into public.appointments(organization_id,id,request_id,start_at,end_at,arrival_at,timezone,status,expires_at,replaces_id) values('20000000-0000-4000-8000-000000000001','60000000-0000-4000-8000-000000000002','50000000-0000-4000-8000-000000000001',now()+interval '15 days',now()+interval '15 days 2 hours',now()+interval '15 days','America/Chicago','proposal',now()+interval '2 hours','60000000-0000-4000-8000-000000000001');
+insert into public.resource_reservations(organization_id,appointment_id,resource_id,during,active) select organization_id,id,'40000000-0000-4000-8000-000000000001',tstzrange(start_at,end_at,'[)'),true from public.appointments;
+insert into public.outbox(organization_id,event_key,kind,object_id,payload) values('20000000-0000-4000-8000-000000000001','synthetic-old-reminder','appointment.reminder','60000000-0000-4000-8000-000000000001','{"appointmentRevision":1}');
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002"}',true);
+do $$begin begin perform public.cancel_owner_appointment('20000000-0000-4000-8000-000000000001','60000000-0000-4000-8000-000000000001',1,'Synthetic reason','synthetic-cancel-cross');raise exception 'TEST FAILED cross-tenant cancellation';exception when insufficient_privilege then null;end;end$$;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001"}',true);
+do $$begin begin perform public.cancel_owner_appointment('20000000-0000-4000-8000-000000000001','60000000-0000-4000-8000-000000000001',2,'Synthetic reason','synthetic-cancel-stale');raise exception 'TEST FAILED stale cancellation';exception when raise_exception then if sqlerrm<>'STALE_REVISION' then raise;end if;end;end$$;
+select public.cancel_owner_appointment('20000000-0000-4000-8000-000000000001','60000000-0000-4000-8000-000000000001',1,'Synthetic test cancellation','synthetic-cancel-01');
+select public.cancel_owner_appointment('20000000-0000-4000-8000-000000000001','60000000-0000-4000-8000-000000000001',1,'Synthetic test cancellation','synthetic-cancel-01');
+do $$begin begin perform public.cancel_owner_appointment('20000000-0000-4000-8000-000000000001','60000000-0000-4000-8000-000000000001',1,'Different reason','synthetic-cancel-01');raise exception 'TEST FAILED altered cancellation retry';exception when raise_exception then if sqlerrm<>'IDEMPOTENCY_CONFLICT' then raise;end if;end;end$$;
+select pg_temp.assert_true((select count(*)=2 from public.appointments where status='canceled'),'original and pending replacement canceled');
+select pg_temp.assert_true((select count(*)=0 from public.resource_reservations where active),'capacity released');
+select pg_temp.assert_true((select count(*)=1 from public.service_requests where status='reviewing'),'request retained');
+select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='appointment.canceled'),'one customer cancellation');
+select pg_temp.assert_true((select status='suppressed' from public.outbox where event_key='synthetic-old-reminder'),'obsolete reminder stopped');
+select pg_temp.assert_true((select count(*)=1 from public.audit_events where action='appointment.canceled'),'one audited cancellation');
+reset role;
+select pg_temp.assert_true(private.appointment_notice_current('20000000-0000-4000-8000-000000000001',(select id from public.outbox where kind='appointment.canceled')),'cancellation notice current');
+select pg_temp.assert_true(not private.appointment_notice_current('20000000-0000-4000-8000-000000000001',(select id from public.outbox where event_key='synthetic-old-reminder')),'old reminder not current');
+select pg_temp.assert_true(not has_function_privilege('anon','public.cancel_owner_appointment(uuid,uuid,integer,text,text)','EXECUTE'),'anonymous cancellation denied');
+update public.organizations set status='active' where id='20000000-0000-4000-8000-000000000001';
+set local role service_role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+select public.activate_central_mail('20000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','https://website.example.invalid','notifications@example.invalid');
+do $$declare company jsonb;item public.outbox;result jsonb;begin
+ company:=public.claim_mail_company();
+ if company->>'organization' is distinct from '20000000-0000-4000-8000-000000000001' then raise exception 'TEST FAILED cancellation company claim';end if;
+ select * into item from public.claim_outbox('20000000-0000-4000-8000-000000000001',5) where kind='appointment.canceled';
+ if item.id is null then raise exception 'TEST FAILED cancellation not leased';end if;
+ result:=public.begin_delivery(item.organization_id,item.id,item.lease_token);
+ if result->>'status' is distinct from 'sending' then raise exception 'TEST FAILED cancellation did not begin';end if;
+ -- Simulated provider only: no external email or production record.
+ perform public.finish_delivery(item.organization_id,item.id,item.lease_token,'accepted','synthetic-cancel-provider',null);
+ perform public.finish_mail_company(item.organization_id,(company->>'lease')::uuid);
+end$$;
+reset role;
+select pg_temp.assert_true((select status='accepted' from public.outbox where kind='appointment.canceled'),'cancellation dispatch records simulated provider result');
+set constraints all immediate;
+rollback;

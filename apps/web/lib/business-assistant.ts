@@ -10,9 +10,11 @@ export function businessBrief(data:BusinessSnapshot):BusinessTask[]{
  if(c.rescheduleRequests) add('changes',`${quantity(c.rescheduleRequests,'customer time change')}`,'Keep the current appointment until you approve its replacement.','Review time changes','Requests');
  if(c.requestsToReview) add('requests',`${quantity(c.requestsToReview,'request')} to review`,'Check services and proposed time, then approve directly when the details are right.','Review requests','Requests');
  if(c.proposals) add('proposals',`${quantity(c.proposals,'proposed time')} awaiting a decision`,'Accept the saved proposal or choose another time in Review.','Review proposed times','Requests');
- if(c.upcomingVisits) add('routes',`${quantity(c.upcomingVisits,'confirmed visit')} ahead`,'Choose a day to see its stops and travel gaps. Check estimates before departure.','Open day routes','Today');
  if(c.working+c.paused) add('work',`${quantity(c.working+c.paused,'active job')}`,'Record progress or resume paused work.','Open active jobs','Work');
- if(c.quotes) add('quotes',`${quantity(c.quotes,'sent quote')}`,'Review the customer response before following up. A sent quote does not prove it is overdue.','Review quotes','Work');
+ if(c.jobsNeedingInvoice) add('invoices',`${quantity(c.jobsNeedingInvoice,'completed job')} needs an invoice`,'Review the recorded work and charges, then issue the invoice. Completed work is not an issued invoice.','Review work & invoices','Work');
+ if(c.jobsReadyToStart) add('start',`${quantity(c.jobsReadyToStart,'approved job')} ready for work`,'Check its appointment and agreed scope. Start the timer when work begins.','Open service workflows','Work');
+ if(c.quotes) add('quotes',`${quantity(c.quotes,'estimate')} awaiting agreement`,'Record the customer’s actual approval of the scope and price. A saved estimate does not prove it was emailed or is overdue.','Review estimates','Work');
+ if(c.upcomingVisits) add('routes',`${quantity(c.upcomingVisits,'confirmed visit')} ahead`,'Choose a day to see its stops and travel gaps. Check estimates before departure.','Open day routes','Today');
  if(data.finance.outstandingAsOfEndCents>0) add('payments',`${(data.finance.outstandingAsOfEndCents/100).toLocaleString('en-US',{style:'currency',currency:'USD'})} unpaid`,'This is the recorded balance through today. Check payments and invoice terms before following up.','Review invoices','Money');
  if(c.messagesToCheck&&!c.deliveryExceptions) add('automation',`${quantity(c.messagesToCheck,'automation item')} due`,'Review pending work and delivery status. Queued does not mean delivered.','Open activity','Activity');
  return tasks;

@@ -6,7 +6,7 @@ import {visitState,type InboxRequest} from '../lib/request-inbox';
 import {confirmRequestedAppointment,type ApprovalAttempt} from '../lib/quick-approval';
 import Icon from './crm-icons';
 import {appointmentDeliveryMessage} from '../lib/appointment-delivery';
-export default function RequestQuickActions({request,organization,canManage,onReview,onChanged}:{request:InboxRequest;organization:string;canManage:boolean;onReview:()=>void;onChanged:()=>void}) {
+export default function RequestQuickActions({request,organization,canManage,onReview,onChanged,reviewLabel='Review'}:{request:InboxRequest;organization:string;canManage:boolean;onReview:()=>void;onChanged:()=>void;reviewLabel?:string}) {
  const [action,setAction]=useState<'decline'|null>(null),[pending,setPending]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const keys=useRef(new Map<string,string>()),reviewedRevision=useRef<number|null>(null),approvalAttempt=useRef<ApprovalAttempt>(null);
  const proposal=request.appointments.find(v=>visitState(v)==='proposal');
@@ -33,7 +33,7 @@ export default function RequestQuickActions({request,organization,canManage,onRe
  return <div className="request-quick-actions">
   <div className="request-action-buttons" role="group" aria-label={'Actions for '+request.original_submission.name}>
    {manageable&&(Boolean(proposal)||!confirmed)&&<><button type="button" disabled={pending} onClick={()=>proposal?void approve():onReview()} title={!proposal?'Choose an appointment time in Review':undefined}><Icon name="check"/>{pending?'Saving…':proposal?'Approve':'Schedule'}</button><button type="button" className="danger-ghost" disabled={pending||(!proposal&&request.status==='quoted')} onClick={()=>{setError('');setMessage('');setAction('decline');}}><Icon name="close"/>Decline</button></>}
-   <button type="button" className="secondary" disabled={pending} onClick={onReview}><Icon name="search"/>Review<span className="sr-only"> request for {request.original_submission.name}</span></button>
+   <button type="button" className="secondary" disabled={pending} onClick={onReview}><Icon name="search"/>{reviewLabel}<span className="sr-only"> request for {request.original_submission.name}</span></button>
   </div>
   {manageable&&(Boolean(proposal)||!confirmed)&&!proposal&&<p className="tiny">Choose a date and time to book this visit.</p>}
   {manageable&&proposal&&<p className="tiny">Approve uses your standard travel/setup buffer. Review to change the visit details.</p>}

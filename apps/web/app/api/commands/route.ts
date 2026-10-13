@@ -189,6 +189,7 @@ export async function POST(request: Request) {
         break;
     }
     const { data, error } = await db.rpc(name, args);
+    if(error&&c.command==='RecordPayment'&&!['P0001','42501','22023','23514','23503'].includes(error.code))return NextResponse.json({error:'The payment result could not be confirmed. Check the saved result before entering another payment.'},{status:503,headers:{'Cache-Control':'no-store'}});
     if (error)
       return NextResponse.json(
         {

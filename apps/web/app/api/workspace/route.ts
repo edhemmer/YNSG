@@ -54,7 +54,7 @@ export async function GET(request: Request) {
         .eq("organization_id", org)
         .order("created_at", { ascending: false }).order("id")
         .range(from,to),
-      (selectedRequest?appointmentQuery.eq('request_id',selectedRequest):appointmentQuery.gte('end_at',appointmentFrom)).order('start_at').order('id').range(from,to),
+      (selectedRequest?appointmentQuery.eq('request_id',selectedRequest):appointmentQuery.gte('end_at',appointmentFrom)).order('start_at').order('id').range(selectedRequest?0:from,selectedRequest?1000:to),
       db.from('customer_schedule_preferences').select('id,request_id,appointment_id,appointment_revision,response_version,preferred_local_start,timezone,note,status,created_at').eq('organization_id',org).eq('status','pending').order('created_at',{ascending:false}).order('id').range(from,to),
       db.from('configuration_versions').select('settings').eq('organization_id',org).order('version',{ascending:false}).limit(1).maybeSingle(),
     ]);
@@ -78,14 +78,15 @@ export async function GET(request: Request) {
       const jobIds=jobs.data!.map(j=>j.id);
       const invoices=jobIds.length?await db.from('invoices').select('id,job_id,number,total_cents,issued_at,snapshot,payments(cents)').eq('organization_id',org).in('job_id',jobIds).order('id').limit(1001):{data:[],error:null};
       if(invoices.error||invoices.data!.length>1000)throw Error('FAILED');
-      results[3]!.data=quotes.data.slice(from,to+1);results[4]!.data=jobs.data!.slice(from,to+1);results[5]!.data=invoices.data!.slice(from,to+1);
+      results[3]!.data=quotes.data;results[4]!.data=jobs.data!;results[5]!.data=invoices.data!;
+      if(results[7]!.data!.length>1000)throw Error('FAILED');
       const customerIds=[...new Set([...quotes.data,...jobs.data!].map(v=>v.customer_id).filter(Boolean))];
       const customers=customerIds.length?await db.from('customers').select('id,display_name').eq('organization_id',org).in('id',customerIds).order('display_name').order('id').range(from,to):{data:[],error:null};
       if(customers.error)throw Error('FAILED');results[2]!.data=customers.data;
     }
     const ready=await db.rpc('production_workflows_ready',{p_org:org});
-    const hasMore=results.slice(1).some(r=>Array.isArray(r.data)&&r.data.length>50);
-    for(const result of results.slice(1))if(Array.isArray(result.data))result.data=result.data.slice(0,50);
+    const hasMore=!selectedRequest&&results.slice(1).some(r=>Array.isArray(r.data)&&r.data.length>50);
+    for(const result of (selectedRequest?[]:results.slice(1)))if(Array.isArray(result.data))result.data=result.data.slice(0,50);
     const invoiceAdmin=await db.rpc("invoice_admin_summary",{p_org:org,p_invoices:(results[5]!.data||[]).map(i=>i.id)});if(invoiceAdmin.error)throw Error("FAILED");
     return NextResponse.json(
       {

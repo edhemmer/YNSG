@@ -21,7 +21,7 @@ if(form&&picker){
   form.dataset.appointmentStart=selectedStart;form.dataset.appointmentHoldToken=held?.token||'';
   form.querySelector('#preferredTime').value=current.preferredTime;
   if(disclosureNote)disclosureNote.textContent=selectedStart?`${dateLabel(current.firstDate)} · ${timeLabel(selectedStart)} · awaiting confirmation`:'Optional · or we can arrange a time with you';
-  summary.textContent=selectedStart?`Selected: ${dateLabel(current.firstDate)} at ${timeLabel(selectedStart)}. ${held&&Date.parse(held.expiresAt)>Date.now()?'This time is held while you finish the form.':'The time hold has ended.'} ${mode()==='weekly'?'Only the first visit is held; we’ll review the weekly schedule with you. ':''}We’ll call to confirm the details and appointment.`:'We’ll arrange a time with you after you send your request.';
+  summary.textContent=selectedStart?`Selected: ${dateLabel(current.firstDate)} at ${timeLabel(selectedStart)}. ${held&&Date.parse(held.expiresAt)>Date.now()?`Held until ${timeLabel(held.expiresAt)} Central Time while you finish the form.`:'The time hold has ended.'} ${mode()==='weekly'?'Only the first visit is held; we’ll review the weekly schedule with you. ':''}We’ll call to confirm the details and appointment.`:'We’ll arrange a time with you after you send your request.';
  }
  async function release(key,token=null){
   if(!key)return;

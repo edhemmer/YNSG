@@ -10,4 +10,8 @@ export function chartPercent(value:number,max:number){
  if(!Number.isFinite(value)||!Number.isFinite(max)||value<0||max<0)throw Error('INVALID_METRIC');
  return max===0?0:Math.min(100,100*value/max);
 }
-export type BusinessSnapshot={checkedAt:string;from:string;to:string;timezone:string;finance:{cashReceivedCents:number;expenseCents:number;cashAfterExpensesCents:number;issuedInvoicesCents:number;outstandingAsOfEndCents:number;paymentCount:number;expenseCount:number};counts:{customers:number;requestsInPeriod:number;requestsToReview:number;upcomingVisits:number;proposals:number;working:number;paused:number;completed:number;quotes:number;messagesToCheck:number;rescheduleRequests:number;deliveryExceptions?:number};email:{enabled:boolean;automaticSending:boolean};connections?:{provider:string;status:string}[]};
+export type BusinessSnapshot={checkedAt:string;from:string;to:string;timezone:string;finance:{cashReceivedCents:number;expenseCents:number;cashAfterExpensesCents:number;issuedInvoicesCents:number;outstandingAsOfEndCents:number;paymentCount:number;expenseCount:number};counts:{customers:number;requestsInPeriod:number;requestsToReview:number;upcomingVisits:number;proposals:number;working:number;paused:number;completed:number;quotes:number;messagesToCheck:number;rescheduleRequests:number;deliveryExceptions?:number;jobsNeedingInvoice?:number;jobsReadyToStart?:number};email:{enabled:boolean;automaticSending:boolean};connections?:{provider:string;status:string}[]};
+export function currentBusinessEvidence(data:BusinessSnapshot,now=Date.now()){
+ const checked=Date.parse(data.checkedAt);
+ return Number.isFinite(checked)&&checked<=now+30000&&now-checked<=120000&&Object.values(data.counts).every(n=>Number.isSafeInteger(n)&&n>=0)&&Number.isSafeInteger(data.finance.outstandingAsOfEndCents)&&data.finance.outstandingAsOfEndCents>=0;
+}
