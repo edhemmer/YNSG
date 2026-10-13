@@ -38,7 +38,7 @@ export async function GET(request: Request) {
         .range(from,to),
       db
         .from("jobs")
-        .select("id,customer_id,quote_id,status,revision,invoices(id,number)")
+        .select("id,customer_id,quote_id,status,revision")
         .eq("organization_id", org)
         .order("id")
         .range(from,to),
@@ -73,7 +73,7 @@ export async function GET(request: Request) {
       const quotes=await db.from('quotes').select('id,request_id,customer_id,current_version,revision,status,quote_versions(version,scope,labor_cents,duration_minutes)').eq('organization_id',org).eq('request_id',selectedRequest).order('id').limit(1001);
       if(quotes.error||quotes.data.length>1000)throw Error('FAILED');
       const quoteIds=quotes.data.map(q=>q.id);
-      const jobs=quoteIds.length?await db.from('jobs').select('id,customer_id,quote_id,status,revision,invoices(id,number)').eq('organization_id',org).in('quote_id',quoteIds).order('id').limit(1001):{data:[],error:null};
+      const jobs=quoteIds.length?await db.from('jobs').select('id,customer_id,quote_id,status,revision').eq('organization_id',org).in('quote_id',quoteIds).order('id').limit(1001):{data:[],error:null};
       if(jobs.error||jobs.data!.length>1000)throw Error('FAILED');
       const jobIds=jobs.data!.map(j=>j.id);
       const invoices=jobIds.length?await db.from('invoices').select('id,job_id,number,total_cents,issued_at,snapshot,payments(cents)').eq('organization_id',org).in('job_id',jobIds).order('id').limit(1001):{data:[],error:null};

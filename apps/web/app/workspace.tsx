@@ -53,7 +53,6 @@ type Quote = {
 };
 type Job = {
   id: string;
-  invoices: {id:string;number:number}[];
   customer_id: string;
   quote_id: string;
   status: string;

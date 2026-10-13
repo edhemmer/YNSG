@@ -63,3 +63,24 @@ test('an ambiguous partial cash payment locks edits and checks the exact command
   assert.match(node.textContent,/remaining \$70\.00/);assert.equal(node.querySelector('form fieldset').disabled,false);
  }finally{await act(async()=>root.unmount());}
 });
+
+// PostgREST's unique jobs→invoices relation is an object or null, not an array.
+// The workflow uses its separately loaded invoice list as the authoritative link.
+const {default:ServiceWorkflow}=await import('../apps/web/app/service-workflow.tsx');
+const {renderToStaticMarkup}=require('react-dom/server');
+test('accepted quote opens for jobs without invoices and uses canonical invoice links after issuance',()=>{
+ const request={id,status:'quoted',revision:3,created_at:'2026-10-13T12:00:00Z',original_submission:{name:'Synthetic workflow customer',street:'Test street',city:'Test city',phone:'5550100',email:'synthetic@example.invalid',services:[{service:'Home jobs',task:'Furniture assembly'}]},appointments:[{id:'appointment',request_id:id,status:'reserved',revision:1,start_at:'2026-10-16T14:00:00Z',arrival_at:'2026-10-16T14:00:00Z',end_at:'2026-10-16T16:00:00Z',expires_at:null,replaces_id:null,customer_response:'confirmed'}]};
+ const quote={id:'quote',request_id:id,status:'accepted',current_version:1,quote_versions:[{version:1,scope:'Synthetic approved furniture assembly',labor_cents:12000,duration_minutes:120}]};
+ const props={organization:org,request,quotes:[quote],timezone:'America/Chicago',canManage:true,canQuote:true,canWork:true,busy:false,onBusy:quiet,onReview:quiet,act:async()=>{},fieldAction:async()=>{},onChanged:quiet};
+ for(const status of ['approved','working','paused','completed']){
+  const html=renderToStaticMarkup(React.createElement(ServiceWorkflow,{...props,jobs:[{id:'job',quote_id:'quote',revision:1,status,invoices:null}],invoices:[]}));
+  assert.ok(html.includes('Customer approval recorded'));
+  if(status==='approved')assert.ok(html.includes('Start work timer'));
+  else assert.ok(html.includes('Invoice draft'));
+  if(status==='completed')assert.ok(html.includes('No invoice has been issued yet'));
+ }
+ for(const relation of [null,{id:'invoice',number:2026100001},[]]){
+  const html=renderToStaticMarkup(React.createElement(ServiceWorkflow,{...props,jobs:[{id:'job',quote_id:'quote',revision:1,status:'completed',invoices:relation}],invoices:[{id:'invoice',job_id:'job',number:2026100001,total_cents:12000,payments:[]}]}));
+  assert.ok(html.includes('Open invoice / download PDF'));assert.ok(!html.includes('Invoice draft'));assert.ok(!html.includes('No invoice has been issued yet'));
+ }
+});
