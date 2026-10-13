@@ -1,3 +1,5 @@
+import {localInstant} from '../../../../../packages/domain/timezone';
+import {addDays} from '../../../../../lib/appointment-window.js';
 import {calendarFacts} from "../../../lib/calendar-authority";
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -31,10 +33,13 @@ export async function GET(request: Request) {
     const durationMinutes = z.coerce.number().int().min(120).max(1440).multipleOf(30).parse(query.get('durationMinutes') || '120');
     const clock = Date.now();
     const rules = snapshot.settings.scheduling;
-    const windowEnd = Math.min(clock + rules.horizonMinutes * 60000, clock + 7 * 24 * 60 * 60000);
+    const day=query.has('day')?z.string().regex(/^\d{4}-\d{2}-\d{2}$/).parse(query.get('day')):null;
+    const windowStart=day?Math.max(clock,localInstant(day+'T00:00',snapshot.settings.timezone)):clock;
+    const windowEnd = Math.min(clock + rules.horizonMinutes * 60000,clock+30*24*60*60000,day?localInstant(addDays(day,1)+'T00:00',snapshot.settings.timezone)-1:clock+7*24*60*60000);
+    if(windowEnd<=windowStart)return json({times:[],checkedAt:new Date(clock).toISOString(),validUntil:new Date(clock+60000).toISOString(),configurationVersion:snapshot.configurationVersion,scheduleRevision:snapshot.scheduleRevision,timezone:snapshot.settings.timezone,windowEnd:new Date(windowEnd).toISOString(),reserved:false});
     const buffer = (rules.bufferMinutes ?? 0) * 60000;
     const external = await calendarFacts(org,
-      new Date(clock).toISOString(), new Date(windowEnd + durationMinutes * 60000 + buffer).toISOString());
+      new Date(windowStart).toISOString(), new Date(windowEnd + durationMinutes * 60000 + buffer).toISOString());
     // A response is a short-lived observation, never a claim on capacity. Hold/approval must recheck.
     const checkedAt = Date.parse(external.checkedAt);
     const now = Date.now();
@@ -44,7 +49,7 @@ export async function GET(request: Request) {
       reservations: snapshot.reservations.map(r => ({ resourceId: r.resourceId, start: Date.parse(r.start), end: Date.parse(r.end) })),
       blocks: snapshot.blocks.map(r => ({ start: Date.parse(r.start), end: Date.parse(r.end) })),
       externalBusy: external.busy.map(r => ({ start: Date.parse(r.start), end: Date.parse(r.end) })),
-      externalBusyVerifiedUntil: checkedAt + 60000, windowEnd,
+      externalBusyVerifiedUntil: checkedAt + 60000, windowStart,windowEnd,
     });
     return json({
       times: times.map(t => ({ start: new Date(t.start).toISOString(), end: new Date(t.end).toISOString() })),
@@ -56,7 +61,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     if (error instanceof Error && error.message === 'UNAUTHORIZED') return json({ error: 'Sign in to check times.' }, 401);
-    if (error instanceof GoogleFailure) return json({ error: 'Connect an authorized Google calendar before checking times.' }, error.code === 'OWNER_ACCESS_REQUIRED' ? 403 : 409);
+    if (error instanceof GoogleFailure) return json({ error: 'Your appointment calendar could not be checked. Review its connection in Settings.' }, error.code === 'OWNER_ACCESS_REQUIRED' ? 403 : 409);
     if (error instanceof DomainError) return json({ error: error.message }, 409);
     if (error instanceof z.ZodError) return json({ error: 'Review the scheduling settings and selected resources.' }, 400);
     return json({ error: 'Times could not be checked. No appointment was created.' }, 503);

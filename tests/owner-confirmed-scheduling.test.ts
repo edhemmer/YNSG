@@ -40,3 +40,8 @@ test('intentionally omitted owner booking email is not a delivery failure',()=>{
   assert.doesNotMatch(text,/Owner email/);
  }
 });
+
+test('CRM booking success does not claim an optional Google update is required',()=>{
+ const text=appointmentDeliveryMessage({appointmentStatus:'reserved',revision:3,calendar:'pending',customerEmail:'pending',ownerEmail:'not_queued',calendarSource:'crm'});
+ assert.match(text,/Saved to your CRM calendar/);assert.doesNotMatch(text,/Google Calendar/);
+});

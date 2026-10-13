@@ -52,3 +52,11 @@ test('DST and non-half-hour UTC offsets preserve local half-hour starts',()=>{
  assert.ok(india.length>0);
  assert.ok(india.every(t=>Number(new Intl.DateTimeFormat('en',{timeZone:'Asia/Kathmandu',minute:'2-digit'}).format(t.start))%30===0));
 });
+
+test('selected-day checks beyond seven days preserve the real clock, lead rules and conflicts',()=>{
+ const windowStart=Date.parse('2026-10-20T05:00:00Z'),windowEnd=Date.parse('2026-10-21T04:59:59Z');
+ const v={...base,rules:{...base.rules,horizonMinutes:43200},windowStart,windowEnd};
+ const slots=openTimesToReview(v);assert.equal(slots.length,15);assert.equal(slots[0]!.start,Date.parse('2026-10-20T13:00:00Z'));
+ const blocked=openTimesToReview({...v,blocks:[{start:slots[0]!.start,end:slots[0]!.end}]});assert.ok(!blocked.some(s=>s.start===slots[0]!.start));
+ assert.throws(()=>openTimesToReview({...v,windowEnd:windowStart+8*86400000}));
+});

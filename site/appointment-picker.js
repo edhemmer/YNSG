@@ -10,6 +10,8 @@ if(form&&picker){
  const grid=picker.querySelector('#appointment-days'),status=picker.querySelector('#calendar-status'),choices=picker.querySelector('#appointment-times'),summary=picker.querySelector('#appointment-selection');
  const dateLabel=day=>new Intl.DateTimeFormat('en-US',{timeZone:'UTC',weekday:'long',month:'long',day:'numeric',year:'numeric'}).format(new Date(day+'T12:00:00Z'));
  const timeLabel=start=>new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',hour:'numeric',minute:'2-digit'}).format(new Date(start));
+ const quickDates=picker.querySelector('#appointment-quick-dates'),timesHeading=picker.querySelector('#appointment-times-heading');
+ const shortDate=day=>new Intl.DateTimeFormat('en-US',{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'}).format(new Date(day+'T12:00:00Z'));
  const mode=()=>picker.querySelector('input[name=visitMode]:checked').value;
  const locked=()=>holding||form.getAttribute('aria-busy')==='true'||form.dataset.deliveryUnknown==='true';
  function updateSelection(){
@@ -67,6 +69,7 @@ if(form&&picker){
  }
  function showTimes(){
   choices.replaceChildren();
+  if(timesHeading)timesHeading.textContent=selectedDate?'Open times for '+shortDate(selectedDate):'Choose a date to see times';
   for(const slot of times.filter(t=>localDay(Date.parse(t.start))===selectedDate)){
    const button=document.createElement('button');button.type='button';button.className='appointment-time';button.textContent=timeLabel(slot.start);button.disabled=holding;button.setAttribute('aria-pressed',String(!!selectedStart&&Date.parse(slot.start)===Date.parse(selectedStart)));
    button.addEventListener('click',()=>void selectTime(slot));choices.append(button);
@@ -81,13 +84,25 @@ if(form&&picker){
   for(let day=1;day<=count;day++){
    const key=month+'-'+String(day).padStart(2,'0'),open=key>=today&&key<=limit&&times.some(t=>localDay(Date.parse(t.start))===key);
    const button=document.createElement('button');button.type='button';button.className='appointment-day';button.textContent=String(day);button.disabled=!open;button.setAttribute('aria-label',`${dateLabel(key)}${open?', open times':availabilityKnown?', unavailable':', open times not checked'}`);button.setAttribute('aria-pressed',String(selectedDate===key));
-   button.addEventListener('click',async()=>{
-    if(locked())return;
-    if(Date.now()>=validUntil){await load(key);if(!availabilityKnown)return;}
-    if(!times.some(t=>localDay(Date.parse(t.start))===key)){status.textContent=`No open times remain for ${dateLabel(key)}. Please choose another date.`;return;}
-    const previous=held;clearTimeout(expiryTimer);held=null;selectedStart='';selectedDate=key;draw();showTimes();updateSelection();status.textContent=`Choose a time for ${dateLabel(key)}.`;choices.querySelector('button')?.focus();
-    if(previous)void release(previous.key,previous.token);
-   });grid.append(button);
+   button.addEventListener('click',()=>void chooseDate(key));grid.append(button);
+  }
+ }
+ async function chooseDate(key){
+  if(locked())return;
+  if(Date.now()>=validUntil){await load(key);if(!availabilityKnown)return;}
+  if(!times.some(t=>localDay(Date.parse(t.start))===key)){status.textContent=`No open times remain for ${dateLabel(key)}. Please choose another date.`;return;}
+  const previous=held;clearTimeout(expiryTimer);held=null;selectedStart='';selectedDate=key;month=key.slice(0,7);
+  draw();drawQuickDates();showTimes();updateSelection();status.textContent=`Choose a time for ${dateLabel(key)}.`;choices.querySelector('button')?.focus();
+  if(previous)void release(previous.key,previous.token);
+ }
+ function drawQuickDates(){
+  if(!quickDates)return;
+  quickDates.replaceChildren();
+  const days=[...new Set(times.map(t=>localDay(Date.parse(t.start))))].sort().slice(0,5);
+  for(const day of days){
+   const button=document.createElement('button');button.type='button';button.className='appointment-quick-date';button.textContent=shortDate(day);button.disabled=holding;
+   button.setAttribute('aria-label',dateLabel(day)+', '+times.filter(t=>localDay(Date.parse(t.start))===day).length+' open times');button.setAttribute('aria-pressed',String(day===selectedDate));
+   button.addEventListener('click',()=>void chooseDate(day));quickDates.append(button);
   }
  }
  async function load(preserveDate=''){
@@ -96,7 +111,7 @@ if(form&&picker){
   picker.setAttribute('aria-busy','true');
   picker.querySelectorAll('.calendar-toolbar,.appointment-weekdays,#appointment-days').forEach(el=>el.hidden=false);
   const previous=held;clearTimeout(expiryTimer);held=null;
-  times=[];availabilityKnown=false;selectedStart='';selectedDate=preserveDate;validUntil=0;draw();showTimes();updateSelection();status.dataset.state='loading';status.textContent='Checking open times…';
+  times=[];availabilityKnown=false;selectedStart='';selectedDate=preserveDate;validUntil=0;draw();drawQuickDates();showTimes();updateSelection();status.dataset.state='loading';status.textContent='Checking open times…';
   const refresh=picker.querySelector('#calendar-refresh');refresh.disabled=true;
   const requestController=controller,timeout=setTimeout(()=>requestController.abort(),15000);
   try{
@@ -104,13 +119,16 @@ if(form&&picker){
    const response=await fetch('/api/availability',{cache:'no-store',signal:requestController.signal});const data=await response.json();
    if(current!==generation)return;
    if(!response.ok||data.reserved!==false||data.timezone!=='America/Chicago'||!Array.isArray(data.times)||!Number.isFinite(Date.parse(data.validUntil))||Date.parse(data.validUntil)<=Date.now())throw Error('UNAVAILABLE');
-   times=data.times.filter(t=>{try{return !!appointmentSelection({mode:'once',start:t.start}).start;}catch{return false;}});validUntil=Date.parse(data.validUntil);availabilityKnown=true;status.dataset.state='ready';showTimes();
-   status.textContent=times.length?'Press or click an open date to see the times. Dates shown in gray are unavailable.':'No open times are showing in the next 30 days. Send your request without a time, or call 770-630-2094.';draw();
+   times=data.times.filter(t=>{try{return !!appointmentSelection({mode:'once',start:t.start}).start;}catch{return false;}});validUntil=Date.parse(data.validUntil);availabilityKnown=true;status.dataset.state='ready';
+   const days=[...new Set(times.map(t=>localDay(Date.parse(t.start))))].sort();
+   selectedDate=days.includes(preserveDate)?preserveDate:(days[0]||'');if(selectedDate)month=selectedDate.slice(0,7);
+   drawQuickDates();showTimes();updateSelection();
+   status.textContent=times.length?`Next available dates are shown above. Choose a time for ${dateLabel(selectedDate)}, or press another open date. Gray dates are unavailable.`:'No open times are showing in the next 30 days. Send your request without a time, or call 770-630-2094.';draw();
   }catch{if(current===generation){status.dataset.state='error';status.textContent='Appointment times couldn’t load. Dates cannot be selected right now. Press “Check open times again,” or send your service request without a time and we’ll arrange it with you. You can also call 770-630-2094.';}}
   finally{clearTimeout(timeout);if(current===generation){refresh.disabled=false;picker.setAttribute('aria-busy','false');}}
  }
  picker.querySelector('#calendar-refresh').addEventListener('click',()=>void load());
- picker.querySelector('#calendar-clear').addEventListener('click',()=>{if(locked())return;void clearSelection();selectedDate='';draw();showTimes();});
+ picker.querySelector('#calendar-clear').addEventListener('click',()=>{if(locked())return;void clearSelection();selectedDate='';draw();drawQuickDates();showTimes();});
  for(const [id,offset] of [['calendar-previous',-1],['calendar-next',1]])picker.querySelector('#'+id).addEventListener('click',()=>{if(locked())return;const date=new Date(month+'-01T12:00:00Z');date.setUTCMonth(date.getUTCMonth()+offset);month=date.toISOString().slice(0,7);draw();});
  picker.querySelectorAll('input[name=visitMode]').forEach(radio=>radio.addEventListener('change',()=>{if(locked())return;picker.querySelector('#recurrence-note').hidden=mode()!=='weekly';updateSelection();}));
  form.addEventListener('appointment-conflict',()=>{void load();});

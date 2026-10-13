@@ -7,18 +7,19 @@ export type AvailabilityInput = {
   rules: CompanySettings['scheduling']; resources: readonly Resource[]; selectedResources: readonly string[];
   reservations: readonly (Interval & { resourceId: string })[];
   blocks: readonly Interval[]; externalBusy: readonly Interval[]; externalBusyVerifiedUntil: number;
-  windowEnd: number;
+  windowEnd: number; windowStart?: number;
 };
 // This is a capacity/calendar screen, not travel evidence or a reservation.
 // Iterate UTC instants, then validate local hours: DST never shifts a requested local time.
 export function openTimesToReview(input: AvailabilityInput): { start: number; end: number }[] {
   const { clock, rules } = input;
+  const windowStart=input.windowStart??clock;
   if (!companySettings.shape.scheduling.safeParse(rules).success ||
       !companySettings.shape.timezone.safeParse(input.timezone).success ||
       rules.earliestStart > rules.latestStart || rules.latestStart + 120 > rules.endOfDay)
     throw new DomainError('SETUP_REQUIRED', 'Review operating hours and scheduling settings');
   if (!Number.isSafeInteger(clock) || !Number.isSafeInteger(input.windowEnd) ||
-      input.windowEnd <= clock || input.windowEnd > clock + 7 * 24 * 60 * 60_000 ||
+      input.windowEnd <= clock || (!Number.isSafeInteger(windowStart)||windowStart<clock||input.windowEnd<=windowStart||input.windowEnd>windowStart+7*24*60*60_000||windowStart>clock+rules.horizonMinutes*60_000) ||
       rules.bufferMinutes === null || !Number.isSafeInteger(input.durationMinutes) ||
       input.durationMinutes < 120 || input.durationMinutes > 1440 || input.durationMinutes % 30 !== 0 ||
       !Number.isSafeInteger(rules.leadMinutes) || !Number.isSafeInteger(rules.horizonMinutes) ||
@@ -36,7 +37,7 @@ export function openTimesToReview(input: AvailabilityInput): { start: number; en
     throw new DomainError('PROVIDER_UNAVAILABLE', 'Calendar intervals are invalid');
   const buffer = rules.bufferMinutes * 60_000;
   const busy = intervals.map(i => ({ start: i.start - buffer, end: i.end + buffer }));
-  const earliest = clock + rules.leadMinutes * 60_000;
+  const earliest = Math.max(clock + rules.leadMinutes * 60_000,windowStart);
   const latest = Math.min(clock + rules.horizonMinutes * 60_000, input.windowEnd);
   const result: { start: number; end: number }[] = [];
   // Minute iteration also supports IANA timezones whose UTC offset is not a multiple of 30 minutes.

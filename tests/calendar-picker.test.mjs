@@ -76,3 +76,20 @@ test('collapsed appointment calendar loads once when opened, then keeps single-c
  h.disclosure.open=false;h.disclosure.handlers.toggle();h.disclosure.open=true;h.disclosure.handlers.toggle();await h.settle();assert.equal(h.calls(),1);
  await h.select();assert.equal(h.holdCalls.filter(c=>c.action==='select').length,1);
 });
+
+test('visible calendar immediately shows the next available date and times without holding a slot',async()=>{
+ const h=await harness([available()]);
+ assert.equal(h.calls(),1);assert.equal(h.holdCalls.length,0);
+ assert.equal(h.get('#appointment-quick-dates').children.length,1);
+ assert.equal(h.get('#appointment-times').children.length,1);
+ assert.match(h.get('#appointment-times-heading').textContent,/Open times for/);
+ assert.equal(h.form.dataset.appointmentStart,'');
+});
+test('quick date opens matching times and only a deliberate time click creates a hold',async()=>{
+ const data=await available().json();const later=addDays(localDay(Date.parse(data.times[0].start)),1);
+ data.times.push({start:later+'T15:00:00Z',end:later+'T17:00:00Z'});
+ const h=await harness([Response.json(data)]);await h.get('#appointment-quick-dates').children[1].handlers.click();
+ assert.equal(h.holdCalls.length,0);assert.equal(h.get('#appointment-quick-dates').children[1].attributes['aria-pressed'],'true');
+ await h.get('#appointment-times').children[0].handlers.click();await h.settle();
+ assert.equal(h.holdCalls.filter(c=>c.action==='select').length,1);assert.equal(localDay(Date.parse(h.form.dataset.appointmentStart)),later);
+});

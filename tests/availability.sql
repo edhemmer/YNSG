@@ -19,4 +19,10 @@ do $$begin begin perform public.scheduling_snapshot('20000000-0000-4000-8000-000
 reset role;
 select pg_temp.assert_true(not has_function_privilege('anon','public.scheduling_snapshot(uuid)','EXECUTE'),'anonymous snapshot denied');
 select pg_temp.assert_true((select count(*)=1 from public.appointments),'reading does not expire or mutate appointments');
+reset role;
+insert into public.availability_exceptions(organization_id,starts_at,ends_at,reason) values('20000000-0000-4000-8000-000000000001',now()+interval '20 days',now()+interval '20 days 2 hours','Synthetic availability test');
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select pg_temp.assert_true(exists(select 1 from jsonb_array_elements(public.scheduling_snapshot('20000000-0000-4000-8000-000000000001')->'blocks') b where (b->>'start')::timestamptz>now()+interval '19 days'),'owner availability sees blocks beyond the first week');
+reset role;
 rollback;

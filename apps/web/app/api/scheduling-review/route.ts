@@ -24,7 +24,7 @@ async function completed(db:Awaited<ReturnType<typeof authorizeGoogle>>['db'],or
    dispatchGoogleMail(org,db)
   ]);});
   let delivery=null;
-  try{const status=await db.rpc('appointment_delivery_status',{p_org:org,p_appointment:result.id});if(!status.error)delivery=status.data;}catch{/* Booking is committed; delivery remains independently retryable. */}
+  try{const status=await db.rpc('appointment_delivery_status',{p_org:org,p_appointment:result.id});if(!status.error)delivery={...status.data,calendarSource:(await calendarAuthority(org)).source};}catch{/* Booking is committed; delivery remains independently retryable. */}
   return json({ok:true,result,replay,delivery});
  }
  return json({ok:true,result,replay});

@@ -213,3 +213,13 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
 .neighbor-slide figcaption{padding-right:20px}
 @media(max-width:850px){body:has(.home-services) .hero-layout{gap:0}.neighbor-slide figcaption{padding:14px 16px;min-height:84px}.carousel-controls{top:10px;right:10px;bottom:auto}}
 
+
+/* Visible appointment selection, designed for phone use and large text. */
+.appointment-panel{margin:28px 0;padding:24px 20px;border:2px solid var(--forest);border-radius:18px;background:#f5f8f2;scroll-margin-top:24px}
+.appointment-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.appointment-panel-heading h2{font-size:1.5rem;margin:0}.appointment-panel>p{margin:10px 0 18px}
+.appointment-panel .appointment-picker{padding:0;border:0;background:transparent;scroll-margin-top:24px}.appointment-next-title,.appointment-times-heading{font-size:1.1rem;margin:22px 0 10px}
+.appointment-quick-dates{display:flex;gap:8px;flex-wrap:wrap}.appointment-quick-date{flex:1 1 100px;min-height:60px;padding:10px;border:2px solid var(--forest);border-radius:10px;background:#fff;color:var(--navy);font-size:1rem;font-weight:700;cursor:pointer}.appointment-quick-date[aria-pressed=true]{background:var(--forest);color:#fff}
+.appointment-panel .appointment-days{gap:5px}.appointment-panel .appointment-day{min-height:52px}.appointment-panel .appointment-times{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.appointment-panel .appointment-time{min-height:54px;padding:10px 6px}.appointment-panel #appointment-selection:not(:empty){border-left:4px solid var(--gold);padding:12px;background:#fff;border-radius:8px}.contact-step{font-size:1.5rem;margin:28px 0 18px}
+@media(max-width:590px){.appointment-panel{padding:18px 12px;margin:24px 0}.appointment-panel .appointment-times{grid-template-columns:repeat(2,minmax(0,1fr))}.appointment-quick-date{flex-basis:85px}.appointment-panel .appointment-day{min-height:48px}.appointment-panel-heading h2{font-size:1.3rem}}
+
+.appointment-panel .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
