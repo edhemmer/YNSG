@@ -3,7 +3,7 @@ import {useEffect,useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 import {workerHealth,type BackgroundHealth} from '../lib/background-health';
 import type {BackgroundSetupStatus} from '../lib/background-setup';
-type Setup={websiteCalendarReady:boolean;mailServiceReady:boolean;mailReady:boolean;calendarSource?:'crm'|'google';optionalGoogleConnected?:boolean;checks:{label:string;complete:boolean;action:string}[];publicAvailabilityConfigured:boolean;recurringReservationsReady:boolean;background?:{workerCredentialReady:boolean;mailSwitchEnabled:boolean;calendarSwitchEnabled:boolean;calendarCompanyMatches:boolean;deploymentCredentialReady:boolean;schedulerStatus:BackgroundSetupStatus|null;executionHealth?:BackgroundHealth|null;canPrepare:boolean}};
+type Setup={websiteCalendarReady:boolean;mailServiceReady:boolean;mailReady:boolean;routesStatus?:string;calendarSource?:'crm'|'google';optionalGoogleConnected?:boolean;checks:{label:string;complete:boolean;action:string}[];publicAvailabilityConfigured:boolean;recurringReservationsReady:boolean;background?:{workerCredentialReady:boolean;mailSwitchEnabled:boolean;calendarSwitchEnabled:boolean;calendarCompanyMatches:boolean;deploymentCredentialReady:boolean;schedulerStatus:BackgroundSetupStatus|null;executionHealth?:BackgroundHealth|null;canPrepare:boolean}};
 export default function SchedulingReadiness({organization}:{organization:string}){
  const [setup,setSetup]=useState<Setup|null>(null),[error,setError]=useState(false),[retry,setRetry]=useState(0);
  useEffect(()=>{
@@ -27,6 +27,7 @@ export default function SchedulingReadiness({organization}:{organization:string}
    <ul>
     <li><strong>Website calendar:</strong> {setup.websiteCalendarReady?'Configured':'Needs attention'}</li>
     <li><strong>Appointment emails:</strong> {!setup.mailServiceReady?'Sender verification required':!setup.mailReady?'Notifications disabled':!setup.background?.schedulerStatus?'Needs attention':workerHealth(setup.background.executionHealth,'mail',setup.background.schedulerStatus.jobs.some(job=>job.name==='ynsg-mail-worker'&&job.active),setup.background.mailSwitchEnabled)}</li>
+    <li><strong>Route estimates:</strong> {setup.routesStatus==='active'?'Available':setup.routesStatus==='disabled'?'Not enabled — scheduled travel buffers remain in use':'Needs attention — scheduled travel buffers remain in use'}</li>
     <li><strong>Optional Google calendar export:</strong> {!setup.optionalGoogleConnected?'Not connected — CRM scheduling remains available':!setup.background?.schedulerStatus?'Needs attention':workerHealth(setup.background.executionHealth,'calendar',setup.background.schedulerStatus.jobs.some(job=>job.name==='ynsg-calendar-worker'&&job.active),setup.background.calendarSwitchEnabled&&setup.background.calendarCompanyMatches)}</li>
    </ul>
    <p>When running, automatic updates continue when you close the app. Check Activity for individual message and calendar results.</p>

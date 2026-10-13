@@ -4,6 +4,7 @@ import {NextResponse} from 'next/server';
 import {z} from 'zod';
 import {authorizeGoogle,store,missingGoogleConfiguration,serverDatabase} from '../../../lib/google-server';
 import {verifiedSessionId} from '../../../lib/background-setup';
+import {verifyRoutesConnection} from '../../../lib/routes-health';
 export const dynamic='force-dynamic';
 export async function GET(request:Request){
  try{
@@ -18,6 +19,8 @@ export async function GET(request:Request){
   const authority=await calendarAuthority(org),transport=await mailTransport(org),managedMail=transport?.ready?transport:null;
   const account=missingGoogleConfiguration().length?null:await store(org,'read');
   const rules=configuration.data?.settings?.scheduling;
+  // Owner-authenticated, budgeted public-town probe; independent of optional calendar OAuth.
+  const routesCheck=verifyRoutesConnection(org).catch(()=>{console.warn('routes_health_unavailable');return 'verification_unavailable';});
   let schedulerStatus=null,executionHealth=null;
   try{
    const result=await serverDatabase().rpc('background_setup',{p_org:org,p_actor:session.user.id,p_session:verifiedSessionId(session.access),p_action:'status'});
@@ -25,6 +28,7 @@ export async function GET(request:Request){
    const health=await serverDatabase().rpc('background_health',{p_org:org,p_actor:session.user.id,p_session:verifiedSessionId(session.access)});
    if(!health.error)executionHealth=health.data;
   }catch{ /* Setup remains usable if the deployment registry has not been installed. */ }
+  const routesStatus=await routesCheck;
   const verifiedMail=Boolean(managedMail)||Boolean(account?.encrypted_tokens&&account?.health==='healthy'&&account?.gmail_test==='accepted');
   const mailReady=delivery.data?.enabled===true&&verifiedMail&&(Boolean(managedMail)||process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true');
   const checks=[
@@ -37,7 +41,7 @@ export async function GET(request:Request){
    {label:'Business email service verified',complete:verifiedMail,action:'Verify Business email in Your calendar & notifications.'},
    {label:'Email notifications approved and enabled',complete:mailReady,action:'Verify the business sender and enable appointment notifications.'},
   ];
-  return NextResponse.json({checks,websiteCalendarReady:process.env.PUBLIC_AVAILABILITY_ENABLED==='true'&&process.env.PUBLIC_SCHEDULING_ORGANIZATION_ID===org&&checks.slice(0,6).every(check=>check.complete),mailServiceReady:verifiedMail,mailReady,calendarSource:authority.source,optionalGoogleConnected:Boolean(account?.encrypted_tokens&&account?.calendar_id),publicAvailabilityConfigured:process.env.PUBLIC_AVAILABILITY_ENABLED==='true'&&process.env.PUBLIC_SCHEDULING_ORGANIZATION_ID===org,recurringReservationsReady:false,background:{
+  return NextResponse.json({checks,websiteCalendarReady:process.env.PUBLIC_AVAILABILITY_ENABLED==='true'&&process.env.PUBLIC_SCHEDULING_ORGANIZATION_ID===org&&checks.slice(0,6).every(check=>check.complete),mailServiceReady:verifiedMail,mailReady,routesStatus,calendarSource:authority.source,optionalGoogleConnected:Boolean(account?.encrypted_tokens&&account?.calendar_id),publicAvailabilityConfigured:process.env.PUBLIC_AVAILABILITY_ENABLED==='true'&&process.env.PUBLIC_SCHEDULING_ORGANIZATION_ID===org,recurringReservationsReady:false,background:{
     workerCredentialReady:Boolean(process.env.GOOGLE_WORKER_SECRET&&process.env.GOOGLE_WORKER_SECRET.length>=32),
     mailSwitchEnabled:mailReady,
     calendarSwitchEnabled:process.env.GOOGLE_CALENDAR_WORKER_ENABLED==='true',
