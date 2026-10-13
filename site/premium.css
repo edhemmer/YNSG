@@ -225,3 +225,5 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
 .appointment-panel .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
 .calendar-all-dates{margin:18px 0;border:1px solid var(--forest);border-radius:10px;background:white;padding:10px 12px}.calendar-all-dates>summary{font-size:1rem;font-weight:700;min-height:48px;padding:10px 0;cursor:pointer}.calendar-all-dates .calendar-toolbar{margin-top:16px}.appointment-panel .appointment-time:focus-visible,.appointment-panel .appointment-quick-date:focus-visible{outline:3px solid var(--navy);outline-offset:3px}
+
+.calendar-all-dates>h3{font-size:1.1rem;margin:4px 0 12px}.calendar-all-dates .calendar-toolbar{margin-top:0}.appointment-panel .appointment-day:focus-visible{outline:3px solid var(--navy);outline-offset:2px}

@@ -16,6 +16,10 @@ test('local metadata uses canonical hosting URLs and real service cities without
 test('request calendar is visible before contact fields and keeps an optional fallback',async()=>{
  const html=await readFile(new URL('../site/pages/form.html',import.meta.url),'utf8');
  assert.ok(!html.includes('appointment-disclosure'));
+ assert.ok(html.includes('<section class="calendar-all-dates"'));
+ assert.ok(!html.includes('<details class="calendar-all-dates"'));
+ assert.ok(html.indexOf('id="appointment-days"')<html.indexOf('id="appointment-times"'));
+ assert.ok(html.indexOf('id="appointment-days"')<html.indexOf('id="name"'));
  assert.ok(html.indexOf('id="appointment-picker"')<html.indexOf('id="name"'));
  assert.ok(html.includes('id="appointment-quick-dates"'));assert.ok(html.includes('Arrange a time with me instead'));
  for(const id of ['name','phone','email','street','city'])assert.match(html,new RegExp('<(?:input|select)[^>]*id="'+id+'"[^>]*required'));
