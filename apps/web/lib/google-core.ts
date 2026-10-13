@@ -233,7 +233,8 @@ export function emailRaw(
     : `Content-Type: multipart/alternative; boundary="${boundary}"\r\n\r\n--${boundary}\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n${encode(body)}\r\n--${boundary}\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n${encode(options.html)}\r\n--${boundary}--\r\n`;
   if(options.attachment){
     const attachment=options.attachment;
-    if(!/^invoice-[1-9][0-9]*\.pdf$/.test(attachment.filename)||attachment.bytes.length===0||attachment.bytes.length>5*1024*1024||Buffer.from(attachment.bytes).subarray(0,5).toString()!=="%PDF-")
+    const safeName=/^(?:invoice-(?:[1-9][0-9]*|[1-9][0-9]{3}(?:0[1-9]|1[0-2])-[0-9]{4,})|sample-invoice-[1-9][0-9]{3}(?:0[1-9]|1[0-2])-[0-9]{4,}-not-a-bill)\.pdf$/.test(attachment.filename);
+    if(!safeName||attachment.filename.length>120||attachment.bytes.length===0||attachment.bytes.length>5*1024*1024||Buffer.from(attachment.bytes).subarray(0,5).toString()!=="%PDF-")
       throw new GoogleFailure("INVALID_ATTACHMENT");
     const mixed="ynsg-mixed-"+messageId;
     const encoded=Buffer.from(attachment.bytes).toString("base64").match(/.{1,76}/g)?.join("\r\n")||"";

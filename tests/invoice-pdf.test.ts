@@ -12,6 +12,16 @@ test('PDF refuses absent recipient and unsupported characters instead of silentl
  await assert.rejects(invoicePdf({...pdfFixture,recipient:null}));
  await assert.rejects(invoicePdf({...pdfFixture,businessName:'Test \u{10ffff}'}),/UNSUPPORTED_CHARACTER/);
 });
+test('monthly invoice and sample attachment names preserve PDF bytes while unsafe names remain rejected',async()=>{
+ const bytes=await invoicePdf(pdfFixture);
+ for(const filename of ['invoice-202610-0001.pdf','invoice-202701-0008.pdf','invoice-202610-10000.pdf','sample-invoice-202610-0001-not-a-bill.pdf']){
+  const raw=Buffer.from(emailRaw('owner@example.invalid','customer@example.invalid','Invoice','Text','ynsg-monthly-invoice',{attachment:{filename,bytes}}),'base64url').toString();
+  assert.ok(raw.includes(`Content-Disposition: attachment; filename="${filename}"`));
+  const encoded=raw.match(/Content-Type: application\/pdf;[^]*?Content-Transfer-Encoding: base64\r\n\r\n([^]*?)\r\n--ynsg-mixed-/)?.[1];assert.ok(encoded);assert.deepEqual(Buffer.from(encoded.replace(/\r\n/g,''),'base64'),Buffer.from(bytes));
+ }
+ for(const filename of ['../invoice-202610-0001.pdf','invoice-202613-0001.pdf','invoice-202610-0001.pdf\r\nBcc: attacker@example.invalid','sample-invoice-202610-0001.pdf','invoice-202610-0001.exe'])assert.throws(()=>emailRaw('owner@example.invalid','customer@example.invalid','Invoice','Text','ynsg-test',{attachment:{filename,bytes}}),/INVALID_ATTACHMENT/);
+ assert.throws(()=>emailRaw('owner@example.invalid','customer@example.invalid','Invoice','Text','ynsg-test',{attachment:{filename:'invoice-202610-0001.pdf',bytes:Buffer.from('not a PDF')}}),/INVALID_ATTACHMENT/);
+});
 
 test('branded PDF keeps a short invoice on one page and paginates long services without losing metadata',async()=>{
  const {PDFDocument}=await import('../apps/web/node_modules/pdf-lib/cjs/index.js');
