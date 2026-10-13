@@ -13,7 +13,7 @@ export async function GET(request:Request){
   const {db,user}=await authenticated();
   const access=await db.from('memberships').select('role').eq('organization_id',org).eq('user_id',user.id).is('revoked_at',null).in('role',['owner','admin','dispatcher']).maybeSingle();
   if(access.error||!access.data)return NextResponse.json({error:'Your account cannot review requests for this business.'},{status:403,headers});
-  let records=db.from('service_requests').select('id,status,revision,created_at,original_submission,appointments!appointments_organization_id_request_id_fkey(id,request_id,status,revision,start_at,end_at,arrival_at,expires_at,replaces_id,customer_response)',{count:'exact'}).eq('organization_id',org);
+  let records=db.from('service_requests').select('id,status,revision,created_at,original_submission,appointments!appointments_organization_id_request_id_fkey(id,request_id,job_id,status,revision,start_at,end_at,arrival_at,expires_at,replaces_id,customer_response)',{count:'exact'}).eq('organization_id',org);
   if(selected)records=records.eq('id',selected);
   else{
    if(filter==='review')records=records.in('status',['submitted','reviewing','quoted']);
@@ -29,7 +29,7 @@ export async function GET(request:Request){
   ]):[{data:[],error:null},{data:[],error:null}];
   if(quotes.error||preferences.error||quotes.data!.length>1000||preferences.data!.length>1000)throw Error('FAILED');
   const quoteIds=quotes.data!.map(v=>v.id);
-  const jobs=quoteIds.length?await db.from('jobs').select('id,quote_id,status,revision').eq('organization_id',org).in('quote_id',quoteIds).limit(1001):{data:[],error:null};
+  const jobs=quoteIds.length?await db.from('jobs').select('id,quote_id,approved_version,status,revision').eq('organization_id',org).in('quote_id',quoteIds).limit(1001):{data:[],error:null};
   if(jobs.error||jobs.data!.length>1000)throw Error('FAILED');
   const jobIds=jobs.data!.map(v=>v.id);
   const invoices=jobIds.length?await db.from('invoices').select('id,job_id,number,total_cents,payments(cents)').eq('organization_id',org).in('job_id',jobIds).limit(1001):{data:[],error:null};

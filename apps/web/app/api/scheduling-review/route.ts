@@ -31,7 +31,11 @@ async function completed(db:Awaited<ReturnType<typeof authorizeGoogle>>['db'],or
 }
 async function context(db:Awaited<ReturnType<typeof authorizeGoogle>>['db'],org:string,request:string,appointment:string|null){
  const r=await db.rpc('scheduling_review_context',{p_org:org,p_request:request,p_appointment:appointment});
- if(r.error)throw new Error(r.error.message);return r.data;
+ if(r.error)throw new Error(r.error.message);
+ const quotes=await db.from('quotes').select('current_version,quote_versions(version,duration_minutes)').eq('organization_id',org).eq('request_id',request);
+ if(quotes.error)throw Error('SCOPE_UNAVAILABLE');
+ const minimumDurationMinutes=Math.max(120,...quotes.data.map(q=>q.quote_versions.find(v=>v.version===q.current_version)?.duration_minutes||120));
+ return {...r.data,minimumDurationMinutes};
 }
 function failed(e:unknown){
  if(e instanceof GoogleFailure)return json({error:e.code==='GOOGLE_EVENT_CHANGED'?'The Google event changed. Resolve its sync issue before approval.':'A current authorized Google calendar check is required.'},e.code==='OWNER_ACCESS_REQUIRED'?403:409);

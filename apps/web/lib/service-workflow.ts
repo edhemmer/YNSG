@@ -6,6 +6,12 @@ export function serviceNextStep(request:InboxRequest,quotes:LinkedQuote[],jobs:L
  if(invoices.length)return balance>0?{step:6,title:'Record the payment received',detail:'Open the invoice, send its email if needed, then record cash or Zelle after the money arrives.',action:'invoice'}:{step:7,title:'Paid and complete',detail:'No balance remains on the issued invoices for this request.',action:'invoice'};
  if(jobs.some(j=>j.status==='completed'))return {step:5,title:'Review and issue the invoice',detail:'The work is complete. Review the saved charges and any tax before issuing the invoice.',action:'work'};
  if(jobs.some(j=>['working','paused'].includes(j.status)))return {step:4,title:'Finish and record the work',detail:'Keep the work record current. When the visit is finished, complete the work and review its invoice.',action:'work'};
+ for(const job of jobs.filter(j=>['approved','scheduled','en_route','arrived'].includes(j.status))){
+  const quote=quotes.find(q=>q.id===job.quote_id&&q.status==='accepted'),version=quote?.quote_versions.find(v=>v.version===(job.approved_version||quote.current_version));
+  if(!version)continue;
+  const visit=request.appointments.find(a=>visitState(a)==='reserved'&&(!a.job_id||a.job_id===job.id));
+  if(visit&&(Date.parse(visit.end_at)-Date.parse(visit.arrival_at||visit.start_at))/60000<version.duration_minutes)return {step:2,title:'Schedule enough time for the agreed work',detail:`The agreed work needs ${version.duration_minutes/60} hours. Choose a visit window that covers it before starting. The current appointment stays booked until its replacement is approved.`,action:'schedule'};
+ }
  if(jobs.some(j=>j.status!=='canceled')&&!request.appointments.some(a=>visitState(a)==='reserved')&&request.appointments.some(a=>a.status==='canceled'))return {step:2,title:'Arrange a replacement appointment',detail:'The earlier visit was canceled. The agreed work and price remain saved.',action:'schedule'};
  if(jobs.some(j=>j.status!=='canceled'))return {step:4,title:'Ready to start work',detail:'The customer’s scope and price approval is recorded. Start the timer when work begins.',action:'work'};
  if(quotes.some(q=>q.status==='sent'))return {step:3,title:'Record the customer’s approval',detail:'Discuss the saved scope and price with the customer. Record their actual agreement before starting work.',action:'work'};

@@ -41,3 +41,11 @@ test('assistant blocks stale or invalid evidence and cannot overlook completed w
  assert.equal(businessBrief(data)[0]?.id,'invoices');
  assert.equal(businessBrief(data)[0]?.section,'Work');
 });
+
+test('an accepted four-hour scope cannot be shown ready inside a two-hour visit',()=>{
+ const visit={id:'visit',request_id:request.id,job_id:job.id,status:'reserved',revision:1,start_at:'2026-10-16T14:00:00Z',arrival_at:'2026-10-16T14:00:00Z',end_at:'2026-10-16T16:00:00Z',expires_at:null,replaces_id:null,customer_response:'confirmed'};
+ const agreed={...quote,status:'accepted',quote_versions:[{...quote.quote_versions[0]!,duration_minutes:240}]};
+ assert.equal(serviceNextStep({...request,appointments:[visit]},[agreed],[job],[]).action,'schedule');
+ assert.match(serviceNextStep({...request,appointments:[visit]},[agreed],[job],[]).detail,/4 hours/);
+ assert.equal(serviceNextStep({...request,appointments:[{...visit,end_at:'2026-10-16T18:00:00Z'}]},[agreed],[job],[]).action,'work');
+});

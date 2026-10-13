@@ -55,6 +55,7 @@ type Job = {
   id: string;
   customer_id: string;
   quote_id: string;
+  approved_version: number;
   status: string;
   revision: number;
 };

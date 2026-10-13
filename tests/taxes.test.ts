@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {salesTax,ratePpm,taxRuleSchema,taxProfileSchema,estimatedInstallments,illinoisEstimate2026,taxCsv,type TaxProfile} from '../apps/web/lib/taxes.ts';
+import {illinoisLaborDraft,salesTax,ratePpm,taxRuleSchema,taxProfileSchema,estimatedInstallments,illinoisEstimate2026,taxCsv,type TaxProfile} from '../apps/web/lib/taxes.ts';
 import {invoiceDocument} from '../apps/web/lib/invoice-document.ts';
 const rule=taxRuleSchema.parse({id:'12345678-1234-4234-8234-123456789abc',label:'Synthetic labor rule',state:'IL',county:'Synthetic County',city:'Synthetic City',jurisdictionEvidence:'Synthetic exact address review',scope:'Synthetic all-taxable labor',effectiveFrom:'2026-01-01',effectiveTo:'2026-12-31',reviewedOn:'2026-10-09',sourceUrl:'https://example.invalid/rule',rounding:'component_half_up',reviewed:true,components:[{kind:'state',label:'State',ratePpm:62500},{kind:'city',label:'City',ratePpm:12500}]});
 const profile:TaxProfile={year:2026,state:'IL',entity:'individual_calendar',federalAnnualPaymentCents:100001,stateAnnualPaymentCents:120000,federalSource:'https://www.irs.gov/pub/irs-pdf/f1040es.pdf',stateSource:'https://tax.illinois.gov/forms.html',reviewedOn:'2026-10-09',reviewNote:'Synthetic reviewed worksheet',rules:[rule]};
@@ -11,3 +11,9 @@ test('Illinois uses reviewed net income and threshold is greater than 1000, not 
 test('profile rejects unreviewed and duplicate rules and credential-bearing links',()=>{assert.throws(()=>taxProfileSchema.parse({...profile,rules:[rule,rule]}));assert.throws(()=>taxRuleSchema.parse({...rule,reviewed:false}));assert.throws(()=>taxRuleSchema.parse({...rule,effectiveTo:'2025-01-01'}));assert.throws(()=>taxRuleSchema.parse({...rule,sourceUrl:'https://name:secret@example.invalid'}));});
 test('CSV preserves exact numeric cents, escapes quotes and neutralizes spreadsheet formulas',()=>{const csv=taxCsv([{name:' =HYPERLINK("bad")',amount:12345,note:'one\ntwo'}],['name','amount','note']);assert.match(csv,/12345/);assert.ok(csv.includes('"\' =HYPERLINK(""bad"")"'));assert.ok(csv.includes('"one\ntwo"'));});
 test('issued invoice tax survives rendering and split payments preserve remaining balance',()=>{const tax=salesTax(10000,rule),snapshot={configuration:{sellerLegalName:'Synthetic Test',invoiceTerms:'Due on receipt'},taxCents:tax.taxCents,tax,recordedWork:[{description:'Approved fixed service amount',chargedCents:10000}]};const d=invoiceDocument({number:1,issued_at:'2026-10-09T12:00:00Z',total_cents:10750,snapshot,payments:[{cents:2500},{cents:3000}]});assert.equal(d.subtotalCents,10000);assert.equal(d.taxCents,750);assert.equal(d.balanceCents,5250);assert.equal(d.paidCents,5500);assert.throws(()=>invoiceDocument({number:1,issued_at:d.issuedAt,total_cents:10000,snapshot,payments:[]}));assert.throws(()=>invoiceDocument({number:1,issued_at:d.issuedAt,total_cents:10750,snapshot:{...snapshot,tax:{components:[]}},payments:[]}));});
+
+test('Illinois labor draft is limited and cannot itself pass as a reviewed rule',()=>{
+ const draft=illinoisLaborDraft('IL',2026);assert.ok(draft);assert.equal(draft.component.ratePpm,0);
+ assert.match(draft.scope,/No tangible personal property/);assert.equal(illinoisLaborDraft('GA',2026),null);assert.equal(illinoisLaborDraft('IL',2027),null);
+ assert.throws(()=>taxRuleSchema.parse(draft));
+});
