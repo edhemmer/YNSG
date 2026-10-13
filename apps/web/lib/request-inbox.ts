@@ -1,8 +1,8 @@
 export type Submission={name:string;phone:string;email:string;street:string;city:string;description?:string;preferredTime?:string;communityRate?:string;service?:string;task?:string;services?:{service:string;task:string}[]};
-export type Visit={id:string;request_id:string;status:string;revision:number;start_at:string;end_at:string;arrival_at:string;expires_at:string|null;replaces_id:string|null;customer_response:string};
+export type Visit={id:string;request_id:string;job_id?:string|null;status:string;revision:number;start_at:string;end_at:string;arrival_at:string;expires_at:string|null;replaces_id:string|null;customer_response:string};
 export type InboxRequest={id:string;status:string;revision:number;created_at:string;original_submission:Submission;appointments:Visit[]};
 export type LinkedQuote={id:string;request_id:string;status:string;current_version:number;quote_versions:{version:number;scope:string;labor_cents:number;duration_minutes:number}[]};
-export type LinkedJob={id:string;quote_id:string;status:string;revision:number};
+export type LinkedJob={id:string;quote_id:string;approved_version?:number;status:string;revision:number};
 export type LinkedInvoice={id:string;job_id:string;number:number;total_cents:number;payments:{cents:number}[]};
 export type InboxData={requests:InboxRequest[];total:number;needsReview:number;page:number;hasMore:boolean;checkedAt:string;quotes:LinkedQuote[];jobs:LinkedJob[];invoices:LinkedInvoice[];preferences:{id:string;request_id:string;preferred_local_start:string|null;note:string;timezone:string}[]};
 export const requestTasks=(r:Submission)=>r.services?.length?r.services:[{service:r.service||'Service request',task:r.task||'Details to review'}];

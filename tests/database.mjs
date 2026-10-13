@@ -15,6 +15,8 @@ try {
  for(const f of (await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')).sort())await db.exec(await readFile(`supabase/migrations/${f}`,'utf8'));
  const foundation=await readFile('tests/foundation.sql','utf8');
  await db.exec(foundation);
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/operations-health.sql','utf8'));
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/private-owner-api.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/commercial.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/scheduler.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/google.sql','utf8'));
@@ -48,6 +50,7 @@ try {
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/licensed-brand.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/owner-cancellation.sql','utf8'));
  const booking=(await readFile('tests/independent-calendar.sql','utf8')).split("set local role service_role;\nselect set_config('request.jwt.claims','{\"role\":\"service_role\"}',true);\nselect public.website_slot_hold('20000000-0000-4000-8000-000000000001','select','70000000-0000-4000-8000-000000000006'")[0];
+ await db.exec(foundation.split('set local role service_role;')[0]+booking+await readFile('tests/approved-work-window.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+booking+await readFile('tests/service-lifecycle.sql','utf8'));
  console.log('PASS: empty-schema migrations plus foundation, commercial, scheduling, Google, owner setup, operations, availability, reviewed scheduling, customer actions and mail dispatch PostgreSQL assertions (PGlite). Live auth, provider delivery, and multi-connection races require separate evidence.');
 }catch(error){console.error('Database check failed:',error.message, '\nContext:',error.where??'none');process.exitCode=1;}finally{await db.close();}

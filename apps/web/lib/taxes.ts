@@ -5,6 +5,7 @@ export const taxSources={
  selfEmployment:'https://www.irs.gov/businesses/small-businesses-self-employed/self-employment-tax-social-security-and-medicare-taxes',
  illinois:'https://tax.illinois.gov/content/dam/soi/en/web/tax/forms/incometax/documents/currentyear/individual/il-1040-es.pdf',
  illinoisPayment:'https://mytax.illinois.gov/',
+ illinoisLabor:'https://tax.illinois.gov/questionsandanswers/answer.129.html',
  illinoisSales:'https://tax.illinois.gov/research/publications/pubs/overview-of-service-occupation-tax.html',
  illinoisRates:'https://tax.illinois.gov/research/taxrates.html',
  illinoisFiling:'https://tax.illinois.gov/forms/sales/salesandusetax/st-1-instructions.html',
@@ -59,4 +60,13 @@ export function taxCsv(rows:Record<string,string|number|null>[],columns:string[]
  const cell=(v:string|number|null|undefined)=>{if(typeof v==='number'){if(!Number.isSafeInteger(v))throw Error('INVALID_EXPORT');return String(v);}
  const s=v??'';return '"'+(/^[\s]*[=+@\-]/.test(s)?"'"+s:s).replaceAll('"','""')+'"';};
  return '\uFEFF'+[columns.map(cell).join(','),...rows.map(row=>columns.map(k=>cell(row[k])).join(','))].join('\r\n')+'\r\n';
+}
+
+// An unreviewed form aid, not an approved rule or automatic tax calculation.
+export function illinoisLaborDraft(state:string,year:number){
+ if(state!=='IL'||year!==2026)return null;
+ return {label:'Illinois labor only — no property transferred',state:'IL',
+ scope:'Separately billed labor only. No tangible personal property is sold or transferred by the business. Customer pays suppliers directly. Excludes materials, mixed invoices and special taxable services.',
+ sourceUrl:taxSources.illinoisLabor,effectiveFrom:'2026-01-01',effectiveTo:'2026-12-31',
+ component:{kind:'state',label:'Illinois non-taxable labor',ratePpm:0}} as const;
 }
