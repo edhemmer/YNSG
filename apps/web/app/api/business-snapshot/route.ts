@@ -30,11 +30,13 @@ export async function GET(request:Request){
    db.from('jobs').select('id,invoices(id)',{count:'exact',head:true}).eq('organization_id',org).eq('status','completed').is('invoices','null'),
    count('jobs').in('status',['approved','scheduled','en_route','arrived']),
   ];
-  const [counts,finance,email,connections,transport]=await Promise.all([Promise.all(calls),db.rpc('finance_activity',{p_org:org,p_from:from,p_to:to}),db.rpc('mail_delivery_status',{p_org:org}),db.from('integration_connections').select('provider,status').eq('organization_id',org),mailTransport(org)]);
+  const [counts,finance,email,connections,transport,workSchedule]=await Promise.all([Promise.all(calls),db.rpc('finance_activity',{p_org:org,p_from:from,p_to:to}),db.rpc('mail_delivery_status',{p_org:org}),db.from('integration_connections').select('provider,status').eq('organization_id',org),mailTransport(org),db.rpc('job_schedule_readiness',{p_org:org})]);
+  if(workSchedule.error||!workSchedule.data)throw Error('FAILED');
+  const scheduleCounts=z.object({ready:z.number().int().nonnegative(),needsReview:z.number().int().nonnegative()}).parse(workSchedule.data);
   if(counts.some(r=>r.error||!Number.isSafeInteger(r.count)||r.count!<0)||finance.error||!finance.data||email.error||connections.error)throw Error('FAILED');
   const nonnegative=z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
   const money=z.object({cashReceivedCents:nonnegative,expenseCents:nonnegative,cashAfterExpensesCents:z.number().int().min(-Number.MAX_SAFE_INTEGER).max(Number.MAX_SAFE_INTEGER),issuedInvoicesCents:nonnegative,outstandingAsOfEndCents:nonnegative,paymentCount:nonnegative,expenseCount:nonnegative}).parse(finance.data);
   const keys=['customers','requestsInPeriod','requestsToReview','upcomingVisits','proposals','working','paused','completed','quotes','messagesToCheck','rescheduleRequests','deliveryExceptions','jobsNeedingInvoice','jobsReadyToStart'];
-  return NextResponse.json({checkedAt:new Date().toISOString(),from,to,timezone:company.data.timezone,finance:money,counts:Object.fromEntries(keys.map((k,i)=>[k,counts[i].count])),email:{enabled:email.data.enabled===true,automaticSending:mailDeliveryReady(email.data.enabled===true,transport,process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true')},connections:connections.data},{headers:{'Cache-Control':'private, no-store'}});
+  return NextResponse.json({checkedAt:new Date().toISOString(),from,to,timezone:company.data.timezone,finance:money,counts:{...Object.fromEntries(keys.map((k,i)=>[k,counts[i].count])),jobsReadyToStart:scheduleCounts.ready,jobsNeedingSchedule:scheduleCounts.needsReview},email:{enabled:email.data.enabled===true,automaticSending:mailDeliveryReady(email.data.enabled===true,transport,process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true')},connections:connections.data},{headers:{'Cache-Control':'private, no-store'}});
  }catch(e){return failure(e)}
 }
