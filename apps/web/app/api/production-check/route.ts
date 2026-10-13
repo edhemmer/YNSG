@@ -9,6 +9,7 @@ import {productionSamples,type SampleSuite} from '../../../lib/production-sample
 import {invoicePdf} from '../../../lib/invoice-pdf';
 import {stripeConfigured,merchantFor} from '../../../lib/stripe-server';
 import {paymentReadiness} from '../../../lib/payment-readiness';
+import {stripeSetup} from '../../../lib/stripe-setup';
 export const runtime='nodejs';export const maxDuration=60;
 const headers={'Cache-Control':'private, no-store'};
 const json=(data:unknown,status=200)=>NextResponse.json(data,{status,headers});
@@ -25,6 +26,7 @@ export async function GET(request:Request){try{
  const c=await context(org);
  if(q.get('check')==='payments')return json({
   ...await paymentReadiness(stripeConfigured(org),()=>merchantFor(org)),
+  configurationChecks:stripeSetup(org,process.env).checks,
   workspaceOriginMatches:new URL(request.url).origin===process.env.APP_ORIGIN,
  });
  let record;

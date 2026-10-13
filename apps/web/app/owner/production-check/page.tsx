@@ -15,7 +15,9 @@ export default function ProductionCheck(){
   try{
    const r=await sessionFetch('/api/production-check?'+new URLSearchParams({organization,check:'payments'}));
    const d=await r.json();if(!r.ok)throw Error('verification unavailable');
-   if(mounted.current)setPaymentStatus((d.workspaceOriginMatches?'Workspace address verified. ':'Workspace address does not match the configured sign-in and save address. ')+(d.status==='merchant_verified'?'Live card merchant verified. A signed-webhook and actual-payment check are still required.':d.status==='connection_required'?'The live card connection is not configured.':'The card merchant could not be verified.'));
+   const labels:Record<string,string>={apiKey:'Payment credential',webhook:'Payment notification signing',merchant:'Business payment account',workspace:'Workspace connection'};
+   const setup=Object.entries(labels).map(([key,label])=>`${label}: ${d.configurationChecks?.[key]==='configured'?'configured':d.configurationChecks?.[key]==='unassigned'?'not assigned to this business':d.configurationChecks?.[key]==='invalid'?'needs correction':'not configured'}.`).join(' ');
+   if(mounted.current)setPaymentStatus((d.workspaceOriginMatches?'Workspace address verified. ':'Workspace address does not match the configured sign-in and save address. ')+(d.status==='merchant_verified'?'Live card merchant verified. A signed-webhook and actual-payment check are still required.':d.status==='connection_required'?'The live card connection is not configured. '+setup:'The card merchant could not be verified.'));
   }catch{if(mounted.current)setPaymentStatus('Connection verification is unavailable. No charge was created.');}
   finally{if(mounted.current)setCheckingPayment(false);}
  }

@@ -1,10 +1,11 @@
 import {createClient} from '@supabase/supabase-js';
 import {z} from 'zod';
 import {merchantMap,STRIPE_API_VERSION,stripeSession,stripeFacts} from './stripe-core.ts';
+import {liveStripeKey,stripeSetup} from './stripe-setup.ts';
 type Merchant={organization:string;accountId:string;connected:boolean};
-export function stripeConfigured(org:string){try{return Boolean(process.env.STRIPE_SECRET_KEY?.startsWith('sk_live_')&&process.env.STRIPE_WEBHOOK_SECRET?.startsWith('whsec_')&&merchantMap(process.env.STRIPE_MERCHANTS_JSON)[org]&&process.env.APP_ORIGIN&&process.env.SUPABASE_SERVICE_ROLE_KEY);}catch{return false;}}
+export function stripeConfigured(org:string){return stripeSetup(org,process.env).configured;}
 export async function stripeRequest(path:string,merchant?:Merchant,body?:URLSearchParams,key?:string):Promise<unknown>{
- const secret=process.env.STRIPE_SECRET_KEY;if(!secret?.startsWith('sk_live_'))throw Error('STRIPE_SETUP_REQUIRED');
+ const secret=process.env.STRIPE_SECRET_KEY;if(!liveStripeKey(secret))throw Error('STRIPE_SETUP_REQUIRED');
  if(!path.startsWith('/v1/')||path.includes('://'))throw Error('VALIDATION');
  const r=await fetch('https://api.stripe.com'+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+secret,'Stripe-Version':STRIPE_API_VERSION,...(merchant?.connected?{'Stripe-Account':merchant.accountId}:{}),...(body?{'Content-Type':'application/x-www-form-urlencoded'}:{}),...(key?{'Idempotency-Key':key}:{})},...(body?{body}:{}),cache:'no-store',signal:AbortSignal.timeout(15000)});
  if(!r.ok)throw Error([400,401,403,404].includes(r.status)?'STRIPE_REQUEST_REJECTED':'STRIPE_PROVIDER_UNAVAILABLE');return r.json();
