@@ -31,7 +31,7 @@ test('no-time weekly request requires a durable CRM receipt rather than email-on
  t.after(()=>{for(const [k,v] of Object.entries(prior)){if(v===undefined)delete process.env[k];else process.env[k]=v;}});
  const id='11111111-1111-4111-8111-111111111111';let message;
  t.mock.method(globalThis,'fetch',async(url,options)=>{if(url.pathname==='/api/website-guard')return Response.json({allowed:true});message=JSON.parse(options.body);return Response.json({ok:true,id});});
- const res=response();await handler({method:'POST',headers:{host:'synthetic.invalid'},socket:{remoteAddress:'127.0.0.1'},body:{...base,requestKey:id,appointmentSelection:{mode:'weekly',start:null}}},res);
+ const res=response();await handler({method:'POST',headers:{host:'synthetic.invalid','x-vercel-forwarded-for':'127.0.0.1'},socket:{remoteAddress:'127.0.0.1'},body:{...base,requestKey:id,appointmentSelection:{mode:'weekly',start:null}}},res);
  assert.equal(res.code,200);assert.equal(res.payload.saved,true);assert.ok(message.data.preferredTime.includes('Weekly visits for 12 months'));assert.equal(message.data.email,base.email);assert.equal(message.selection,null);
 });
 
