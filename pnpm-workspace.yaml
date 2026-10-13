@@ -1,5 +1,7 @@
 packages:
   - apps/*
+overrides:
+  source-map-js: 1.2.2
 allowBuilds:
   esbuild@0.25.12: true
 minimumReleaseAgeExclude:

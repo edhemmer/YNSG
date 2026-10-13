@@ -77,6 +77,6 @@ export default function MonthCalendar({organization,timezone,revision,onOpen}:{o
    </article>)}
    {blocks(day).map(b=><article className="calendar-visit calendar-blocked" key={b.id}><h4>Blocked time</h4><p>{new Date(b.startsAt).toLocaleString('en-US',{timeZone:timezone})} – {new Date(b.endsAt).toLocaleString('en-US',{timeZone:timezone})}</p><p>Customers see only that this time is unavailable.</p></article>)}
   </div>
-  {data&&<p className="tiny">Updated at {time(data.checkedAt)}. Review changes made in Google before updating an appointment. Personal calendar events are not included here.</p>}
+  {data&&<p className="tiny">Updated at {time(data.checkedAt)}. Make appointment changes and block personal time in the CRM. Optional calendar subscriptions may refresh later.</p>}
  </section>;
 }
