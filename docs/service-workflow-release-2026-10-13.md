@@ -32,6 +32,9 @@ This release repairs the customer and owner workflow. Stripe setup, purchases an
 4. **Actual device/accessibility review:** mobile keyboard, zoom, focus recovery and VoiceOver/TalkBack on physical devices; fresh customer account/recovery flow.
 5. **Local search accounts:** verify Google Business Profile ownership and Search Console/sitemap submission. SEO metadata is not a ranking or indexing guarantee.
 6. **Repeat visits:** weekly preference and first appointment are supported; the recurring preview does not reserve a 12-month series. Automated recurring reservations remain unfinished.
-7. **Deferred scope:** Stripe settlement, native iOS packaging and complete franchise operations are not certified by this repair.
+7. **Account security and hosting:** leaked-password protection is disabled; confirm the applicable Supabase plan/settings and enable it. Confirm Vercel commercial hosting eligibility. Existing advisor findings for guarded owner RPCs, private default-deny sign-in logs and provider-owned `pg_net` remain documented in the prior audit.
+8. **Deferred scope:** Stripe settlement, native iOS packaging and complete franchise operations are not certified by this repair.
 
 The earlier launch audit remains historical evidence. This release updates the non-Stripe service workflow; it does not declare every launch gate passed.
+
+React interaction tests run in an isolated test-mode subprocess, including when Vercel inherits production mode. The Next.js application still compiles and runs in production mode.
