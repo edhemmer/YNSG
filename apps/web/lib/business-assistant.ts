@@ -6,7 +6,7 @@ const quantity=(n:number,single:string,plural=single+'s')=>`${n.toLocaleString('
 export function businessBrief(data:BusinessSnapshot):BusinessTask[]{
  const c=data.counts,tasks:BusinessTask[]=[];
  const add=(id:string,title:string,detail:string,label:string,section:string)=>tasks.push({id,title,detail,label,section});
- if(c.deliveryExceptions) add('exceptions',`${quantity(c.deliveryExceptions,'automation exception')}`,'A failed or uncertain calendar/email action needs attention. Review its recorded outcome before retrying.','Resolve delivery issues','Activity');
+ if(c.deliveryExceptions) add('exceptions',`${quantity(c.deliveryExceptions,'email delivery issue')}`,'A failed or uncertain email needs attention. Review its recorded outcome before retrying.','Resolve delivery issues','Activity');
  if(c.rescheduleRequests) add('changes',`${quantity(c.rescheduleRequests,'customer time change')}`,'Keep the current appointment until you approve its replacement.','Review time changes','Requests');
  if(c.requestsToReview) add('requests',`${quantity(c.requestsToReview,'request')} to review`,'Check services and proposed time, then approve directly when the details are right.','Review requests','Requests');
  if(c.proposals) add('proposals',`${quantity(c.proposals,'proposed time')} awaiting a decision`,'Accept the saved proposal or choose another time in Review.','Review proposed times','Requests');
@@ -16,7 +16,7 @@ export function businessBrief(data:BusinessSnapshot):BusinessTask[]{
  if(c.quotes) add('quotes',`${quantity(c.quotes,'estimate')} awaiting agreement`,'Record the customer’s actual approval of the scope and price. A saved estimate does not prove it was emailed or is overdue.','Review estimates','Work');
  if(c.upcomingVisits) add('routes',`${quantity(c.upcomingVisits,'confirmed visit')} ahead`,'Choose a day to see its stops and travel gaps. Check estimates before departure.','Open day routes','Today');
  if(data.finance.outstandingAsOfEndCents>0) add('payments',`${(data.finance.outstandingAsOfEndCents/100).toLocaleString('en-US',{style:'currency',currency:'USD'})} unpaid`,'This is the recorded balance through today. Check payments and invoice terms before following up.','Review invoices','Money');
- if(c.messagesToCheck&&!c.deliveryExceptions) add('automation',`${quantity(c.messagesToCheck,'automation item')} due`,'Review pending work and delivery status. Queued does not mean delivered.','Open activity','Activity');
+ if(c.messagesToCheck&&!c.deliveryExceptions) add('automation',`${quantity(c.messagesToCheck,'email')} to check`,'Review due emails and their delivery results. Queued does not mean delivered.','Open activity','Activity');
  return tasks;
 }
 

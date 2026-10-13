@@ -3,6 +3,7 @@ import {z} from 'zod';
 import {authenticated,failure} from '../../../lib/session';
 import {snapshotWindow} from '../../../lib/business-snapshot';
 import {mailTransport} from '../../../lib/transactional-mail';
+import {mailAttentionKinds,mailAttentionDueFilter} from '../../../lib/notification-attention';
 import {mailDeliveryReady} from '../../../lib/mail-delivery-readiness';
 export const dynamic='force-dynamic';
 export async function GET(request:Request){
@@ -15,6 +16,7 @@ export async function GET(request:Request){
   if(company.error)throw Error('FAILED');
   const window=snapshotWindow(from,to,company.data.timezone),now=new Date().toISOString();
   const count=(table:string)=>db.from(table).select('id',{count:'exact',head:true}).eq('organization_id',org);
+  const emailCount=()=>count('outbox').in('kind',mailAttentionKinds).or(mailAttentionDueFilter(now));
   const calls=[
    count('customers'),count('service_requests').gte('created_at',window.start).lt('created_at',window.end),
    count('service_requests').in('status',['submitted','reviewing']),
@@ -22,9 +24,9 @@ export async function GET(request:Request){
    count('appointments').eq('status','proposal').gt('expires_at',now),
    count('jobs').eq('status','working'),count('jobs').eq('status','paused'),count('jobs').eq('status','completed'),
    count('quotes').eq('status','sent'),
-   count('outbox').in('status',['pending','failed','leased','sending','needs_reconciliation','dead_letter']).lte('next_attempt_at',now),
+   emailCount().in('status',['pending','failed','leased','sending','needs_reconciliation','dead_letter']),
    count('customer_schedule_preferences').eq('status','pending'),
-   count('outbox').in('status',['failed','needs_reconciliation','dead_letter']),
+   emailCount().in('status',['failed','needs_reconciliation','dead_letter']),
    db.from('jobs').select('id,invoices(id)',{count:'exact',head:true}).eq('organization_id',org).eq('status','completed').is('invoices','null'),
    count('jobs').in('status',['approved','scheduled','en_route','arrived']),
   ];

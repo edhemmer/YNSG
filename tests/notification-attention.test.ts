@@ -1,5 +1,12 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {notificationAttention,type AttentionRecord} from '../apps/web/lib/notification-attention.ts';
+import test from 'node:test';import assert from 'node:assert/strict';import {notificationAttention,notificationName,mailAttentionKinds,type AttentionRecord} from '../apps/web/lib/notification-attention.ts';
 const row:AttentionRecord={id:'test',kind:'invoice.delivery',object_id:'test',status:'needs_reconciliation',created_at:'2026-10-03T12:00:00Z',next_attempt_at:'2026-10-03T12:00:00Z',lease_until:'2026-10-03T12:02:00Z',attempts:1};
 test('uncertain send never recommends automatic retry even if delivery paused',()=>{const r=notificationAttention(row,false,Date.parse('2026-10-03T13:00:00Z'));assert.ok(r.action.includes('Automatic retries are paused'));assert.ok(r.action.includes('saved delivery result'))});
 test('expired sending lease differs from expired preparation lease',()=>{const now=Date.parse('2026-10-03T13:00:00Z');assert.ok(notificationAttention({...row,status:'sending'},true,now).action.includes('Wait until the result is known'));assert.ok(notificationAttention({...row,status:'leased'},true,now).action.includes('before sending'))});
 test('paused delivery gives setup action instead of pretending worker will send',()=>{assert.ok(notificationAttention({...row,status:'pending'},false,Date.now()).action.includes('Verify Business email'));assert.ok(notificationAttention({...row,status:'failed'},true,Date.now()).action.includes('may retry'))});
+
+test('cancellation and request receipts stay visible to owners while optional calendar exports do not become email alerts',()=>{
+ for(const kind of ['appointment.canceled','request.customer_receipt','invoice.delivery'])assert.ok(mailAttentionKinds.includes(kind));
+ for(const kind of ['calendar.upsert','calendar.remove'])assert.equal(mailAttentionKinds.includes(kind),false);
+ assert.equal(notificationName('appointment.canceled'),'Appointment cancellation');
+ assert.match(notificationAttention({...row,kind:'appointment.canceled',status:'needs_reconciliation'},true,Date.now()).action,/Automatic retries are paused/);
+});

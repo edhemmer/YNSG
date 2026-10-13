@@ -6,19 +6,19 @@ This release repairs the customer and owner workflow. Stripe setup, purchases an
 
 | Requirement | Implementation and evidence | Remaining verification |
 | --- | --- | --- |
-| Easy appointment selection | Next available dates and times appear together; full month is optional; selection shows its actual expiry in Central Time. Existing conflict, hold and uncertain-submission protections remain. | Fresh saved website request and actual owner confirmation. |
-| Owner understands the next step | A request opens its complete service workflow: appointment, agreement, actual work, invoice and received payment. Each step uses saved records; a later financial record does not invent an earlier appointment. | Owner walkthrough on a disposable, explicitly approved live request. |
-| Owner can cancel a visit | Revision-checked, owner-only cancellation retains the request and financial history, releases reservations, revokes earlier links and stops superseded reminders. One cancellation message is queued. Started/completed work blocks cancellation. | Fresh live cancellation and recipient inbox confirmation. |
-| Invoice drafting works after saving | Exact unchanged reviewed charges survive the owner's saved-revision refresh. Changed charges require review. Issuance waits for confirmed readiness and the new revision. | Real reviewed tax rules and one live disposable invoice. |
+| Easy appointment selection | Next available dates and times appear together; full month is optional; selection shows its actual expiry in Central Time. Existing conflict, hold and uncertain-submission protections remain. | Approved QA submission and confirmation passed; physical-device review remains open. |
+| Owner understands the next step | A request opens its complete service workflow: appointment, agreement, actual work, invoice and received payment. Each step uses saved records; a later financial record does not invent an earlier appointment. | Booking/cancellation walkthrough passed; live work, invoice and payment review remains open. |
+| Owner can cancel a visit | Revision-checked, owner-only cancellation retains the request and financial history, releases reservations, revokes earlier links and stops superseded reminders. One cancellation message is queued. Started/completed work blocks cancellation. | Approved live cancellation and Gmail inbox receipt passed. |
+| Invoice drafting works after saving | Exact unchanged reviewed charges survive the owner's saved-revision refresh. Changed charges require review. Issuance waits for confirmed readiness and the new revision. | Owner tax review and one legitimate issued invoice. |
 | Cash/Zelle receipts cannot silently duplicate | Received-money confirmation, balance checks and company-local time. An uncertain response locks edits; checking the saved result replays the identical command key and body. | Owner walkthrough and actual receipt reconciliation. No funds moved in this release. |
-| Email status is honest | Invoice email/PDF is available in the workflow. Queued, provider-accepted and uncertain outcomes have distinct wording. Repeated requests create one logical message. | Fresh invoice, cancellation and reminder inbox receipts; provider acceptance alone is not inbox delivery. |
+| Email status is honest | Invoice email/PDF is available in the workflow. Queued, provider-accepted and uncertain outcomes have distinct wording. Repeated requests create one logical message. | Request receipt, owner alert, confirmation and cancellation were verified in Gmail. Fresh invoice and reminder inbox receipts remain open. |
 | Assistant guidance follows unfinished work | Active jobs, completed jobs missing invoices, saved estimates awaiting agreement and unpaid balances are covered. Stale/invalid evidence requires refresh. Human approval remains mandatory. | Observe guidance with a disposable live lifecycle. These are record-based rules, not a newly connected autonomous AI model. |
 | Accessible controls | Large controls and readable text; semantic native forms, labels, visible next steps and keyboard focus. Calendar remains optional, with phone and arrange-a-time alternatives. | Real iPhone/Android, screen-reader and elderly/disabled-user testing; no accessibility certification claimed. |
 | Release gates | Both website and CRM builds run syntax, root/app types, application tests, PostgreSQL migration/fixture tests and the production dependency scan. | Actual production build and custom-domain checks recorded separately. |
 
 ## Verified locally
 
-- 275 application tests passed, including interactive React tests for invoice save → issue and an ambiguous partial payment response.
+- 276 application tests passed, including interactive React tests for invoice save → issue and an ambiguous partial payment response.
 - Empty-schema migrations and PostgreSQL assertions passed. The continuous lifecycle uses canonical commands for website submission → owner approval → quote agreement → start/pause/resume → work record → completion → invoice → $50 cash + $70 Zelle. Retries leave one invoice, two receipts, a zero balance and a balanced journal.
 - Cancellation tests cover wrong tenant, stale revision, changed retry, capacity release, retained request, stopped reminders, one logical notice, anonymous denial and simulated dispatch.
 - Full website and Next.js production builds passed; production dependency scan found no known vulnerabilities.
@@ -27,7 +27,7 @@ This release repairs the customer and owner workflow. Stripe setup, purchases an
 ## Still required before an unrestricted go-live claim
 
 1. **Tax review:** the hosted business's saved tax treatment is unreviewed. The owner must configure reviewed tax rules and review the applicable customer-approved total. This release does not fabricate fiscal approval.
-2. **Approved disposable live lifecycle:** submission, owner confirmation, reschedule/cancel, invoice/PDF delivery, owner receipt-entry walkthrough, and inbox checks. Synthetic receipts belong in an isolated test environment; live receipts must reflect actual money received. Earlier automatic approval review blocked a durable request/email test; no alternate submission path was used.
+2. **Approved disposable live lifecycle:** submission, owner confirmation, reschedule/cancel, invoice/PDF delivery, owner receipt-entry walkthrough, and inbox checks. Synthetic receipts belong in an isolated test environment; live receipts must reflect actual money received. The explicitly approved booking/cancellation test and its four inbox receipts passed on October 13. No alternate submission path was used.
 3. **Independent operations:** prove off-site restore, independent failure alerts, worker outage recovery and multi-connection booking races. Historic successful workers do not prove recovery.
 4. **Actual device/accessibility review:** mobile keyboard, zoom, focus recovery and VoiceOver/TalkBack on physical devices; fresh customer account/recovery flow.
 5. **Local search accounts:** verify Google Business Profile ownership and Search Console/sitemap submission. SEO metadata is not a ranking or indexing guarantee.
@@ -41,6 +41,12 @@ React interaction tests run in an isolated test-mode subprocess, including when 
 
 ## Safe live checks during release
 
-The public calendar returned real open dates/times, created a temporary selection with an expiry deadline, and released it through “Arrange a time with me instead.” No request was submitted and no test email was sent. The live owner sign-in remains valid. Both background workers had nine completed successful HTTP responses in the ten-minute check; the latest requests were still in flight. This is worker execution evidence, not inbox delivery.
+The public calendar returned real open dates/times, created a temporary selection with an expiry deadline, and released it through “Arrange a time with me instead.” At that earlier stage, no request was submitted and no test email was sent. The subsequently approved live QA result is recorded below. The live owner sign-in remains valid. Both background workers had nine completed successful HTTP responses in the ten-minute check; the latest requests were still in flight. This is worker execution evidence, not inbox delivery.
 
 Hosted migration names were checked. The cancellation migration is installed and denies anonymous/service-role execution; authenticated execution still requires an owner/admin membership inside the function. Hosted and repository migration timestamps are historically different: reconcile the deployment history before using a blind CLI database push. Do not reapply migrations that are already installed by name.
+
+## Approved live QA follow-through
+
+Ed explicitly approved one “QA TEST — DO NOT VISIT” request for October 20, 2026 at 9 AM Central. Website submission, owner quick approval, cancellation, capacity release and all four expected Gmail inbox receipts passed. No quote, job, invoice, payment or service was authorized or created. The marked test request is retained; cancellation stops the appointment and its reminders without deleting request history. See [the live booking evidence](evidence/live-booking-cancellation-2026-10-13.md).
+
+The walkthrough exposed a mismatch between assistant attention and Activity: optional Google export jobs were counted as email attention. The routes now share one email-kind and due-status policy; cancellation and request-receipt failures stay visible. Managed email readiness uses the approved transport instead of requiring the legacy Gmail flag. These guidance changes do not modify records or send email.

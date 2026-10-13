@@ -7,7 +7,7 @@ const snapshot=(counts:Partial<BusinessSnapshot['counts']>={},balance=0):Busines
 test('delivery exceptions and customer changes come first; routes open the day route',()=>{
  const tasks=businessBrief(snapshot({deliveryExceptions:1,rescheduleRequests:2,requestsToReview:9,proposals:3,upcomingVisits:4,working:1},12000));
  assert.deepEqual(tasks.map(t=>t.id),['exceptions','changes','requests','proposals','work','routes','payments']);
- assert.match(tasks[0]!.title,/1 automation exception$/);assert.match(tasks[2]!.title,/9 requests/);
+ assert.match(tasks[0]!.title,/1 email delivery issue$/);assert.match(tasks[2]!.title,/9 requests/);
  assert.equal(tasks.find(t=>t.id==='routes')!.section,'Today');
  assert.match(tasks.find(t=>t.id==='payments')!.title,/\$120\.00/);
 });

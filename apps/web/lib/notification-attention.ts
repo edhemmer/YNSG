@@ -10,8 +10,15 @@ const messageNames: Record<string, string> = {
  'appointment.owner_reminder': 'Your appointment reminder',
  'appointment.declined_time': 'Requested time declined',
  'appointment.declined_service': 'Appointment declined',
+ 'appointment.canceled': 'Appointment cancellation',
  'appointment.reschedule_requested': 'Rescheduling request',
 };
+export const mailAttentionKinds=Object.keys(messageNames);
+// The dashboard and Activity must describe the same email queue. Optional
+// calendar projections are tracked by calendar connections, not this queue.
+export function mailAttentionDueFilter(now:string){
+ return `and(kind.neq.invoice.paid,or(status.in.(needs_reconciliation,dead_letter),next_attempt_at.lte.${now})),and(kind.eq.invoice.paid,payload->>schemaVersion.eq.2,or(status.in.(needs_reconciliation,dead_letter),next_attempt_at.lte.${now}))`;
+}
 export function notificationName(kind: string): string {
  return Object.hasOwn(messageNames, kind) ? messageNames[kind]! : 'Business notification';
 }
