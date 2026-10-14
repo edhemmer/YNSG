@@ -76,10 +76,11 @@ if(form){
   for(const [service,jobs] of Object.entries(tasks)){
     const group=document.createElement('details');
     group.className='request-category';
+    group.open=true;
     const heading=document.createElement('summary');
     const title=document.createElement('strong');title.textContent=names[service];
     const count=document.createElement('span');count.className='category-count';count.textContent='';
-    const action=document.createElement('span');action.className='category-action';action.textContent='View jobs';
+    const action=document.createElement('span');action.className='category-action';action.textContent='Hide jobs';
     heading.append(title,count,action);
     group.addEventListener('toggle',()=>{action.textContent=group.open?'Hide jobs':'View jobs';});
     const choices=document.createElement('div');choices.className='request-category-jobs';
