@@ -162,3 +162,24 @@ test('uncertain mobile completion freezes edits and replays the exact command wi
   assert.equal(attempts.length,2);assert.equal(attempts[0],attempts[1]);assert.equal(synced,1);
  }finally{await act(async()=>root.unmount());}
 });
+test('phone registration is opt-in and an uncertain save replays one exact reviewed preference body',async()=>{
+ const {default:MobileNotifications}=await import('../apps/web/app/mobile-notifications.tsx');let bridgeMessage=null;const writes=[];
+ window.ReactNativeWebView={postMessage:value=>{bridgeMessage=JSON.parse(value);}};
+ globalThis.fetch=async(path,init)=>{
+  if(!init?.method)return response({devices:[],delivery:{pending:0,accepted:0,needsAttention:0},configured:true,environment:'sandbox',identity:org});
+  assert.equal(path,'/api/mobile-notifications');writes.push(init.body);
+  if(writes.length===1)throw Error('Synthetic network failure after save');
+  return response({result:{id,revision:1,enabled:true}});
+ };
+ const root=createRoot(node);
+ try{
+  await act(async()=>{root.render(React.createElement(MobileNotifications,{organization:org,timezone:'America/Chicago',onBusy:quiet}));await tick();});
+  assert.equal(bridgeMessage,null,'permission is never requested on load');
+  await act(async()=>{node.querySelector('form').requestSubmit();await tick();});
+  assert.equal(bridgeMessage.type,'ynsg.push.register');assert.ok(bridgeMessage.nonce);
+  await act(async()=>{window.dispatchEvent(new dom.window.CustomEvent('ynsg-native-reply',{detail:{type:'ynsg.push.reply',nonce:bridgeMessage.nonce,device:id,token:'a'.repeat(64),environment:'sandbox'}}));await tick();});
+  assert.ok(node.querySelector('form > fieldset').disabled);assert.equal(writes.length,1);
+  await act(async()=>{button('Check saved alert settings').click();await tick();});
+  assert.equal(writes.length,2);assert.equal(writes[0],writes[1]);const value=JSON.parse(writes[0]);assert.equal(value.reviewed,true);assert.equal(value.quietStart,1260);assert.equal(value.quietEnd,420);assert.equal(value.sound,false);
+ }finally{await act(async()=>root.unmount());delete window.ReactNativeWebView;}
+});

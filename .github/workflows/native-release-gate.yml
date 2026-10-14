@@ -1,0 +1,19 @@
+name: YNSG native distribution gate
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-release-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Install isolated native dependency graph
+        run: npm exec --yes pnpm@11.25.0 -- --dir apps/mobile install --frozen-lockfile
+      - name: Block distribution on unpatched native advisories
+        run: npm run verify:mobile
+      - name: Check human, Apple, provider and device release evidence
+        run: node scripts/check-native-readiness.mjs

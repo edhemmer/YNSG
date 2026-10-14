@@ -32,3 +32,22 @@ jobs:
         run: node scripts/verify-postgres.mjs
         env:
           YNSG_TEST_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+  contracts-browser-and-native-foundation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Install locked browser dependencies
+        run: npm exec --yes pnpm@11.25.0 -- install --frozen-lockfile
+      - name: Check contracts, permissions, application tests and browser dependency security
+        run: npm run verify:release
+      - name: Install isolated locked native dependencies
+        run: npm exec --yes pnpm@11.25.0 -- --dir apps/mobile install --frozen-lockfile
+      - name: Verify native types, lint, SDK and iOS JavaScript bundle
+        run: |
+          npm exec --yes pnpm@11.25.0 -- --dir apps/mobile typecheck
+          npm exec --yes pnpm@11.25.0 -- --dir apps/mobile lint
+          EXPO_OFFLINE=1 npm exec --yes pnpm@11.25.0 -- --dir apps/mobile exec expo install --check
+          npm exec --yes pnpm@11.25.0 -- --dir apps/mobile bundle:ios
