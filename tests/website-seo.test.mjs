@@ -13,12 +13,12 @@ test('local metadata uses canonical hosting URLs and real service cities without
   assert.ok(!metadata.schema.includes('licensed')&&!metadata.schema.includes('guaranteed'));
  }
 });
-test('request calendar is visible before contact fields and keeps an optional fallback',async()=>{
+test('customer booking keeps service, time and required details in ordered stages with an explicit arrange-time path',async()=>{
  const html=await readFile(new URL('../site/pages/form.html',import.meta.url),'utf8');
  assert.ok(!html.includes('appointment-disclosure'));
- assert.ok(html.includes('<section class="calendar-all-dates"'));
- assert.ok(!html.includes('<details class="calendar-all-dates"'));
- assert.ok(html.indexOf('id="appointment-days"')<html.indexOf('id="appointment-times"'));
+ assert.ok(html.includes('<details class="calendar-all-dates"'));
+ assert.ok(html.indexOf('id="appointment-quick-dates"')<html.indexOf('id="appointment-days"'));
+ assert.ok(html.indexOf('id="appointment-times"')<html.indexOf('id="appointment-days"'));
  assert.ok(html.indexOf('id="appointment-days"')<html.indexOf('id="name"'));
  assert.ok(html.indexOf('id="appointment-picker"')<html.indexOf('id="name"'));
  assert.ok(html.includes('id="appointment-quick-dates"'));assert.ok(html.includes('Arrange a time with me instead'));

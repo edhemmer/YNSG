@@ -22,6 +22,7 @@ if(form&&picker){
   form.querySelector('#preferredTime').value=current.preferredTime;
   if(disclosureNote)disclosureNote.textContent=selectedStart?`${dateLabel(current.firstDate)} · ${timeLabel(selectedStart)} · awaiting confirmation`:'Optional · or we can arrange a time with you';
   summary.textContent=selectedStart?`Selected: ${dateLabel(current.firstDate)} at ${timeLabel(selectedStart)}. ${held&&Date.parse(held.expiresAt)>Date.now()?`Held until ${shortDate(localDay(Date.parse(held.expiresAt)))} at ${timeLabel(held.expiresAt)} Central Time while you finish the form.`:'The time hold has ended.'} ${mode()==='weekly'?'Only the first visit is held; we’ll review the weekly schedule with you. ':''}We’ll call to confirm the details and appointment.`:'We’ll arrange a time with you after you send your request.';
+  form.dispatchEvent(new CustomEvent('appointment-selection-changed'));
  }
  async function release(key,token=null){
   if(!key)return;
@@ -54,17 +55,17 @@ if(form&&picker){
    const result=await appointmentHold({action:'select',key,clientKey,start:slot.start,token:null,website:form.querySelector('#website').value});
    clearTimeout(expiryTimer);held={...result,key};selectedStart=result.start;
    expiryTimer=setTimeout(expire,Math.max(0,Date.parse(result.expiresAt)-Date.now()));
-   status.textContent='Time selected. Finish the form below and press “Send service request.”';updateSelection();
+   status.textContent='Time selected. Continue to your details.';updateSelection();
   }catch(error){
    // Cancel by selection key even if the response was lost. A late server
    // selection cannot recreate a hold after its cancellation is recorded.
    await release(key);
    const previous=held;clearTimeout(expiryTimer);held=null;selectedStart='';updateSelection();
    if(previous)await release(previous.key,previous.token);
-   status.textContent=error.status===409?'That time is no longer available. Press “Check open times again,” or send your request without a time.':error.status===429?'Please wait a moment before checking another time, or call 770-630-2094.':'We couldn’t hold that time. Press “Check open times again,” or send your request without a time.';
+   status.textContent=error.status===409?'That time is no longer available. Press “Refresh times,” or send your request without a time.':error.status===429?'Please wait a moment before checking another time, or call 770-630-2094.':'We couldn’t hold that time. Press “Refresh times,” or send your request without a time.';
   }finally{
    for(const {element,disabled} of controls)element.disabled=disabled;
-   holding=false;form.dataset.appointmentHolding='false';picker.setAttribute('aria-busy','false');showTimes();
+   holding=false;form.dataset.appointmentHolding='false';picker.setAttribute('aria-busy','false');showTimes();updateSelection();
   }
  }
  function showTimes(){
@@ -98,7 +99,7 @@ if(form&&picker){
  function drawQuickDates(){
   if(!quickDates)return;
   quickDates.replaceChildren();
-  const days=[...new Set(times.map(t=>localDay(Date.parse(t.start))))].sort().slice(0,5);
+  const days=[...new Set(times.map(t=>localDay(Date.parse(t.start))))].sort().slice(0,3);
   for(const day of days){
    const button=document.createElement('button');button.type='button';button.className='appointment-quick-date';button.textContent=shortDate(day);button.disabled=holding;
    button.setAttribute('aria-label',dateLabel(day)+', '+times.filter(t=>localDay(Date.parse(t.start))===day).length+' open times');button.setAttribute('aria-pressed',String(day===selectedDate));
@@ -123,8 +124,8 @@ if(form&&picker){
    const days=[...new Set(times.map(t=>localDay(Date.parse(t.start))))].sort();
    selectedDate=days.includes(preserveDate)?preserveDate:(days[0]||'');if(selectedDate)month=selectedDate.slice(0,7);
    drawQuickDates();showTimes();updateSelection();
-   status.textContent=times.length?`Next available dates are shown above. Choose a time for ${dateLabel(selectedDate)}, or press another open date. Gray dates are unavailable.`:'No open times are showing in the next 30 days. Send your request without a time, or call 770-630-2094.';draw();
-  }catch{if(current===generation){status.dataset.state='error';status.textContent='Appointment times couldn’t load. Dates cannot be selected right now. Press “Check open times again,” or send your service request without a time and we’ll arrange it with you. You can also call 770-630-2094.';}}
+   status.textContent=times.length?`Choose an open time below.`:'No open times are showing in the next 30 days. Send your request without a time, or call 770-630-2094.';draw();
+  }catch{if(current===generation){status.dataset.state='error';status.textContent='Times couldn’t load. Try “Refresh times” or “Arrange a time with me instead.”';}}
   finally{clearTimeout(timeout);if(current===generation){refresh.disabled=false;picker.setAttribute('aria-busy','false');}}
  }
  picker.querySelector('#calendar-refresh').addEventListener('click',()=>void load());

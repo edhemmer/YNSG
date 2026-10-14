@@ -1,5 +1,6 @@
 import {deliverRequest} from './request-delivery.js';
 import {requestRecovery} from './request-recovery.js';
+import {bookingJourney} from './booking-journey.js';
 function requestErrorMessage(error){
   const approved=new Set([
     'Please check the form and try again.',
@@ -68,6 +69,7 @@ if(form){
     }
     form.querySelector('#service-count').textContent=selected.size ? `${selected.size} ${selected.size===1?'job':'jobs'} selected.` : 'No jobs selected yet.';
     description.required = [...selected.values()].some(x=>x.service === 'Something else');
+    form.querySelector('label[for="description"] .optional').textContent=description.required?'Required for another job':'Optional';
     description.minLength = description.required ? 10 : 0;
     description.placeholder = description.required ? 'Tell us what you need done.' : 'A short note is fine.';
     form.querySelector('#water-note').hidden = ![...selected.values()].some(x=>x.service === 'Concrete pressure washing');
@@ -76,13 +78,13 @@ if(form){
   for(const [service,jobs] of Object.entries(tasks)){
     const group=document.createElement('details');
     group.className='request-category';
-    group.open=true;
+    group.open=false;
     const heading=document.createElement('summary');
     const title=document.createElement('strong');title.textContent=names[service];
     const count=document.createElement('span');count.className='category-count';count.textContent='';
-    const action=document.createElement('span');action.className='category-action';action.textContent='Hide jobs';
+    const action=document.createElement('span');action.className='category-action';action.textContent='View jobs';
     heading.append(title,count,action);
-    group.addEventListener('toggle',()=>{action.textContent=group.open?'Hide jobs':'View jobs';});
+    group.addEventListener('toggle',()=>{action.textContent=group.open?'Hide jobs':'View jobs';if(group.open){for(const other of categoryGroups.values())if(other!==group)other.open=false;}});
     const choices=document.createElement('div');choices.className='request-category-jobs';
     for(const task of jobs){
       const label=document.createElement('label');label.className='service-option';
@@ -152,9 +154,10 @@ if(form){
   clearDraft.addEventListener('click',()=>{
     if(pendingSubmission||sending)return;
     recovery.clear();form.reset();selected.clear();refresh();form.dispatchEvent(new CustomEvent('appointment-conflict'));
-    draftNote.hidden=true;clearDraft.hidden=true;message.textContent='Saved details cleared. You can start a new request.';form.elements.namedItem('name').focus();
+    draftNote.hidden=true;clearDraft.hidden=true;message.textContent='Saved details cleared. You can start a new request.';form.querySelector('#service-heading').focus();
   });
 
+  const journey=bookingJourney({form,services:()=>[...selected.values()],requestData:()=>pendingSubmission?.data||Object.fromEntries(new FormData(form))});
   form.addEventListener('submit',async event=>{
     event.preventDefault();
     if(sending)return;
@@ -216,6 +219,7 @@ if(form){
       }
       sending=false;form.setAttribute('aria-busy','false');button.disabled=false;button.firstChild.textContent=unknown?'Try sending again ':'Send service request ';
       if(refreshCalendar)form.dispatchEvent(new CustomEvent('appointment-conflict'));
+      journey?.refresh();
     }
   });
 }
