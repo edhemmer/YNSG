@@ -47,3 +47,9 @@ The provider-owned `pg_net` extension warning remains. Hosted PostgreSQL marks i
 ## Verification boundaries
 
 The previously explicitly approved booking/cancellation QA and four inbox receipts are retained as evidence. The owner subsequently changed the saved visits and quote; this release preserved those edits. No additional live synthetic quotes, work, invoices, payments, tax approvals or customer emails were created. Provider-accepted is distinct from inbox-delivered; unknown send results must be reconciled before retry. Read-only health does not expose customer data, private diagnostics or credentials.
+
+## October 14 mobile owner workflow
+
+Owner request, month-calendar and route cards open one guided workspace: Confirm → Complete → Invoice → Close out. Saved state chooses the next stage; date/time cards, direct call/directions and current-stage controls reduce narrative clutter. Actual work saving and visit completion are atomic, stop running timers immediately, and never issue an invoice or invent a payment. An interrupted completion locks editing and offers an exact-command saved-result check. Invoice email and confirmed cash/Zelle receipts remain deliberate separate actions. Synthetic checks cover rollback, stale inputs, unchanged replay, tenant permissions and immediate timer closure.
+
+The Expo iPhone/iPad foundation is in `apps/mobile`. Its dependency graph and lockfile are separate from browser deployments. Native types, JavaScript bundle and iOS project generation are engineering evidence only. Unpatched native toolchain advisories, Apple signing, actual devices/accessibility, authentication handoff, native PDF sharing, app assets and TestFlight remain open; see `apps/mobile/README.md`. The deterministic owner coordinator is enforced by saved records and server permissions. No paid LLM provider/model/budget is activated; future agent rules are in `agents/mobile-owner/README.md`.

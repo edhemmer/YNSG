@@ -4,8 +4,9 @@ import {useEffect,useRef,useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 type Delivery={enabled:boolean;recipient:string|null;status:string;paidStatus:string};
 const labels:Record<string,string>={not_queued:'Not queued',not_requested:'Not sent yet',pending:'Waiting to send',leased:'Preparing email',sending:'Sending — waiting for the email service',accepted:'Accepted by the email service. Inbox receipt is not confirmed.',failed:'Sending failed. Automatic retries may follow.',needs_reconciliation:'Delivery result is uncertain. Review before attempting another send.',dead_letter:'Delivery needs owner attention.',suppressed:'Delivery stopped.'};
-export default function InvoiceDelivery({organization,invoice}:{organization:string;invoice:string}){
+export default function InvoiceDelivery({organization,invoice,onBusy}:{organization:string;invoice:string;onBusy?:(busy:boolean)=>void}){
  const [data,setData]=useState<Delivery|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[reviewed,setReviewed]=useState(false);
+ useEffect(()=>{onBusy?.(busy);return()=>onBusy?.(false);},[busy,onBusy]);
  const retry=useRef<string|null>(null);
  const identity=organization+':'+invoice;
  const currentIdentity=useRef(identity);currentIdentity.current=identity;
