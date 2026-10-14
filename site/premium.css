@@ -227,3 +227,8 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
 .calendar-all-dates{margin:18px 0;border:1px solid var(--forest);border-radius:10px;background:white;padding:10px 12px}.calendar-all-dates>summary{font-size:1rem;font-weight:700;min-height:48px;padding:10px 0;cursor:pointer}.calendar-all-dates .calendar-toolbar{margin-top:16px}.appointment-panel .appointment-time:focus-visible,.appointment-panel .appointment-quick-date:focus-visible{outline:3px solid var(--navy);outline-offset:3px}
 
 .calendar-all-dates>h3{font-size:1.1rem;margin:4px 0 12px}.calendar-all-dates .calendar-toolbar{margin-top:0}.appointment-panel .appointment-day:focus-visible{outline:3px solid var(--navy);outline-offset:2px}
+
+/* Plainly visible navigation: no menu expansion is required on small screens. */
+@media(max-width:850px){
+ .site-header{position:relative;top:auto}.header-row{flex-wrap:wrap;gap:8px;padding-block:12px}.nav-mobile{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%}.nav-mobile>a{display:flex;align-items:center;gap:8px;min-height:48px;padding:10px 12px;border:1px solid #c1d0c5;border-radius:8px;color:var(--navy);background:#fff;font-size:1rem;font-weight:700;text-decoration:none;line-height:1.4;overflow-wrap:anywhere}.nav-mobile>a[aria-current=page]{background:#edf3ed;border:2px solid var(--forest)}.nav-mobile>a:focus-visible{outline:3px solid #a75b16;outline-offset:2px}.nav-mobile>a[href="/request"]{background:var(--forest);color:#fff}
+}

@@ -1,3 +1,4 @@
+import {recurringMessage} from "./recurring-message";
 import {mailTransport,sendBusinessEmail} from "./transactional-mail";
 import {dispatchSampleMail} from './sample-mail';
 import {delayMessage} from './delay-message';
@@ -68,6 +69,10 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       const request=await db.from("service_requests").select("original_submission").eq("organization_id",org).eq("id",item.object_id).single();
       if(request.error||!request.data?.original_submission||request.data.original_submission.email!==item.payload.recipient)continue;
       ({to,subject,body,html}=customerRequestEmail(config.data.settings.displayName,request.data.original_submission,identity));
+    } else if (item.kind === 'recurring.confirmation' || item.kind === 'recurring.stopped') {
+      const detail=await db.rpc('recurring_notice_data',{p_org:org,p_outbox:item.id});
+      if(detail.error||!detail.data)continue;
+      try{({to,subject,body,html}=recurringMessage(config.data.settings.displayName,detail.data,identity));}catch{continue;}
     } else if (item.kind === "invoice.delivery" || item.kind === "invoice.paid") {
       const invoice = await db.from("invoices").select("number,issued_at,total_cents,snapshot,payments(cents)")
         .eq("organization_id", org).eq("id", item.object_id).single();
