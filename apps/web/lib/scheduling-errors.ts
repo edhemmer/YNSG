@@ -1,4 +1,7 @@
 export const schedulingMessages:Record<string,string>={
+ SETUP_REQUIRED:'Complete the company scheduling settings before confirming a visit.',
+ TRAVEL_REVIEW_REQUIRED:'Review travel and setup time before confirming a visit.',
+ EVIDENCE_MISMATCH:'The scheduling review no longer matches this visit. Refresh and review again.',
  ROUTE_UNAVAILABLE:'Travel could not be verified. Check routing before scheduling.',
  ROUTE_TRAVEL_CONFLICT:'There is not enough driving time between these visits. Choose another appointment time.',
  ROUTE_ADDRESS_REQUIRED:'A customer address needs review before travel can be checked.',
@@ -22,3 +25,11 @@ export const schedulingMessages:Record<string,string>={
  IDEMPOTENCY_CONFLICT:'This retry has different details. Refresh before continuing.',
  TRANSITION:'This proposal expired or is no longer awaiting approval.',
 };
+// Only named, deterministic rejections prove the scheduling command did not commit.
+// An unknown database/network failure must preserve exact-command recovery.
+export function schedulingFailure(code:string){
+ if(code==='UNAUTHORIZED')return {status:401,error:'Sign in to continue.'};
+ if(code==='FORBIDDEN')return {status:403,error:'Owner access is required.'};
+ if(Object.hasOwn(schedulingMessages,code))return {status:409,error:schedulingMessages[code]!};
+ return {status:503,error:'The scheduling result could not be verified. Check the saved result before changing details or scheduling again.'};
+}
