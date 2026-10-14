@@ -90,6 +90,7 @@ test('scheduled invoice holds the job-approved price without creating a bill or 
  const quote={id:'quote',status:'accepted',current_version:2,quote_versions:[{version:1,scope:'Agreed assembly',labor_cents:12000,duration_minutes:120},{version:2,scope:'Later different work',labor_cents:24000,duration_minutes:240}]};
  const props={request,quotes:[quote],jobs:[{id:'job',quote_id:'quote',approved_version:1,status:'approved'}],timezone:'America/Chicago'};
  const html=renderToStaticMarkup(React.createElement(ScheduledInvoice,props));
+ assert.match(renderToStaticMarkup(React.createElement(ScheduledInvoice,{...props,jobs:[{...props.jobs[0],status:'completed'}]})),/Ready for invoice review/);
  assert.match(html,/Awaiting work/);assert.match(html,/\$120\.00/);assert.ok(!html.includes('$240.00'));assert.match(html,/No payment is due/);assert.ok(!html.includes('<form'));
  assert.match(renderToStaticMarkup(React.createElement(ScheduledInvoice,{...props,jobs:[]})),/Awaiting agreed price/);
  assert.equal(renderToStaticMarkup(React.createElement(ScheduledInvoice,{...props,request:{...request,appointments:[{...request.appointments[0],status:'canceled'}]}})),'');

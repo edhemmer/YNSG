@@ -9,7 +9,7 @@ export default function ScheduledInvoice({request,quotes,jobs,timezone,onOpen,bu
  const version=quote?.quote_versions.find(v=>v.version===(job?.approved_version??quote.current_version));
  return <section className="workflow-section scheduled-invoice" aria-label={'Pending invoice for '+request.original_submission.name}>
   <h3>Pending invoice · {request.original_submission.name}</h3>
-  <p className="status-pill">{version?'Awaiting work':'Awaiting agreed price'}</p>
+  <p className="status-pill">{!version?'Awaiting agreed price':job?.status==='completed'?'Ready for invoice review':['working','paused'].includes(job?.status||'')?'Work started · invoice pending':'Awaiting work'}</p>
   <p>{requestTiming({...request,appointments:[visit]},timezone).text}</p>
   {version?<><p>{version.scope}</p><p>Agreed labor estimate: <strong>{(version.labor_cents/100).toLocaleString('en-US',{style:'currency',currency:'USD'})}</strong> · {version.duration_minutes/60} hours</p></>:<p>The appointment is saved. Agree on the scope and price with the customer to fill in this preview.</p>}
   <p>No payment is due from this preview. Actual work, approved extras and applicable tax are reviewed before an invoice is issued. Materials are paid directly to the supplier.</p>
