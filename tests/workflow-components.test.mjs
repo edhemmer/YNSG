@@ -12,12 +12,39 @@ const {createRoot}=require('react-dom/client');
 const {act}=React;
 const {default:InvoiceDraft}=await import('../apps/web/app/invoice-draft.tsx');
 const {default:InvoicePayments}=await import('../apps/web/app/invoice-payments.tsx');
+const {EntrySafety,useEntrySafety,useUnsavedEntry,useBlockedEntry}=await import('../apps/web/app/entry-safety.tsx');
 const node=document.querySelector('#root');
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const response=data=>new Response(JSON.stringify(data),{status:200});
 const button=text=>[...node.querySelectorAll('button')].find(b=>b.textContent===text);
 const org='20000000-0000-4000-8000-000000000001',id='30000000-0000-4000-8000-000000000001';
 const quiet=()=>{};
+test('unsaved-entry guard warns before leaving, blocks browser unload and clears on unmount',async()=>{
+ const root=createRoot(node);let leaving,confirmations=0;window.confirm=()=>{confirmations++;return false;};
+ function Entry(){useUnsavedEntry('synthetic',true);leaving=useEntrySafety().canLeave;return React.createElement('p',null,'Draft');}
+ try{await act(async()=>root.render(React.createElement(EntrySafety,null,React.createElement(Entry))));assert.equal(leaving(),false);assert.equal(confirmations,1);
+  const event=new window.Event('beforeunload',{cancelable:true});window.dispatchEvent(event);assert.equal(event.defaultPrevented,true);
+  await act(async()=>root.render(React.createElement(EntrySafety,null,React.createElement('p',null,'Saved'))));assert.equal(leaving(),true);assert.equal(confirmations,1);
+ }finally{await act(async()=>root.unmount());}
+});
+test('remote job revision preserves dirty work and blocks overwrite until an explicitly confirmed reload',async()=>{
+ const root=createRoot(node);let current=1,updateRevision,reads=0;
+ globalThis.fetch=async(path,init)=>{assert.ok(String(path).startsWith('/api/invoice-draft'));assert.ok(!init.method);reads++;return response({draft:{jobRevision:current,lines:[{description:current===1?'Original saved work':'New saved work',recordedMinutes:120,chargedCents:12000,waiverReason:''}]},tax:{required:false,rules:[],valid:true,tax:null},readiness:{ready:true,reasons:[]}});};
+ function Harness(){const [revision,setRevision]=React.useState(1);updateRevision=value=>{current=value;setRevision(value);};return React.createElement(EntrySafety,null,React.createElement(InvoiceDraft,{organization:org,job:id,revision,completed:true,blocked:false,onBusy:quiet,saved:quiet,initialExpanded:true}));}
+ try{await act(async()=>{root.render(React.createElement(Harness));await tick();});
+  await act(async()=>[...node.querySelectorAll('button')].find(b=>b.textContent.includes('Add work item')).click());
+  assert.equal(node.querySelectorAll('textarea').length,2);assert.match(node.textContent,/Unsaved entries/);
+  await act(async()=>{updateRevision(2);await tick();});assert.equal(reads,1);assert.match(node.textContent,/job changed elsewhere/);assert.equal(node.querySelector('textarea').value,'Original saved work');assert.equal(button('Save invoice draft').disabled,true);
+  window.confirm=()=>false;await act(async()=>button('Reload saved work').click());assert.equal(reads,1);assert.equal(node.querySelectorAll('textarea').length,2);
+  window.confirm=()=>true;await act(async()=>{button('Reload saved work').click();await tick();});assert.equal(reads,2);assert.equal(node.querySelector('textarea').value,'New saved work');assert.doesNotMatch(node.textContent,/Unsaved entries|job changed elsewhere/);
+ }finally{await act(async()=>root.unmount());}
+});
+test('pending or unknown result lock cannot be bypassed by accepting an unsaved-draft warning',async()=>{
+ const root=createRoot(node);let leaving,prompts=0;window.confirm=()=>{prompts++;return true;};
+ function Pending(){useUnsavedEntry('synthetic',true);useBlockedEntry('command',true);leaving=useEntrySafety().canLeave;return React.createElement('p',null,'Check saved result');}
+ try{await act(async()=>root.render(React.createElement(EntrySafety,null,React.createElement(Pending))));assert.equal(leaving(),false);assert.equal(prompts,0);
+ }finally{await act(async()=>root.unmount());}
+});
 test('owner can save reviewed draft and issue it at the saved revision without losing unchanged review',async()=>{
  let revision=1,draft=null,issued=null;
  globalThis.fetch=async(path,init)=>{
