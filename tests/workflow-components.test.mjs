@@ -119,3 +119,12 @@ test('weekly check never books, and an uncertain booking replays exactly one sav
   assert.equal(bodies.length,3);assert.match(node.textContent,/53 visits confirmed/);
  }finally{await act(async()=>root.unmount());}
 });
+const {default:AppointmentSummary}=await import('../apps/web/app/appointment-summary.tsx');
+test('appointment cards separate local arrival from reserved pickup/work time and keep proposal meaning explicit',()=>{
+ const visit={id,status:'reserved',arrival_at:'2026-10-19T14:30:00Z',start_at:'2026-10-19T14:00:00Z',end_at:'2026-10-19T18:30:00Z',replaces_id:'old'};
+ const card=new JSDOM(renderToStaticMarkup(React.createElement(AppointmentSummary,{visit,timezone:'America/Chicago'}))).window.document;
+ assert.match(card.querySelector('.visit-date-label').textContent,/Monday, October 19, 2026/);
+ assert.equal(card.querySelector('time').textContent,'9:30 AM');assert.equal(card.querySelector('.visit-window dd').textContent,'9:00 AM – 1:30 PM');assert.match(card.querySelector('.visit-zone').textContent,/CDT/);assert.ok(!card.querySelector('.visit-retained'));
+ const proposal=renderToStaticMarkup(React.createElement(AppointmentSummary,{visit:{...visit,status:'proposal'},timezone:'America/Chicago'}));assert.match(proposal,/Awaiting approval/);assert.match(proposal,/Original visit stays booked/);
+ const winter=renderToStaticMarkup(React.createElement(AppointmentSummary,{visit:{...visit,arrival_at:'2026-11-09T15:30:00Z',start_at:'2026-11-09T15:00:00Z',end_at:'2026-11-09T19:30:00Z'},timezone:'America/Chicago'}));assert.match(winter,/CST/);assert.match(winter,/9:30 AM/);
+});
