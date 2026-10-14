@@ -11,7 +11,9 @@ const invoice:LinkedInvoice={id:'invoice',job_id:'job',number:1,total_cents:1200
 test('one request progresses through agreement, actual work, issued invoice and received split payments',()=>{
  assert.equal(serviceNextStep(request,[],[],[]).action,'schedule');
  assert.equal(serviceNextStep(request,[quote],[],[]).step,3);
- assert.equal(serviceNextStep(request,[{...quote,status:'accepted'}],[job],[]).step,4);
+ assert.equal(serviceNextStep(request,[{...quote,status:'accepted'}],[job],[]).step,2); // Appointment is still required.
+ const confirmed={...request,appointments:[{id:'visit',request_id:request.id,job_id:job.id,status:'reserved',revision:1,start_at:'2030-10-16T14:00:00Z',arrival_at:'2030-10-16T14:00:00Z',end_at:'2030-10-16T16:00:00Z',expires_at:null,replaces_id:null,customer_response:'confirmed'}]};
+ assert.equal(serviceNextStep(confirmed,[{...quote,status:'accepted'}],[job],[]).step,4);
  assert.equal(serviceNextStep(request,[quote],[{...job,status:'completed'}],[]).step,5);
  assert.equal(serviceNextStep(request,[quote],[job],[invoice]).step,6);
  assert.equal(serviceNextStep(request,[quote],[job],[{...invoice,payments:[{cents:5000}]}]).step,6);

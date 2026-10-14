@@ -11,6 +11,7 @@ select public.job_action('20000000-0000-4000-8000-000000000001',(select id from 
 select public.save_invoice_labor('20000000-0000-4000-8000-000000000001',(select id from public.jobs),4,'[{"description":"Synthetic recorded leaf management","recordedMinutes":120,"chargedCents":12000,"waiverReason":""}]','lifecycle-draft-01');
 select public.complete_service_call('20000000-0000-4000-8000-000000000001',(select id from public.jobs),5,'lifecycle-complete-01');
 select pg_temp.assert_true((select count(*)=0 from public.invoices),'completion does not silently issue invoice');
+select pg_temp.assert_true((select count(*)=0 from public.work_sessions where ended_at is null),'completion immediately stops work timers before invoice review');
 select public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs),6,12000,true,'lifecycle-invoice-01');
 select public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs),6,12000,true,'lifecycle-invoice-01');
 select pg_temp.assert_true((select count(*)=1 from public.invoices),'one issued invoice after retried owner review');

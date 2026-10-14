@@ -26,6 +26,8 @@ export default function InvoiceDraft({
   onBusy,
   initialExpanded=false,
   suggestedWork,
+  mobile=false,
+  completeOnSave=false,
 }: {
   organization: string;
   job: string;
@@ -36,6 +38,8 @@ export default function InvoiceDraft({
   onBusy: (busy: boolean) => void;
   initialExpanded?:boolean;
   suggestedWork?:{description:string;chargedCents:number};
+  mobile?:boolean;
+  completeOnSave?:boolean;
 }) {
   const [lines, setLines] = useState<Line[]>([]),
     [busy, setBusy] = useState(false),
@@ -52,11 +56,14 @@ export default function InvoiceDraft({
   const currentTarget=useRef(organization+":"+job+":"+revision);
   currentTarget.current=organization+":"+job+":"+revision;
   const retry = useRef<{ fingerprint: string; key: string } | null>(null);
+  const completionAttempt=useRef<{body:string;revision:number}|null>(null);
+  const [completionUncertain,setCompletionUncertain]=useState(false);
   const ownSaved=useRef<{revision:number;lines:string}|null>(null);
   const [readiness,setReadiness]=useState<{ready:boolean;reasons:string[]}|null>(null);
   const [loadRetry,setLoadRetry]=useState(0);
   useEffect(() => {mounted.current=true;return()=>{mounted.current=false;onBusy(false);};}, [onBusy]);
   useEffect(() => {
+    if(completionAttempt.current)return;
     let current = true;
     const controller=new AbortController();
     setBusy(false);onBusy(false);
@@ -101,7 +108,7 @@ export default function InvoiceDraft({
   }
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    if (busy || blocked || !loaded || !reviewed) return;
+    if (busy || blocked || completionUncertain || !loaded || !reviewed) return;
     if(lines.some(line=>invoiceChargeCents(line.chargedAmount)===null)){setMessage("Enter each charge as dollars with up to two decimal places.");return;}
     const target=organization+":"+job+":"+revision;
     setBusy(true);
@@ -114,6 +121,10 @@ export default function InvoiceDraft({
       const fingerprint = JSON.stringify(value);
       if (retry.current?.fingerprint !== fingerprint)
         retry.current = { fingerprint, key: crypto.randomUUID() };
+      if(completeOnSave&&!completed){
+        completionAttempt.current={body:JSON.stringify({...value,key:retry.current.key,reviewed:true}),revision};
+        await checkCompletion();return;
+      }
       const r = await sessionFetch("/api/invoice-draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -134,8 +145,20 @@ export default function InvoiceDraft({
     } catch (e) {
       if(mounted.current&&currentTarget.current===target)setMessage(publicError(e));
     } finally {
-      if(mounted.current&&currentTarget.current===target){setBusy(false);onBusy(false);}
+      if(mounted.current&&currentTarget.current===target){setBusy(false);onBusy(Boolean(completionAttempt.current));}
     }
+  }
+  async function checkCompletion(){
+    const attempt=completionAttempt.current;if(!attempt||busy)return;
+    setBusy(true);onBusy(true);
+    try{
+      const r=await sessionFetch("/api/visit-completion",{method:"POST",headers:{"Content-Type":"application/json"},body:attempt.body});
+      const d=await r.json();
+      if(!r.ok){if(r.status<500&&d.uncertain===false){completionAttempt.current=null;setCompletionUncertain(false);saved();}throw Error(d.error);}
+      if(d.result?.status!=="completed"||!Number.isSafeInteger(d.result.revision)||d.result.revision<=attempt.revision)throw Error("Completion could not be confirmed.");
+      completionAttempt.current=null;retry.current=null;setCompletionUncertain(false);setMessage("Work saved and visit completed. Review the invoice next.");saved();
+    }catch(e){if(mounted.current){setCompletionUncertain(Boolean(completionAttempt.current));setMessage(completionAttempt.current?"Connection interrupted. Check saved work before making changes. This retries the same completion safely.":publicError(e));}}
+    finally{if(mounted.current){setBusy(false);onBusy(Boolean(completionAttempt.current));}}
   }
   async function approve() {
     if (busy || blocked || !loaded || !savedDraft || !reviewed || !completed || readiness?.ready!==true)
@@ -179,17 +202,13 @@ export default function InvoiceDraft({
     }
   }
   return (
-    <details open={initialExpanded||completed}>
+    <details className={mobile?"mobile-work-record":undefined} open={initialExpanded||completed}>
       <summary>
         {completed
           ? "Review and approve invoice"
           : "Record work and prepare invoice draft"}
       </summary>
-      <p>
-        Record the work, including anything you choose not to charge for. These
-        lines replace the labor total. Materials and mixed taxable/exempt work require a separately reviewed invoice; do not include them here.
-        Charges cannot exceed approved labor.
-      </p>
+      {mobile?<p>Review the actual work, minutes and charge. Materials are paid directly to suppliers.</p>:<p>Record the work, including anything you choose not to charge for. These lines replace the labor total. Materials and mixed taxable/exempt work require a separately reviewed invoice; do not include them here. Charges cannot exceed approved labor.</p>}
       {readiness?.ready===false&&<div className="note" role="status"><strong>Before this invoice can be issued</strong><ul>{readiness.reasons.map(reason=><li key={reason}>{reason}</li>)}</ul><p>Your work and draft can still be saved.</p><a href={'/owner/taxes?'+new URLSearchParams({organization})}>Open tax rules and review</a><br/><a href={'/owner?'+new URLSearchParams({organization,section:'Settings'})}>Open business settings</a></div>}
       <p className="invoice-draft-step" role="status">{!loaded?'Loading work record…':!lines.length?'Add the work performed.':!savedDraft?'Step 1: review the work and save this draft.':!completed?'Draft saved. Finish the work before issuing the invoice.':!reviewed?'Step 2: confirm the saved charges below, then issue the invoice.':'Draft reviewed. You can issue the invoice when business tax settings are ready.'}</p>
       {loaded&&!savedDraft&&suggestedWork&&suggestedWork.description.length>1000&&<p>The agreed scope is shown above. Summarize the actual work in up to 1,000 characters per item, or add separate work items.</p>}{loaded&&!savedDraft&&suggestedWork&&<p>The starting amount comes from the customer’s agreed estimate. Enter the actual work time and review the charge before saving.</p>}
@@ -199,9 +218,10 @@ export default function InvoiceDraft({
           ? "Save any changes, then review the saved draft before approving. Approval fixes the issued charges; it does not email the customer."
           : "You can prepare the draft now. Complete the service call before approving its invoice."}
       </p>
+      {completionUncertain&&<button type="button" disabled={busy} onClick={checkCompletion}>Check saved work</button>}
       <form onSubmit={save}>
-        <fieldset disabled={busy || blocked || !loaded}>
-          <legend>Invoice draft</legend>
+        <fieldset disabled={busy || blocked || completionUncertain || !loaded}>
+          <legend>{completed?"Invoice draft":"Work record"}</legend>
           {!loaded && (
             <p role="status">
               {message
@@ -236,8 +256,8 @@ export default function InvoiceDraft({
                   }
                 />
               </label>
-              <label>Billing basis<select value={l.billingBasis} onChange={e=>change(i,{billingBasis:e.target.value as "fixed"|"hourly"})}><option value="fixed">Fixed approved amount</option><option value="hourly">Time × hourly rate</option></select></label>{l.billingBasis==="hourly"&&<><label>Billed minutes (may include the agreed minimum)<input type="number" min="0" max="1440" required value={l.billingMinutes} onChange={e=>change(i,{billingMinutes:Number(e.target.value)})}/></label><label>Hourly rate ($)<input required inputMode="decimal" value={l.hourlyAmount} onChange={e=>change(i,{hourlyAmount:e.target.value})}/></label></>}
-              <label>
+              <details open={!mobile||l.billingBasis==="hourly"||invoiceChargeCents(l.chargedAmount)===0}><summary>Billing options & no-charge reason</summary><label>Billing basis<select value={l.billingBasis} onChange={e=>change(i,{billingBasis:e.target.value as "fixed"|"hourly"})}><option value="fixed">Fixed approved amount</option><option value="hourly">Time × hourly rate</option></select></label>{l.billingBasis==="hourly"&&<><label>Billed minutes (may include the agreed minimum)<input type="number" min="0" max="1440" required value={l.billingMinutes} onChange={e=>change(i,{billingMinutes:Number(e.target.value)})}/></label><label>Hourly rate ($)<input required inputMode="decimal" value={l.hourlyAmount} onChange={e=>change(i,{hourlyAmount:e.target.value})}/></label></>}
+              </details><label>
                 Charge ($)
                 <input
                   type="text"
@@ -253,7 +273,7 @@ export default function InvoiceDraft({
                   }
                 />
               </label>
-              <label>
+              {(!mobile||invoiceChargeCents(l.chargedAmount)===0)&&<label>
                 Reason for no charge
                 <input
                   required={invoiceChargeCents(l.chargedAmount) === 0}
@@ -262,7 +282,7 @@ export default function InvoiceDraft({
                   value={l.waiverReason}
                   onChange={(e) => change(i, { waiverReason: e.target.value })}
                 />
-              </label>
+              </label>}
               <button
                 type="button"
                 disabled={busy}
@@ -310,9 +330,9 @@ export default function InvoiceDraft({
                   checked={reviewed}
                   onChange={(e) => setReviewed(e.target.checked)}
                 />
-                I reviewed the work, final charges and any applicable tax. The customer accepted the total; the rule applies to all work and the exact address.
+                {completeOnSave&&!completed?'The work is finished. I reviewed the actual work, minutes and agreed labor charges.':'I reviewed the work, final charges and any applicable tax. The customer accepted the total; the rule applies to all work and the exact address.'}
               </label>
-              <button disabled={busy || !reviewed}>Save invoice draft</button>
+              <button disabled={busy || !reviewed}>{completeOnSave&&!completed?"Save work & complete visit":"Save invoice draft"}</button>
               {completed && (
                 <button
                   type="button"

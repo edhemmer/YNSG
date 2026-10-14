@@ -74,9 +74,9 @@ test('accepted quote opens for jobs without invoices and uses canonical invoice 
  const props={organization:org,request,quotes:[quote],timezone:'America/Chicago',canManage:true,canQuote:true,canWork:true,busy:false,onBusy:quiet,onReview:quiet,act:async()=>{},fieldAction:async()=>{},onChanged:quiet};
  for(const status of ['approved','working','paused','completed']){
   const html=renderToStaticMarkup(React.createElement(ServiceWorkflow,{...props,jobs:[{id:'job',quote_id:'quote',revision:1,status,invoices:null}],invoices:[]}));
-  assert.ok(html.includes('Customer approval recorded'));
+  assert.ok(html.includes('Scope &amp; price: accepted'));
   if(status==='approved')assert.ok(html.includes('Start work timer'));
-  else assert.ok(html.includes('Invoice draft'));
+  else assert.ok(html.includes(status==='completed'?'Invoice draft':'Work record'));
   if(status==='completed')assert.ok(html.includes('No invoice has been issued yet'));
  }
  for(const relation of [null,{id:'invoice',number:2026100001},[]]){
@@ -127,4 +127,38 @@ test('appointment cards separate local arrival from reserved pickup/work time an
  assert.equal(card.querySelector('time').textContent,'9:30 AM');assert.equal(card.querySelector('.visit-window dd').textContent,'9:00 AM – 1:30 PM');assert.match(card.querySelector('.visit-zone').textContent,/CDT/);assert.ok(!card.querySelector('.visit-retained'));
  const proposal=renderToStaticMarkup(React.createElement(AppointmentSummary,{visit:{...visit,status:'proposal'},timezone:'America/Chicago'}));assert.match(proposal,/Awaiting approval/);assert.match(proposal,/Original visit stays booked/);
  const winter=renderToStaticMarkup(React.createElement(AppointmentSummary,{visit:{...visit,arrival_at:'2026-11-09T15:30:00Z',start_at:'2026-11-09T15:00:00Z',end_at:'2026-11-09T19:30:00Z'},timezone:'America/Chicago'}));assert.match(winter,/CST/);assert.match(winter,/9:30 AM/);
+});
+test('one work save completes the visit using its fresh revision and never issues an invoice automatically',async()=>{
+ let completionRevision=null,issued=false;
+ globalThis.fetch=async(path,init)=>{
+  if(!init?.method)return response({draft:null,tax:{required:false,rules:[],valid:true,tax:null},readiness:{ready:true,reasons:[]}});
+  if(path==='/api/visit-completion'){const b=JSON.parse(init.body);assert.equal(b.revision,3);assert.equal(b.reviewed,true);completionRevision=5;return response({result:{revision:5,status:'completed'}});}
+  issued=true;throw Error('Issuance must remain a separate review');
+ };
+ const root=createRoot(node);
+ try{
+  await act(async()=>{root.render(React.createElement(InvoiceDraft,{organization:org,job:id,revision:3,completed:false,blocked:false,onBusy:quiet,saved:quiet,mobile:true,completeOnSave:true,initialExpanded:true,suggestedWork:{description:'Synthetic actual assembly',chargedCents:12000}}));await tick();});
+  await act(async()=>node.querySelector('input[type=checkbox]').click());
+  await act(async()=>{node.querySelector('form').requestSubmit();await tick();});
+  assert.equal(completionRevision,5);assert.equal(issued,false);
+ }finally{await act(async()=>root.unmount());}
+});
+test('uncertain mobile completion freezes edits and replays the exact command without invoicing',async()=>{
+ const attempts=[];let synced=0;
+ globalThis.fetch=async(path,init)=>{
+  if(!init?.method)return response({draft:null,tax:{required:false,rules:[],valid:true,tax:null},readiness:{ready:true,reasons:[]}});
+  assert.equal(path,'/api/visit-completion');attempts.push(init.body);
+  if(attempts.length===1)throw Error('Synthetic connection interrupted after commit');
+  return response({result:{revision:5,status:'completed'}});
+ };
+ const root=createRoot(node);
+ try{
+  await act(async()=>{root.render(React.createElement(InvoiceDraft,{organization:org,job:id,revision:3,completed:false,blocked:false,onBusy:quiet,saved:()=>synced++,mobile:true,completeOnSave:true,initialExpanded:true,suggestedWork:{description:'Synthetic actual assembly',chargedCents:12000}}));await tick();});
+  await act(async()=>node.querySelector('input[type=checkbox]').click());
+  await act(async()=>{node.querySelector('form').requestSubmit();await tick();});
+  assert.ok(node.querySelector('form > fieldset').disabled);assert.equal(synced,0);
+  const check=[...node.querySelectorAll('button')].find(b=>b.textContent==='Check saved work');assert.ok(check);
+  await act(async()=>{check.click();await tick();});
+  assert.equal(attempts.length,2);assert.equal(attempts[0],attempts[1]);assert.equal(synced,1);
+ }finally{await act(async()=>root.unmount());}
 });

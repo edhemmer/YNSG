@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "YNSG Owner",
+    "slug": "ynsg-owner",
+    "version": "0.1.0",
+    "platforms": [
+      "ios"
+    ],
+    "orientation": "default",
+    "scheme": "ynsg-owner",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.inlightai.ynsg.owner",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false
+        },
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "updates": {
+      "enabled": false
+    }
+  }
+}

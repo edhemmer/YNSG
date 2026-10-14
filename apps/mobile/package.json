@@ -1,0 +1,28 @@
+{
+  "name": "@ynsg/mobile",
+  "version": "0.1.0",
+  "main": "index.ts",
+  "dependencies": {
+    "expo": "57.0.28",
+    "expo-network": "57.0.2",
+    "expo-status-bar": "57.0.1",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "5.7.0",
+    "react-native-webview": "13.16.1",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.2",
+    "typescript": "6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "ios": "expo run:ios",
+    "typecheck": "tsc --noEmit",
+    "bundle:ios": "expo export --platform ios --output-dir dist",
+    "prebuild:ios": "expo prebuild --platform ios --no-install"
+  },
+  "private": true,
+  "type": "module"
+}
