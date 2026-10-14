@@ -84,3 +84,37 @@ test('accepted quote opens for jobs without invoices and uses canonical invoice 
   assert.ok(html.includes('Open invoice / download PDF'));assert.ok(!html.includes('Invoice draft'));assert.ok(!html.includes('No invoice has been issued yet'));
  }
 });
+const {default:ScheduledInvoice}=await import('../apps/web/app/scheduled-invoice.tsx');
+test('scheduled invoice holds the job-approved price without creating a bill or showing a later quote version',()=>{
+ const request={id,status:'quoted',revision:3,created_at:'2026-10-13T12:00:00Z',original_submission:{name:'Synthetic customer'},appointments:[{id:'visit',job_id:'job',status:'reserved',start_at:'2026-10-16T14:00:00Z',arrival_at:'2026-10-16T14:00:00Z'}]};
+ const quote={id:'quote',status:'accepted',current_version:2,quote_versions:[{version:1,scope:'Agreed assembly',labor_cents:12000,duration_minutes:120},{version:2,scope:'Later different work',labor_cents:24000,duration_minutes:240}]};
+ const props={request,quotes:[quote],jobs:[{id:'job',quote_id:'quote',approved_version:1,status:'approved'}],timezone:'America/Chicago'};
+ const html=renderToStaticMarkup(React.createElement(ScheduledInvoice,props));
+ assert.match(html,/Awaiting work/);assert.match(html,/\$120\.00/);assert.ok(!html.includes('$240.00'));assert.match(html,/No payment is due/);assert.ok(!html.includes('<form'));
+ assert.match(renderToStaticMarkup(React.createElement(ScheduledInvoice,{...props,jobs:[]})),/Awaiting agreed price/);
+ assert.equal(renderToStaticMarkup(React.createElement(ScheduledInvoice,{...props,request:{...request,appointments:[{...request.appointments[0],status:'canceled'}]}})),'');
+});
+const {default:RecurringVisits}=await import('../apps/web/app/recurring-visits.tsx');
+test('weekly check never books, and an uncertain booking replays exactly one saved command',async()=>{
+ const bodies=[];let first=true;
+ globalThis.fetch=async(path,init)=>{
+  if(!init?.method)return response(String(path).includes('first=')?{context:{first:{id,arrivalAt:'2026-10-16T14:00:00Z',startAt:'2026-10-16T14:00:00Z',endAt:'2026-10-16T16:00:00Z',timezone:'America/Chicago',scope:'Synthetic agreed assembly',laborCents:12000}}}:{series:[],hasMore:false});
+  const body=JSON.parse(init.body);bodies.push(body);
+  if(body.action==='check')return response({review:id,validUntil:new Date(Date.now()+60000).toISOString(),conflicts:0,visits:[{date:'2026-10-16',start:'2026-10-16T14:00:00Z',end:'2026-10-16T16:00:00Z',available:true}]});
+  if(first){first=false;return new Response(JSON.stringify({error:'Response unavailable'}),{status:503});}
+  assert.deepEqual(body,bodies[1]);return response({result:{visits:53}});
+ };
+ const root=createRoot(node);
+ try{
+  await act(async()=>{root.render(React.createElement(RecurringVisits,{organization:org,firstAppointment:id,onOpen:quiet,onChanged:quiet,onBusy:quiet}));await tick();});
+  await act(async()=>{button('Set up weekly visits for 12 months').click();await tick();});
+  node.querySelector('textarea').value='Synthetic customer agreed to the weekly scope, dates and price.';
+  await act(async()=>node.querySelector('input[type=checkbox]').click());
+  await act(async()=>{node.querySelector('form').requestSubmit();await tick();});
+  assert.equal(bodies.length,1);assert.equal(bodies[0].action,'check');
+  await act(async()=>{button('Book the 1 agreed visits').click();await tick();});
+  assert.equal(node.querySelector('fieldset').disabled,true);assert.ok(button('Check saved result'));
+  await act(async()=>{button('Check saved result').click();await tick();});
+  assert.equal(bodies.length,3);assert.match(node.textContent,/53 visits confirmed/);
+ }finally{await act(async()=>root.unmount());}
+});

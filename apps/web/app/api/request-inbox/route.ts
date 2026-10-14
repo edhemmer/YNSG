@@ -16,6 +16,7 @@ export async function GET(request:Request){
   let records=db.from('service_requests').select('id,status,revision,created_at,original_submission,appointments!appointments_organization_id_request_id_fkey(id,request_id,job_id,status,revision,start_at,end_at,arrival_at,expires_at,replaces_id,customer_response)',{count:'exact'}).eq('organization_id',org);
   if(selected)records=records.eq('id',selected);
   else{
+   records=records.is('recurring_series_id',null);
    if(filter==='review')records=records.in('status',['submitted','reviewing','quoted']);
    if(filter==='closed')records=records.in('status',['declined','canceled']);
    if(search)records=records.or(['name','street','city','email','phone'].map(field=>`original_submission->>${field}.ilike.*${search}*`).join(','));

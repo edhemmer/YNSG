@@ -16,11 +16,13 @@ import GoogleControls from './google-controls';
 import CalendarConnections from './calendar-connections';
 import OwnerSetup from './owner-setup';
 import ServiceWorkflow from './service-workflow';
+import ScheduledInvoice from './scheduled-invoice';
 import InvoicePayments from './invoice-payments';
 import InvoiceDelivery from './invoice-delivery';
 import CustomerInvite from './customer-invite';
 import RelationshipNotes from './relationship-notes';
 import CalendarBlocks from './calendar-blocks';
+import RecurringVisits from './recurring-visits';
 import MonthCalendar from './month-calendar';
 import SchedulingReadiness from './scheduling-readiness';
 import CompanySettingsPanel from './company-settings';
@@ -70,6 +72,7 @@ type Invoice = {
 };
 type Appointment = {
   id: string;
+  job_id: string | null;
   request_id: string;
   status: string;
   revision: number;
@@ -438,6 +441,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                     {section === "Settings" && ['owner','admin'].includes(role||'') && <CompanySettingsPanel organization={org} name={data.company.display_name}/>}
                     {['Today','Calendar'].includes(section)&&data.schedulingPreferences.length>0&&<section className="card" aria-labelledby="reschedule-heading"><h2 id="reschedule-heading">Customers requesting another time</h2>{data.schedulingPreferences.map(p=><article key={p.id} className="card"><p><strong>{data.requests.find(r=>r.id===p.request_id)?.original_submission.name||'Service request'}</strong></p><p>{p.preferred_local_start?.replace('T',' at ')} {p.preferred_local_start&&`(${p.timezone})`}</p><p>{p.note}</p><p className="note">Review this on the same request. A confirmed original stays booked until you approve its replacement.</p><button type="button" className="secondary" onClick={()=>{setActiveRequest(p.request_id);}}>Open service request</button></article>)}</section>}
                     {section === "Today" && ['owner','admin'].includes(role||'') && <DailyCallSheet key={org} organization={org} timezone={data.company.timezone}/>}
+                    {section === 'Calendar'&&['owner','admin'].includes(role||'')&&<RecurringVisits organization={org} revision={reloadSequence.current} onOpen={setActiveRequest} onChanged={()=>void refresh()}/>}
                     {section === "Calendar" && ["owner","admin"].includes(role||"") && <details className="card calendar-block-tools"><summary>Block personal or unavailable time</summary><CalendarBlocks key={org} organization={org} timezone={data.company.timezone} onChanged={()=>void refresh()}/></details>}
                     {section === "Customers" && (
                       <div className="card">
@@ -474,6 +478,7 @@ export default function Workspace({ configured, initialEmail = "", ownerGoogle }
                           Issued amounts remain fixed. Payment status comes from
                           confirmed receipts.
                         </p>
+                        <section className="card"><h2>Scheduled work · pending invoices</h2><p>See the appointment and agreed labor estimate while work is waiting. Issued invoices appear below.</p>{data.requests.filter(r=>data.appointments.some(a=>a.request_id===r.id&&a.status==='reserved'&&!data.invoices.some(i=>i.job_id===a.job_id))).map(r=><ScheduledInvoice key={r.id} request={{...r,appointments:data.appointments.filter(a=>a.request_id===r.id)}} quotes={data.quotes.filter(q=>q.request_id===r.id)} jobs={data.jobs} timezone={data.company.timezone} busy={pending} onOpen={()=>openWork(r.id)}/>)}{!data.requests.some(r=>data.appointments.some(a=>a.request_id===r.id&&a.status==='reserved'&&!data.invoices.some(i=>i.job_id===a.job_id)))&&<p>No pending invoices on this records page. Open Calendar to review other scheduled visits.</p>}</section>
                         {!data.invoices.length && (
                           <div className="card">
                             <h2>No issued invoices</h2>

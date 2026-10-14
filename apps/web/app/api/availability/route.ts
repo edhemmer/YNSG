@@ -42,7 +42,8 @@ export async function GET(request: Request) {
       const resources=await db.from('resource_reservations').select('resource_id').eq('organization_id',org).eq('appointment_id',replacement).eq('active',true).limit(31);
       if(resources.error||!resources.data.length||resources.data.length>30)return json({error:'The original reservation could not be checked. Refresh before rescheduling.'},409);
       // Match canonical appointment bounds, not a client-supplied time range.
-      originalReservations=resources.data.map(r=>({resourceId:r.resource_id,start:original.data!.start_at,end:original.data!.end_at}));
+      const window=await db.rpc('recurring_replacement_window',{p_org:org,p_appointment:replacement});if(window.error||!window.data)throw Error('ORIGINAL_UNAVAILABLE');
+      originalReservations=resources.data.map(r=>({resourceId:r.resource_id,start:window.data.start,end:window.data.end}));
     }
     const rules = snapshot.settings.scheduling;
     const day=query.has('day')?z.string().regex(/^\d{4}-\d{2}-\d{2}$/).parse(query.get('day')):null;

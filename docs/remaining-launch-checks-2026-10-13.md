@@ -1,4 +1,4 @@
-# YNSG launch checklist — 13 October 2026
+# YNSG launch checklist — updated 14 October 2026
 
 This is the current checklist; earlier audit files are historical. Stripe, native iOS packaging and full franchise rollout are excluded from this release. There is no claim of unrestricted launch certification while the open gates below remain.
 
@@ -19,7 +19,7 @@ This is the current checklist; earlier audit files are historical. Stripe, nativ
 | Restore mechanics | Full synthetic database dump restores into a second isolated database; money, journal, appointments and capacity match exactly. | Same native database run. This does not prove production off-site backups. |
 | Owner API security | Calendar authority, feed commands and mail status use private guarded implementations and public invoker wrappers. Anonymous access denied; feed mutation is owner-only. Private sign-in logs have explicit deny policy. | Hosted privileges verified; advisor warnings for these three RPCs and sign-in policy cleared. |
 | Independent monitoring | GitHub checks public request page, owner entry and read-only worker/mail health about every 15 minutes. Workflow installed on default branch; it checks production source, without credentials or customer data. | [First independent execution passed](https://github.com/edhemmer/YNSG/actions/runs/38476807937). GitHub schedules can be delayed; owner notification preferences still require review. |
-| Release checks | Syntax, root/app types, application tests, empty-schema migrations/SQL assertions, production dependency scan and full website/Next.js builds pass. | 292 application tests after replacement-availability checks; native PostgreSQL evidence above and follow-up owner-readiness run. |
+| Release checks | Syntax, root/app types, application tests, empty-schema migrations/SQL assertions, production dependency scan and full website/Next.js builds pass. | 297 application tests after weekly scheduling and pending-invoice checks; native PostgreSQL evidence above and follow-up owner-readiness run. |
 
 ## Owner/account launch gates
 
@@ -38,7 +38,9 @@ This is the current checklist; earlier audit files are historical. Stripe, nativ
 
 ## Engineering still open
 
-**Real 12-month recurring reservations are not implemented.** Weekly preference and advisory preview are supported; the preview does not reserve a year. Finishing this requires explicit series agreement, atomic resource/travel/block checks across all dates and daylight-saving changes, separate work/invoice records per visit, conflict handling, one series notice rather than dozens of duplicate confirmations, and cancellation/reschedule management. This is engineering work, not an owner checkbox. Until completed, confirm repeat visits individually and do not promise an automatically reserved series.
+Weekly reservations are implemented in the current release: an owner records the customer's actual yearly agreement, checks all dates and deliberately books. The transaction rechecks every resource, block, persisted travel buffer and source revision; a conflict aborts the entire new series. Each visit has separate approved work and later invoicing. One series confirmation replaces 52 immediate confirmations; each visit retains its reminder. Individual dates open their canonical workflows. Stopping future repeats preserves the original visit and work/financial history. Disposable SQL and UI fixtures prove rollback, daylight-saving dates, retry, travel padding, separate invoices/receipts and guarded stopping. Native PostgreSQL evidence: [release run](https://github.com/edhemmer/YNSG/actions/runs/38548480603). No real series agreement or customer acceptance was fabricated.
+
+Public mobile navigation is visible without opening a menu. Appointment details, the service workflow and Money show a pending invoice preview from the job-approved quote version. It is an estimate awaiting work, never an issued bill, payment or journal entry. Money lists the current records page; Calendar opens other visits and their complete records. Physical-device/user acceptance remains a gate below.
 
 The provider-owned `pg_net` extension warning remains. Hosted PostgreSQL marks it non-relocatable; it was not moved with an unsupported DDL workaround. Resolve with supported Supabase guidance/support rather than breaking the workers.
 

@@ -1,4 +1,6 @@
 import type {SupabaseClient} from '@supabase/supabase-js';
+import {localMinute,localInstant} from '../../../packages/domain/timezone.ts';
+import {addDays} from '../../../lib/appointment-window.js';
 import {googleRouteProvider} from './google-routes.ts';
 import type {RouteProvider} from './route-plan.ts';
 export async function schedulingTravel(db:SupabaseClient,org:string,requestId:string,appointmentId:string|null,resources:string[],operatorIds:string[],start:number,end:number,timezone:string,buffer:number,provider:RouteProvider|null=googleRouteProvider()){
@@ -6,7 +8,8 @@ export async function schedulingTravel(db:SupabaseClient,org:string,requestId:st
  const operators=resources.filter(id=>operatorIds.includes(id));if(!operators.length)throw Error('INVALID_RESOURCES');
  const request=await db.from('service_requests').select('original_submission').eq('organization_id',org).eq('id',requestId).single();if(request.error)throw Error('ROUTE_UNAVAILABLE');
  const address=(r:Record<string,string>)=>[r.street,r.city].filter(Boolean).join(', '),destination=address(request.data.original_submission);if(!destination)throw Error('ROUTE_ADDRESS_REQUIRED');
- const reservations=await db.from('resource_reservations').select('appointment_id,resource_id',{count:'exact'}).eq('organization_id',org).eq('active',true).in('resource_id',operators).range(0,999);
+ const dayStart=localMinute(start,timezone).slice(0,10),windowStart=new Date(localInstant(dayStart+'T00:00',timezone)).toISOString(),windowEnd=new Date(localInstant(addDays(dayStart,1)+'T00:00',timezone)).toISOString();
+ const reservations=await db.from('resource_reservations').select('appointment_id,resource_id',{count:'exact'}).eq('organization_id',org).eq('active',true).in('resource_id',operators).overlaps('during',`[${windowStart},${windowEnd})`).range(0,999);
  if(reservations.error||reservations.count===null||reservations.count!==reservations.data.length)throw Error('ROUTE_UNAVAILABLE');
  const ids=[...new Set(reservations.data.map(r=>r.appointment_id))].filter(id=>id!==appointmentId);if(!ids.length)return {before:0,after:0,status:'verified' as const};
  const appointments=await db.from('appointments').select('id,start_at,end_at,arrival_at,request:service_requests!appointments_organization_id_request_id_fkey(original_submission)',{count:'exact'}).eq('organization_id',org).eq('status','reserved').in('id',ids).range(0,999);

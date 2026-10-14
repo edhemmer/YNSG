@@ -1,4 +1,5 @@
 'use client';
+import ScheduledInvoice from './scheduled-invoice';
 import {invoiceNumber} from "../lib/invoice-number";
 import {useEffect,useRef,useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
@@ -7,6 +8,7 @@ import {requestStage,requestTasks,visitState,type InboxData,type Visit} from '..
 import {navigationUrl} from '../lib/day-plan';
 import Icon from './crm-icons';
 import SchedulingReviewPanel from './scheduling-review-panel';
+import RecurringVisits from './recurring-visits';
 import RelationshipNotes from './relationship-notes';
 import {serviceNextStep} from '../lib/service-workflow';
 type Props={organization:string;requestId:string;timezone:string;canManage:boolean;onClose:()=>void;onChanged:()=>void;onWork:(requestId:string)=>void};
@@ -71,6 +73,8 @@ export default function RequestDetail({organization,requestId,timezone,canManage
       {(panel==='decline'||panel==='reschedule')&&<form className="decision-form" onSubmit={e=>{e.preventDefault();void decline(e.currentTarget);}}><h4>{panel==='reschedule'?'Choose another appointment time':proposal?'Decline the proposed time':'Decline request'}</h4>{proposal&&(panel==='reschedule'?<input type="hidden" name="choice" value="decline_time"/>:<label>What are you declining?<select name="choice" defaultValue="decline_time"><option value="decline_time">Only this time — keep the request open</option><option value="decline_service">The entire service request — close it</option></select></label>)}{proposal&&<label>Reason for the customer<textarea name="reason" minLength={2} maxLength={1000} required placeholder="A clear, neighborly explanation."/></label>}<p className="tiny">{panel==='reschedule'?'First release this proposed time and send the customer your reason. Then choose a replacement date. The request stays open even if you leave before choosing it.':proposal?'Declining only the time keeps the service request open. Closing the entire request declines the work too. Your saved decision queues the matching customer message.':'This declines the service request and queues the customer message.'}</p><div className="actions"><button className={panel==='reschedule'?'':'danger-button'} disabled={busy}>{busy?'Saving…':panel==='reschedule'?'Release time & choose replacement':'Save decline decision'}</button><button type="button" className="secondary" disabled={busy} onClick={()=>setPanel('overview')}>Back without changes</button></div></form>}
       {request.appointments.filter(a=>!active.includes(a)).length>0&&<details><summary>Previous appointment history</summary>{request.appointments.filter(a=>!active.includes(a)).map(a=><p className="tiny" key={a.id}>{date(a.start_at)} · {visitState(a).replaceAll('_',' ')}</p>)}</details>}
      </section>
+     {canManage&&<details><summary>Weekly visits and saved repeat schedules</summary><RecurringVisits key={request.id} organization={organization} requestId={request.id} firstAppointment={confirmed?.job_id?confirmed.id:undefined} onBusy={setBusy} onOpen={id=>{onClose();onWork(id);}} onChanged={()=>{setReload(n=>n+1);onChanged();}}/></details>}
+     {!invoices.some(i=>i.job_id===confirmed?.job_id)&&<ScheduledInvoice request={request} quotes={quotes} jobs={jobs} timezone={timezone} busy={busy} onOpen={()=>onWork(request.id)}/>}
      <section className="detail-section"><h3>Quote, work & invoice</h3>{quotes.length?<div className="linked-records">{quotes.map(q=><div key={q.id}><Icon name="work"/><span>Quote · {q.status.replaceAll('_',' ')} · Version {q.current_version}</span></div>)}{jobs.map(j=><div key={j.id}><Icon name="check"/><span>Service call · {j.status.replaceAll('_',' ')}</span></div>)}{invoices.map(i=><div key={i.id}><Icon name="money"/><a href={'/invoice?'+new URLSearchParams({organization,invoice:i.id})}>Invoice {invoiceNumber(i.number)} · {(i.total_cents/100).toLocaleString('en-US',{style:'currency',currency:'USD'})}</a></div>)}</div>:<p className="muted">Prepare a quote when the scope and price are ready. Scheduling does not approve extra work or charges.</p>}<button className="secondary" onClick={()=>onWork(request.id)} disabled={busy}><Icon name="work"/>Continue work, invoice & payment</button></section>
     </>}
    </>}

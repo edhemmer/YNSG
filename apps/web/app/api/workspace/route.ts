@@ -21,7 +21,7 @@ export async function GET(request: Request) {
         .select("id,display_name,timezone,status")
         .eq("id", org)
         .maybeSingle(),
-      selectedRequest?requestQuery.eq('id',selectedRequest):requestQuery.order('created_at',{ascending:false}).order('id').range(from,to),
+      selectedRequest?requestQuery.eq('id',selectedRequest):requestQuery.is('recurring_series_id',null).order('created_at',{ascending:false}).order('id').range(from,to),
       db
         .from("customers")
         .select("id,display_name")
