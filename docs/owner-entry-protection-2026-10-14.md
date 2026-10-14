@@ -6,4 +6,6 @@ No drafts, contacts, taxes or authentication tokens are copied to localStorage, 
 
 If a job revision changes elsewhere while the invoice/work form is dirty, keep the entered lines visible and block saving/issuing. Explicit reload asks before discarding. Successful same-owner draft saves and atomic completion use the returned revision and do not create a false conflict. A stale draft cannot silently overwrite the newly saved revision.
 
+Saving actual work does not save an invoice's tax agreement. Local tax-rule selection and review evidence stay in the form through the owner's returned work-save revision and remain marked unsaved until invoice review/issuance actually records them. No tax approval is inferred.
+
 Coverage is deliberately specific to guided quotes, conversation notes and work/invoice forms. Customer/contact/property CRUD, every settings/payment form, cross-device merging and cold-start restoration are not advertised as covered by this increment. Native signing, notifications, Apple review and device acceptance are still separately gated.

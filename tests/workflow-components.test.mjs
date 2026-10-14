@@ -45,6 +45,22 @@ test('pending or unknown result lock cannot be bypassed by accepting an unsaved-
  try{await act(async()=>root.render(React.createElement(EntrySafety,null,React.createElement(Pending))));assert.equal(leaving(),false);assert.equal(prompts,0);
  }finally{await act(async()=>root.unmount());}
 });
+test('saving work preserves the unsaved tax review instead of claiming it was saved or clearing it',async()=>{
+ const root=createRoot(node);let revision=1;
+ const lines=[{description:'Synthetic completed work',recordedMinutes:120,chargedCents:12000,waiverReason:''}];
+ globalThis.fetch=async(path,init)=>{
+  if(!init?.method)return response({draft:{jobRevision:revision,lines},tax:{required:true,rules:[],valid:true,tax:null},readiness:{ready:true,reasons:[]}});
+  assert.equal(path,'/api/invoice-draft');const body=JSON.parse(init.body);assert.ok(!('taxEvidence' in body));revision++;return response({result:{revision,totalCents:12000}});
+ };
+ function Harness(){const [current,setCurrent]=React.useState(1);return React.createElement(EntrySafety,null,React.createElement(InvoiceDraft,{organization:org,job:id,revision:current,completed:true,blocked:false,onBusy:quiet,saved:()=>setCurrent(revision),initialExpanded:true}));}
+ try{await act(async()=>{root.render(React.createElement(Harness));await tick();});
+  const evidence=node.querySelector('textarea[placeholder^="Record acceptance"]');
+  await act(async()=>{Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype,'value').set.call(evidence,'Synthetic pending jurisdiction review');evidence.dispatchEvent(new window.Event('input',{bubbles:true}));});
+  await act(async()=>node.querySelector('input[type=checkbox]').click());
+  await act(async()=>{node.querySelector('form').requestSubmit();await tick();await tick();});
+  assert.equal(revision,2);assert.equal(node.querySelector('textarea[placeholder^="Record acceptance"]').value,'Synthetic pending jurisdiction review');assert.match(node.textContent,/Unsaved entries/);
+ }finally{await act(async()=>root.unmount());}
+});
 test('owner can save reviewed draft and issue it at the saved revision without losing unchanged review',async()=>{
  let revision=1,draft=null,issued=null;
  globalThis.fetch=async(path,init)=>{

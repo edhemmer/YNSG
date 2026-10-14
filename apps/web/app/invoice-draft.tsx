@@ -63,7 +63,7 @@ export default function InvoiceDraft({
   const [readiness,setReadiness]=useState<{ready:boolean;reasons:string[]}|null>(null);
   const [loadRetry,setLoadRetry]=useState(0);
   const [entryBaseline,setEntryBaseline]=useState({lines:'[]',taxRule:'',taxEvidence:''}),[entryConflict,setEntryConflict]=useState(false);
-  const entryDirty=loaded&&(JSON.stringify(lines)!==entryBaseline.lines||taxRule!==entryBaseline.taxRule||taxEvidence!==entryBaseline.taxEvidence);
+  const entryDirty=(loaded&&JSON.stringify(lines)!==entryBaseline.lines)||taxRule!==entryBaseline.taxRule||taxEvidence!==entryBaseline.taxEvidence;
   const dirtyRef=useRef(false);dirtyRef.current=entryDirty;
   const loadedRevision=useRef<number|null>(null);
   useUnsavedEntry('invoice:'+organization+':'+job,entryDirty);
@@ -71,13 +71,16 @@ export default function InvoiceDraft({
   useEffect(() => {
     if(completionAttempt.current)return;
     if(dirtyRef.current&&loadedRevision.current!==revision&&ownSaved.current?.revision!==revision){setEntryConflict(true);setMessage('The saved job changed while you were editing. Your entries are still shown. Copy anything you need before reloading the current saved record.');return;}
+    // Saving work does not save the tax agreement. Preserve its local review
+    // through our own returned revision rather than silently clearing it.
+    const keepLocalTax=ownSaved.current?.revision===revision&&(taxRule!==entryBaseline.taxRule||taxEvidence!==entryBaseline.taxEvidence);
     setEntryConflict(false);
     let current = true;
     const controller=new AbortController();
     setBusy(false);onBusy(false);
     setLoaded(false);
     setSavedDraft(false);
-    setLines([]);setReadiness(null);setTaxContext(null);setTaxRule("");setTaxEvidence("");
+    setLines([]);setReadiness(null);setTaxContext(null);if(!keepLocalTax){setTaxRule("");setTaxEvidence("");}
     if(ownSaved.current?.revision!==revision)setReviewed(false);
     setMessage("");
     retry.current = null;
@@ -95,7 +98,7 @@ export default function InvoiceDraft({
           setEntryBaseline({lines:JSON.stringify(entryLines),taxRule:d.tax?.valid?d.tax?.tax?.rule?.id||'':'',taxEvidence:d.tax?.valid?d.tax?.tax?.customerApprovalEvidence||'':''});loadedRevision.current=revision;
           setReadiness(d.readiness||null);
           if(!ownSaved.current||ownSaved.current.revision!==revision||ownSaved.current.lines!==invoiceDraftFingerprint(d.draft?.lines||[]))setReviewed(false);
-          setTaxContext(d.tax);setTaxRule(d.tax?.valid?d.tax?.tax?.rule?.id||"":"");setTaxEvidence(d.tax?.valid?d.tax?.tax?.customerApprovalEvidence||"":"");
+          setTaxContext(d.tax);if(!keepLocalTax){setTaxRule(d.tax?.valid?d.tax?.tax?.rule?.id||"":"");setTaxEvidence(d.tax?.valid?d.tax?.tax?.customerApprovalEvidence||"":"");}
           setLoaded(true);
           setSavedDraft(
             Boolean(d.draft?.lines?.length) && d.draft.jobRevision === revision,
@@ -221,7 +224,7 @@ export default function InvoiceDraft({
       </summary>
       {mobile?<p>Review the actual work, minutes and charge. Materials are paid directly to suppliers.</p>:<p>Record the work, including anything you choose not to charge for. These lines replace the labor total. Materials and mixed taxable/exempt work require a separately reviewed invoice; do not include them here. Charges cannot exceed approved labor.</p>}
       {entryDirty&&<p className="note" role="status">Unsaved entries · save this work before leaving.</p>}
-      {entryConflict&&<div className="note" role="alert"><p>The job changed elsewhere. Saving and issuing are paused to protect both versions.</p><button type="button" className="secondary" onClick={()=>{if(window.confirm('Reloading discards these unsaved entries. Have you copied anything you need?')){dirtyRef.current=false;setLoaded(false);setLoadRetry(n=>n+1);}}}>Reload saved work</button></div>}
+      {entryConflict&&<div className="note" role="alert"><p>The job changed elsewhere. Saving and issuing are paused to protect both versions.</p><button type="button" className="secondary" onClick={()=>{if(window.confirm('Reloading discards these unsaved entries. Have you copied anything you need?')){dirtyRef.current=false;setTaxRule(entryBaseline.taxRule);setTaxEvidence(entryBaseline.taxEvidence);setLoaded(false);setLoadRetry(n=>n+1);}}}>Reload saved work</button></div>}
       {readiness?.ready===false&&<div className="note" role="status"><strong>Before this invoice can be issued</strong><ul>{readiness.reasons.map(reason=><li key={reason}>{reason}</li>)}</ul><p>Your work and draft can still be saved.</p><a href={'/owner/taxes?'+new URLSearchParams({organization})}>Open tax rules and review</a><br/><a href={'/owner?'+new URLSearchParams({organization,section:'Settings'})}>Open business settings</a></div>}
       <p className="invoice-draft-step" role="status">{!loaded?'Loading work record…':!lines.length?'Add the work performed.':!savedDraft?'Step 1: review the work and save this draft.':!completed?'Draft saved. Finish the work before issuing the invoice.':!reviewed?'Step 2: confirm the saved charges below, then issue the invoice.':'Draft reviewed. You can issue the invoice when business tax settings are ready.'}</p>
       {loaded&&!savedDraft&&suggestedWork&&suggestedWork.description.length>1000&&<p>The agreed scope is shown above. Summarize the actual work in up to 1,000 characters per item, or add separate work items.</p>}{loaded&&!savedDraft&&suggestedWork&&<p>The starting amount comes from the customer’s agreed estimate. Enter the actual work time and review the charge before saving.</p>}
