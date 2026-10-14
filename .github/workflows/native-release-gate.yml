@@ -12,7 +12,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Install isolated native dependency graph
-        run: npm exec --yes pnpm@11.25.0 -- --dir apps/mobile install --frozen-lockfile
+        run: |
+          npm install --global pnpm@11.25.0
+          pnpm --dir apps/mobile install --frozen-lockfile
       - name: Block distribution on unpatched native advisories
         run: npm run verify:mobile
       - name: Check human, Apple, provider and device release evidence

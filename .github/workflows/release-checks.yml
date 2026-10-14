@@ -40,14 +40,16 @@ jobs:
         with:
           persist-credentials: false
       - name: Install locked browser dependencies
-        run: npm exec --yes pnpm@11.25.0 -- install --frozen-lockfile
+        run: |
+          npm install --global pnpm@11.25.0
+          pnpm install --frozen-lockfile
       - name: Check contracts, permissions, application tests and browser dependency security
         run: npm run verify:release
       - name: Install isolated locked native dependencies
-        run: npm exec --yes pnpm@11.25.0 -- --dir apps/mobile install --frozen-lockfile
+        run: pnpm --dir apps/mobile install --frozen-lockfile
       - name: Verify native types, lint, SDK and iOS JavaScript bundle
         run: |
-          npm exec --yes pnpm@11.25.0 -- --dir apps/mobile typecheck
-          npm exec --yes pnpm@11.25.0 -- --dir apps/mobile lint
-          EXPO_OFFLINE=1 npm exec --yes pnpm@11.25.0 -- --dir apps/mobile exec expo install --check
-          npm exec --yes pnpm@11.25.0 -- --dir apps/mobile bundle:ios
+          pnpm --dir apps/mobile typecheck
+          pnpm --dir apps/mobile lint
+          EXPO_OFFLINE=1 pnpm --dir apps/mobile exec expo install --check
+          pnpm --dir apps/mobile bundle:ios
