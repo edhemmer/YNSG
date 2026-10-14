@@ -10,8 +10,10 @@
     "typecheck": "tsc --noEmit",
     "test": "node --import ./tests/test-environment.mjs --import tsx --test tests/*.test.ts tests/*.test.js tests/*.test.mjs",
     "test:db": "node tests/database.mjs",
-    "verify:release": "npm run check && npm run typecheck && npm --prefix apps/web run typecheck && npm test && npm run test:db && pnpm audit --prod --audit-level high",
-    "verify:mobile": "pnpm --dir apps/mobile typecheck && pnpm --dir apps/mobile lint && pnpm --dir apps/mobile bundle:ios && pnpm --dir apps/mobile audit --prod --audit-level high"
+    "verify:release": "npm run check && npm run contracts:check && npm run typecheck && npm --prefix apps/web run typecheck && npm test && npm run test:db && pnpm audit --prod --audit-level high",
+    "verify:mobile": "pnpm --dir apps/mobile typecheck && pnpm --dir apps/mobile lint && pnpm --dir apps/mobile bundle:ios && pnpm --dir apps/mobile audit --prod --audit-level high",
+    "contracts:generate": "node --import tsx scripts/generate-owner-contracts.mjs",
+    "contracts:check": "node --import tsx scripts/generate-owner-contracts.mjs --check"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.2",

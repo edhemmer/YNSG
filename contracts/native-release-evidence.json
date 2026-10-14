@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "gates": [
+    {"id":"human-security-review","status":"pending","evidence":"","description":"Independent human review of exact release commit: authentication, tenant permissions, financial transitions and push privacy."},
+    {"id":"native-security-audit","status":"pending","evidence":"","description":"No high/critical native audit findings; unpatched node-forge and braces toolchain advisories remain."},
+    {"id":"apple-signing","status":"pending","evidence":"","description":"Confirmed bundle identifier, Apple team, provisioning, APNs environment and signed native release build."},
+    {"id":"push-delivery","status":"pending","evidence":"","description":"Signed physical-device opt-in, new request, confirmed appointment, cancellation, quiet hours, denied permission, logout, token rotation, APNs acceptance and visible alert evidence."},
+    {"id":"native-auth-and-sharing","status":"pending","evidence":"","description":"Native email/Google handoff, expiry/logout, authenticated invoice PDF sharing and no credential leakage."},
+    {"id":"accessibility-and-entry","status":"pending","evidence":"","description":"Actual iPhone/iPad: VoiceOver, Dynamic Type including largest sizes, keyboard, rotation, contrast, reduced motion, impaired connectivity and complete owner entry workflow."},
+    {"id":"apple-privacy-and-account-deletion","status":"pending","evidence":"","description":"App privacy details/manifests, retention, user-initiated account deletion with lawful record retention, encryption classification, review account and current minimum-functionality assessment."},
+    {"id":"testflight-acceptance","status":"pending","evidence":"","description":"Apple processed build, physical-device owner acceptance and App Review readiness; no approval guarantee."}
+  ]
+}

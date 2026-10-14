@@ -13,7 +13,7 @@ const line = z
   .strict()
   .refine((v) => v.chargedCents > 0 || v.waiverReason.trim().length >= 2)
   .refine(v=>v.billingBasis!=="hourly"||(v.billingMinutes!==undefined&&v.unitRateCents!==undefined&&hourlyCharge(v.billingMinutes,v.unitRateCents)===v.chargedCents));
-const draft = z
+export const invoiceDraftSchema = z
   .object({
     organization: z.uuid(),
     job: z.uuid(),
@@ -26,5 +26,5 @@ export const MAX_INVOICE_DRAFT_BYTES = 120000;
 export function parseInvoiceDraft(raw: string) {
   if (new TextEncoder().encode(raw).byteLength > MAX_INVOICE_DRAFT_BYTES)
     throw new Error("DRAFT_TOO_LARGE");
-  return draft.parse(JSON.parse(raw));
+  return invoiceDraftSchema.parse(JSON.parse(raw));
 }

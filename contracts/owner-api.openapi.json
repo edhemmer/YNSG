@@ -1,0 +1,1002 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "YNSG owner command and phone-alert contracts",
+    "version": "1.0.0",
+    "description": "Generated from runtime validators. SQL permissions, approval evidence, commercial limits, revision checks and idempotency remain authoritative. Native CRM currently reuses a signed-in origin-locked WKWebView session. No native bearer API is advertised."
+  },
+  "servers": [
+    {
+      "url": "https://yourneighborhoodserviceguy.app"
+    }
+  ],
+  "paths": {
+    "/api/commands": {
+      "post": {
+        "operationId": "ownerCommand",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "Command-specific canonical staff role",
+        "x-ynsg-origin-required": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OwnerCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical saved result. Provider acceptance never proves device/inbox delivery."
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    },
+    "/api/invoice-draft": {
+      "post": {
+        "operationId": "saveInvoiceWork",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner/admin",
+        "x-ynsg-origin-required": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceDraft"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical saved result. Provider acceptance never proves device/inbox delivery."
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    },
+    "/api/visit-completion": {
+      "post": {
+        "operationId": "completeOwnerVisit",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner/admin",
+        "x-ynsg-origin-required": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VisitCompletion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical saved result. Provider acceptance never proves device/inbox delivery."
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    },
+    "/api/mobile-notifications": {
+      "get": {
+        "operationId": "readOwnerPhoneSettings",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Canonical saved result. Provider acceptance never proves device/inbox delivery."
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      },
+      "post": {
+        "operationId": "saveOwnerPhoneSettings",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner/admin; own identity and current session",
+        "x-ynsg-origin-required": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MobileDevice"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical saved result. Provider acceptance never proves device/inbox delivery."
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      },
+      "delete": {
+        "operationId": "stopOwnerPhoneAlerts",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner/admin; own identity",
+        "x-ynsg-origin-required": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DisableMobileDevice"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical saved result. Provider acceptance never proves device/inbox delivery."
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "WorkspaceCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "ynsg-access",
+        "description": "Secure, HttpOnly, host-only, same-site session. Never read or forward through native JavaScript."
+      }
+    },
+    "schemas": {
+      "OwnerCommand": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "organizationId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "key": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 128
+              },
+              "command": {
+                "type": "string",
+                "const": "ReviewRequest"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "revision": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "reviewing",
+                  "declined",
+                  "canceled"
+                ]
+              }
+            },
+            "required": [
+              "organizationId",
+              "key",
+              "command",
+              "id",
+              "revision",
+              "status"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "organizationId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "key": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 128
+              },
+              "command": {
+                "type": "string",
+                "const": "PublishQuote"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "revision": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "scope": {
+                "type": "string",
+                "minLength": 10,
+                "maxLength": 5000
+              },
+              "minutes": {
+                "type": "integer",
+                "minimum": 120,
+                "maximum": 1440,
+                "multipleOf": 30
+              },
+              "community": {
+                "type": "boolean"
+              },
+              "eligibilityReviewed": {
+                "type": "boolean"
+              },
+              "customerId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "organizationId",
+              "key",
+              "command",
+              "id",
+              "revision",
+              "scope",
+              "minutes",
+              "community",
+              "eligibilityReviewed",
+              "customerId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "organizationId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "key": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 128
+              },
+              "command": {
+                "type": "string",
+                "const": "ApproveQuote"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "version": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "evidence": {
+                "type": "string",
+                "minLength": 10,
+                "maxLength": 2000
+              }
+            },
+            "required": [
+              "organizationId",
+              "key",
+              "command",
+              "id",
+              "version",
+              "evidence"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "organizationId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "key": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 128
+              },
+              "command": {
+                "type": "string",
+                "const": "CompleteServiceCall"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "revision": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "organizationId",
+              "key",
+              "command",
+              "id",
+              "revision"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "organizationId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "key": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 128
+              },
+              "command": {
+                "type": "string",
+                "const": "ApproveInvoice"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "revision": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "totalCents": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 999999999
+              },
+              "reviewed": {
+                "type": "boolean",
+                "const": true
+              },
+              "taxRuleId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "taxEvidence": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 1000
+              }
+            },
+            "required": [
+              "organizationId",
+              "key",
+              "command",
+              "id",
+              "revision",
+              "totalCents",
+              "reviewed"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "organizationId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "key": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 128
+              },
+              "command": {
+                "type": "string",
+                "const": "RecordPayment"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "cents": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 999999999
+              },
+              "method": {
+                "type": "string",
+                "enum": [
+                  "cash",
+                  "zelle"
+                ]
+              },
+              "reference": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "receivedAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              },
+              "confirmed": {
+                "type": "boolean",
+                "const": true
+              }
+            },
+            "required": [
+              "organizationId",
+              "key",
+              "command",
+              "id",
+              "cents",
+              "method",
+              "reference",
+              "receivedAt",
+              "confirmed"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "organizationId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "key": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 128
+              },
+              "command": {
+                "type": "string",
+                "const": "RecordBusinessExpense"
+              },
+              "date": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+              },
+              "vendor": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 160
+              },
+              "category": {
+                "type": "string",
+                "enum": [
+                  "tools",
+                  "fuel",
+                  "supplies",
+                  "vehicle",
+                  "insurance",
+                  "marketing",
+                  "software",
+                  "other"
+                ]
+              },
+              "description": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 500
+              },
+              "cents": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 999999999
+              },
+              "method": {
+                "type": "string",
+                "enum": [
+                  "cash",
+                  "zelle",
+                  "external_card",
+                  "external_transfer",
+                  "other"
+                ]
+              },
+              "reference": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "confirmed": {
+                "type": "boolean",
+                "const": true
+              }
+            },
+            "required": [
+              "organizationId",
+              "key",
+              "command",
+              "date",
+              "vendor",
+              "category",
+              "description",
+              "cents",
+              "method",
+              "reference",
+              "confirmed"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "organizationId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "key": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 128
+              },
+              "command": {
+                "type": "string",
+                "const": "ReverseBusinessExpense"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 5,
+                "maxLength": 500
+              }
+            },
+            "required": [
+              "organizationId",
+              "key",
+              "command",
+              "id",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "InvoiceDraft": {
+        "type": "object",
+        "properties": {
+          "organization": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "job": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "revision": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "lines": {
+            "minItems": 1,
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 1000
+                },
+                "recordedMinutes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1440
+                },
+                "chargedCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 999999999
+                },
+                "waiverReason": {
+                  "type": "string",
+                  "maxLength": 1000
+                },
+                "billingBasis": {
+                  "type": "string",
+                  "enum": [
+                    "hourly",
+                    "fixed"
+                  ]
+                },
+                "billingMinutes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1440
+                },
+                "unitRateCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 999999999
+                }
+              },
+              "required": [
+                "description",
+                "recordedMinutes",
+                "chargedCents",
+                "waiverReason"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "key": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "organization",
+          "job",
+          "revision",
+          "lines",
+          "key"
+        ],
+        "additionalProperties": false
+      },
+      "VisitCompletion": {
+        "type": "object",
+        "properties": {
+          "organization": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "job": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "revision": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "lines": {
+            "minItems": 1,
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 1000
+                },
+                "recordedMinutes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1440
+                },
+                "chargedCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 999999999
+                },
+                "waiverReason": {
+                  "type": "string",
+                  "maxLength": 1000
+                },
+                "billingBasis": {
+                  "type": "string",
+                  "enum": [
+                    "hourly",
+                    "fixed"
+                  ]
+                },
+                "billingMinutes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1440
+                },
+                "unitRateCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 999999999
+                }
+              },
+              "required": [
+                "description",
+                "recordedMinutes",
+                "chargedCents",
+                "waiverReason"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "key": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 128
+          },
+          "reviewed": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "organization",
+          "job",
+          "revision",
+          "lines",
+          "key",
+          "reviewed"
+        ],
+        "additionalProperties": false
+      },
+      "MobileDevice": {
+        "type": "object",
+        "properties": {
+          "organization": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "device": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "token": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64,256}$"
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "sandbox",
+              "production"
+            ]
+          },
+          "newRequests": {
+            "type": "boolean"
+          },
+          "appointments": {
+            "type": "boolean"
+          },
+          "sound": {
+            "type": "boolean"
+          },
+          "quietStart": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1439
+          },
+          "quietEnd": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1439
+          },
+          "reviewed": {
+            "type": "boolean",
+            "const": true
+          },
+          "key": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "organization",
+          "device",
+          "revision",
+          "token",
+          "environment",
+          "newRequests",
+          "appointments",
+          "sound",
+          "quietStart",
+          "quietEnd",
+          "reviewed",
+          "key"
+        ],
+        "additionalProperties": false
+      },
+      "DisableMobileDevice": {
+        "type": "object",
+        "properties": {
+          "organization": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "device": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "revision": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "organization",
+          "device",
+          "revision"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "x-ynsg-runtime-rules": [
+    "Exact revisions and actor-bound same-input receipts are enforced in SQL.",
+    "Save work + completion is atomic; timer stops without automatic invoice/payment.",
+    "Invoice charges/tax require actual agreement and owner review.",
+    "Notification lock-screen payloads contain no customer contacts or financial figures.",
+    "POST limits: commands 12000 bytes; work 120000 bytes; phone device 4096 bytes.",
+    "Hourly billing arithmetic, no-charge reason and customer-approved cap are additional runtime/SQL refinements."
+  ]
+}
