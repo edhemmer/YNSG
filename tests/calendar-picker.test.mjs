@@ -7,6 +7,7 @@ const source=(await readFile(new URL('../site/appointment-picker.js',import.meta
 class Element {
  children=[];hidden=false;disabled=false;dataset={};attributes={};handlers={};value='once';textContent='';
  setAttribute(k,v){this.attributes[k]=v;} getAttribute(k){return this.attributes[k];} addEventListener(k,fn){this.handlers[k]=fn;} append(el){this.children.push(el);} replaceChildren(){this.children=[];} focus(){} querySelector(){return this.children[0];}
+ dispatchEvent(e){this.handlers[e.type]?.(e);}
 }
 async function harness(responses,{holdError=false,collapsed=false}={}){
  const elements=new Map();const get=id=>{if(!elements.has(id))elements.set(id,new Element());return elements.get(id);};
@@ -16,7 +17,7 @@ async function harness(responses,{holdError=false,collapsed=false}={}){
  const document=new Element();document.querySelector=id=>id==='#request-form'?form:id==='#appointment-picker'?picker:id==='#appointment-disclosure'&&collapsed?disclosure:null;document.createElement=()=>new Element();
  let calls=0,key=0;const holdCalls=[],timers=new Map();let clock=Date.now();
  class Clock extends Date {static now(){return clock;}}
- vm.runInNewContext(source,{document,window,localDay,addDays,appointmentSelection,Intl,Date:Clock,AbortController,
+ vm.runInNewContext(source,{document,window,localDay,addDays,appointmentSelection,Intl,Date:Clock,AbortController,CustomEvent:class {constructor(type){this.type=type;}},
   selectionKey:()=>`selection-${++key}`,appointmentHold:async input=>{holdCalls.push(input);if(input.action==='release')return {ok:true};if(holdError)throw Object.assign(Error('conflict'),{status:409});return {ok:true,token:'a'.repeat(64),start:new Date(input.start).toISOString(),end:new Date(Date.parse(input.start)+7200000).toISOString(),expiresAt:new Date(clock+60000).toISOString()};},
   setTimeout:(fn,ms)=>{const id=Symbol();timers.set(id,{fn,ms});return id;},clearTimeout:id=>timers.delete(id),
   fetch:async()=>{const r=responses[calls++];if(r instanceof Error)throw r;return r;}});
