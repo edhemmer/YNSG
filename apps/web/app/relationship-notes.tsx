@@ -2,6 +2,7 @@
 import { publicError } from "../lib/public-errors";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { sessionFetch } from "../lib/session-fetch";
+import {useUnsavedEntry} from './entry-safety';
 type Note = { id: string; body: string; created_at: string; request_id: string | null };
 async function call(path: string, body?: unknown) {
   const response = await sessionFetch(path, { cache: "no-store", ...(body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {}) });
@@ -12,6 +13,7 @@ async function call(path: string, body?: unknown) {
 export default function RelationshipNotes({ organization, type, target, timezone }: { organization: string; type: "request" | "customer"; target: string; timezone: string }) {
   const [open, setOpen] = useState(false), [notes, setNotes] = useState<Note[]>([]);
   const [body, setBody] = useState(""), [pending, setPending] = useState(false), [loading, setLoading] = useState(false);
+  useUnsavedEntry('notes:'+organization+':'+type+':'+target,body.trim().length>0);
   const [error, setError] = useState(""), [message, setMessage] = useState(""), [page, setPage] = useState(0), [hasMore, setHasMore] = useState(false);
   const sequence = useRef(0), retry = useRef<{ fingerprint: string; key: string } | null>(null);
   async function reload() {

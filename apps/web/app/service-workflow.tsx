@@ -12,10 +12,11 @@ import AppointmentSummary from './appointment-summary';
 import InvoiceDelivery from './invoice-delivery';
 import InvoicePayments from './invoice-payments';
 import ScheduledInvoice from './scheduled-invoice';
+import {useEntrySafety,useUnsavedEntry} from './entry-safety';
 type Job=LinkedJob;
 const money=(n:number)=>(n/100).toLocaleString('en-US',{style:'currency',currency:'USD'});
 export default function ServiceWorkflow({organization,request,quotes,jobs,invoices,timezone,canManage,canQuote,canWork,busy,onBusy,onReview,act,fieldAction,onChanged}:{organization:string;request:InboxRequest;quotes:LinkedQuote[];jobs:Job[];invoices:LinkedInvoice[];timezone:string;canManage:boolean;canQuote:boolean;canWork:boolean;busy:boolean;onBusy:(v:boolean)=>void;onReview:()=>void;act:(value:Record<string,unknown>)=>Promise<unknown>;fieldAction:(job:Job,action:'start'|'pause'|'resume')=>Promise<void>;onChanged:()=>void}){
- const plan=mobileWorkflow(request,quotes,jobs,invoices),next=plan.next,timing=requestTiming(request,timezone);
+ const plan=mobileWorkflow(request,quotes,jobs,invoices),next=plan.next,timing=requestTiming(request,timezone),{canLeave}=useEntrySafety();
  const [selection,setSelection]=useState<{phase:MobilePhase;state:string}|null>(null),[scheduleOpen,setScheduleOpen]=useState(false);
  const [childBusy,setChildBusy]=useState<Record<string,boolean>>({}),callbacks=useRef(new Map<string,(v:boolean)=>void>());
  const blocked=busy||Object.values(childBusy).some(Boolean);
@@ -34,7 +35,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
 
  return <section className="card service-workflow" aria-label={'Service workflow for '+request.original_submission.name}>
   <header><p className="eyebrow">One request, from start to finish</p><h2>{request.original_submission.name}</h2><p>{request.original_submission.street}, {request.original_submission.city}</p><p>{requestTasks(request.original_submission).map(t=>t.task||t.service).join(' · ')}</p>{phase==='visit'&&request.original_submission.description&&<p className="customer-note">{request.original_submission.description}</p>}<div className="actions"><a className="button secondary" href={'tel:'+request.original_submission.phone}><Icon name="phone"/>Call</a><a className="button secondary" href={navigationUrl([request.original_submission.street,request.original_submission.city].join(', '))||undefined} target="_blank" rel="noreferrer"><Icon name="pin"/>Directions</a></div></header>
-  <nav className="mobile-workflow-steps" aria-label="Guided service steps">{mobilePhases.map((p,i)=><button type="button" key={p.id} className={phase===p.id?'is-current':''} aria-current={phase===p.id?'step':undefined} disabled={blocked} onClick={()=>setSelection({phase:p.id,state:stateKey})}><Icon name={p.icon}/><span>{i+1}. {p.label}</span></button>)}</nav>
+  <nav className="mobile-workflow-steps" aria-label="Guided service steps">{mobilePhases.map((p,i)=><button type="button" key={p.id} className={phase===p.id?'is-current':''} aria-current={phase===p.id?'step':undefined} disabled={blocked} onClick={()=>{if(p.id===phase||canLeave())setSelection({phase:p.id,state:stateKey});}}><Icon name={p.icon}/><span>{i+1}. {p.label}</span></button>)}</nav>
   <div className="workflow-next" role="status"><strong>{plan.settled?'Paid and complete':'Next: '+next.title}</strong><p>{next.detail}</p></div>
   {phase!=='visit'&&<div className="workflow-job-context">{request.appointments.filter(a=>visitState(a)==='reserved').map(a=><AppointmentSummary key={a.id} visit={a} timezone={timezone}/>)}</div>}
   <ScheduledInvoice compact request={{...request,appointments:request.appointments.filter(a=>!a.job_id||!invoices.some(i=>i.job_id===a.job_id))}} quotes={quotes} jobs={jobs} timezone={timezone}/>
@@ -59,7 +60,8 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
 }
 function WorkflowQuoteForm({request,busy,submit}:{request:InboxRequest;busy:boolean;submit:(value:Record<string,unknown>)=>Promise<unknown>}){
  const [community,setCommunity]=useState(request.original_submission.communityRate==='Yes');
- return <form onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);void submit({command:'PublishQuote',id:request.id,revision:request.revision,scope:f.get('scope'),minutes:Number(f.get('minutes')),community,eligibilityReviewed:community&&f.get('reviewed')==='on',customerId:null});}}><fieldset disabled={busy}>
+ const [dirty,setDirty]=useState(false);useUnsavedEntry('quote:'+request.id,dirty);
+ return <form onChangeCapture={()=>setDirty(true)} onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);void submit({command:'PublishQuote',id:request.id,revision:request.revision,scope:f.get('scope'),minutes:Number(f.get('minutes')),community,eligibilityReviewed:community&&f.get('reviewed')==='on',customerId:null}).then(result=>{if((result as {ok?:boolean}|undefined)?.ok)setDirty(false);});}}><fieldset disabled={busy}>
   <legend>Prepare the work and labor estimate</legend><label>Work included<textarea name="scope" minLength={10} maxLength={5000} required defaultValue={[...requestTasks(request.original_submission).map(s=>s.task||s.service),request.original_submission.description||''].filter(Boolean).join('\n')}/></label>
   <label>Estimated work time<select name="minutes" defaultValue="120">{[120,150,180,210,240,300,360,420,480].map(n=><option key={n} value={n}>{n/60} hours</option>)}</select></label>
   <label className="check"><input type="checkbox" name="community" checked={community} onChange={e=>setCommunity(e.target.checked)}/>Use the Community Rate</label>{community&&<label className="check"><input type="checkbox" name="reviewed" required/>I reviewed the customer’s Community Rate request.</label>}
