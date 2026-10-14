@@ -4,6 +4,7 @@ import {appointmentDeliveryMessage} from '../lib/appointment-delivery';
 import RecurringPreviewPanel from './recurring-preview-panel';
 import { publicError } from "../lib/public-errors";
 import { useEffect, useRef, useState } from 'react';
+import {useBlockedEntry,useUnsavedEntry,useEntrySafety} from './entry-safety';
 import { sessionFetch } from '../lib/session-fetch';
 import { confirmationReview } from '../lib/confirmation-review';
 import { localMinute } from '../../../packages/domain/timezone';
@@ -13,6 +14,12 @@ type Context={minimumDurationMinutes?:number;requestRevision:number;configuratio
 export default function SchedulingReviewPanel({organization,requestId,appointmentId=null,completed,initialExpanded=false,initialStart,onBusy}:{organization:string;requestId:string;appointmentId?:string|null;completed:(status:string,message?:string)=>void;initialExpanded?:boolean;initialStart?:string;onBusy?:(busy:boolean)=>void}){
  const [context,setContext]=useState<Context|null>(null),[selected,setSelected]=useState<string[]>([]),[error,setError]=useState(''),[message,setMessage]=useState(''),[pending,setPending]=useState(false);
  const [replacementId,setReplacementId]=useState('');
+ const [note,setNote]=useState('');
+ const [uncertain,setUncertain]=useState(false),[dirty,setDirty]=useState(false);
+ const attempt=useRef<string|null>(null),sending=useRef(false);
+ const {canLeave}=useEntrySafety();
+ useBlockedEntry('scheduling:'+requestId,pending||uncertain);
+ useUnsavedEntry('scheduling:'+requestId,dirty);
  const [expanded,setExpanded]=useState(initialExpanded),[retry,setRetry]=useState(0);
  const preference=preferredVisitStart(initialStart);
  const [visitDate,setVisitDate]=useState(preference.date),[visitTime,setVisitTime]=useState(preference.time),[duration,setDuration]=useState('120'),[notice,setNotice]=useState('');
@@ -30,14 +37,14 @@ export default function SchedulingReviewPanel({organization,requestId,appointmen
   }).catch(()=>{if(live){setTimes([]);setVisitTime('');setTimeError('Availability could not be checked. Refresh open times before scheduling.');}}).finally(()=>{clearTimeout(timeout);if(live)setCheckingTimes(false);});
   return()=>{live=false;controller.abort();clearTimeout(timeout);};
  },[organization,appointmentId,expanded,context,visitDate,resourceKey,duration,timeRefresh,replacementId,requestId]);
- useEffect(()=>{onBusy?.(pending);},[pending,onBusy]);
+ useEffect(()=>{onBusy?.(pending||uncertain);return()=>onBusy?.(false);},[pending,uncertain,onBusy]);
  const key=useRef<{fingerprint:string;value:string}|null>(null),sequence=useRef(0);
  useEffect(()=>{const s=++sequence.current;setContext(null);setSelected([]);setError('');setMessage('');setPending(false);key.current=null;if(!expanded)return;
   void sessionFetch('/api/scheduling-review?'+new URLSearchParams({organization,request:requestId,...(appointmentId?{appointment:appointmentId}:{})}),{cache:'no-store'}).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error);if(s===sequence.current){setContext(d);if(!appointmentId){setDuration(String(d.minimumDurationMinutes||120));setReplacementId(d.confirmedAppointments.length===1?d.confirmedAppointments[0].id:'');}if(!appointmentId)setVisitDate(current=>current||nextVisitDates(d.settings.scheduling,d.settings.timezone)[0]||'');setSelected(d.appointmentResources||(d.resources.filter((r:Resource)=>r.kind==='operator'&&r.status==='available').length===1?[d.resources.find((r:Resource)=>r.kind==='operator'&&r.status==='available').id]:[]));}}).catch(e=>{if(s===sequence.current)setError(publicError(e));});
   return()=>{sequence.current++;};
  },[organization,requestId,appointmentId,expanded,retry]);
  async function submit(form:HTMLFormElement){
-  if(!context||pending)return;const s=sequence.current,fields=new FormData(form),a=context.appointment;
+  if(!context||sending.current||uncertain)return;const fields=new FormData(form),a=context.appointment;
   if(!form.checkValidity()){setError('Choose a visit date, start time and a valid visit length. Check any extra options you changed.');return;}
   let start:string,review:ReturnType<typeof confirmationReview>;
   try{review=confirmationReview(String(fields.get('note')||''));start=a?localMinute(Date.parse(a.start_at),context.settings.timezone):visitStart(fields.get('visitDate'),fields.get('visitTime'),context.settings.scheduling);}
@@ -47,29 +54,36 @@ export default function SchedulingReviewPanel({organization,requestId,appointmen
    arrivalOffsetMinutes:a?(Date.parse(a.arrival_at)-Date.parse(a.start_at))/60000:Number(fields.get('arrivalOffset')),
    resources:selected,travelBeforeMinutes:Number(fields.get('travelBefore')),travelAfterMinutes:Number(fields.get('travelAfter')),...review};
   const fingerprint=JSON.stringify(input);if(key.current?.fingerprint!==fingerprint)key.current={fingerprint,value:crypto.randomUUID()};
-  setPending(true);setError('');setMessage('');setNotice('');
-  try{const r=await sessionFetch('/api/scheduling-review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...input,key:key.current.value})});const d=await r.json();if(!r.ok){if(r.status===400||r.status===409){setNotice(publicError(d.error)+' The scheduling details have been refreshed.');setRetry(n=>n+1);}throw Error(d.error);}
-   if(d.result?.status!=='reserved')throw Error('The time has not been confirmed. Open Review to check its status.');
-   if(s===sequence.current){const message=appointmentDeliveryMessage(d.delivery);setMessage(message);completed('reserved',message);}}
-
-  catch(e){if(s===sequence.current){setError(publicError(e));if(!appointmentId)setTimeRefresh(n=>n+1);}}
-  finally{if(s===sequence.current)setPending(false);}
+  attempt.current=JSON.stringify({...input,key:key.current.value});
+  await sendAttempt();
  }
- return <div className="schedule-review">{!initialExpanded&&<button type="button" className="secondary" aria-expanded={expanded} disabled={pending} onClick={()=>setExpanded(v=>!v)}>{appointmentId?'Confirm requested time':'Choose a time'}</button>}
+ async function sendAttempt(){
+  if(sending.current||!attempt.current)return;
+  sending.current=true;const s=sequence.current;let knownFailure=false,refreshContext=false;
+  setPending(true);setError('');setMessage('');setNotice('');
+  try{const r=await sessionFetch('/api/scheduling-review',{method:'POST',headers:{'Content-Type':'application/json'},body:attempt.current});const d=await r.json();if(!r.ok){knownFailure=r.status>=400&&r.status<500;refreshContext=r.status===400||r.status===409;throw Error(d.error);}
+   if(d.result?.status!=='reserved')throw Error('The time has not been confirmed. Open Review to check its status.');
+   if(s===sequence.current){attempt.current=null;setUncertain(false);setDirty(false);const message=appointmentDeliveryMessage(d.delivery);setMessage(message);completed('reserved',message);}}
+
+  catch(e){if(s===sequence.current){setUncertain(!knownFailure);if(knownFailure){attempt.current=null;setError(publicError(e));if(refreshContext){setNotice('The appointment was not saved. Current scheduling details are being refreshed. Your private note is retained.');setRetry(n=>n+1);}else if(!appointmentId)setTimeRefresh(n=>n+1);}else setError('The scheduling result is uncertain. Your submitted details are locked. Check the saved result before changing the time or scheduling again.');}}
+  finally{sending.current=false;if(s===sequence.current)setPending(false);}
+ }
+ return <div className="schedule-review">{!initialExpanded&&<button type="button" className="secondary" aria-expanded={expanded} disabled={pending||uncertain} onClick={()=>{if(!expanded||canLeave()){setExpanded(v=>!v);setDirty(false);}}}>{appointmentId?'Confirm requested time':'Choose a time'}</button>}
   {expanded&&<div className="card"><h3>{appointmentId?'Confirm this appointment':'Choose the appointment time'}</h3><p className="tiny">Conflicts and travel are checked when you save.</p>
    {notice&&<p role="status" className="note">{notice}</p>}{error&&<p role="alert" className="error">{error}</p>}{message&&<p role="status">{message}</p>}
-   {!context?(error?<button type="button" onClick={()=>setRetry(v=>v+1)}>Try again</button>:<p role="status">Loading appointment details…</p>):<form noValidate onSubmit={e=>{e.preventDefault();void submit(e.currentTarget);}}>
+   {uncertain&&<button type="button" disabled={pending} onClick={()=>void sendAttempt()}>{pending?'Checking saved result…':'Check saved result'}</button>}
+   {!context?(error?<button type="button" onClick={()=>setRetry(v=>v+1)}>Try again</button>:<p role="status">Loading appointment details…</p>):<form noValidate onChange={()=>setDirty(true)} onSubmit={e=>{e.preventDefault();void submit(e.currentTarget);}}>
     {context.appointment&&<AppointmentSummary timezone={context.settings.timezone} visit={{...context.appointment,id:appointmentId!,request_id:requestId,status:'proposal',expires_at:null,replaces_id:null,customer_response:'pending'}}/>}
-    <fieldset disabled={pending} style={{border:0,padding:0,margin:0}}>
+    <fieldset disabled={pending||uncertain} style={{border:0,padding:0,margin:0}}>
     {!appointmentId&&<><p className="tiny">Pick a day to check open times, or use the date field below.</p><div className="actions" role="group" aria-label="Quick visit dates">{suggestedDates.map(day=><button type="button" className="secondary" key={day} aria-pressed={visitDate===day} onClick={()=>{setVisitDate(day);setVisitTime('');}}>{new Intl.DateTimeFormat('en-US',{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'}).format(new Date(day+'T12:00Z'))}</button>)}</div><label>Visit date<input name="visitDate" type="date" required value={visitDate} onInput={e=>setVisitDate(e.currentTarget.value)} onChange={e=>setVisitDate(e.target.value)}/></label><label>Visit start time<select name="visitTime" required disabled={checkingTimes||!times.length} value={visitTime} onChange={e=>setVisitTime(e.target.value)}><option value="">Choose a start time</option>{times.map(time=>{const [hour,minute]=time.split(":");const h=Number(hour);return <option key={time} value={time}>{h%12||12}:{minute} {h>=12?"PM":"AM"}</option>;})}</select></label><p className="tiny">{checkingTimes?"Checking current open times…":!visitDate?"Choose a visit date to see open times.":timeError?timeError:!times.length?"No open times for this date and visit length. Choose another date.":"These times are currently open. We recheck conflicts and travel when you save."}</p><button type="button" className="secondary" disabled={checkingTimes||pending||!visitDate} onClick={()=>setTimeRefresh(n=>n+1)}>Refresh open times</button><label>How long is the visit?<select name="duration" required value={duration} onChange={e=>setDuration(e.target.value)}>{Array.from({length:45},(_,i)=>120+i*30).map(n=><option key={n} value={String(n)}>{n/60} hours{n===120?" (minimum)":""}</option>)}</select></label><details open={context.confirmedAppointments.length>0}><summary>Supplier pickup & replacement visit</summary><label>Supplier pickup time before customer arrival (minutes)<input name="arrivalOffset" type="number" required min="0" max="1439" defaultValue="0"/></label><p className="note">For a pickup visit, reserved work starts at the supplier. Customer-paid mulch or larger items must be ready and paid directly to the supplier. Include pickup, delivery and application in the same visit.</p><label>Appointment type<select name="replacesId" value={replacementId} onChange={e=>{setReplacementId(e.target.value);setVisitTime('');}}><option value="">New appointment</option>{context.confirmedAppointments.map(a=><option value={a.id} key={a.id}>Replace {new Intl.DateTimeFormat(undefined,{timeZone:context.settings.timezone,dateStyle:"medium",timeStyle:"short"}).format(new Date(a.start))}</option>)}</select><span className="tiny">A replaced appointment stays booked until its replacement is approved.</span></label></details></>}
     <p className="note">Assigned: {selected.length?context.resources.filter(r=>selected.includes(r.id)).map(r=>r.name).join(", "):"Choose an operator below"}</p><details open={!selected.length}><summary>Change people & equipment</summary><fieldset><legend>People & equipment for this visit</legend>{context.resources.map(r=><label key={r.id}><input type="checkbox" disabled={(Boolean(appointmentId)&&(!context.allowAdditionalResources||Boolean(context.appointmentResources?.includes(r.id))))||r.status!=='available'} checked={selected.includes(r.id)} onChange={e=>setSelected(e.target.checked?[...selected,r.id]:selected.filter(id=>id!==r.id))}/>{r.name} · {r.kind} · {r.status.replaceAll('_',' ')}</label>)}</fieldset></details>
     <details><summary>Extra travel time (optional)</summary><p className="tiny">Your standard {context.settings.scheduling.bufferMinutes}-minute buffer covers travel and setup. Add extra time only if this visit needs more.</p><label>Extra travel before this visit (minutes)<input name="travelBefore" defaultValue="0" type="number" min="0" max="360" required/></label><label>Extra travel after this visit (minutes)<input name="travelAfter" defaultValue="0" type="number" min="0" max="360" required/></label></details>
-    <details><summary>Add a private scheduling note (optional)</summary><label>Scheduling note<textarea name="note" maxLength={2800} placeholder="Anything useful for this visit."/></label></details>
+    <details><summary>Add a private scheduling note (optional)</summary><label>Scheduling note<textarea name="note" maxLength={2800} value={note} onChange={e=>setNote(e.target.value)} placeholder="Anything useful for this visit."/></label></details>
     <p className="tiny">Saving confirms your review of the work, visit length and pickup.</p><details><summary>Scope rules</summary><p>Work outside the published scope requires separate review; code-regulated work must be performed by a licensed contractor.</p></details>
     </fieldset>
-    <button disabled={pending||!selected.length||(!appointmentId&&(checkingTimes||!times.length||!times.includes(visitTime)))}>{pending?'Checking and saving…':appointmentId?'Confirm appointment':'Schedule appointment'}</button>
+    <button disabled={pending||uncertain||!selected.length||(!appointmentId&&(checkingTimes||!times.length||!times.includes(visitTime)))}>{pending?'Checking and saving…':appointmentId?'Confirm appointment':'Schedule appointment'}</button>
    </form>}
-   {context&&!appointmentId&&<details><summary>Repeat visits (optional)</summary><RecurringPreviewPanel key={selected.join(",")} organization={organization} requestId={requestId} resources={selected}/></details> }
+   {context&&!appointmentId&&!pending&&!uncertain&&<details><summary>Repeat visits (optional)</summary><RecurringPreviewPanel key={selected.join(",")} organization={organization} requestId={requestId} resources={selected}/></details> }
   </div>}
  </div>;
 }
