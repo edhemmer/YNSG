@@ -2,6 +2,7 @@ import {calendarAuthority} from "../../../lib/calendar-authority";
 import {mailTransport} from "../../../lib/transactional-mail";
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
+import {visibleBackgroundQueue} from '../../../lib/background-health';
 import {authorizeGoogle,store,missingGoogleConfiguration,serverDatabase} from '../../../lib/google-server';
 import {verifiedSessionId} from '../../../lib/background-setup';
 import {verifyRoutesConnection} from '../../../lib/routes-health';
@@ -31,6 +32,20 @@ export async function GET(request:Request){
   const routesStatus=await routesCheck;
   const verifiedMail=Boolean(managedMail)||Boolean(account?.encrypted_tokens&&account?.health==='healthy'&&account?.gmail_test==='accepted');
   const mailReady=delivery.data?.enabled===true&&verifiedMail&&(Boolean(managedMail)||process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true');
+  if(executionHealth){
+   const checked=new Date(executionHealth.checkedAt);if(!Number.isFinite(checked.getTime()))throw Error('QUEUE_HEALTH_UNAVAILABLE');
+   const overdueBefore=new Date(checked.getTime()-300000).toISOString(),checkedAt=checked.toISOString();
+   async function counts(calendar:boolean){
+    const scope=()=>{const q=db.from('outbox').select('id',{count:'exact',head:true}).eq('organization_id',org);return calendar?q.like('kind','calendar.%'):q.not('kind','like','calendar.%');};
+    const waitingStates=['pending','failed','leased','sending'];
+    const results=await Promise.all([scope().in('status',['needs_reconciliation','dead_letter']),scope().in('status',waitingStates).lt('next_attempt_at',overdueBefore).or('lease_until.is.null,lease_until.lt.'+checkedAt),scope().in('status',waitingStates)]);
+    if(results.some(r=>r.error||r.count===null))throw Error('QUEUE_HEALTH_UNAVAILABLE');
+    return {needsReview:results[0]!.count!,overdue:results[1]!.count!,waiting:results[2]!.count!};
+   }
+   const [mailQueue,calendarQueue]=await Promise.all([counts(false),counts(true)]);
+   executionHealth={...executionHealth,queue:visibleBackgroundQueue(mailQueue,calendarQueue,{mail:mailReady,calendar:Boolean(account?.encrypted_tokens&&account?.calendar_id&&process.env.GOOGLE_CALENDAR_WORKER_ENABLED==='true'&&process.env.GOOGLE_WORKER_ORGANIZATION_ID===org)})};
+  }
+
   const checks=[
    {label:'Business settings published',complete:Boolean(configuration.data),action:'Review and publish Company settings below.'},
    {label:'Booking window set to 30 days',complete:rules?.horizonMinutes===43200,action:'Set the booking window to 30 days in Company settings.'},
@@ -50,5 +65,5 @@ export async function GET(request:Request){
     schedulerStatus,executionHealth,
     canPrepare:Boolean(schedulerStatus),
    }},{headers:{'Cache-Control':'private, no-store'}});
- }catch(error){return NextResponse.json({error:'Sign in as the business owner to check scheduling setup.'},{status:error instanceof Error&&error.message==='UNAUTHORIZED'?401:403,headers:{'Cache-Control':'private, no-store'}});}
+ }catch(error){return NextResponse.json({error:error instanceof Error&&error.message==='UNAUTHORIZED'?'Sign in as the business owner to check scheduling setup.':error instanceof Error&&error.message==='OWNER_ACCESS_REQUIRED'?'Owner access is required to check scheduling setup.':'Connection status could not be checked. Try again shortly.'},{status:error instanceof Error&&error.message==='UNAUTHORIZED'?401:error instanceof Error&&error.message==='OWNER_ACCESS_REQUIRED'?403:503,headers:{'Cache-Control':'private, no-store'}});}
 }
