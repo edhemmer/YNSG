@@ -103,7 +103,7 @@ test('an ambiguous partial cash payment locks edits and checks the exact command
   assert.equal(button('Check saved payment result').disabled,false);assert.equal(node.querySelector('form fieldset').disabled,true);
   await act(async()=>{button('Check saved payment result').click();await tick();});
   assert.equal(payments.length,1);assert.equal(bodies.length,2);assert.equal(bodies[0].cents,5000);
-  assert.match(node.textContent,/remaining \$70\.00/);assert.equal(node.querySelector('form fieldset').disabled,false);
+  assert.match(node.querySelector('.payment-balance-summary').textContent,/Remaining balance\$70\.00/);assert.equal(node.querySelector('form fieldset').disabled,false);
  }finally{await act(async()=>root.unmount());}
 });
 
