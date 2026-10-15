@@ -1,4 +1,4 @@
-# YNSG launch checklist — updated 14 October 2026
+# YNSG launch checklist — updated 15 October 2026
 
 This is the current checklist; earlier audit files are historical. Stripe, native iOS packaging and full franchise rollout are excluded from this release. There is no claim of unrestricted launch certification while the open gates below remain.
 
@@ -6,7 +6,7 @@ This is the current checklist; earlier audit files are historical. Stripe, nativ
 
 | Item | Result | Evidence |
 | --- | --- | --- |
-| Visible customer calendar | Month calendar stays visible above contact fields; date preview does not claim capacity. Deliberate time selection creates the expiring hold. | Live browser walkthrough and application tests. |
+| Visible customer calendar | Next available dates and times appear in the Time step, with an explicit View month calendar control. Date preview does not claim capacity. Deliberate time selection creates the expiring hold. | Live browser walkthrough and application tests. |
 | Owner calendar | Overview has “Open month calendar”; month view opens saved visits. | Live owner browser check. |
 | Accepted quote crash | Object/null embedded invoice relation no longer crashes the accepted quote workflow. Canonical invoice records determine issuance state. | Reopened the previously failing accepted quote. |
 | Agreed work duration | Scheduling prefills the current quoted duration. Scheduling-enabled jobs cannot start with a shorter confirmed work window. Existing visit and agreement remain intact. | Native PostgreSQL test rejects four-hour work on a two-hour appointment, with no timer or changed job. |
@@ -19,7 +19,7 @@ This is the current checklist; earlier audit files are historical. Stripe, nativ
 | Restore mechanics | Full synthetic database dump restores into a second isolated database; money, journal, appointments and capacity match exactly. | Same native database run. This does not prove production off-site backups. |
 | Owner API security | Calendar authority, feed commands and mail status use private guarded implementations and public invoker wrappers. Anonymous access denied; feed mutation is owner-only. Private sign-in logs have explicit deny policy. | Hosted privileges verified; advisor warnings for these three RPCs and sign-in policy cleared. |
 | Independent monitoring | GitHub checks public request page, owner entry and read-only worker/mail health about every 15 minutes. Workflow installed on default branch; it checks production source, without credentials or customer data. | [First independent execution passed](https://github.com/edhemmer/YNSG/actions/runs/38476807937). GitHub schedules can be delayed; owner notification preferences still require review. |
-| Release checks | Syntax, root/app types, application tests, empty-schema migrations/SQL assertions, production dependency scan and full website/Next.js builds pass. | 297 application tests after weekly scheduling and pending-invoice checks; native PostgreSQL evidence above and follow-up owner-readiness run. |
+| Release checks | Syntax, root/app types, application tests, empty-schema migrations/SQL assertions, production dependency scan and full website/Next.js builds pass. | 352 application tests on the owner-visit design release; exact-head required native PostgreSQL and foundation checks passed in run 38731321449. Physical-device and provider evidence remain separate. |
 
 ## Owner/account launch gates
 
@@ -40,7 +40,7 @@ This is the current checklist; earlier audit files are historical. Stripe, nativ
 
 Weekly reservations are implemented in the current release: an owner records the customer's actual yearly agreement, checks all dates and deliberately books. The transaction rechecks every resource, block, persisted travel buffer and source revision; a conflict aborts the entire new series. Each visit has separate approved work and later invoicing. One series confirmation replaces 52 immediate confirmations; each visit retains its reminder. Individual dates open their canonical workflows. Stopping future repeats preserves the original visit and work/financial history. Disposable SQL and UI fixtures prove rollback, daylight-saving dates, retry, travel padding, separate invoices/receipts and guarded stopping. Native PostgreSQL evidence: [release run](https://github.com/edhemmer/YNSG/actions/runs/38548480603). No real series agreement or customer acceptance was fabricated.
 
-Public mobile navigation is visible without opening a menu. Request-form service categories start open, showing the job checkboxes immediately. Appointment details, the service workflow and Money show a pending invoice preview from the job-approved quote version. It is an estimate awaiting work, never an issued bill, payment or journal entry. Money lists the current records page; Calendar opens other visits and their complete records. Physical-device/user acceptance remains a gate below.
+Public mobile navigation is visible without opening a menu. The request follows Services → Time → Details. Clearly labeled View jobs controls open service choices; visible desktop/mobile navigation avoids a hidden-only public menu. Appointment details, the service workflow and Money show a pending invoice preview from the job-approved quote version. It is an estimate awaiting work, never an issued bill, payment or journal entry. Money lists the current records page; Calendar opens other visits and their complete records. Physical-device/user acceptance remains a gate below.
 
 The provider-owned `pg_net` extension warning remains. Hosted PostgreSQL marks it non-relocatable; it was not moved with an unsupported DDL workaround. Resolve with supported Supabase guidance/support rather than breaking the workers.
 
@@ -56,4 +56,15 @@ The Expo iPhone/iPad foundation is in `apps/mobile`. Its dependency graph and lo
 
 ## October 14 controlled native extension
 
-See `docs/mobile-product-controls-2026-10-14.md` for strict/generated API contracts, repository rules, isolated phone-alert SQL fixtures, native appearance controls and the gated APNs pipeline. The native distribution gate remains blocked by upstream advisories and eight explicit evidence requirements; neither an Apple-compliant release nor full customer/contact/property editing is claimed.
+See `docs/mobile-product-controls-2026-10-14.md` for strict/generated API contracts, repository rules, isolated phone-alert SQL fixtures, native appearance controls and the gated APNs pipeline. The native distribution gate remains blocked by upstream advisories and eight explicit evidence requirements; an Apple-compliant native release is not claimed. Current customer/contact/property editing is implemented in the browser owner workspace, separately from native distribution acceptance.
+
+
+## October 15 customer records and visit clarity
+
+Current customer management supports bounded search, contacts, service addresses, archive/restore, private immutable change history and links back to service workflows. Explicit returning-customer selection during quote preparation requires owner verification; matching an email/phone never grants portal access. Corrections do not rewrite original submissions, accepted quotes, issued invoice/recipient snapshots or queued messages. Booked-address guards, exact revisions, concurrent-save rejection and same-command recovery protect consequential saves. Customer directory/API/editor read-only walkthrough passed on production commit 9118ec30759189b229612c8e6f1a60e2fc9f9b60; no real edits, invitations or service messages were sent.
+
+The calendar no longer displays an arrange-time promise before the customer makes that choice. A live walkthrough verified that the explicit arrange-time option opens required contact/address entry without an account or a reserved slot. Owner attention cards display the actual remaining step even for a confirmed visit.
+
+The visit-design release separates service chips, appointment status/date/arrival/window and complete customer notes. Notes start expanded during confirmation; the primary appointment overview is not repeated in appointment management. Compact call/directions actions and existing light/dark colors remain. See `docs/owner-visit-design-2026-10-15.md` for the scoped acceptance checklist. Full-product design acceptance and physical accessibility remain open.
+
+Post-release database review identified the new history-author foreign key without an index. The follow-up migration covers it without changing history or permissions. Customer-editor follow-through gives the first field focus after an explicit edit action and separates optional account invitation from daily contact/address management. These follow-through changes require exact-head CI, hosted migration/catalog/advisor checks and deployed visual verification before being described as released.

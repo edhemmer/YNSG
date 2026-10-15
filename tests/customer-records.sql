@@ -1,4 +1,5 @@
 -- Entire file runs inside the synthetic foundation transaction and rolls back.
+select pg_temp.assert_true(to_regclass('private.customer_record_changes_author') is not null,'immutable history author foreign key has a covering index');
 set local role authenticated;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 do $$declare r jsonb;again jsonb;c uuid;t uuid;p uuid;rev integer;
