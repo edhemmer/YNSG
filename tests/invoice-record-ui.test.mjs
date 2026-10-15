@@ -1,0 +1,54 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {JSDOM} from 'jsdom';
+const dom=new JSDOM('<!doctype html><div id="root"></div>',{url:'https://example.invalid/invoice'});
+for(const key of ['window','document','HTMLElement','HTMLInputElement','HTMLTextAreaElement','HTMLFormElement','Event','MouseEvent','FormData'])globalThis[key]=dom.window[key];
+Object.defineProperty(globalThis,'navigator',{value:dom.window.navigator,configurable:true});globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+const require=createRequire(new URL('../apps/web/package.json',import.meta.url)),React=require('react');globalThis.React=React;
+const {act}=React,{createRoot}=require('react-dom/client');
+const {default:InvoiceRecordEditor}=await import('../apps/web/app/invoice-record-editor.tsx');
+const {default:InvoicePayments}=await import('../apps/web/app/invoice-payments.tsx');
+const {EntrySafety,useEntrySafety}=await import('../apps/web/app/entry-safety.tsx');
+const org='20000000-0000-4000-8000-000000000001',id='30000000-0000-4000-8000-000000000001',initial={revision:0,dueDate:null,archived:false};
+const node=document.querySelector('#root'),tick=()=>new Promise(resolve=>setImmediate(resolve)),response=(data,status=200)=>new Response(JSON.stringify(data),{status});
+const button=text=>[...node.querySelectorAll('button')].find(b=>b.textContent===text);
+async function click(text){await act(async()=>{assert.ok(button(text),text);button(text).click();await tick();await tick();});}
+async function fill(name,value){const field=node.querySelector(`[name=${name}]`);assert.ok(field,name);await act(async()=>{Object.getOwnPropertyDescriptor(field instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(field,value);field.dispatchEvent(new window.Event('input',{bubbles:true}));});}
+async function mount(props,component=InvoiceRecordEditor){let leaving;function Probe(){leaving=useEntrySafety().canLeave;return null;}window.confirm=()=>false;const root=createRoot(node);let update;function Harness(){const [saved,setSaved]=React.useState(initial);update=setSaved;return React.createElement(EntrySafety,null,React.createElement(Probe),React.createElement(component,{organization:org,invoice:id,saved,reload:async()=>initial,onSaved:setSaved,...props}));}await act(async()=>{root.render(React.createElement(Harness));await tick();await tick();});return {canLeave:()=>leaving(),update:async value=>act(async()=>update(value)),close:async()=>act(async()=>root.unmount())};}
+test('lost invoice-record response locks edits/navigation and replays one identical saved attempt',async()=>{
+ const bodies=[];globalThis.fetch=async(path,init)=>{assert.equal(path,'/api/invoice-admin');bodies.push(init.body);if(bodies.length===1)return response({error:'synthetic lost result'},503);const v=JSON.parse(init.body);return response({revision:1,dueDate:v.dueDate,archived:v.archived,reason:v.reason});};
+ const h=await mount({});try{await fill('dueDate','2026-10-30');await fill('reason','Synthetic customer agreed date');assert.equal(h.canLeave(),false);await act(async()=>{node.querySelector('form').requestSubmit();node.querySelector('form').requestSubmit();await tick();});assert.equal(bodies.length,1);assert.equal(node.querySelector('fieldset').disabled,true);window.confirm=()=>true;assert.equal(h.canLeave(),false);await click('Check saved invoice record');assert.equal(bodies.length,2);assert.equal(bodies[1],bodies[0]);assert.match(node.textContent,/Invoice record saved/);assert.equal(h.canLeave(),true);assert.equal(node.querySelector('[name=reason]').value,'');}finally{await h.close();}
+});
+test('stale invoice-record edits survive canceled or failed reload and replace only after a fresh successful read',async()=>{
+ let reloads=0,fail=true;globalThis.fetch=async()=>response({error:'STALE_REVISION'},409);const h=await mount({reload:async()=>{reloads++;if(fail)throw Error('synthetic read unavailable');return {revision:2,dueDate:'2026-11-01',archived:true};}});
+ try{await fill('reason','Synthetic draft retained');await act(async()=>{node.querySelector('form').requestSubmit();await tick();});assert.equal(node.querySelector('fieldset').disabled,true);await click('Reload saved invoice record');assert.equal(reloads,0);window.confirm=()=>true;await click('Reload saved invoice record');assert.equal(node.querySelector('[name=reason]').value,'Synthetic draft retained');window.confirm=()=>false;assert.equal(h.canLeave(),false);window.confirm=()=>true;fail=false;await click('Reload saved invoice record');assert.equal(node.querySelector('[name=reason]').value,'');assert.equal(node.querySelector('[name=dueDate]').value,'2026-11-01');assert.equal(node.querySelector('[name=archived]').checked,true);assert.equal(h.canLeave(),true);}finally{await h.close();}
+});
+test('a newer saved invoice revision cannot silently replace an unsaved correction',async()=>{
+ const h=await mount({});try{await fill('reason','Synthetic current draft');await h.update({revision:2,dueDate:'2026-11-02',archived:false});assert.equal(node.querySelector('[name=reason]').value,'Synthetic current draft');assert.equal(node.querySelector('fieldset').disabled,true);assert.match(node.textContent,/draft is kept/);}finally{await h.close();}
+});
+test('verified invoice-record save is not reclassified as uncertain when a follow-up callback fails',async()=>{
+ globalThis.fetch=async(path,init)=>{const v=JSON.parse(init.body);return response({revision:1,dueDate:v.dueDate,archived:v.archived,reason:v.reason});};const h=await mount({onSaved:()=>{throw Error('synthetic view refresh failure');}});try{await fill('reason','Synthetic documented update');await act(async()=>{node.querySelector('form').requestSubmit();await tick();});assert.match(node.textContent,/Invoice record saved/);assert.equal(button('Check saved invoice record'),undefined);assert.equal(h.canLeave(),true);}finally{await h.close();}
+});
+test('payment history refresh retains unsaved cash/Zelle entries even when another receipt closes the balance',async()=>{
+ let paid=0;globalThis.fetch=async(path,init)=>{assert.ok(!init?.method,'Read-only refresh must never record funds');assert.ok(String(path).startsWith('/api/invoice-admin'));return response({admin:initial,orders:[],payments:paid?[{id,cents:paid,method:'cash',receivedAt:'2026-10-15T12:00:00Z',reference:'Synthetic existing receipt'}]:[],canManage:true,cardConfigured:false,cardTransactions:[]});};
+ const h=await mount({totalCents:12000,timezone:'America/Chicago'},InvoicePayments);try{await fill('amount','30.00');await fill('reference','Synthetic unfinished receipt');await act(async()=>node.querySelector('form input[type=checkbox]').click());assert.equal(h.canLeave(),false);paid=5000;await click('Refresh payment details');assert.equal(node.querySelector('[name=amount]').value,'30.00');assert.equal(node.querySelector('[name=reference]').value,'Synthetic unfinished receipt');assert.match(node.querySelector('.payment-balance-summary').textContent,/Remaining balance\$70\.00/);paid=12000;await click('Refresh payment details');assert.equal(node.querySelector('[name=reference]').value,'Synthetic unfinished receipt');assert.equal(node.querySelector('form fieldset').disabled,true);await click('Discard unsaved payment entries');assert.ok(node.querySelector('[name=reference]'));window.confirm=()=>true;await click('Discard unsaved payment entries');assert.equal(node.querySelector('[name=reference]'),null);assert.equal(h.canLeave(),true);}finally{await h.close();}
+});
+test('invoice document refresh failure retains the document and unfinished receipt, with navigation protection',async()=>{
+ const {default:InvoicePage}=await import('../apps/web/app/invoice/page.tsx');
+ const {invoiceDocument}=await import('../apps/web/lib/invoice-document.ts');
+ const invoice=invoiceDocument({number:2026100001,issued_at:'2026-10-15T12:00:00Z',total_cents:12000,snapshot:{configuration:{sellerLegalName:'Synthetic Company',invoiceTerms:'Synthetic agreed terms',timezone:'America/Chicago'},recordedWork:[{description:'Synthetic completed work',chargedCents:12000}]},payments:[]});
+ let fail=false;globalThis.fetch=async path=>{if(String(path).startsWith('/api/invoice-document')){if(fail)throw Error('Synthetic read failure');return response({invoice});}return response({admin:initial,orders:[],payments:[],canManage:true,cardConfigured:false,cardTransactions:[]});};
+ window.history.replaceState(null,'','/invoice?'+new URLSearchParams({organization:org,invoice:id}));const root=createRoot(node);
+ try{await act(async()=>{root.render(React.createElement(InvoicePage));await tick();await tick();await tick();});await fill('reference','Synthetic unsaved receipt');await act(async()=>node.querySelector('form input[type=checkbox]').click());fail=true;await click('Refresh invoice document');assert.match(node.textContent,/Synthetic completed work/);assert.match(node.textContent,/current view is kept/);assert.equal(node.querySelector('[name=reference]').value,'Synthetic unsaved receipt');const unload=new window.Event('beforeunload',{cancelable:true});window.dispatchEvent(unload);assert.equal(unload.defaultPrevented,true);fail=false;await click('Refresh invoice document');assert.equal(node.querySelector('[name=reference]').value,'Synthetic unsaved receipt');}
+ finally{await act(async()=>root.unmount());window.history.replaceState(null,'','/invoice');}
+});
+
+test('reverting an unsaved invoice correction restores the clean state without a discard prompt',async()=>{
+ const h=await mount({});try{await fill('dueDate','2026-10-30');assert.equal(h.canLeave(),false);await fill('dueDate','');assert.equal(h.canLeave(),true);assert.equal(button('Save invoice record').disabled,true);}finally{await h.close();}
+});
+
+test('receipt entry and invoice-record correction cannot become competing unsaved actions',async()=>{
+ globalThis.fetch=async()=>response({admin:initial,orders:[],payments:[],canManage:true,cardConfigured:false,cardTransactions:[]});const h=await mount({totalCents:12000,timezone:'America/Chicago'},InvoicePayments);
+ try{await fill('reason','Synthetic agreed date edit');assert.equal(node.querySelector('[name=amount]').closest('fieldset').disabled,true);await fill('reason','');assert.equal(node.querySelector('[name=amount]').closest('fieldset').disabled,false);await fill('reference','Synthetic received cash draft');await act(async()=>node.querySelector('form input[type=checkbox]').click());assert.equal(node.querySelector('[name=dueDate]').closest('fieldset').disabled,true);assert.equal(button('Reload saved invoice record').disabled,true);assert.equal(button('Refresh payment details').disabled,false);}finally{await h.close();}
+});

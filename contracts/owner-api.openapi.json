@@ -1041,6 +1041,95 @@
         }
       }
     },
+    "/api/invoice-admin": {
+      "post": {
+        "operationId": "updateInvoiceRecord",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner/admin/bookkeeper; live session and canonical revision",
+        "x-ynsg-origin-required": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceRecord"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical due-date/archive receipt; issued charges, receipts and mail remain unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "revision": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 2147483647
+                    },
+                    "dueDate": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "allOf": [
+                            {
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                            },
+                            {
+                              "pattern": "^(?!0000-)"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "archived": {
+                      "type": "boolean"
+                    },
+                    "reason": {
+                      "type": "string",
+                      "minLength": 2,
+                      "maxLength": 500
+                    }
+                  },
+                  "required": [
+                    "revision",
+                    "dueDate",
+                    "archived",
+                    "reason"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    },
     "/api/invoice-draft": {
       "post": {
         "operationId": "saveInvoiceWork",
@@ -1257,6 +1346,69 @@
       }
     },
     "schemas": {
+      "InvoiceRecord": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483646
+          },
+          "dueDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "allOf": [
+                  {
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  {
+                    "pattern": "^(?!0000-)"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "organization": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "invoice": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 500,
+            "pattern": "^[^\\u0000]*$"
+          },
+          "key": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 128,
+            "pattern": "^[^\\u0000]*$"
+          }
+        },
+        "required": [
+          "revision",
+          "dueDate",
+          "archived",
+          "organization",
+          "invoice",
+          "reason",
+          "key"
+        ],
+        "additionalProperties": false
+      },
       "CustomerRecordCommand": {
         "oneOf": [
           {
@@ -2514,7 +2666,7 @@
     "Save work + completion is atomic; timer stops without automatic invoice/payment.",
     "Invoice charges/tax require actual agreement and owner review.",
     "Notification lock-screen payloads contain no customer contacts or financial figures.",
-    "POST limits: commands 12000 bytes; work 120000 bytes; phone device 4096 bytes.",
+    "POST limits: commands 12000 bytes; work 120000 bytes; phone device 4096 bytes; invoice record 4096 bytes.",
     "Hourly billing arithmetic, no-charge reason and customer-approved cap are additional runtime/SQL refinements."
   ]
 }

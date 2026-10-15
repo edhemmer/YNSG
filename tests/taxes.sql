@@ -72,6 +72,14 @@ do $$begin
 end$$;
 select public.manage_invoice('20000000-0000-4000-8000-000000000001',(select id from public.invoices limit 1),0,timezone('America/Chicago',now())::date,true,'Synthetic archive and agreed due date','invoice-admin-test01');
 select pg_temp.assert_true((public.invoice_payment_context('20000000-0000-4000-8000-000000000001',(select id from public.invoices limit 1))->'admin'->>'archived')::boolean,'archive preserves document');
+do $$declare result jsonb;begin
+ result:=public.manage_invoice('20000000-0000-4000-8000-000000000001',(select id from public.invoices limit 1),0,timezone('America/Chicago',now())::date,true,'Synthetic archive and agreed due date','invoice-admin-test01');
+ perform pg_temp.assert_true((result->>'revision')::integer=1,'same invoice correction replays before revision check');
+ begin perform public.manage_invoice('20000000-0000-4000-8000-000000000001',(select id from public.invoices limit 1),0,null,false,'Different correction','invoice-admin-test01');raise exception 'TEST FAILED changed invoice-record replay';exception when raise_exception then if sqlerrm<>'IDEMPOTENCY_CONFLICT' then raise;end if;end;
+ begin perform public.manage_invoice('20000000-0000-4000-8000-000000000001',(select id from public.invoices limit 1),0,null,false,'Stale correction','invoice-admin-stale01');raise exception 'TEST FAILED stale invoice record';exception when raise_exception then if sqlerrm<>'STALE_REVISION' then raise;end if;end;
+ perform pg_temp.assert_true((public.invoice_payment_context('20000000-0000-4000-8000-000000000001',(select id from public.invoices limit 1))->'admin'->>'revision')::integer=1,'failed and replayed corrections do not advance saved revision');
+end$$;
+
 reset role;
 set local role service_role;
 select set_config('request.jwt.claims','{"role":"service_role"}',true);
@@ -95,4 +103,8 @@ select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-
 select pg_temp.assert_true((public.finance_activity('20000000-0000-4000-8000-000000000001',timezone('America/Chicago',now())::date,timezone('America/Chicago',now())::date)->>'cardFeeCents')::integer=86,'actual card fees in report');
 reset role;
 select 'PASS: reviewed tax rules, atomic invoice issue, tax liability, mixed payments, isolation and stale profile' as evidence;
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
+do $$begin begin perform public.manage_invoice('20000000-0000-4000-8000-000000000001',(select id from public.invoices limit 1),0,null,true,'Forbidden correction','invoice-admin-test01');raise exception 'TEST FAILED cross tenant invoice record';exception when insufficient_privilege then null;end;end$$;
+reset role;
 set constraints all immediate;rollback;
