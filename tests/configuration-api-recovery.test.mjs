@@ -47,7 +47,8 @@ test('settings require a matching next-version receipt before reporting success'
 test('settings GET rejects invalid organization and successful response is private',async()=>{
  const h=harness();
  const invalid=await h.GET(new Request('https://example.invalid/api/configuration?organization=not-an-id'));
- assert.equal(invalid.status,503);
+ assert.equal(invalid.status,400);
+ assert.equal(invalid.headers.get('Cache-Control'),'private, no-store');
  assert.equal(h.calls.length,0);
  const valid=await h.GET(new Request('https://example.invalid/api/configuration?organization='+org));
  assert.equal(valid.status,200);
