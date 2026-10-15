@@ -1,0 +1,35 @@
+# Owner Job Standards & Education Toolkit — governed implementation
+
+Status: implementation foundation, **not yet live or a finished feature**. Owner authority: October 15, 2026 request. Work item: WEB-04 / WEB-09 / IOS; retain existing scope, pricing, invoice, authentication and tenant rules.
+
+## Contract and rules
+1. **One hour per job is the owner planning floor**, not a separate customer invoice minimum for each task. The existing **single two-hour minimum per combined hourly visit** remains the customer billing rule pending explicit business-rule approval. A 45-minute mow may reserve 60 minutes of labor planning; one stand-alone hourly visit still uses the current 120-minute customer minimum where the hourly rule applies. Do not apply this to separately priced mowing, snow or pressure washing without an approved job quote.
+2. Each owner/company can set a time standard **per exact service/task**, expected hands-on minutes, complexity, setup and pickup time, size adjustments and job notes. Territory changes travel and pricing separately. No cross-tenant standards, inferred skill levels, or AI-authorized rate changes.
+3. Examples are not benchmarked production estimates: mow/trim/blow <=60 minutes for a modest, accessible lawn; manual weeds 120 minutes depending on bed size; mulch pickup/delivery/spreading 240 minutes depending on load and travel. Owner must verify the site and adjust estimates. Mulch labor begins with approved supplier pickup; material ordered/paid by the customer. Customer quote and invoice require the existing owner approval.
+4. A daily plan must calculate combined service duration once, then scheduling buffer and travel. Missing rules fail closed into **estimate needed**, not a fictitious zero-minute job. 15-minute planning increments. Show **estimated vs recorded actual** at completion and allow the owner to revise a future standard (not retroactively change billed/issued history).
+5. Job notes include: measurements, before-start diagnostic checklist, tools, consumables, protective equipment, parts, expected time bands, common failure modes, escalation/stop signs and source citations. Source status is **manufacturer/authority reference**, **owner note**, **unreviewed AI proposal**, or **approved company playbook**. An AI answer is not guaranteed correct and cannot call itself verified merely because it cites a link.
+6. AI can propose troubleshooting steps, pre-job questions, materials and estimates from curated references. It **cannot** approve work, guarantee a fix, autonomously order products, set the bill, activate restricted trades, override staff permissions or claim safety certification. Manufacturer/model instructions supersede generalized tips. Unknown make/model -> ask/identify before model-specific procedures.
+7. No paid AI/provider activation, content imports, automated publishing, public display or live database migration without existing governance. Source links are openable; do not copy copyrighted manuals/videos into the database unless rights permit.
+
+## Smart lock — first field lesson
+**Preflight, before unscrewing anything:** capture make/model and symptoms; ask whether customer has working physical key, backup entry and appropriate authorization; inspect for low-battery warnings and try a manufacturer-approved set of fresh batteries and correct polarity. With the door OPEN, test button/touchpad, manual thumbturn and latch to distinguish electrical from alignment issues. Inspect strike/bolt friction and door sag; only use model-specific handing/calibration instructions. Confirm phone/network setup only if relevant. Avoid factory reset unless authorized and the customer can restore codes/access; preserve original lock and parts while testing.
+
+**Decision gate, about 15–20 minutes of diagnostics:** If a simple fix works, stop and test several cycles, including careful closing/locking with backup entry available. If cause remains unknown, explain next diagnostic step and projected added time **before** replacing hardware. If the door/frame/lock hardware is out of the approved service scope or requires regulated work, decline/refer rather than improvise. Never promise a fix or continue unbounded troubleshooting.
+
+**Owner debrief:** record initial symptom, what was checked first, actual hands-on minutes, any unnecessary swap, root cause if confirmed, material cost and the revised standard. Use this to recommend *diagnose before replace* on similar visits. The owner's two-hour lock incident is a learning case, **not** permission to offer smart-lock work publicly: the approved governance currently marks smart-lock work held pending compliance and scope review.
+
+## Curated starter sources
+- Kwikset, model-specific door handing: https://www.kwikset.com/support/topics/door-handing-process
+- Kwikset, latch/strike misalignment troubleshooting: https://www.kwikset.com/support/answers/on-my-smartcode-deadbolt-the-deadbolt-latch-does-not-extend-or-retract-on-its-own-during-the-door-handing-process
+- Schlage official user guide and battery/installation troubleshooting: https://www.schlage.com/content/dam/sch-us/documents/pdf/installation-manuals/schlage-control-smart-locks-user-guide.pdf
+- This Old House, removing silicone caulk: https://www.thisoldhouse.com/bathrooms/removing-silicone-caulk
+- This Old House, applying caulk: https://www.thisoldhouse.com/bathrooms/laying-down-a-perfect-bead
+- OSHA, miter saw hazards and guard: https://www.osha.gov/etools/machine-guarding/saws/miter
+
+## Full implementation gates (not yet met)
+- Owner company-scoped, revisioned standards table with RLS/secure owner-only read/write API, exact idempotency, immutable history and write audit. Company-specific territory rates must use existing reviewed configuration and explicit quote control.
+- Owner mobile editor with service/task lookup, task size/time factors, pickup and materials, optional photos and manufacturer/model, tool list, save and correction, robust lost-response recovery.
+- Request -> estimate -> appointment capacity/route -> accepted quote -> work timer -> completed actual vs planned -> invoice (not automatic). Protect existing two-hour booking rules until approved replacement policy and test legacy appointments.
+- Curated source registry including author, publisher, link, version/date checked, model applicability, exclusions, skills reviewer, media type, accessible transcript; source links reverified periodically. Owner-authored notes clearly separated from externally checked guidance.
+- Deterministic decision tree first; if an AI model is later approved, retrieval grounded in source registry, claim-by-claim citations, uncertainty and escalation, no invented time/product/video links, adversarial tests. Verify copyright, accessibility, and any professional licensing restrictions.
+- Tenant isolation, failed-upload/permission/safety cases, physical iPhone/iPad testing, review by skilled trade professional, security review, operational backups and accepted source upkeep.
