@@ -15,7 +15,7 @@ test('recorded available and shortages remain advisory, never physically verifie
  assert.equal(result[0]?.reorderSuggested,true);
 });
 test('unquantified suggestions and unknown products do not become fabricated stock shortages',()=>{
- const unmatched=s('Wall anchor options',1),unquantified={...s('Caulk tubes',1),approved:undefined};
+ const unmatched=s('Wall anchor options',1),withQty=s('Caulk tubes',1),{approved:_unused,...unquantified}=withQty;
  const result=reconcileDayWithRecordedStock(org,[unmatched,unquantified],[stock()]);
  assert.equal(result[0]?.reason,'no-stock-record');assert.equal(result[0]?.shortage,null);
  assert.equal(result[1]?.reason,'unknown-quantity');assert.equal(result[1]?.shortage,null);
