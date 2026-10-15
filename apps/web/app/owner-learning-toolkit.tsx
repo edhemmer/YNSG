@@ -55,6 +55,13 @@ const lessonDetails:Record<string,{steps:string[];tools:string[];stop:string}>={
   stop:'Do not cut unsupported stock, bypass guards or proceed without competent training.'
  }
 };
+const lessonGuidance:Record<string,{where:string;when:string;tip:string;attribution:string}>={
+ 'smart-lock-triage':{where:'At the exact model of the authorized entry lock, with a reliable way back inside.',when:'When keypad or bolt behavior changes, before buying hardware or attempting a reset.',tip:'When the bolt moves with the door open but binds when closed, investigate strike alignment before blaming the motor.',attribution:'Manufacturer troubleshooting principle — confirm model-specific guide'},
+ 'drywall-small-and-medium':{where:'A dry, accessible interior wall with a known nonhazardous finish.',when:'After diagnosing why the wall was damaged and ensuring there is no moisture or concealed utility hazard.',tip:'Feather multiple thin coats beyond the patch; allow full cure before sanding.',attribution:'Trade technique — follow compound manufacturer times'},
+ 'shelf-anchors':{where:'A surveyed wall with known substrate and suitable rated mounting hardware.',when:'Only after checking the object weight, stud position and utility risks.',tip:'Mark your bracket hole centers before drilling and test the level against the installed shelf.',attribution:'Practical field technique; verify hardware instructions'},
+ 'remove-caulk':{where:'A surface confirmed compatible with the removal tool and cleaner.',when:'Once the cause of the failed joint and any water intrusion has been addressed.',tip:'A plastic scraper is often less likely to damage acrylic than a metal blade.',attribution:'Practical trade tip; verify surface compatibility'},
+ 'apply-caulk':{where:'A clean, dry joint with the correct sealant chosen for its materials.',when:'After removing failed caulk and allowing the surface to dry fully.',tip:'A small nozzle opening makes a neat bead easier to control; do not skip the cure time.',attribution:'Practical trade tip; verify product label'}
+};
 export default function OwnerLearningToolkit(){
  const [service,setService]=useState(examplePlanningStandards[0]!.service+'::'+examplePlanningStandards[0]!.task);
  const [minutes,setMinutes]=useState(60);
@@ -105,7 +112,12 @@ export default function OwnerLearningToolkit(){
   <details><summary>Trade learning library</summary>
    <label>Topic<select value={topic} onChange={e=>setTopic(e.target.value)}>{allTrainingTopics.map(t=><option key={t.id} value={t.id}>{t.title}</option>)}</select></label>
    <h3>{selected.title}</h3>{("checkedOn" in selected)&&<p className="tiny">Reference checked: {selected.checkedOn}. Verify current manufacturer instructions before starting.</p>}<p><strong>Before starting:</strong> {selected.safety}</p>
-   <h4>Checklist</h4><ol>{lesson.steps.map(s=><li key={s}>{s}</li>)}</ol>
+   <p className="note"><strong>Training reference, not a certified procedure.</strong> Identify the exact equipment/model and read its current manufacturer instructions first. These notes do not expand YNSG's approved services.</p>
+   {lessonGuidance[selected.id]&&<div className="account-card"><p><strong>Where this applies:</strong> {lessonGuidance[selected.id].where}</p><p><strong>When to use it:</strong> {lessonGuidance[selected.id].when}</p></div>}
+   <h4>Before you start</h4><p>Confirm the model, customer permission, actual materials and your ability to use the tools safely. Stop when anything differs from the reference.</p>
+   <h4>Step-by-step field checklist</h4><ol>{lesson.steps.map((s,i)=><li key={s}><strong>Step {i+1}.</strong> {s}</li>)}</ol>
+   <div className="account-card" role="note"><h4>Watch out — stop and reassess</h4><p>{lesson.stop}</p></div>
+   {lessonGuidance[selected.id]&&<div className="account-card" role="note"><h4>Pro tip</h4><p>{lessonGuidance[selected.id].tip}</p><small>{lessonGuidance[selected.id].attribution}</small></div>}
    <h4>Useful tools and materials</h4><ul>{lesson.tools.map(s=><li key={s}>{s}</li>)}</ul>
    <p><strong>Stop / refer:</strong> {lesson.stop}</p>
    <p><a href={selected.url} target="_blank" rel="noopener noreferrer">Read the {selected.source} reference ↗</a></p>
