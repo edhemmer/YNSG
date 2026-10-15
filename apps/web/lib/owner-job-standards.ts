@@ -47,6 +47,17 @@ export function reviewTaskTime(plannedMinutes:number,actualMinutes:number,diagno
   diagnosisSharePercent:Math.round(100*diagnosisMinutes/actualMinutes)
  };
 }
+export type FieldPreflight={topicId:string;title:string;questions:string[];tools:string[];stop:string};
+export function preflightForWork(service:string,task:string):FieldPreflight|null{
+ const name=(service+' '+task).toLowerCase();
+ if(/shelf|shelving|bracket/.test(name))return {topicId:'shelf-anchors',title:'Shelf installation preflight',questions:['What is the shelf and loaded weight?','Is the wall drywall, plaster, masonry or another material?','Are suitable anchors/studs and safe drilling clear?'],tools:['Stud finder','Level','Compatible brackets/anchors','Drill and bits'],stop:'Do not assume drywall anchors are suitable for a heavy load or unverified substrate.'};
+ if(/picture|photo frame|artwork|mirror/.test(name))return {topicId:'hang-artwork',title:'Wall-hanging preflight',questions:['What is the object weight and hanging hardware?','Where are studs or suitable wall anchors?','Is there a safe area free of known utilities?'],tools:['Tape','Level','Stud finder','Rated hangers'],stop:'Heavy mirrors and valuables require separate scope and handling review.'};
+ if(/drywall|patch|spackle/.test(name))return {topicId:'drywall-small-and-medium',title:'Drywall repair preflight',questions:['How big and deep is the hole?','Any water damage or hidden utilities?','Will compound drying require another visit?'],tools:['Patch/filler','Putty knives','Dust protection'],stop:'Do not disturb suspect hazardous wall materials or conceal leaks.'};
+ if(/trim|miter|mitre|angle cut|baseboard/.test(name))return {topicId:'cutting-angles',title:'Trim & angle cutting preflight',questions:['Is the corner actually 90 degrees?','What is the trim profile and cut orientation?','Is scrap available for a test fit?'],tools:['Angle finder','Measuring tape','Scrap','Guarded saw'],stop:'No unsafe saw operations or work outside approved height.'};
+ if(/caulk|sealant/.test(name))return {topicId:'caulking-video',title:'Caulking preflight',questions:['Is the old bead failing or hiding water damage?','Which surfaces and compatible sealant?','What is the required cure time?'],tools:['Surface-safe scraper','Compatible caulk','Cleaners','Caulk gun'],stop:'Do not caulk over unresolved moisture or unprepared surfaces.'};
+ if(/lock|deadbolt/.test(name))return {topicId:'smart-lock-triage',title:'Lock diagnostic preflight',questions:['Exact manufacturer/model and symptom?','Have correct fresh batteries been tested?','Can the customer maintain backup entry?'],tools:['Model guide','Fresh batteries','Flashlight'],stop:'Smart-lock work is held pending approval; training only.'};
+ return null;
+}
 export const verifiedHandymanSources=[
  {id:'cutting-angles',title:'Measure and bisect real-world corners for miter cuts',source:'This Old House (official video)',url:'https://www.youtube.com/watch?v=Idm2bJFFObU',checkedOn:'2026-10-15',safety:'Use actual wall angle, test on scrap and follow the guarded saw manual.'},
  {id:'drywall-small-and-medium',title:'Repair drywall holes by damage size',source:'This Old House (step-by-step video and article)',url:'https://www.thisoldhouse.com/walls/how-to-patch-holes-in-drywall',checkedOn:'2026-10-15',safety:'Inspect for moisture, wiring or unusual wall materials. Compound drying may require a return visit.'},
