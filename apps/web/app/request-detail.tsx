@@ -13,10 +13,13 @@ import SchedulingReviewPanel from './scheduling-review-panel';
 import RecurringVisits from './recurring-visits';
 import RelationshipNotes from './relationship-notes';
 import {serviceNextStep} from '../lib/service-workflow';
+import {useBlockedEntry} from './entry-safety';
 type Props={organization:string;requestId:string;timezone:string;canManage:boolean;onClose:()=>void;onChanged:()=>void;onWork:(requestId:string)=>void};
 export default function RequestDetail({organization,requestId,timezone,canManage,onClose,onChanged,onWork}:Props){
  const dialog=useRef<HTMLDialogElement>(null),keys=useRef(new Map<string,string>());
- const [data,setData]=useState<InboxData|null>(null),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[reload,setReload]=useState(0);
+ const [data,setData]=useState<InboxData|null>(null),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[unknown,setUnknown]=useState(false),[reload,setReload]=useState(0);
+ const frozen=useRef<{path:string;body:string}|null>(null);
+ useBlockedEntry('request-action:'+organization+':'+requestId,busy||unknown);
  const [panel,setPanel]=useState<'overview'|'schedule'|'decline'|'reschedule'|'notes'|'cancel'>('overview'),[appointment,setAppointment]=useState<string|null>(null);
  useEffect(()=>{const el=dialog.current,returnFocus=document.activeElement;el?.showModal();return()=>{el?.close();if(returnFocus instanceof HTMLElement&&returnFocus.isConnected)returnFocus.focus();};},[]);
  useEffect(()=>{const controller=new AbortController();let live=true;setError('');
@@ -28,11 +31,38 @@ export default function RequestDetail({organization,requestId,timezone,canManage
  const proposal=active.find(a=>visitState(a)==='proposal'),confirmed=active.find(a=>a.status==='reserved');
  const stage=request?requestStage(request):null;
  const date=(v:string)=>new Intl.DateTimeFormat('en-US',{timeZone:timezone,dateStyle:'medium',timeStyle:'short'}).format(new Date(v));
+ async function sendFrozenCommand(){
+  if(busy||!frozen.current)return false;
+  setBusy(true);setError('');setMessage('');
+  try{
+   const response=await sessionFetch(frozen.current.path,{method:'POST',headers:{'Content-Type':'application/json'},body:frozen.current.body});
+   if(response.status>=400&&response.status<500){
+    const value=await response.json().catch(()=>null);
+    if(unknown){setError('The earlier decision is still unconfirmed. Refresh the request or check the same saved action; do not issue a different decision.');return false;}
+    frozen.current=null;
+    setError(typeof value?.error==='string'?value.error:'The decision was rejected. Your request is unchanged.');
+    return false;
+   }
+   if(!response.ok)throw Error('UNCONFIRMED');
+   const value=await response.json();
+   if(value?.ok!==true||value.result===null||value.result===undefined)throw Error('UNCONFIRMED');
+   frozen.current=null;setUnknown(false);
+   setMessage('Decision saved. Check Activity for the actual customer-message and calendar-delivery status.');
+   setReload(n=>n+1);
+   try{onChanged();}catch{setError('Decision saved, but the dashboard refresh failed. Refresh before the next action.');}
+   return true;
+  }catch{
+   setUnknown(true);
+   setError('We could not confirm whether that action saved. Your original decision is kept. Check the same saved action before making another change.');
+   return false;
+  }finally{setBusy(false);}
+ }
  async function command(path:string,input:Record<string,unknown>){
-  if(busy)return false;setBusy(true);setError('');setMessage('');const fingerprint=JSON.stringify([organization,path,input]);
+  if(busy||frozen.current||unknown)return false;
+  const fingerprint=JSON.stringify([organization,path,input]);
   if(!keys.current.has(fingerprint))keys.current.set(fingerprint,crypto.randomUUID());
-  try{const r=await sessionFetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({organizationId:organization,key:keys.current.get(fingerprint),...input})});const value=await r.json();if(!r.ok)throw Error(value.error);setMessage('Saved. Calendar updates and customer messages will be handled by your connected automation.');setReload(n=>n+1);onChanged();return true;}
-  catch(e){setError(publicError(e));return false;}finally{setBusy(false);}
+  frozen.current={path,body:JSON.stringify({organizationId:organization,key:keys.current.get(fingerprint),...input})};
+  return sendFrozenCommand();
  }
  async function review(target:string|null){
   if(!request)return;
@@ -53,10 +83,10 @@ export default function RequestDetail({organization,requestId,timezone,canManage
   const reason=String(new FormData(form).get('reason')||'').trim();
   if(await command('/api/appointment-cancel',{id:confirmed.id,revision:confirmed.revision,reason})) {setPanel('overview');setMessage('Appointment canceled. The time is available again. The request and financial history are kept; the customer update is queued.');}
  }
- return <dialog className="request-dialog" ref={dialog} aria-labelledby="request-detail-title" onCancel={e=>{e.preventDefault();if(busy)return;onClose();}}>
-  <header className="detail-top"><div><p className="eyebrow">Service request</p><h2 id="request-detail-title">{submission?.name||'Loading request…'}</h2>{stage&&<span className={'status-pill tone-'+stage.tone}>{stage.label}</span>}</div><button className="icon-button secondary" type="button" aria-label="Close request" disabled={busy} onClick={onClose}><Icon name="close"/></button></header>
+ return <dialog className="request-dialog" ref={dialog} aria-labelledby="request-detail-title" onCancel={e=>{e.preventDefault();if(busy||unknown)return;onClose();}}>
+  <header className="detail-top"><div><p className="eyebrow">Service request</p><h2 id="request-detail-title">{submission?.name||'Loading request…'}</h2>{stage&&<span className={'status-pill tone-'+stage.tone}>{stage.label}</span>}</div><button className="icon-button secondary" type="button" aria-label="Close request" disabled={busy||unknown} onClick={onClose}><Icon name="close"/></button></header>
   <div className="detail-body">
-   {error&&<p className="error note" role="alert">{error}</p>}{message&&<p className="note" role="status">{message}</p>}
+   {error&&<p className="error note" role="alert">{error}</p>}{unknown&&<div className="note" role="group" aria-label="Unconfirmed owner action"><p>The previous action might already be saved. Do not make a new decision until this result is confirmed.</p><button type="button" disabled={busy} onClick={()=>void sendFrozenCommand()}>Check saved action result</button></div>}{message&&<p className="note" role="status">{message}</p>}
    {!data&&!error&&<div className="loading" role="status">Opening the complete request…</div>}
    {data&&!request&&<div className="empty-state"><h3>Request unavailable</h3><p>This request may belong to another business or no longer be available to your account.</p></div>}
    {request&&submission&&<>
