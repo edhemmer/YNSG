@@ -12,7 +12,7 @@ test('two-hour weeding and four-hour mulch include a single visit floor, not two
  const e=estimateVisit([{service:'Yard & garden',task:'Pulling weeds by hand'},{service:'Yard & garden',task:'Bulk or bagged mulch pickup, delivery & spreading'}],examplePlanningStandards,30);
  assert.equal(e.taskMinutes,360);
  assert.equal(e.visitMinutes,390);
- assert.equal(e.breakdown[1].minutes,240);
+ assert.equal(e.breakdown[1]!.minutes,240);
 });
 test('a small job remains allocated for a full hour even when estimated under one hour',()=>{
  const e=estimateVisit([{service:'Lawn care',task:'Mow, trim and blow-off',sizeFactor:0.5}],examplePlanningStandards,0);
