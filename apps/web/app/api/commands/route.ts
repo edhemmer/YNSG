@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import {ownerCommandSchema} from "../../../lib/owner-command-contract";
 import { authenticated, sameOrigin, failure } from "../../../lib/session";
 import {validateExpenseReceipt,expenseFailure} from '../../../lib/expense-contract';
@@ -130,7 +131,17 @@ export async function POST(request: Request) {
       if(error)throw Error(error.code==='42501'?'FORBIDDEN':error.message);
       return NextResponse.json({ok:true,result:validateExpenseReceipt(c,data)},{headers:expenseHeaders});
     }
-    if(error&&c.command==='RecordPayment'&&!['P0001','42501','22023','23514','23503'].includes(error.code))return NextResponse.json({error:'The payment result could not be confirmed. Check the saved result before entering another payment.'},{status:503,headers:{'Cache-Control':'no-store'}});
+    if(c.command==='RecordPayment'){
+      const headers={'Cache-Control':'private, no-store'};
+      if(error){
+        const denied=error.code==='42501';
+        const known=denied||['OVERPAYMENT_REQUIRES_REVIEW','CARD_PAYMENT_PENDING','IDEMPOTENCY_CONFLICT','INVOICE_ALREADY_ISSUED','STALE_REVISION','FORBIDDEN','VALIDATION','NOT_FOUND'].includes(error.message);
+        return NextResponse.json({error:denied?'This account cannot record the payment.':known?(messages[error.message]||'The payment was rejected. Review the invoice before retrying.'):'The payment result could not be confirmed. Check the same saved attempt before entering another payment.'},{status:denied?403:known?409:503,headers});
+      }
+      const receipt=z.object({id:z.uuid()}).passthrough().safeParse(data);
+      if(!receipt.success)return NextResponse.json({error:'The payment result could not be confirmed. Check the same saved attempt before entering another payment.'},{status:503,headers});
+      return NextResponse.json({ok:true,result:data},{headers});
+    }
     if (error)
       return NextResponse.json(
         {
