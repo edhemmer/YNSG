@@ -1,6 +1,7 @@
 import {deliverRequest} from './request-delivery.js';
 import {requestRecovery} from './request-recovery.js';
 import {bookingJourney} from './booking-journey.js';
+import {addressCheck} from './address-check.js';
 function requestErrorMessage(error){
   const approved=new Set([
     'Please check the form and try again.',
@@ -158,6 +159,7 @@ if(form){
   });
 
   const journey=bookingJourney({form,services:()=>[...selected.values()],requestData:()=>pendingSubmission?.data||Object.fromEntries(new FormData(form))});
+  addressCheck(form);
   form.addEventListener('submit',async event=>{
     event.preventDefault();
     if(sending)return;
@@ -220,6 +222,7 @@ if(form){
       sending=false;form.setAttribute('aria-busy','false');button.disabled=false;button.firstChild.textContent=unknown?'Try sending again ':'Send service request ';
       if(refreshCalendar)form.dispatchEvent(new CustomEvent('appointment-conflict'));
       journey?.refresh();
+      form.dispatchEvent(new CustomEvent('request-delivery-state-changed'));
     }
   });
 }

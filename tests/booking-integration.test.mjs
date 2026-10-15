@@ -4,13 +4,14 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {webcrypto} from 'node:crypto';
 import {JSDOM} from 'jsdom';
+import {addressCheck} from '../site/address-check.js';
 import {bookingJourney} from '../site/booking-journey.js';
 import {requestRecovery} from '../site/request-recovery.js';
 const html=readFileSync(new URL('../site/pages/form.html',import.meta.url),'utf8');
 const source=readFileSync(new URL('../site/main.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
 function harness(outcomes=[]){
  const dom=new JSDOM(html,{url:'https://example.invalid/request'}),w=dom.window,form=w.document.querySelector('form'),bodies=[];
- runInNewContext(source,{document:w.document,window:w,location:w.location,sessionStorage:w.sessionStorage,FormData:w.FormData,CustomEvent:w.CustomEvent,URLSearchParams,crypto:webcrypto,bookingJourney,requestRecovery,matchMedia:()=>({matches:true}),deliverRequest:async data=>{bodies.push(JSON.stringify(data));const result=outcomes.shift();if(result instanceof Error)throw result;return {id:'11111111-1111-4111-8111-111111111111'};}});
+ runInNewContext(source,{document:w.document,window:w,location:w.location,sessionStorage:w.sessionStorage,FormData:w.FormData,CustomEvent:w.CustomEvent,URLSearchParams,crypto:webcrypto,addressCheck,bookingJourney,requestRecovery,matchMedia:()=>({matches:true}),deliverRequest:async data=>{bodies.push(JSON.stringify(data));const result=outcomes.shift();if(result instanceof Error)throw result;return {id:'11111111-1111-4111-8111-111111111111'};}});
  const click=s=>form.querySelector(s).click(),stage=()=>Number(form.querySelector('[data-stage]:not([hidden])').dataset.stage);
  return {dom,w,form,bodies,click,stage,choose:()=>click('.service-option input'),details:()=>{for(const [id,value] of Object.entries({name:'Synthetic customer',phone:'5550100999',email:'synthetic@example.invalid',street:'100 Synthetic Street',city:'DeKalb'}))form.querySelector('#'+id).value=value;},submit:async()=>{form.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await new Promise(resolve=>setImmediate(resolve));}};
 }
