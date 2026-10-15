@@ -226,3 +226,11 @@ test('phone registration is opt-in and an uncertain save replays one exact revie
   assert.equal(writes.length,2);assert.equal(writes[0],writes[1]);const value=JSON.parse(writes[0]);assert.equal(value.reviewed,true);assert.equal(value.quietStart,1260);assert.equal(value.quietEnd,420);assert.equal(value.sound,false);
  }finally{await act(async()=>root.unmount());delete window.ReactNativeWebView;}
 });
+
+test('owner attention card explains the remaining action even when the appointment is confirmed',async()=>{
+ const {default:RequestInbox}=await import('../apps/web/app/request-inbox.tsx');const root=createRoot(node);
+ const request={id,revision:1,status:'quoted',created_at:'2026-10-14T12:00:00Z',original_submission:{name:'Synthetic owner review',street:'100 Synthetic Street',city:'DeKalb',phone:'5550100999',services:[{service:'Home jobs',task:'Furniture assembly'}]},appointments:[{id:'60000000-0000-4000-8000-000000000001',status:'reserved',start_at:'2026-10-20T14:00:00Z',end_at:'2026-10-20T16:00:00Z',arrival_at:'2026-10-20T14:00:00Z',expires_at:null}]};
+ globalThis.fetch=async()=>response({requests:[request],total:1,needsReview:0,page:0,hasMore:false,checkedAt:'2026-10-14T12:00:00Z',quotes:[],jobs:[],invoices:[],preferences:[]});
+ try{await act(async()=>{root.render(React.createElement(RequestInbox,{organization:org,timezone:'America/Chicago',revision:1,onOpen:quiet,compact:true}));await tick();await tick();});assert.match(node.textContent,/Next: Agree on the work and price/);assert.ok([...node.querySelectorAll('button')].some(b=>b.textContent.includes('Continue workflow')));
+ }finally{await act(async()=>root.unmount());}
+});

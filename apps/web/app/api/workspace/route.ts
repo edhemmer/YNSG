@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     const appointmentFrom=new Date(Date.now()-24*60*60*1000).toISOString();
     const selectedRequest=new URL(request.url).searchParams.get('request');
     if(selectedRequest)z.uuid().parse(selectedRequest);
-    const requestQuery=db.from('service_requests').select('id,status,revision,created_at,original_submission').eq('organization_id',org);
+    const requestQuery=db.from('service_requests').select('id,customer_id,status,revision,created_at,original_submission').eq('organization_id',org);
     const appointmentQuery=db.from('appointments').select('id,request_id,job_id,status,revision,start_at,end_at,arrival_at,expires_at,replaces_id,customer_response').eq('organization_id',org).not('request_id','is',null);
     const results = await Promise.all([
       db

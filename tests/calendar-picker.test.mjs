@@ -44,7 +44,7 @@ test('lost selection never displays a held time and cancels by selection key',as
  const h=await harness([available()],{holdError:true});await h.select();assert.equal(h.form.dataset.appointmentStart,'');assert.equal(h.form.dataset.appointmentHoldToken,'');assert.equal(h.holdCalls[1].action,'release');assert.equal(h.holdCalls[0].key,h.holdCalls[1].key);assert.match(h.get('#calendar-status').textContent,/no longer available/);
 });
 test('page exit clears released state before navigation-cache restoration',async()=>{
- const h=await harness([available()]);await h.select();h.window.handlers.pagehide();await h.settle();assert.equal(h.form.dataset.appointmentStart,'');assert.equal(h.form.dataset.appointmentHoldToken,'');assert.equal(h.holdCalls.at(-1).action,'release');h.window.handlers.pageshow();assert.match(h.get('#appointment-selection').textContent,/arrange a time/);
+ const h=await harness([available()]);await h.select();h.window.handlers.pagehide();await h.settle();assert.equal(h.form.dataset.appointmentStart,'');assert.equal(h.form.dataset.appointmentHoldToken,'');assert.equal(h.holdCalls.at(-1).action,'release');h.window.handlers.pageshow();assert.equal(h.get('#appointment-selection').hidden,true);assert.equal(h.get('#appointment-selection').textContent,'');
 });
 test('returning from background detects expiry even when the timer never fired',async()=>{
  for(const event of ['pageshow','visibilitychange']){
@@ -94,3 +94,5 @@ test('quick date opens matching times and only a deliberate time click creates a
  await h.get('#appointment-times').children[0].handlers.click();await h.settle();
  assert.equal(h.holdCalls.filter(c=>c.action==='select').length,1);assert.equal(localDay(Date.parse(h.form.dataset.appointmentStart)),later);
 });
+
+test('calendar shows a saved-selection summary only after a deliberate time hold',async()=>{const h=await harness([available()]);assert.equal(h.get('#appointment-selection').hidden,true);assert.equal(h.holdCalls.length,0);await h.select();assert.equal(h.get('#appointment-selection').hidden,false);assert.match(h.get('#appointment-selection').textContent,/Selected:/);await h.get('#calendar-clear').handlers.click();assert.equal(h.get('#appointment-selection').hidden,true);});

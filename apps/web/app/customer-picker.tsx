@@ -1,0 +1,15 @@
+'use client';
+import {useEffect,useRef,useState} from 'react';
+import {sessionFetch} from '../lib/session-fetch';
+import {customerList,type CustomerList} from '../lib/customer-record-contract';
+export default function CustomerPicker({organization,onChanged}:{organization:string;onChanged:()=>void}){
+ const [query,setQuery]=useState(''),[page,setPage]=useState(0),[data,setData]=useState<CustomerList|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(''),[choice,setChoice]=useState<{id:string;name:string}|null>(null);
+ const sequence=useRef(0),controller=useRef<AbortController|null>(null);
+ useEffect(()=>()=>{sequence.current++;controller.current?.abort();},[]);
+ async function read(nextPage=0){controller.current?.abort();const own=new AbortController();controller.current=own;const current=++sequence.current;setLoading(true);setError('');setPage(nextPage);
+  try{const r=await sessionFetch('/api/customer-records?'+new URLSearchParams({organization,query,page:String(nextPage),filter:'active'}),{cache:'no-store',signal:own.signal});const d=await r.json();if(!r.ok)throw Error(d.error);const parsed=customerList.parse(d);if(sequence.current===current)setData(parsed);}catch(e){if(sequence.current===current&&!own.signal.aborted){setData(null);setError(e instanceof Error?e.message:'Customer search could not load.');}}finally{if(sequence.current===current)setLoading(false);}
+ }
+ return <details className="customer-item" onToggle={e=>{if(e.currentTarget.open&&!data&&!loading)void read();}}><summary>Returning customer? Use an existing record</summary><p className="tiny">Match the person deliberately. A phone or email match does not grant account access.</p><input type="hidden" name="customerId" value={choice?.id||''}/>
+  {choice?<div className="note"><p>Use <strong>{choice.name}</strong> for this request.</p><label><input type="checkbox" required/>I verified this is the right customer.</label><button className="secondary" type="button" onClick={()=>{setChoice(null);onChanged();}}>Use a new customer record instead</button></div>:<><label>Find an existing customer<input type="search" maxLength={100} value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();void read();}}}/></label><button type="button" className="secondary" disabled={loading} onClick={()=>void read()}>Find customer</button>{error&&<p role="alert">{error}</p>}{loading?<p role="status">Finding customers…</p>:<>{data?.items.map(c=><p key={c.id}><button type="button" className="secondary" onClick={()=>{setChoice({id:c.id,name:c.displayName});onChanged();}}>Use {c.displayName}</button></p>)}{data&&!data.items.length&&<p>No matching active customers. Leave this unselected to create a record from the request.</p>}<div className="actions"><button type="button" className="secondary" disabled={page===0} onClick={()=>void read(page-1)}>Previous customers</button><button type="button" className="secondary" disabled={!data?.hasMore} onClick={()=>void read(page+1)}>More customers</button></div></> }</>}
+ </details>;
+}

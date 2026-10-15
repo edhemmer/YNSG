@@ -1,0 +1,79 @@
+-- Entire file runs inside the synthetic foundation transaction and rolls back.
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+do $$declare r jsonb;again jsonb;c uuid;t uuid;p uuid;rev integer;
+begin
+ r:=public.manage_customer_record('20000000-0000-4000-8000-000000000001','{"action":"create_customer","value":{"displayName":"Synthetic current customer"},"reason":"Synthetic creation"}','80000000-0000-4000-8000-000000000001');
+ c:=(r->>'customerId')::uuid;perform set_config('qa.customer',c::text,true);
+ again:=public.manage_customer_record('20000000-0000-4000-8000-000000000001','{"action":"create_customer","value":{"displayName":"Synthetic current customer"},"reason":"Synthetic creation"}','80000000-0000-4000-8000-000000000001');
+ perform pg_temp.assert_true(r=again,'create exact replay returns one canonical result');
+ begin perform public.manage_customer_record('20000000-0000-4000-8000-000000000001','{"action":"create_customer","value":{"displayName":"Changed"},"reason":"Synthetic creation"}','80000000-0000-4000-8000-000000000001');raise exception 'TEST FAILED changed retry';exception when raise_exception then if sqlerrm<>'IDEMPOTENCY_CONFLICT' then raise;end if;end;
+ r:=public.manage_customer_record('20000000-0000-4000-8000-000000000001',jsonb_build_object('action','save_contact','customer',c,'revision',1,'record',null,'recordRevision',null,'value',jsonb_build_object('name','Synthetic contact','email','synthetic@example.invalid','phone','','relationship','Customer'),'reason','Synthetic contact'),'80000000-0000-4000-8000-000000000002');
+ t:=(r->>'recordId')::uuid;perform set_config('qa.contact',t::text,true);perform pg_temp.assert_true((r->>'revision')::integer=2,'child create advances parent revision');
+ begin perform public.manage_customer_record('20000000-0000-4000-8000-000000000001',jsonb_build_object('action','update_customer','customer',c,'revision',1,'value',jsonb_build_object('displayName','Stale update'),'reason',''),'80000000-0000-4000-8000-000000000003');raise exception 'TEST FAILED stale parent';exception when raise_exception then if sqlerrm<>'STALE_REVISION' then raise;end if;end;
+ r:=public.manage_customer_record('20000000-0000-4000-8000-000000000001',jsonb_build_object('action','save_property','customer',c,'revision',2,'record',null,'recordRevision',null,'value',jsonb_build_object('street','100 Synthetic Street','city','DeKalb','state','IL','postalCode','60115'),'reason','Synthetic address'),'80000000-0000-4000-8000-000000000004');
+ p:=(r->>'recordId')::uuid;perform set_config('qa.property',p::text,true);
+ r:=public.manage_customer_record('20000000-0000-4000-8000-000000000001',jsonb_build_object('action','save_contact','customer',c,'revision',3,'record',t,'recordRevision',1,'value',jsonb_build_object('name','Synthetic contact','email','','phone','5550100999','relationship','Family'),'reason','Synthetic correction'),'80000000-0000-4000-8000-000000000005');
+ perform pg_temp.assert_true((r->>'revision')::integer=4 and (r->>'recordRevision')::integer=2,'contact and parent revisions advance atomically');
+ perform pg_temp.assert_true((select count(*)=0 from public.customer_access where organization_id='20000000-0000-4000-8000-000000000001' and customer_id=c),'contact edit never grants or transfers account access');
+ for rev in 0..2 loop
+  begin perform public.manage_customer_record('20000000-0000-4000-8000-000000000001',jsonb_build_object('action','save_contact','customer',c,'revision',4,'record',t,'recordRevision',case rev when 0 then 1.5 when 1 then 0 else 2147483648 end,'value',jsonb_build_object('name','Synthetic','email','','phone','5550100999','relationship','Customer'),'reason',''),'80000000-0000-4000-8000-000000000021');raise exception 'TEST FAILED invalid child revision';exception when raise_exception then if sqlerrm<>'VALIDATION' then raise;end if;end;
+ end loop;
+ begin perform public.manage_customer_record('20000000-0000-4000-8000-000000000001',jsonb_build_object('action','save_contact','customer',c,'revision',4,'record',t,'recordRevision',1,'value',jsonb_build_object('name','Synthetic','email','','phone','5550100999','relationship','Customer'),'reason',''),'80000000-0000-4000-8000-000000000022');raise exception 'TEST FAILED stale child revision';exception when raise_exception then if sqlerrm<>'STALE_REVISION' then raise;end if;end;
+ begin perform public.manage_customer_record('20000000-0000-4000-8000-000000000001',jsonb_build_object('action','save_contact','customer',c,'revision',4,'record',null,'recordRevision',null,'value',jsonb_build_object('name','Synthetic','email','','phone','--- ---','relationship','Customer'),'reason',''),'80000000-0000-4000-8000-000000000023');raise exception 'TEST FAILED nonphone contact';exception when raise_exception then if sqlerrm<>'VALIDATION' then raise;end if;end;
+ r:=public.manage_customer_record('20000000-0000-4000-8000-000000000001',jsonb_build_object('action','update_customer','customer',c,'revision',4,'value',jsonb_build_object('displayName','Synthetic renamed customer'),'reason','Name correction'),'80000000-0000-4000-8000-000000000006');
+ r:=public.manage_customer_record('20000000-0000-4000-8000-000000000001',jsonb_build_object('action','set_archived','customer',c,'revision',5,'archived',true,'reason','Archived relationship'),'80000000-0000-4000-8000-000000000007');
+ perform pg_temp.assert_true(jsonb_array_length(public.owner_customer_records('20000000-0000-4000-8000-000000000001',null,'Synthetic renamed','active')->'items')=0,'archived hidden from active directory');
+ perform pg_temp.assert_true(jsonb_array_length(public.owner_customer_records('20000000-0000-4000-8000-000000000001',null,'Synthetic renamed','archived')->'items')=1,'archived remains explicitly available');
+ begin perform public.manage_customer_record('20000000-0000-4000-8000-000000000001',jsonb_build_object('action','update_customer','customer',c,'revision',6,'value',jsonb_build_object('displayName','Must restore first'),'reason',''),'80000000-0000-4000-8000-000000000008');raise exception 'TEST FAILED archived edit';exception when raise_exception then if sqlerrm<>'CUSTOMER_ARCHIVED' then raise;end if;end;
+ r:=public.manage_customer_record('20000000-0000-4000-8000-000000000001',jsonb_build_object('action','set_archived','customer',c,'revision',6,'archived',false,'reason','Restored relationship'),'80000000-0000-4000-8000-000000000009');
+ perform pg_temp.assert_true((r->>'revision')::integer=7,'restore retained record with next revision');
+ perform pg_temp.assert_true(jsonb_array_length(public.owner_customer_records('20000000-0000-4000-8000-000000000001',c)->'history')=7,'one private history per saved command, none for replay/failure');
+ begin perform public.manage_customer_record('20000000-0000-4000-8000-000000000001',jsonb_build_object('action','save_contact','customer','30000000-0000-4000-8000-000000000002','revision',1,'record',t,'recordRevision',2,'value',jsonb_build_object('name','Other customer','email','','phone','5550100999','relationship','Customer'),'reason',''),'80000000-0000-4000-8000-000000000010');raise exception 'TEST FAILED moved child';exception when raise_exception then if sqlerrm<>'NOT_FOUND' then raise;end if;end;
+ begin perform public.manage_customer_record('20000000-0000-4000-8000-000000000001',jsonb_build_object('action','update_customer','customer',c,'revision',7,'value',jsonb_build_object('displayName','Bad extra field'),'reason','','role','owner'),'80000000-0000-4000-8000-000000000011');raise exception 'TEST FAILED extra fields';exception when raise_exception then if sqlerrm<>'VALIDATION' then raise;end if;end;
+ begin update public.contacts set phone='5550000000';raise exception 'TEST FAILED direct contact mutation';exception when insufficient_privilege then null;end;
+ begin update public.properties set street='Direct edit';raise exception 'TEST FAILED direct address mutation';exception when insufficient_privilege then null;end;
+ begin select count(*) into rev from private.customer_record_changes;raise exception 'TEST FAILED raw private history access';exception when insufficient_privilege then null;end;
+end$$;
+reset role;
+insert into auth.sessions(id,user_id,aal) values('10000000-0000-4000-8000-000000000010','00000000-0000-4000-8000-000000000001','aal1');
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000010","aal":"aal1"}',true);
+do $$begin begin perform public.manage_customer_record('20000000-0000-4000-8000-000000000001','{"action":"create_customer","value":{"displayName":"Synthetic current customer"},"reason":"Synthetic creation"}','80000000-0000-4000-8000-000000000001');raise exception 'TEST FAILED new session reused old receipt';exception when raise_exception then if sqlerrm<>'IDEMPOTENCY_CONFLICT' then raise;end if;end;end$$;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+do $$declare n integer;r jsonb;rev integer:=7;begin
+ for n in 1..22 loop
+  r:=public.manage_customer_record('20000000-0000-4000-8000-000000000001',jsonb_build_object('action','update_customer','customer',current_setting('qa.customer'),'revision',rev,'value',jsonb_build_object('displayName','Synthetic history '||n),'reason','Synthetic history pagination'),'90000000-0000-4000-8000-'||lpad(n::text,12,'0'));rev:=(r->>'revision')::integer;
+ end loop;
+ perform pg_temp.assert_true(jsonb_array_length(public.owner_customer_records('20000000-0000-4000-8000-000000000001',current_setting('qa.customer')::uuid)->'history')=20 and (public.owner_customer_records('20000000-0000-4000-8000-000000000001',current_setting('qa.customer')::uuid)->>'historyMore')::boolean,'history has bounded first page and honest overflow');
+ perform pg_temp.assert_true(jsonb_array_length(public.owner_customer_records('20000000-0000-4000-8000-000000000001',current_setting('qa.customer')::uuid,'','active',0,0,1)->'history')=9,'older history remains reachable');
+end$$;
+reset role;
+insert into public.service_requests(organization_id,id,service_id,customer_id,property_id,original_submission,privacy_version)
+select organization_id,'50000000-0000-4000-8000-000000000090',id,current_setting('qa.customer')::uuid,current_setting('qa.property')::uuid,'{"name":"Original intake","street":"100 Original Street","city":"DeKalb","service":"Lawn care"}','synthetic' from public.catalog_services where organization_id='20000000-0000-4000-8000-000000000001';
+insert into public.appointments(organization_id,request_id,start_at,end_at,arrival_at,timezone,status) values('20000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000090',now()+interval '2 days',now()+interval '2 days 2 hours',now()+interval '2 days','America/Chicago','reserved');
+set local role authenticated;
+do $$begin
+ begin perform public.manage_customer_record('20000000-0000-4000-8000-000000000001',jsonb_build_object('action','set_archived','customer',current_setting('qa.customer'),'revision',29,'archived',true,'reason',''),'80000000-0000-4000-8000-000000000012');raise exception 'TEST FAILED archive open request';exception when raise_exception then if sqlerrm<>'CUSTOMER_HAS_OPEN_WORK' then raise;end if;end;
+ begin perform public.manage_customer_record('20000000-0000-4000-8000-000000000001',jsonb_build_object('action','save_property','customer',current_setting('qa.customer'),'revision',29,'record',current_setting('qa.property'),'recordRevision',1,'value',jsonb_build_object('street','200 Changed Street','city','DeKalb','state','IL','postalCode','60115'),'reason',''),'80000000-0000-4000-8000-000000000013');raise exception 'TEST FAILED changed booked address';exception when raise_exception then if sqlerrm<>'ADDRESS_HAS_OPEN_WORK' then raise;end if;end;
+ perform pg_temp.assert_true((select original_submission->>'street'='100 Original Street' from public.service_requests where id='50000000-0000-4000-8000-000000000090'),'original request remains immutable evidence');
+end$$;
+reset role;
+do $$begin begin update private.customer_record_changes set reason='Overwritten';raise exception 'TEST FAILED history overwrite';exception when raise_exception then if sqlerrm<>'IMMUTABLE_RECORD' then raise;end if;end;end$$;
+insert into public.customers(organization_id,display_name) select '20000000-0000-4000-8000-000000000001','Paged synthetic '||n from generate_series(1,30) n;
+insert into public.contacts(organization_id,customer_id,name,phone,relationship) select '20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000002','Synthetic overflow '||n,'5550100000','Customer' from generate_series(1,101) n;
+set local role authenticated;
+select pg_temp.assert_true(jsonb_array_length(public.owner_customer_records('20000000-0000-4000-8000-000000000001',null,'Paged synthetic','active',0)->'items')=20 and (public.owner_customer_records('20000000-0000-4000-8000-000000000001',null,'Paged synthetic','active',0)->>'hasMore')::boolean,'directory first page bounded with honest overflow');
+select pg_temp.assert_true(jsonb_array_length(public.owner_customer_records('20000000-0000-4000-8000-000000000001',null,'Paged synthetic','active',1)->'items')=10 and not (public.owner_customer_records('20000000-0000-4000-8000-000000000001',null,'Paged synthetic','active',1)->>'hasMore')::boolean,'directory second page retained');
+select pg_temp.assert_true(jsonb_array_length(public.owner_customer_records('20000000-0000-4000-8000-000000000001',null,'5550100999')->'items')=1,'phone search finds current contact');
+do $$begin begin perform public.owner_customer_records('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000002');raise exception 'TEST FAILED silent child truncation';exception when raise_exception then if sqlerrm<>'DETAIL_LIMIT' then raise;end if;end;end$$;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000003","session_id":"10000000-0000-4000-8000-000000000003","aal":"aal1","user_metadata":{"role":"owner"}}',true);
+do $$begin begin perform public.owner_customer_records('20000000-0000-4000-8000-000000000001');raise exception 'TEST FAILED customer directory access';exception when insufficient_privilege then null;end;end$$;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
+do $$begin begin perform public.owner_customer_records('20000000-0000-4000-8000-000000000001');raise exception 'TEST FAILED cross tenant read';exception when insufficient_privilege then null;end;end$$;
+reset role;
+update public.memberships set revoked_at=now() where organization_id='20000000-0000-4000-8000-000000000001' and user_id='00000000-0000-4000-8000-000000000001';
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+do $$begin begin perform public.manage_customer_record('20000000-0000-4000-8000-000000000001','{"action":"create_customer","value":{"displayName":"Synthetic current customer"},"reason":"Synthetic creation"}','80000000-0000-4000-8000-000000000001');raise exception 'TEST FAILED revoked replay';exception when insufficient_privilege then null;end;end$$;
+reset role;rollback;
