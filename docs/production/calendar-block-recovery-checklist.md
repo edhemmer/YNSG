@@ -1,0 +1,23 @@
+# Calendar time-block recovery acceptance — 15 October 2026
+
+Scope: #32 / WEB-03, baseline 22fd2471cae6c4d68fb84bfff002f1b4e1daa563. Active conversation, controlling charter/execution/register, governance/specification, current UI/API, timezone conversion and canonical SQL reviewed before editing. Preserve approved logo/colors, services/pricing, public required contacts and optional account; no Stripe/paid activation, required MFA, fabricated work/consent/funds or production QA mutation.
+
+Pass/fail requirements:
+
+- Define bounded private list, create/update/remove command and exact saved receipt contracts before API edits. Keep live owner/admin authorization, scheduling entitlement, current block revision and actor/input/key receipt enforced by existing canonical SQL.
+- Unknown transport/database/malformed receipts return 503 and keep one serialized command/key. Synchronous duplicate guard, frozen fields/navigation and exact replay; a denied retry cannot disprove the earlier unknown attempt.
+- Known saves remain saved if the following read/callback fails. Clear only the acknowledged draft; require fresh validated list reconciliation before another mutation. Preserve input after definitive rejection.
+- Preserve controlled start/end, selected block identity/revision and original range through failed/current refresh. Stale or concurrently removed/changed selection needs deliberate discard/review; never silently adopt a revision. Ignore old company/timezone/unmounted responses.
+- Expose existing canonical update ability through a clear edit action. Removal is an explicit review of the original date/time with a separate confirmation action; preserve private reason boundary. No reason field is collected/promised when the command stores only generic Unavailable.
+- Company timezone is visible; reject invalid/reversed/over-366-day ranges and ambiguous/nonexistent DST local times before POST. Full date/time labels, visible status/focus, 44px existing controls and scoped narrow fieldset CSS; paged display with explicit total.
+- One active create/edit/remove draft; explicit discard before switching. EntrySafety blocks navigation while saving/unknown/reconciling and warns for unfinished dates/selection. Private validated reads hide retained list/form on denied access and offer safe sign-in recovery.
+- Test create/update/remove receipts, private denial, limits, DST, double taps, same-body retry, denied unknown retry, known-save/read failure, dirty refresh, concurrent revision/removal, organization switch and callback failure using synthetic fixtures. Extend SQL replay/change/conflict assertions without altering canonical scheduling rules.
+- Review the whole deliverable and connected workspace/calendar behavior. Full release checks, optimized build, exact-head PostgreSQL/native-foundation CI, tested merge, both production SHAs and read-only live checks before calling this scoped work shipped. No physical-device or whole-product acceptance claim.
+
+Broader repeat requests/settings and provider/device acceptance remain separately tracked. This checklist is scoped engineering acceptance, not a replacement for the full completion register.
+
+## Whole-scope implementation review
+
+Reviewed the complete editor, private API, executable contracts/generated OpenAPI, parent workspace refresh/navigation/sign-out protections, canonical SQL, scoped CSS and fixtures. All scoped implementation cases above are covered. The ordinary workspace Refresh now passes its revision into the stable editor; draft values/selection remain controlled. Lists display ten records per page after a bounded full read (10,000 maximum); this does not claim backend pagination or load acceptance. Confirmed callback failures stay separate from command uncertainty. Private read denial hides list/form while the mounted editor retains its controlled draft; actual workspace session revocation still clears protected workspace state under the existing security boundary. No reason collection/promise, business-rule/rate/service change, provider activation or production QA write.
+
+Synthetic coverage: `tests/calendar-block-recovery-api.test.mjs`, `tests/calendar-block-recovery-ui.test.mjs`, extended `tests/owner-blocks.sql`. SQL exercises create/update/removal replay, old create receipt after revision change/removal, stale removal, changed retry, other actor, revoked membership and appointment travel-buffer overlap. Final checks/CI/merge/deployment and live read-only observations must be completed and recorded in the scoped PR/issue before this delivery is described as shipped. Broader production and physical-device gates are unchanged.

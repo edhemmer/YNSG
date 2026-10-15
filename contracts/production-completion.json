@@ -23,7 +23,7 @@
         "R19"
       ],
       "dependsOn": [],
-      "nextAction": "Finish field-level inventory review under issue #31; issue #32 now advances notes, expense/reversal and tax-entry recovery; continue repeat requests, blocks and settings.",
+      "nextAction": "Finish field-level inventory review under #31; #32 advances notes, expense, tax and calendar-block recovery; continue repeat requests and settings.",
       "acceptance": "No original requirement disappears. Each missing/partial feature has an issue, acceptance case and gate; disabled optional integrations are clearly labeled.",
       "requiredEvidence": "Feature inventory with source paths, issue links and requirement mapping.",
       "evidence": []
@@ -52,7 +52,7 @@
       "milestone": "web",
       "title": "Close all owner/customer scheduling paths, cancellation, replacement, blocks, recurring visits, route/travel and Google outage handling.",
       "owner": "Engineering lead",
-      "status": "open",
+      "status": "working",
       "requirements": [
         "R08",
         "R09",
@@ -61,7 +61,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Close all owner/customer scheduling paths, cancellation, replacement, blocks, recurring visits, route/travel and Google outage handling.",
+      "nextAction": "Accept calendar block create/edit/removal and exact-attempt recovery under #32; continue connected recurring/travel/cancellation/provider acceptance under this gate.",
       "acceptance": "No double booking or stale approval; preserved original visit until replacement; correct local time/DST, minimum duration, travel and per-visit reminders; clear configured/offline states.",
       "requiredEvidence": "Native PostgreSQL races/replay tests, isolated provider tests and controlled connected-calendar acceptance.",
       "evidence": []
