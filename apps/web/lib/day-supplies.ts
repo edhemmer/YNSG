@@ -1,4 +1,4 @@
-import type {WorkItem} from './packing-plan';
+import type {WorkItem} from './packing-plan.js';
 
 export type SupplyPrompt={name:string;reason:string;requiresVerification:boolean;category:'tool'|'consumable'|'material'|'measurement'};
 export type WorkSupplyReview={work:WorkItem;prompts:SupplyPrompt[];questions:string[];known:boolean;hold:boolean};
