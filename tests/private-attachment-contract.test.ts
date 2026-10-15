@@ -13,7 +13,7 @@ test('small supported job evidence passes preliminary signature and schema check
  assert.equal(inspectPrivateAttachment({...meta,kind:'job_document',filename:'receipt.pdf',contentType:'application/pdf',bytes:pdf.length},pdf).kind,'job_document');
 });
 test('MIME spoofing, byte mismatches, huge uploads and unsupported content fail closed',()=>{
- for(const [m,b] of [
+ for(const [m,b] of ([
   [{...meta,contentType:'application/pdf'},jpeg],
   [{...meta,bytes:jpeg.length+1},jpeg],
   [{...meta,bytes:MAX_PRIVATE_ATTACHMENT_BYTES+1},jpeg],
@@ -21,7 +21,7 @@ test('MIME spoofing, byte mismatches, huge uploads and unsupported content fail 
   [{...meta,filename:'bad.svg'},jpeg],
   [{...meta,kind:'public_gallery'},jpeg],
   [{...meta,unexpected:true},jpeg],
- ])assert.throws(()=>inspectPrivateAttachment(m,b));
+ ] as Array<[unknown,Uint8Array]>))assert.throws(()=>inspectPrivateAttachment(m,b));
 });
 test('names cannot be paths, hidden dot files, scripts or contain control characters',()=>{
  for(const name of ['../photo.jpg','a\\b.jpg','.env','../','file.html','x.js','bad\u0000name.jpg','a'.repeat(121)])assert.throws(()=>safeAttachmentName(name));
