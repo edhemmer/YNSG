@@ -24,7 +24,7 @@ export function supplyReviewForWork(work:WorkItem):WorkSupplyReview {
  } else if(/mow|trim and blow|lawn care/.test(name)){
   prompts=[item('Working mower/trimmer/blower and charged/fueled power supply','Avoid equipment or power stop','tool'),item('Appropriate trimmer line or spare approved consumables','Avoid interrupted work','consumable'),item('PPE and debris cleanup materials','Complete approved scope','tool')];
   questions=['Confirm acreage, obstacles, slope, gates, weather, parking and equipment readiness.'];
- } else if(/weed|garden/.test(name)){
+ } else if(/weed|garden/.test(name)&&!/mulch/.test(name)){
   prompts=[item('Manual weeding tools and gloves','Only approved non-herbicide work','tool'),item('Approved debris bags/container','Confirm disposal agreement','consumable')];
   questions=['Measure beds and weed density; confirm disposal, plants to preserve and access. Do not bring herbicide.'];
  } else if(/mulch/.test(name)){
