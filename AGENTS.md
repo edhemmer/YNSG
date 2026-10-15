@@ -1,5 +1,7 @@
 # YNSG engineering controls
 
+Read `docs/production/README.md`, `docs/production/execution.md` and `contracts/production-completion.json` at the start of completion work. This is the controlling completion register; dated checklists retain historical evidence. Advance a gate/linked issue each session, prepare owner actions concretely, and continue independent work around external blockers. Do not shrink promised scope or mark product completion from a safe incremental deployment. Run `npm run completion:check` with release checks; before any milestone completion claim run `npm run completion:gate -- --release <web|ios|scale> --candidate <full-SHA>` and review actual evidence. Open gates intentionally block completion claims, not ordinary tested maintenance releases.
+
 Read `docs/governance.md` and `docs/engineering-spec.md` before changing business behavior. The owner's latest instructions have precedence. Preserve existing pricing, service boundaries, brand and customer changes.
 
 ## Contract and authority

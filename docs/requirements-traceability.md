@@ -1,3 +1,5 @@
+> Historical checkpoint: status, test counts, provider and deployment observations below apply to their original date. Current completion authority is [the production charter](production/README.md) and `contracts/production-completion.json`. Original requirements and evidence are retained; superseded instructions do not override current owner directions.
+
 # Requirement traceability
 
 Status vocabulary: planned / implemented / verified-local / verified-staging / deployed / release-blocked. Passing one test never certifies the whole row. MP = master prompt revision 4; BP = business plan; TP = technology plan. Evidence lives in docs/evidence/ and test output, never in fabricated counters.
