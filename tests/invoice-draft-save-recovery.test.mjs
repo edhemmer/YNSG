@@ -27,5 +27,5 @@ test('uncertain SQL outcomes are never labeled as definitely not saved',async()=
 });
 test('client draft locks unknown save, replays exact body and allows normal editing after confirmation',()=>{
  const s=readFileSync('apps/web/app/invoice-draft.tsx','utf8');
- for(const line of ['draftAttempt.current.body','setDraftUnknown(true)','Check saved draft result','useBlockedEntry','draftUnknown || completionUncertain'])assert.ok(s.includes(line));
+ for(const line of ['body:attempt.body','setDraftUnknown(true)','Check saved draft result','useBlockedEntry','draftUnknown || completionUncertain'])assert.ok(s.includes(line));
 });
