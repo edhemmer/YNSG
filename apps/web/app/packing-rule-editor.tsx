@@ -1,5 +1,6 @@
 "use client";
 import { publicError } from "../lib/public-errors";
+import {useBlockedEntry} from "./entry-safety";
 import { useRef, useState } from "react";
 import { sessionFetch } from "../lib/session-fetch";
 import type { PackingItem, PackingRule, WorkItem } from "../lib/packing-plan";
@@ -23,49 +24,45 @@ export default function PackingRuleEditor({
     ),
     [none, setNone] = useState(rule?.items.length === 0),
     [pending, setPending] = useState(false),
-    [error, setError] = useState("");
-  const retry = useRef<{ fingerprint: string; key: string } | null>(null);
-  const change = (index: number, patch: Partial<PackingItem>) => {
-    setItems((previous) =>
-      previous.map((item, i) => (i === index ? { ...item, ...patch } : item)),
-    );
-    setNone(false);
+    [error, setError] = useState(""),
+    [unknown,setUnknown]=useState(false),
+    [confirmed,setConfirmed]=useState(false);
+  const retry=useRef<{body:string;revision:number}|null>(null);
+  const sending=useRef(false);
+  useBlockedEntry('packing:'+organization+':'+work.service+':'+work.task,pending||unknown);
+  const change=(index:number,patch:Partial<PackingItem>)=>{
+    if(unknown||pending||locked)return;
+    setItems(previous=>previous.map((item,i)=>i===index?{...item,...patch}:item));
+    setNone(false);setConfirmed(false);
   };
-  async function approve() {
-    if (items.length === 0 && !none) {
-      setError(
-        "Add equipment, or confirm that this task needs no listed equipment.",
-      );
-      return;
-    }
-    setPending(true);
-    busy(true);
-    setError("");
-    try {
-      const value = {
-        organization,
-        ...work,
-        revision: rule?.revision || 0,
-        items,
-      };
-      const fingerprint = JSON.stringify(value);
-      if (retry.current?.fingerprint !== fingerprint)
-        retry.current = { fingerprint, key: crypto.randomUUID() };
-      const response = await sessionFetch("/api/packing-rules", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...value, key: retry.current.key }),
-      });
-      const result = await response.json();
-      if (!response.ok)
-        throw Error(result.error || "The packing list was not saved.");
-      saved();
-    } catch (e) {
-      setError(publicError(e));
-    } finally {
-      setPending(false);
-      busy(false);
-    }
+  async function sendExactAttempt(){
+    if(sending.current||!retry.current)return;
+    sending.current=true;setPending(true);busy(true);setError("");
+    try{
+      const response=await sessionFetch("/api/packing-rules",{method:"POST",headers:{"Content-Type":"application/json"},body:retry.current.body});
+      if(response.status>=400&&response.status<500){
+        const result=await response.json().catch(()=>null);
+        if(unknown){setError("The first save is still unconfirmed. Please verify the saved list before editing or submitting a new request.");return;}
+        retry.current=null;
+        setError(typeof result?.error==='string'?result.error:"Packing changes were rejected. Nothing was discarded.");
+        return;
+      }
+      if(!response.ok)throw Error('UNCONFIRMED');
+      const result=await response.json();
+      if(result?.ok!==true||result?.result?.saved!==true||result.result.revision!==retry.current.revision+1)throw Error('UNCONFIRMED');
+      retry.current=null;setUnknown(false);setConfirmed(true);
+      try{saved();}catch{setError("Packing list was saved, but the call sheet did not refresh. Refresh it before the next change.");}
+    }catch{
+      setUnknown(true);
+      setError("We could not confirm whether the packing list was saved. Check the same saved attempt; your original items are locked to avoid duplicates.");
+    }finally{sending.current=false;setPending(false);busy(false);}
+  }
+  function approve(){
+    if(pending||unknown||locked||sending.current)return;
+    if(items.length===0&&!none){setError("Add equipment or confirm this task needs no listed equipment.");return;}
+    const value={organization,...work,revision:rule?.revision||0,items};
+    retry.current={body:JSON.stringify({...value,key:crypto.randomUUID()}),revision:value.revision};
+    void sendExactAttempt();
   }
   return (
     <details className="packing-editor day-plan-controls">
@@ -84,13 +81,15 @@ export default function PackingRuleEditor({
           {error}
         </p>
       )}
+      {unknown&&<button type="button" disabled={pending} onClick={()=>void sendExactAttempt()}>Check saved packing result</button>}
+      {confirmed&&<p role="status">Approved packing rule saved.</p>}
       <form
         onSubmit={(e) => {
           e.preventDefault();
           void approve();
         }}
       >
-        <fieldset disabled={pending || locked}>
+        <fieldset disabled={pending || locked || unknown || confirmed}>
           {items.map((item, index) => (
             <div className="packing-item" key={index}>
               <label>
@@ -150,7 +149,7 @@ export default function PackingRuleEditor({
           ))}
           <button
             type="button"
-            disabled={items.length >= 40}
+            disabled={unknown || confirmed || items.length >= 40}
             className="secondary"
             onClick={() => {
               setItems((v) => [
@@ -172,7 +171,7 @@ export default function PackingRuleEditor({
               I reviewed this task; no listed equipment is needed.
             </label>
           )}
-          <button type="submit" disabled={pending}>
+          <button type="submit" disabled={pending||unknown||confirmed}>
             {pending ? "Saving…" : "Approve this packing list"}
           </button>
         </fieldset>

@@ -47,20 +47,16 @@ export async function POST(request: Request) {
       p_items: c.items,
       p_key: c.key,
     });
-    if (error)
-      return NextResponse.json(
-        {
-          error:
-            error.message === "STALE_REVISION"
-              ? "This packing list changed. Refresh the call sheet before editing it."
-              : error.message === "DUPLICATE_EQUIPMENT"
-                ? "List each piece of equipment once."
-                : error.message === "IDEMPOTENCY_CONFLICT"
-                  ? "This retry changed. Refresh before saving again."
-                  : "The packing list was not saved. Check your access and entries.",
-        },
-        { status: error.code === "42501" ? 403 : 409, headers },
-      );
+    if(error){
+      const denied=error.code==='42501',stale=error.message==='STALE_REVISION',
+        duplicate=error.message==='DUPLICATE_EQUIPMENT',conflict=error.message==='IDEMPOTENCY_CONFLICT',
+        validation=['VALIDATION','RULE_LIMIT','SETUP_REQUIRED'].includes(error.message);
+      const known=denied||stale||duplicate||conflict||validation;
+      return NextResponse.json({error:denied?'This account cannot approve packing rules.':stale?'This list changed. Refresh before revising it.':duplicate?'List each piece of equipment once.':conflict?'The retry details changed. Keep the original attempt.':validation?'Check approved equipment, quantities and company setup.':'The saved result is unknown. Check the same request before changing equipment.'},{status:denied?403:known?409:503,headers});
+    }
+    const confirmed=z.object({saved:z.literal(true),revision:z.number().int().positive()}).strict().safeParse(data);
+    if(!confirmed.success||confirmed.data.revision!==c.revision+1)
+      return NextResponse.json({error:'The saved result is unknown. Check the same request before changing equipment.'},{status:503,headers});
     return NextResponse.json({ ok: true, result: data }, { headers });
   } catch (error) {
     if (error instanceof z.ZodError)
