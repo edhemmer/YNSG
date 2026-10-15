@@ -12,7 +12,7 @@ test('recorded available and shortages remain advisory, never physically verifie
  assert.equal(result[1]?.reason,'recorded-shortage');
  assert.equal(result[1]?.shortage,2);
  assert.equal(result[0]?.physicallyVerified,false);
- assert.equal(result[0]?.reorderSuggested,false);
+ assert.equal(result[0]?.reorderSuggested,true);
  assert.equal(result[1]?.reorderSuggested,true);
 });
 test('unquantified suggestions and unknown products do not become fabricated stock shortages',()=>{
@@ -29,4 +29,9 @@ test('tenant isolation, malformed counts and duplicate names fail closed',()=>{
  assert.throws(()=>reconcileDayWithRecordedStock(org,[s('Caulk tubes',1)],[stock({organizationId:other})]));
  assert.throws(()=>reconcileDayWithRecordedStock(org,[s('Caulk tubes',1)],[stock({quantityOnHand:-1})]));
  assert.throws(()=>reconcileDayWithRecordedStock(org,[s('Caulk tubes',1)],[stock(),stock({id:'50000000-0000-4000-8000-000000000001',name:' caulk tubes '})]));
+});
+
+test('zero reorder threshold is disabled unless the job has an actual shortage',()=>{
+ assert.equal(reconcileDayWithRecordedStock(org,[s('Caulk tubes',1)],[stock({quantityOnHand:2,reorderAt:0})])[0]?.reorderSuggested,false);
+ assert.equal(reconcileDayWithRecordedStock(org,[s('Caulk tubes',3)],[stock({quantityOnHand:2,reorderAt:0})])[0]?.reorderSuggested,true);
 });
