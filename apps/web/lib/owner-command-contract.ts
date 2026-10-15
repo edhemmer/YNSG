@@ -1,4 +1,5 @@
 import {z} from "zod";
+import {recordExpenseCommand,reverseExpenseCommand} from './expense-contract.ts';
 const base = { organizationId: z.uuid(), key: z.string().min(16).max(128) };
 export const ownerCommandSchema = z.discriminatedUnion("command", [
   z.object({
@@ -52,17 +53,6 @@ export const ownerCommandSchema = z.discriminatedUnion("command", [
     receivedAt: z.iso.datetime(),
     confirmed: z.literal(true),
   }).strict(),
-  z.object({
-    ...base, command: z.literal("RecordBusinessExpense"),
-    date: z.iso.date(), vendor: z.string().trim().min(2).max(160),
-    category: z.enum(["tools","fuel","supplies","vehicle","insurance","marketing","software","other"]),
-    description: z.string().trim().min(3).max(500),
-    cents: z.number().int().positive().max(999999999),
-    method: z.enum(["cash","zelle","external_card","external_transfer","other"]),
-    reference: z.string().trim().min(1).max(160), confirmed: z.literal(true),
-  }).strict(),
-  z.object({
-    ...base, command: z.literal("ReverseBusinessExpense"),
-    id: z.uuid(), reason: z.string().trim().min(5).max(500),
-  }).strict(),
+  recordExpenseCommand,
+  reverseExpenseCommand,
 ]);

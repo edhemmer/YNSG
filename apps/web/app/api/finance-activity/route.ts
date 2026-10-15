@@ -1,23 +1,14 @@
 import {NextResponse} from 'next/server';
-import {z} from 'zod';
-import {authenticated,failure} from '../../../lib/session';
-
-const date=z.iso.date();
+import {financeQuery,financeResult} from '../../../lib/expense-contract';
+import {authenticated} from '../../../lib/session';
+const headers={'Cache-Control':'private, no-store'};
 export async function GET(request:Request){
- try{
-  const {db}=await authenticated();
-  const params=new URL(request.url).searchParams;
-  const org=z.uuid().parse(params.get('organization'));
-  const from=date.parse(params.get('from')),to=date.parse(params.get('to'));
-  const page=z.coerce.number().int().min(0).max(100000).parse(params.get('page')||0);
-  if(from>to||Math.round((Date.parse(to)-Date.parse(from))/86400000)>3660)throw Error('VALIDATION');
-  const report=await db.rpc('finance_activity',{p_org:org,p_from:from,p_to:to});
-  if(report.error)throw Error(report.error.message);
-  const expenses=await db.from('business_expenses')
-   .select('id,expense_date,vendor,category,description,amount_cents,payment_method,reference,business_expense_reversals(reason,reversed_at)',{count:'exact'})
-   .eq('organization_id',org).gte('expense_date',from).lte('expense_date',to)
-   .order('expense_date',{ascending:false}).order('id',{ascending:false}).range(page*50,page*50+49);
-  if(expenses.error)throw Error('FAILED');
-  return NextResponse.json({report:report.data,expenses:expenses.data,expenseRows:expenses.count||0,page,hasMore:(page+1)*50<(expenses.count||0)},{headers:{'Cache-Control':'no-store'}});
- }catch(error){return failure(error)}
+ const q=new URL(request.url).searchParams,parsed=financeQuery.safeParse({organization:q.get('organization'),from:q.get('from'),to:q.get('to'),page:q.get('page')||0});
+ if(!parsed.success)return NextResponse.json({error:'Choose a valid date range and report page.'},{status:400,headers});
+ try{const {organization:org,from,to,page}=parsed.data,{db}=await authenticated();
+  const report=await db.rpc('finance_activity',{p_org:org,p_from:from,p_to:to});if(report.error)throw Error(report.error.code==='42501'?'FORBIDDEN':report.error.message);
+  const expenses=await db.from('business_expenses').select('id,expense_date,vendor,category,description,amount_cents,payment_method,reference,business_expense_reversals(reason,reversed_at)',{count:'exact'}).eq('organization_id',org).gte('expense_date',from).lte('expense_date',to).order('expense_date',{ascending:false}).order('id',{ascending:false}).range(page*50,page*50+49);
+  if(expenses.error)throw Error(expenses.error.code==='42501'?'FORBIDDEN':expenses.error.message);
+  return NextResponse.json(financeResult.parse({report:report.data,expenses:expenses.data,expenseRows:expenses.count||0,page,hasMore:(page+1)*50<(expenses.count||0)}),{headers});
+ }catch(error){const code=error instanceof Error?error.message:'';return NextResponse.json({error:code==='UNAUTHORIZED'?'Sign in to continue.':code==='FORBIDDEN'?'Your account cannot open this financial report.':'The report could not be verified. Try refreshing it.'},{status:code==='UNAUTHORIZED'?401:code==='FORBIDDEN'?403:503,headers});}
 }
