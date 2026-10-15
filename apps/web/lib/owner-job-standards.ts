@@ -35,6 +35,18 @@ export function estimateVisit(tasks:VisitTask[],standards:TaskStandard[],travelB
  if(!tasks.length||missing.length)return {taskMinutes,visitMinutes:0,bufferMinutes:travelBufferMinutes,missing,breakdown};
  return {taskMinutes,visitMinutes:Math.max(minimumVisitMinutes,taskMinutes)+travelBufferMinutes,bufferMinutes:travelBufferMinutes,missing,breakdown};
 }
+export function reviewTaskTime(plannedMinutes:number,actualMinutes:number,diagnosisMinutes=0){
+ for(const n of [plannedMinutes,actualMinutes,diagnosisMinutes])if(!Number.isInteger(n)||n<0||n>1440)throw Error('INVALID_WORK_TIME');
+ if(plannedMinutes<60||actualMinutes===0||diagnosisMinutes>actualMinutes)throw Error('INVALID_WORK_TIME');
+ const difference=actualMinutes-plannedMinutes;
+ const variancePercent=Math.round(100*difference/plannedMinutes);
+ return {
+  differenceMinutes:difference,variancePercent,
+  status:variancePercent>25?'review-overrun':variancePercent< -25?'review-underestimate':'within-range',
+  nextAction:variancePercent>25?'Review job size, scope, preparation and diagnostic stop point before revising a future time standard.':variancePercent< -25?'Compare similar completed jobs before reducing the future standard.':'Record the result and retain this planning estimate until more jobs confirm it.',
+  diagnosisSharePercent:Math.round(100*diagnosisMinutes/actualMinutes)
+ };
+}
 export const trainingTopics=[
  {id:'smart-lock-triage',title:'Diagnose a smart lock before replacement',source:'Manufacturer-specific troubleshooting',url:'https://www.kwikset.com/support/topics/door-handing-process',safety:'Check make and exact model; do not reset without customer authorization or lockout recovery.'},
  {id:'remove-caulk',title:'Remove failing bathroom caulk',source:'This Old House',url:'https://www.thisoldhouse.com/bathrooms/removing-silicone-caulk',safety:'Protect acrylic/plastic surfaces and follow product cure time.'},
