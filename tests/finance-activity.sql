@@ -20,6 +20,7 @@ select pg_temp.assert_true((select (public.finance_activity('20000000-0000-4000-
 select pg_temp.assert_true((select count(*)=4 and sum(debit_cents)=2598 and sum(credit_cents)=2598 from public.journal_lines),'expense and reversal ledger balanced');
 do $$begin
  begin perform public.reverse_business_expense('20000000-0000-4000-8000-000000000001',(select id from public.business_expenses limit 1),'Another reversal attempt','expense-reverse-key-002');raise exception 'TEST FAILED duplicate reversal';exception when raise_exception then if sqlerrm<>'ALREADY_REVERSED' then raise;end if;end;
+ begin perform public.reverse_business_expense('20000000-0000-4000-8000-000000000001',(select id from public.business_expenses limit 1),'Different correction reason','expense-reverse-key-001');raise exception 'TEST FAILED changed reversal replay';exception when raise_exception then if sqlerrm<>'IDEMPOTENCY_CONFLICT' then raise;end if;end;
  begin update public.business_expenses set amount_cents=1;raise exception 'TEST FAILED direct update';exception when insufficient_privilege then null;end;
 end$$;
 do $$declare n integer;begin

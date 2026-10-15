@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import {ownerCommandSchema} from "../../../lib/owner-command-contract";
 import { authenticated, sameOrigin, failure } from "../../../lib/session";
+import {validateExpenseReceipt,expenseFailure} from '../../../lib/expense-contract';
+const expenseHeaders={'Cache-Control':'private, no-store'};
 const messages: Record<string, string> = {
   TAX_REVIEW_REQUIRED:"Review the applicable tax rule and customer-approved total before issuing this invoice.",
   TAX_JURISDICTION_MISMATCH:"This tax rule does not match the service location.",
@@ -34,6 +36,7 @@ export async function POST(request: Request) {
     );
   if (Number(request.headers.get("content-length") || 0) > 12000)
     return NextResponse.json({ error: "Request too large." }, { status: 413 });
+  let isExpense=false;
   try {
     const raw = await request.text();
     if (Buffer.byteLength(raw) > 12000)
@@ -42,6 +45,7 @@ export async function POST(request: Request) {
         { status: 413 },
       );
     const c = ownerCommandSchema.parse(JSON.parse(raw));
+    isExpense=c.command==='RecordBusinessExpense'||c.command==='ReverseBusinessExpense';
     const { db } = await authenticated();
     let name: string;
     let args: Record<string, unknown>;
@@ -122,6 +126,10 @@ export async function POST(request: Request) {
         break;
     }
     const { data, error } = await db.rpc(name, args);
+    if(c.command==='RecordBusinessExpense'||c.command==='ReverseBusinessExpense'){
+      if(error)throw Error(error.code==='42501'?'FORBIDDEN':error.message);
+      return NextResponse.json({ok:true,result:validateExpenseReceipt(c,data)},{headers:expenseHeaders});
+    }
     if(error&&c.command==='RecordPayment'&&!['P0001','42501','22023','23514','23503'].includes(error.code))return NextResponse.json({error:'The payment result could not be confirmed. Check the saved result before entering another payment.'},{status:503,headers:{'Cache-Control':'no-store'}});
     if (error)
       return NextResponse.json(
@@ -138,6 +146,7 @@ export async function POST(request: Request) {
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
+    if(isExpense){const result=expenseFailure(error);return NextResponse.json({error:result.error},{status:result.status,headers:expenseHeaders});}
     return failure(error);
   }
 }

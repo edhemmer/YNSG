@@ -23,7 +23,7 @@
         "R19"
       ],
       "dependsOn": [],
-      "nextAction": "Complete source-backed inventory and link missing/partial work under GitHub issue #31; close the owner-note recovery defect first, then advance remaining workflow issues.",
+      "nextAction": "Finish field-level inventory review under issue #31; issue #32 now advances notes and expense/reversal recovery; continue tax and remaining consequential forms.",
       "acceptance": "No original requirement disappears. Each missing/partial feature has an issue, acceptance case and gate; disabled optional integrations are clearly labeled.",
       "requiredEvidence": "Feature inventory with source paths, issue links and requirement mapping.",
       "evidence": []
