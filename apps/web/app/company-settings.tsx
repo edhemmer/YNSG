@@ -9,6 +9,7 @@ import {
   releaseGates,
 } from "../../../packages/domain/configuration";
 import { sessionFetch } from "../lib/session-fetch";
+import {useBlockedEntry,useUnsavedEntry} from "./entry-safety";
 import { clockLabel, clockOptions } from "../lib/settings-display";
 const categories = [
   [
@@ -125,12 +126,16 @@ export default function CompanySettingsPanel({
     [error, setError] = useState(""),
     [message, setMessage] = useState(""),
     [pending, setPending] = useState(false),
+    [unknown,setUnknown]=useState(false),
     [preview, setPreview] = useState(false),
     [ready, setReady] = useState(false),
     [loading, setLoading] = useState(true);
   const formRef=useRef<HTMLFormElement>(null);
   const [fieldIssue,setFieldIssue]=useState<SettingsIssue|null>(null);
-  const retry = useRef<{ fingerprint: string; key: string } | null>(null);
+  const retry = useRef<{ body: string; expectedVersion: number; key: string } | null>(null);
+  const sending=useRef(false);
+  useBlockedEntry("settings:"+organization,pending||unknown);
+  useUnsavedEntry("settings:"+organization,Boolean(draft&&preview));
   useEffect(() => {
     let live = true;
     setLoading(true);
@@ -143,6 +148,7 @@ export default function CompanySettingsPanel({
     setError("");
     setFieldIssue(null);
     retry.current = null;
+    setUnknown(false);
     void sessionFetch(
       "/api/configuration?organization=" + encodeURIComponent(organization),
     )
@@ -281,42 +287,39 @@ export default function CompanySettingsPanel({
       form.querySelectorAll('[aria-invalid]').forEach(control=>{control.removeAttribute('aria-invalid');control.removeAttribute('aria-errormessage');});
     }catch(error){const issue=settingsIssue(error);if(issue)showIssue(issue);else setError(settingsError(error));}
   }
-  async function publish() {
-    if (!draft) return;
-    setPending(true);
-    setError("");
+  async function sendReviewedSettings() {
+    if(sending.current||!retry.current)return;
+    sending.current=true;setPending(true);setError("");
     try {
-      const settings = validateConfiguration(draft);
-      const publishedCatalog = catalog.map(({ existing, ...item }) => item);
-      const value = {
-        organizationId: organization,
-        expectedVersion: version,
-        settings,
-        catalog: publishedCatalog,
-      };
-      const fingerprint = JSON.stringify(value);
-      if (retry.current?.fingerprint !== fingerprint)
-        retry.current = { fingerprint, key: crypto.randomUUID() };
-      const r = await sessionFetch("/api/configuration", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...value, key: retry.current.key }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw Error(d.error);
-      setVersion(d.result.version);
-      setCatalog((c) => c.map((v) => ({ ...v, existing: true })));
+      const response=await sessionFetch("/api/configuration",{method:"POST",headers:{"Content-Type":"application/json"},body:retry.current.body});
+      if(response.status>=400&&response.status<500){
+        const result=await response.json().catch(()=>null);
+        if(unknown){setError("The earlier settings change is still unconfirmed. Keep the reviewed settings here and contact support before another publish.");return;}
+        retry.current=null;
+        setError(typeof result?.error==="string"?result.error:"Settings were rejected. Your edits are kept.");
+        return;
+      }
+      if(!response.ok)throw Error("UNCONFIRMED");
+      const result=await response.json();
+      const expected=retry.current.expectedVersion+1;
+      if(result?.ok!==true||!Number.isInteger(result?.result?.version)||result.result.version!==expected)throw Error("UNCONFIRMED");
+      retry.current=null;setUnknown(false);
+      setVersion(result.result.version);
+      setCatalog(c=>c.map(item=>({...item,existing:true})));
       setPreview(false);
-      setMessage(
-        "Settings version " +
-          d.result.version +
-          " published. Google and customer delivery remain separately controlled.",
-      );
-    } catch (e) {
-      const issue=settingsIssue(e);if(issue)showIssue(issue);else setError(settingsError(e));
-    } finally {
-      setPending(false);
-    }
+      setMessage("Settings version "+result.result.version+" published. Google and customer delivery remain separately controlled.");
+    } catch {
+      setUnknown(true);setError("We could not confirm whether the settings were published. Do not edit or publish a different version. Use Check saved settings result to retry the exact same request.");
+    } finally {sending.current=false;setPending(false);}
+  }
+  async function publish() {
+    if(!draft||pending||unknown||sending.current||!preview)return;
+    try {
+      const settings=validateConfiguration(draft);
+      const command=configurationCommand.parse({organizationId:organization,expectedVersion:version,key:crypto.randomUUID(),settings,catalog:catalog.map(({existing,...item})=>item)});
+      retry.current={body:JSON.stringify(command),expectedVersion:version,key:command.key};
+      await sendReviewedSettings();
+    }catch(error){const issue=settingsIssue(error);if(issue)showIssue(issue);else setError(settingsError(error));}
   }
   const settingsFormId = "company-settings-" + organization;
   return (
@@ -340,9 +343,10 @@ export default function CompanySettingsPanel({
         {fieldIssue && <p id="settings-field-error" role="alert">{fieldIssue.message}</p>}
         {fieldIssue && <button type="button" className="secondary" onClick={()=>showIssue(fieldIssue)}>Go to this field</button>}
         {preview && <p>{draft.displayName} · {draft.timezone} · Standard ${draft.hourly.standardCents / 100}/hour · Community ${draft.hourly.communityCents / 100}/hour</p>}
-        {preview ? <button type="button" disabled={pending || !ready} onClick={() => void publish()}>{pending ? "Saving…" : "Publish reviewed settings"}</button> : <button type="submit" form={settingsFormId} disabled={pending}>Preview settings to save</button>}
+        {preview ? <button type="button" disabled={pending || unknown || !ready} onClick={() => void publish()}>{pending ? "Saving…" : "Publish reviewed settings"}</button> : <button type="submit" form={settingsFormId} disabled={pending || unknown}>Preview settings to save</button>}
       </div>}
       {error && !fieldIssue && <p role="alert">{error}</p>}
+      {unknown && <button type="button" disabled={pending} onClick={()=>void sendReviewedSettings()}>{pending?"Checking saved settings…":"Check saved settings result"}</button>}
       {message && <p role="status">{message}</p>}
       {loading ? (
         <p role="status">Loading your company settings…</p>
@@ -373,7 +377,7 @@ export default function CompanySettingsPanel({
             previewSettings(e.currentTarget);
           }}
         >
-          <fieldset disabled={pending}>
+          <fieldset disabled={pending||unknown}>
             <legend>Business and email</legend>
             <label>
               Licensed brand name
@@ -865,7 +869,7 @@ export default function CompanySettingsPanel({
               "These invoice setup checks are complete."}
           </p>
           <p>You can publish settings while invoice decisions remain unreviewed. Invoicing stays blocked until those checks are complete.</p>
-          <button disabled={pending}>Preview settings to save</button>
+          <button disabled={pending||unknown}>Preview settings to save</button>
           {preview && (
             <div className="card">
               <h3>Publish version {version + 1}</h3>
