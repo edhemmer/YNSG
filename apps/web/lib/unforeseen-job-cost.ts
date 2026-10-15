@@ -47,3 +47,27 @@ export function reviewUnforeseenJob(raw:unknown):UnforeseenReview{
 }
 // These are scenario numbers, not authoritative quotes, material orders, invoice lines or licensed-trade determinations.
 // The owner must verify actual territory licensing, approved services, materials, site conditions, and customer consent.
+
+export function hiddenConditionPreflight(service:string,task:string):{title:string;questions:string[];hold:boolean}|null{
+ const name=(service+' '+task).toLowerCase();
+ if(/faucet|sink|toilet|water line|supply line|shutoff|valve|plumb/.test(name))return {
+  title:'Plumbing-related work: hidden conditions and license review',
+  questions:[
+   'Confirm which exact part and fixture model is affected. Ask for clear before-visit photos of connections and accessible shutoffs.',
+   'Inspect available information about corroded valves, aged supply lines, leaks, damaged fittings and water shutoff access; absence from photos is not proof they are sound.',
+   'Confirm the scope requires an appropriately licensed trade professional and refer when needed. Do not promise replacement or include unapproved plumbing work.',
+   'If an unforeseen defect is discovered, document it, pause, disclose additional time/materials, and obtain authorization before any separate permissible work.'
+  ],hold:true
+ };
+ if(/door|lock|hinge|strike|latch/.test(name))return {title:'Door and hardware readiness',questions:[
+  'Get hardware make/model and photographs of the door edge, strike, hinges and existing fasteners.',
+  'Check access, backup entry and whether alignment, dead batteries or old hardware might be the real cause before proposing replacement.',
+  'Confirm screw sizes, thickness, backset and installation tools before buying parts; held smart-lock tasks require separate authorization.'
+ ],hold:/smart.lock|electronic.lock/.test(name)};
+ if(/drywall|shelf|picture|mount|trim|miter|caulk/.test(name))return {title:'Finishing and mounting hidden-condition check',questions:[
+  'Ask for photos, measurements, wall type, existing damage and intended load or finished appearance.',
+  'Prepare suitable alternative anchors, fasteners, finishes or patch materials after confirming compatibility and approved costs.',
+  'Check moisture, utilities, substrate condition and return-visit drying times before promising a one-visit result.'
+ ],hold:false};
+ return null;
+}
