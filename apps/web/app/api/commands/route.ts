@@ -142,6 +142,16 @@ export async function POST(request: Request) {
       if(!receipt.success)return NextResponse.json({error:'The payment result could not be confirmed. Check the same saved attempt before entering another payment.'},{status:503,headers});
       return NextResponse.json({ok:true,result:data},{headers});
     }
+    if(c.command==='ApproveInvoice'){
+      const headers={'Cache-Control':'private, no-store'};
+      if(error){
+        const denied=error.code==='42501';
+        const known=denied||['TAX_REVIEW_REQUIRED','TAX_JURISDICTION_MISMATCH','INVOICE_REVIEW_REQUIRED','INVOICE_DRAFT_REQUIRED','INVOICE_TOTAL_CHANGED','INVOICE_ALREADY_ISSUED','STALE_REVISION','SETUP_REQUIRED','CHANGE_ORDER_REQUIRED','TRANSITION','FORBIDDEN','IDEMPOTENCY_CONFLICT'].includes(error.message);
+        return NextResponse.json({error:denied?'This account cannot issue the invoice.':known?(messages[error.message]||'Review the invoice and its saved state before issuing.'):'The invoice issuance result is unknown. Check the same saved attempt before issuing another invoice.'},{status:denied?403:known?409:503,headers});
+      }
+      if(data===null||typeof data!=='object')return NextResponse.json({error:'Invoice issuance could not be confirmed. Check the saved invoice before issuing another.'},{status:503,headers});
+      return NextResponse.json({ok:true,result:data},{headers});
+    }
     if (error)
       return NextResponse.json(
         {
