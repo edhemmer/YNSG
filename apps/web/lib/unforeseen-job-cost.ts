@@ -7,7 +7,7 @@ export const unforeseenInput=z.object({
  expectedHandsOnMinutes:z.number().int().min(0).max(1440),
  supplyRunMinutes:z.number().int().min(0).max(480),
  minutesBeforeNextCommitment:z.number().int().min(0).max(720),
- ownerLaborCostCentsPerHour:z.number().int().min(0).max(100000),
+ ownerLaborCostCentsPerHour:z.number().int().positive().max(100000),
  businessMaterialCostCents:z.number().int().min(0).max(10000000),
  additionalApprovedChargeCents:z.number().int().min(0).max(10000000),
  customerApprovedExtra:z.boolean(),
