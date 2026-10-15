@@ -58,6 +58,30 @@ do $$begin
  begin perform public.tax_command('20000000-0000-4000-8000-000000000001','payment',0,'{}','tax-payment-stale001');raise exception 'TEST FAILED profile race';exception when raise_exception then if sqlerrm<>'TAX_PROFILE_CHANGED' then raise;end if;end;
 end$$;
 
+
+-- Synthetic tax recovery: exact replay precedes version check, preserves immutable rows,
+-- and changed correction input cannot reuse the earlier receipt.
+do $$declare w jsonb;p jsonb;first_id uuid;reversed_id uuid;reply jsonb;begin
+ w:=public.tax_workspace('20000000-0000-4000-8000-000000000001',2026);p:=w->'records'->0->'data';first_id:=(w->'records'->0->>'id')::uuid;
+ reply:=public.tax_command('20000000-0000-4000-8000-000000000001','payment',1,p,'tax-payment-synthetic');
+ perform pg_temp.assert_true((reply->>'id')::uuid=first_id,'tax payment replay keeps original receipt');
+ begin perform public.tax_command('20000000-0000-4000-8000-000000000001','payment',1,jsonb_set(p,'{amountCents}','1001'),'tax-payment-synthetic');raise exception 'TEST FAILED changed payment retry';exception when raise_exception then if sqlerrm<>'IDEMPOTENCY_CONFLICT' then raise;end if;end;
+ reply:=public.tax_command('20000000-0000-4000-8000-000000000001','profile',1,w->'profile'->'data','tax-recovery-profile02');
+ perform pg_temp.assert_true(reply->>'version'='2','new reviewed setup increments exact version');
+ reply:=public.tax_command('20000000-0000-4000-8000-000000000001','payment',1,p,'tax-payment-synthetic');
+ perform pg_temp.assert_true((reply->>'id')::uuid=first_id,'old tax payment replay survives newer profile');
+ reply:=public.tax_command('20000000-0000-4000-8000-000000000001','profile',0,w->'profile'->'data','tax-profile-synthetic-001');
+ perform pg_temp.assert_true(reply->>'version'='1','lost profile response replays original version');
+ p:=jsonb_build_object('year',2026,'recordId',first_id,'reason','Synthetic duplicate tax correction');
+ reply:=public.tax_command('20000000-0000-4000-8000-000000000001','reversal',2,p,'tax-recovery-reversal01');reversed_id:=(reply->>'id')::uuid;
+ perform pg_temp.assert_true(reversed_id<>first_id,'reversal receipt is new correction ID');
+ reply:=public.tax_command('20000000-0000-4000-8000-000000000001','reversal',2,p,'tax-recovery-reversal01');
+ perform pg_temp.assert_true((reply->>'id')::uuid=reversed_id,'reversal retry has one correction');
+ begin perform public.tax_command('20000000-0000-4000-8000-000000000001','reversal',2,jsonb_set(p,'{reason}','"Synthetic changed correction"'),'tax-recovery-reversal01');raise exception 'TEST FAILED changed reversal retry';exception when raise_exception then if sqlerrm<>'IDEMPOTENCY_CONFLICT' then raise;end if;end;
+ begin perform public.tax_command('20000000-0000-4000-8000-000000000001','reversal',2,p,'tax-recovery-reversal02');raise exception 'TEST FAILED second reversal';exception when raise_exception then if sqlerrm<>'ALREADY_REVERSED' then raise;end if;end;
+ perform pg_temp.assert_true(jsonb_array_length(public.tax_workspace('20000000-0000-4000-8000-000000000001',2026)->'records')=2,'one payment and one immutable correction');
+end$$;
+
 reset role;
 set local role service_role;
 select set_config('request.jwt.claims','{"role":"service_role"}',true);
