@@ -21,7 +21,8 @@ if(form&&picker){
   form.dataset.appointmentStart=selectedStart;form.dataset.appointmentHoldToken=held?.token||'';
   form.querySelector('#preferredTime').value=current.preferredTime;
   if(disclosureNote)disclosureNote.textContent=selectedStart?`${dateLabel(current.firstDate)} · ${timeLabel(selectedStart)} · awaiting confirmation`:'Optional · or we can arrange a time with you';
-  summary.textContent=selectedStart?`Selected: ${dateLabel(current.firstDate)} at ${timeLabel(selectedStart)}. ${held&&Date.parse(held.expiresAt)>Date.now()?`Held until ${shortDate(localDay(Date.parse(held.expiresAt)))} at ${timeLabel(held.expiresAt)} Central Time while you finish the form.`:'The time hold has ended.'} ${mode()==='weekly'?'Only the first visit is held; we’ll review the weekly schedule with you. ':''}We’ll call to confirm the details and appointment.`:'We’ll arrange a time with you after you send your request.';
+  summary.hidden=!selectedStart;
+  summary.textContent=selectedStart?`Selected: ${dateLabel(current.firstDate)} at ${timeLabel(selectedStart)}. ${held&&Date.parse(held.expiresAt)>Date.now()?`Held until ${shortDate(localDay(Date.parse(held.expiresAt)))} at ${timeLabel(held.expiresAt)} Central Time while you finish the form.`:'The time hold has ended.'} ${mode()==='weekly'?'Only the first visit is held; we’ll review the weekly schedule with you. ':''}We’ll call to confirm the details and appointment.`:'';
   form.dispatchEvent(new CustomEvent('appointment-selection-changed'));
  }
  async function release(key,token=null){
@@ -32,7 +33,7 @@ if(form&&picker){
   expiryTimer=null;
   if(!held||form.hidden)return;
   if(form.dataset.deliveryUnknown==='true'){updateSelection();return;}
-  held=null;selectedStart='';updateSelection();showTimes();status.textContent='That time hold ended. Press or click a time again, or send your request and we’ll arrange a time with you.';
+  held=null;selectedStart='';updateSelection();showTimes();status.textContent='That time hold ended. Choose a time again, or press “Arrange a time with me instead.”';
  }
  async function clearSelection(){
   clearTimeout(expiryTimer);expiryTimer=null;const previous=held;held=null;selectedStart='';updateSelection();showTimes();status.textContent='No time selected. We’ll arrange a time with you after you send your request.';
@@ -62,7 +63,7 @@ if(form&&picker){
    await release(key);
    const previous=held;clearTimeout(expiryTimer);held=null;selectedStart='';updateSelection();
    if(previous)await release(previous.key,previous.token);
-   status.textContent=error.status===409?'That time is no longer available. Press “Refresh times,” or send your request without a time.':error.status===429?'Please wait a moment before checking another time, or call 770-630-2094.':'We couldn’t hold that time. Press “Refresh times,” or send your request without a time.';
+   status.textContent=error.status===409?'That time is no longer available. Press “Refresh times” or “Arrange a time with me instead.”':error.status===429?'Please wait a moment before checking another time, or call 770-630-2094.':'We couldn’t hold that time. Press “Refresh times” or “Arrange a time with me instead.”';
   }finally{
    for(const {element,disabled} of controls)element.disabled=disabled;
    holding=false;form.dataset.appointmentHolding='false';picker.setAttribute('aria-busy','false');showTimes();updateSelection();
@@ -124,7 +125,7 @@ if(form&&picker){
    const days=[...new Set(times.map(t=>localDay(Date.parse(t.start))))].sort();
    selectedDate=days.includes(preserveDate)?preserveDate:(days[0]||'');if(selectedDate)month=selectedDate.slice(0,7);
    drawQuickDates();showTimes();updateSelection();
-   status.textContent=times.length?`Choose an open time below.`:'No open times are showing in the next 30 days. Send your request without a time, or call 770-630-2094.';draw();
+   status.textContent=times.length?`Choose an open time below.`:'No open times are showing in the next 30 days. Press “Arrange a time with me instead,” or call 770-630-2094.';draw();
   }catch{if(current===generation){status.dataset.state='error';status.textContent='Times couldn’t load. Try “Refresh times” or “Arrange a time with me instead.”';}}
   finally{clearTimeout(timeout);if(current===generation){refresh.disabled=false;picker.setAttribute('aria-busy','false');}}
  }
