@@ -22,6 +22,8 @@ export const lesson=z.object({
  audience:z.enum(['beginner','experienced','professional-only']),
  publication:z.enum(['draft','expert-reviewed','published']),
  modelScope:z.string().min(6).max(250),
+ whereToUse:z.string().min(12).max(400),
+ whenToUse:z.string().min(12).max(400),
  skillPrerequisites:z.array(z.string().min(5)).min(1),
  tools:z.array(z.string().min(2)).max(30),
  beforeStart:z.array(z.string().min(10)).min(1),
