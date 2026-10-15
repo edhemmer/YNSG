@@ -999,6 +999,221 @@
         }
       }
     },
+    "/api/notes": {
+      "get": {
+        "operationId": "readOwnerConversationNotes",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner/admin; current tenant and live identity",
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "request",
+                "customer"
+              ]
+            }
+          },
+          {
+            "name": "target",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000,
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Private append-only conversation history, 50 records per page.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "notes": {
+                      "maxItems": 50,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "body": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 4000
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          "request_id": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "body",
+                          "created_at",
+                          "request_id"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100000
+                    },
+                    "hasMore": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "notes",
+                    "page",
+                    "hasMore"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      },
+      "post": {
+        "operationId": "addOwnerConversationNote",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner/admin; current tenant and CRM entitlement",
+        "x-ynsg-origin-required": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RelationshipNote"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verified saved note receipt, no customer message.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "result"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "saved": {
+                          "type": "boolean",
+                          "const": true
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "saved"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    },
     "/api/commands": {
       "post": {
         "operationId": "ownerCommand",
@@ -1346,6 +1561,48 @@
       }
     },
     "schemas": {
+      "RelationshipNote": {
+        "type": "object",
+        "properties": {
+          "organization": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "request",
+              "customer"
+            ]
+          },
+          "target": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000,
+            "pattern": "^[^\\u0000]*$"
+          },
+          "key": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 128,
+            "pattern": "^[^\\u0000]*$"
+          }
+        },
+        "required": [
+          "organization",
+          "type",
+          "target",
+          "body",
+          "key"
+        ],
+        "additionalProperties": false
+      },
       "InvoiceRecord": {
         "type": "object",
         "properties": {
@@ -2666,7 +2923,7 @@
     "Save work + completion is atomic; timer stops without automatic invoice/payment.",
     "Invoice charges/tax require actual agreement and owner review.",
     "Notification lock-screen payloads contain no customer contacts or financial figures.",
-    "POST limits: commands 12000 bytes; work 120000 bytes; phone device 4096 bytes; invoice record 4096 bytes.",
+    "POST limits: commands 12000 bytes; work 120000 bytes; phone device 4096 bytes; invoice record 4096 bytes; conversation note 17000 bytes.",
     "Hourly billing arithmetic, no-charge reason and customer-approved cap are additional runtime/SQL refinements."
   ]
 }

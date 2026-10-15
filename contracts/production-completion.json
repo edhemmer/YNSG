@@ -13,7 +13,7 @@
       "milestone": "web",
       "title": "Audit every promised feature against current UI/API/SQL",
       "owner": "Engineering lead",
-      "status": "open",
+      "status": "working",
       "requirements": [
         "R01",
         "R02",
@@ -23,7 +23,7 @@
         "R19"
       ],
       "dependsOn": [],
-      "nextAction": "Audit every promised feature against current UI/API/SQL; classify implemented, partial, missing or intentionally disabled. Include delegates, files/photos, imports, export/deletion, correction/reversal, route/weather/briefings, reporting and integrations.",
+      "nextAction": "Complete source-backed inventory and link missing/partial work under GitHub issue #31; close the owner-note recovery defect first, then advance remaining workflow issues.",
       "acceptance": "No original requirement disappears. Each missing/partial feature has an issue, acceptance case and gate; disabled optional integrations are clearly labeled.",
       "requiredEvidence": "Feature inventory with source paths, issue links and requirement mapping.",
       "evidence": []
