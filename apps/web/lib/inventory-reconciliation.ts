@@ -24,7 +24,7 @@ export function reconcileDayWithRecordedStock(company:string,supplies:CombinedSu
   if(map.has(k))throw Error('DUPLICATE_STOCK_RECORD');
   map.set(k,x);
  }
- return supplies.map(s=>{
+ return supplies.map((s):StockGap=>{
   const needed=s.approved?.quantity??null,unit=s.approved?.unit??null,existing=map.get(clean(s.name));
   if(!existing)return {name:s.name,needed,unit,recorded:null,shortage:null,reason:'no-stock-record',reorderSuggested:false,physicallyVerified:false};
   if(needed===null||unit===null)return {name:s.name,needed:null,unit:null,recorded:existing.quantityOnHand,shortage:null,reason:'unknown-quantity',reorderSuggested:false,physicallyVerified:false};
