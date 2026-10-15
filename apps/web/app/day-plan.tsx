@@ -13,6 +13,7 @@ import RouteMap from './route-map';
 import DelayNotice from './delay-notice';
 import PackingRuleEditor from "./packing-rule-editor";
 import { workKey } from "../lib/packing-plan";
+import {preflightForWork,allTrainingTopics} from "../lib/owner-job-standards";
 export default function DailyCallSheet({
   organization,
   timezone,
@@ -202,6 +203,13 @@ export default function DailyCallSheet({
                     <li key={i}>{task}</li>
                   ))}
                 </ul>
+                {call.workItems.length>0&&<details className="day-preflight"><summary>Before this visit: task preparation</summary>
+                  <p>Review these prompts against the actual job and approved scope. They are not proof of stocked tools, safe conditions or permission to perform held work.</p>
+                  {call.workItems.map((item,i)=>{const preflight=preflightForWork(item.service,item.task),source=preflight?allTrainingTopics.find(t=>t.id===preflight.topicId):null;return <div key={workKey(item)+':'+i}>
+                    <strong>{item.task||item.service}: {preflight?.title||'Scope and supplies need review'}</strong>
+                    {preflight?<><ul>{preflight.questions.map(q=><li key={q}>{q}</li>)}</ul><p>Likely tools: {preflight.tools.join(', ')}.</p><p className="note">{preflight.stop}</p>{source&&<a target="_blank" rel="noopener noreferrer" href={source.url}>Open the {source.source} guide ↗</a>}</>:<p>Confirm measurements, expected time, access, equipment, materials and the customer's agreed scope before departure.</p>}
+                    </div>;})}
+                 </details>}
                 {call.description && <p>{call.description}</p>}
                 <div className="actions day-plan-controls">
                   {navigation && (
