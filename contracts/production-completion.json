@@ -23,7 +23,7 @@
         "R19"
       ],
       "dependsOn": [],
-      "nextAction": "Finish field-level inventory review under issue #31; issue #32 now advances notes and expense/reversal recovery; continue tax and remaining consequential forms.",
+      "nextAction": "Finish field-level inventory review under issue #31; issue #32 now advances notes, expense/reversal and tax-entry recovery; continue repeat requests, blocks and settings.",
       "acceptance": "No original requirement disappears. Each missing/partial feature has an issue, acceptance case and gate; disabled optional integrations are clearly labeled.",
       "requiredEvidence": "Feature inventory with source paths, issue links and requirement mapping.",
       "evidence": []
@@ -147,7 +147,7 @@
       "milestone": "web",
       "title": "Reconcile expenses/mileage/reports/CSV and current-year federal/state tax helpers with supported jurisdictions.",
       "owner": "Engineering lead",
-      "status": "open",
+      "status": "working",
       "requirements": [
         "R14",
         "R19"
@@ -156,7 +156,7 @@
         "WEB-01",
         "WEB-05"
       ],
-      "nextAction": "Reconcile expenses/mileage/reports/CSV and current-year federal/state tax helpers with supported jurisdictions.",
+      "nextAction": "Accept deployed expense and tax-entry recovery under #32; continue mileage, report/export reconciliation under #35 and actual owner/accountant tax inputs under WEB-14.",
       "acceptance": "Reports drill into real canonical entries; no revenue-as-personal-income assumption; unsupported tax state/year/scope fails closed; sources checked at acceptance; reviewed actual owner inputs and sales-tax treatment required.",
       "requiredEvidence": "Reconciled fixture exports/calculations and dated owner/accountant review; QBO only advertised connected after sandbox proof.",
       "evidence": []

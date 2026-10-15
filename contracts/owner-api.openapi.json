@@ -1506,6 +1506,881 @@
         }
       }
     },
+    "/api/taxes": {
+      "get": {
+        "operationId": "readOwnerTaxWorkspace",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner/admin/bookkeeper; live company permission",
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 2026,
+              "maximum": 2100
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "csv"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Validated private tax history and reviewed setup, or exact-cent accountant CSV. No filing or transfer of funds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "profile": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "version": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "maximum": 2147483647
+                            },
+                            "data": {
+                              "type": "object",
+                              "properties": {
+                                "year": {
+                                  "type": "integer",
+                                  "minimum": 2026,
+                                  "maximum": 2100
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "pattern": "^[A-Z]{2}$"
+                                },
+                                "entity": {
+                                  "type": "string",
+                                  "enum": [
+                                    "individual_calendar",
+                                    "other"
+                                  ]
+                                },
+                                "federalAnnualPaymentCents": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 999999999
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "stateAnnualPaymentCents": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 999999999
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "federalSource": {
+                                  "type": "string",
+                                  "maxLength": 1000,
+                                  "format": "uri"
+                                },
+                                "stateSource": {
+                                  "type": "string",
+                                  "maxLength": 1000,
+                                  "format": "uri"
+                                },
+                                "reviewedOn": {
+                                  "type": "string",
+                                  "format": "date",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                                },
+                                "reviewNote": {
+                                  "type": "string",
+                                  "minLength": 2,
+                                  "maxLength": 500
+                                },
+                                "rules": {
+                                  "maxItems": 50,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                      },
+                                      "label": {
+                                        "type": "string",
+                                        "minLength": 2,
+                                        "maxLength": 500
+                                      },
+                                      "state": {
+                                        "type": "string",
+                                        "pattern": "^[A-Z]{2}$"
+                                      },
+                                      "county": {
+                                        "type": "string",
+                                        "minLength": 2,
+                                        "maxLength": 500
+                                      },
+                                      "city": {
+                                        "type": "string",
+                                        "minLength": 2,
+                                        "maxLength": 500
+                                      },
+                                      "jurisdictionEvidence": {
+                                        "type": "string",
+                                        "minLength": 2,
+                                        "maxLength": 500
+                                      },
+                                      "scope": {
+                                        "type": "string",
+                                        "minLength": 2,
+                                        "maxLength": 500
+                                      },
+                                      "effectiveFrom": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                                      },
+                                      "effectiveTo": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                                      },
+                                      "reviewedOn": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                                      },
+                                      "sourceUrl": {
+                                        "type": "string",
+                                        "maxLength": 1000,
+                                        "format": "uri"
+                                      },
+                                      "components": {
+                                        "minItems": 1,
+                                        "maxItems": 8,
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "kind": {
+                                              "type": "string",
+                                              "enum": [
+                                                "state",
+                                                "county",
+                                                "city",
+                                                "district"
+                                              ]
+                                            },
+                                            "label": {
+                                              "type": "string",
+                                              "minLength": 2,
+                                              "maxLength": 500
+                                            },
+                                            "ratePpm": {
+                                              "type": "integer",
+                                              "minimum": 0,
+                                              "maximum": 250000
+                                            }
+                                          },
+                                          "required": [
+                                            "kind",
+                                            "label",
+                                            "ratePpm"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      },
+                                      "rounding": {
+                                        "type": "string",
+                                        "const": "component_half_up"
+                                      },
+                                      "reviewed": {
+                                        "type": "boolean",
+                                        "const": true
+                                      }
+                                    },
+                                    "required": [
+                                      "id",
+                                      "label",
+                                      "state",
+                                      "county",
+                                      "city",
+                                      "jurisdictionEvidence",
+                                      "scope",
+                                      "effectiveFrom",
+                                      "effectiveTo",
+                                      "reviewedOn",
+                                      "sourceUrl",
+                                      "components",
+                                      "rounding",
+                                      "reviewed"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": [
+                                "year",
+                                "state",
+                                "entity",
+                                "federalAnnualPaymentCents",
+                                "stateAnnualPaymentCents",
+                                "federalSource",
+                                "stateSource",
+                                "reviewedOn",
+                                "reviewNote",
+                                "rules"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "version",
+                            "data"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "records": {
+                      "maxItems": 10000,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "recordType": {
+                            "type": "string",
+                            "enum": [
+                              "deadline",
+                              "payment",
+                              "reversal"
+                            ]
+                          },
+                          "recordedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          "data": {
+                            "type": "object",
+                            "properties": {
+                              "year": {
+                                "type": "integer",
+                                "minimum": 2026,
+                                "maximum": 2100
+                              },
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "federal_estimated",
+                                  "state_income",
+                                  "sales_tax",
+                                  "use_tax",
+                                  "other"
+                                ]
+                              },
+                              "label": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 500,
+                                "pattern": "^[^\\u0000]*$"
+                              },
+                              "period": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 500,
+                                "pattern": "^[^\\u0000]*$"
+                              },
+                              "date": {
+                                "type": "string",
+                                "allOf": [
+                                  {
+                                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                                  },
+                                  {
+                                    "pattern": "^(?!0000-)"
+                                  }
+                                ]
+                              },
+                              "amountCents": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 999999999
+                              },
+                              "reference": {
+                                "type": "string",
+                                "minLength": 0,
+                                "maxLength": 500,
+                                "pattern": "^[^\\u0000]*$"
+                              },
+                              "sourceUrl": {
+                                "type": "string",
+                                "maxLength": 1000,
+                                "format": "uri"
+                              },
+                              "paymentUrl": {
+                                "type": "string",
+                                "maxLength": 1000,
+                                "format": "uri"
+                              },
+                              "recordId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "reason": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 500,
+                                "pattern": "^[^\\u0000]*$"
+                              },
+                              "deadlineId": {
+                                "type": "string",
+                                "minLength": 0,
+                                "maxLength": 100,
+                                "pattern": "^[^\\u0000]*$"
+                              },
+                              "reviewed": {
+                                "type": "boolean",
+                                "const": true
+                              }
+                            },
+                            "required": [
+                              "year"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "recordType",
+                          "recordedAt",
+                          "data"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "invoices": {
+                      "maxItems": 10000,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "number": {
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "issuedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          "subtotalCents": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 999999999
+                          },
+                          "taxCents": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 999999999
+                          },
+                          "totalCents": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 999999999
+                          },
+                          "tax": {
+                            "anyOf": [
+                              {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "profileVersion": {
+                                        "type": "integer",
+                                        "exclusiveMinimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "rule": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "type": "string",
+                                            "format": "uuid",
+                                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                          },
+                                          "label": {
+                                            "type": "string",
+                                            "minLength": 2,
+                                            "maxLength": 500
+                                          },
+                                          "state": {
+                                            "type": "string",
+                                            "pattern": "^[A-Z]{2}$"
+                                          },
+                                          "county": {
+                                            "type": "string",
+                                            "minLength": 2,
+                                            "maxLength": 500
+                                          },
+                                          "city": {
+                                            "type": "string",
+                                            "minLength": 2,
+                                            "maxLength": 500
+                                          },
+                                          "jurisdictionEvidence": {
+                                            "type": "string",
+                                            "minLength": 2,
+                                            "maxLength": 500
+                                          },
+                                          "scope": {
+                                            "type": "string",
+                                            "minLength": 2,
+                                            "maxLength": 500
+                                          },
+                                          "effectiveFrom": {
+                                            "type": "string",
+                                            "format": "date",
+                                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                                          },
+                                          "effectiveTo": {
+                                            "type": "string",
+                                            "format": "date",
+                                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                                          },
+                                          "reviewedOn": {
+                                            "type": "string",
+                                            "format": "date",
+                                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                                          },
+                                          "sourceUrl": {
+                                            "type": "string",
+                                            "maxLength": 1000,
+                                            "format": "uri"
+                                          },
+                                          "components": {
+                                            "minItems": 1,
+                                            "maxItems": 8,
+                                            "type": "array",
+                                            "items": {
+                                              "type": "object",
+                                              "properties": {
+                                                "kind": {
+                                                  "type": "string",
+                                                  "enum": [
+                                                    "state",
+                                                    "county",
+                                                    "city",
+                                                    "district"
+                                                  ]
+                                                },
+                                                "label": {
+                                                  "type": "string",
+                                                  "minLength": 2,
+                                                  "maxLength": 500
+                                                },
+                                                "ratePpm": {
+                                                  "type": "integer",
+                                                  "minimum": 0,
+                                                  "maximum": 250000
+                                                }
+                                              },
+                                              "required": [
+                                                "kind",
+                                                "label",
+                                                "ratePpm"
+                                              ],
+                                              "additionalProperties": false
+                                            }
+                                          },
+                                          "rounding": {
+                                            "type": "string",
+                                            "const": "component_half_up"
+                                          },
+                                          "reviewed": {
+                                            "type": "boolean",
+                                            "const": true
+                                          }
+                                        },
+                                        "required": [
+                                          "id",
+                                          "label",
+                                          "state",
+                                          "county",
+                                          "city",
+                                          "jurisdictionEvidence",
+                                          "scope",
+                                          "effectiveFrom",
+                                          "effectiveTo",
+                                          "reviewedOn",
+                                          "sourceUrl",
+                                          "components",
+                                          "rounding",
+                                          "reviewed"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "address": {
+                                        "type": "object",
+                                        "properties": {
+                                          "street": {
+                                            "type": "string",
+                                            "maxLength": 500
+                                          },
+                                          "city": {
+                                            "type": "string",
+                                            "maxLength": 500
+                                          },
+                                          "state": {
+                                            "type": "string",
+                                            "maxLength": 80
+                                          },
+                                          "postalCode": {
+                                            "type": "string",
+                                            "maxLength": 80
+                                          }
+                                        },
+                                        "required": [
+                                          "street",
+                                          "city",
+                                          "state",
+                                          "postalCode"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "assessedOn": {
+                                        "type": "string",
+                                        "allOf": [
+                                          {
+                                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                                          },
+                                          {
+                                            "pattern": "^(?!0000-)"
+                                          }
+                                        ]
+                                      },
+                                      "subtotalCents": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 999999999
+                                      },
+                                      "taxCents": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 999999999
+                                      },
+                                      "totalCents": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 999999999
+                                      },
+                                      "components": {
+                                        "maxItems": 8,
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "kind": {
+                                              "type": "string",
+                                              "enum": [
+                                                "state",
+                                                "county",
+                                                "city",
+                                                "district"
+                                              ]
+                                            },
+                                            "label": {
+                                              "type": "string",
+                                              "minLength": 2,
+                                              "maxLength": 500,
+                                              "pattern": "^[^\\u0000]*$"
+                                            },
+                                            "ratePpm": {
+                                              "type": "integer",
+                                              "minimum": 0,
+                                              "maximum": 250000
+                                            },
+                                            "baseCents": {
+                                              "type": "integer",
+                                              "minimum": 0,
+                                              "maximum": 999999999
+                                            },
+                                            "taxCents": {
+                                              "type": "integer",
+                                              "minimum": 0,
+                                              "maximum": 999999999
+                                            }
+                                          },
+                                          "required": [
+                                            "kind",
+                                            "label",
+                                            "ratePpm",
+                                            "baseCents",
+                                            "taxCents"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      },
+                                      "customerApprovalEvidence": {
+                                        "type": "string",
+                                        "maxLength": 2000
+                                      },
+                                      "reviewedBy": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                      }
+                                    },
+                                    "required": [
+                                      "profileVersion",
+                                      "rule",
+                                      "address",
+                                      "assessedOn",
+                                      "subtotalCents",
+                                      "taxCents",
+                                      "totalCents",
+                                      "components",
+                                      "customerApprovalEvidence",
+                                      "reviewedBy"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "taxCents": {
+                                        "type": "number",
+                                        "const": 0
+                                      },
+                                      "components": {
+                                        "minItems": 0,
+                                        "maxItems": 0,
+                                        "type": "array",
+                                        "items": {
+                                          "not": {}
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "taxCents",
+                                      "components"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "paidCents": {
+                            "type": "integer",
+                            "minimum": -999999999,
+                            "maximum": 999999999
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "number",
+                          "issuedAt",
+                          "subtotalCents",
+                          "taxCents",
+                          "totalCents",
+                          "tax",
+                          "paidCents"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "timezone": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "today": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                        },
+                        {
+                          "pattern": "^(?!0000-)"
+                        }
+                      ]
+                    },
+                    "canEdit": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "profile",
+                    "records",
+                    "invoices",
+                    "timezone",
+                    "today",
+                    "canEdit"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      },
+      "post": {
+        "operationId": "saveReviewedTaxEntry",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner/admin; current company finance entitlement and exact profile version",
+        "x-ynsg-origin-required": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxEntryCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verified next profile version or immutable new tax-record ID. Exact actor/input/key replay; no authority payment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "result"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "result": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "version": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "maximum": 2147483647
+                            }
+                          },
+                          "required": [
+                            "version"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            }
+                          },
+                          "required": [
+                            "id"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    },
     "/api/commands": {
       "post": {
         "operationId": "ownerCommand",
@@ -1861,6 +2736,542 @@
       }
     },
     "schemas": {
+      "TaxEntryCommand": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "organization": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2147483646
+              },
+              "key": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 128,
+                "pattern": "^[^\\u0000]*$"
+              },
+              "action": {
+                "type": "string",
+                "const": "profile"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "year": {
+                    "type": "integer",
+                    "minimum": 2026,
+                    "maximum": 2100
+                  },
+                  "state": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{2}$"
+                  },
+                  "entity": {
+                    "type": "string",
+                    "enum": [
+                      "individual_calendar",
+                      "other"
+                    ]
+                  },
+                  "federalAnnualPaymentCents": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 999999999
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "stateAnnualPaymentCents": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 999999999
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "federalSource": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "format": "uri"
+                  },
+                  "stateSource": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "format": "uri"
+                  },
+                  "reviewedOn": {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "reviewNote": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 500
+                  },
+                  "rules": {
+                    "maxItems": 50,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 500
+                        },
+                        "state": {
+                          "type": "string",
+                          "pattern": "^[A-Z]{2}$"
+                        },
+                        "county": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 500
+                        },
+                        "city": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 500
+                        },
+                        "jurisdictionEvidence": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 500
+                        },
+                        "scope": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 500
+                        },
+                        "effectiveFrom": {
+                          "type": "string",
+                          "format": "date",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                        },
+                        "effectiveTo": {
+                          "type": "string",
+                          "format": "date",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                        },
+                        "reviewedOn": {
+                          "type": "string",
+                          "format": "date",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                        },
+                        "sourceUrl": {
+                          "type": "string",
+                          "maxLength": 1000,
+                          "format": "uri"
+                        },
+                        "components": {
+                          "minItems": 1,
+                          "maxItems": 8,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "state",
+                                  "county",
+                                  "city",
+                                  "district"
+                                ]
+                              },
+                              "label": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 500
+                              },
+                              "ratePpm": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 250000
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "label",
+                              "ratePpm"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "rounding": {
+                          "type": "string",
+                          "const": "component_half_up"
+                        },
+                        "reviewed": {
+                          "type": "boolean",
+                          "const": true
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "label",
+                        "state",
+                        "county",
+                        "city",
+                        "jurisdictionEvidence",
+                        "scope",
+                        "effectiveFrom",
+                        "effectiveTo",
+                        "reviewedOn",
+                        "sourceUrl",
+                        "components",
+                        "rounding",
+                        "reviewed"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "year",
+                  "state",
+                  "entity",
+                  "federalAnnualPaymentCents",
+                  "stateAnnualPaymentCents",
+                  "federalSource",
+                  "stateSource",
+                  "reviewedOn",
+                  "reviewNote",
+                  "rules"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "organization",
+              "version",
+              "key",
+              "action",
+              "data"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "organization": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2147483646
+              },
+              "key": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 128,
+                "pattern": "^[^\\u0000]*$"
+              },
+              "action": {
+                "type": "string",
+                "const": "deadline"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "year": {
+                    "type": "integer",
+                    "minimum": 2026,
+                    "maximum": 2100
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "federal_estimated",
+                      "state_income",
+                      "sales_tax",
+                      "use_tax",
+                      "other"
+                    ]
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 500,
+                    "pattern": "^[^\\u0000]*$"
+                  },
+                  "period": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 500,
+                    "pattern": "^[^\\u0000]*$"
+                  },
+                  "date": {
+                    "type": "string",
+                    "allOf": [
+                      {
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                      },
+                      {
+                        "pattern": "^(?!0000-)"
+                      }
+                    ]
+                  },
+                  "amountCents": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 999999999
+                  },
+                  "sourceUrl": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "format": "uri"
+                  },
+                  "paymentUrl": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "format": "uri"
+                  },
+                  "reference": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 500,
+                    "pattern": "^[^\\u0000]*$"
+                  },
+                  "reviewed": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "deadlineId": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 100,
+                    "pattern": "^[^\\u0000]*$"
+                  }
+                },
+                "required": [
+                  "year",
+                  "kind",
+                  "label",
+                  "period",
+                  "date",
+                  "amountCents",
+                  "sourceUrl",
+                  "paymentUrl",
+                  "reviewed"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "organization",
+              "version",
+              "key",
+              "action",
+              "data"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "organization": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2147483646
+              },
+              "key": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 128,
+                "pattern": "^[^\\u0000]*$"
+              },
+              "action": {
+                "type": "string",
+                "const": "payment"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "year": {
+                    "type": "integer",
+                    "minimum": 2026,
+                    "maximum": 2100
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "federal_estimated",
+                      "state_income",
+                      "sales_tax",
+                      "use_tax",
+                      "other"
+                    ]
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 500,
+                    "pattern": "^[^\\u0000]*$"
+                  },
+                  "period": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 500,
+                    "pattern": "^[^\\u0000]*$"
+                  },
+                  "date": {
+                    "type": "string",
+                    "allOf": [
+                      {
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                      },
+                      {
+                        "pattern": "^(?!0000-)"
+                      }
+                    ]
+                  },
+                  "amountCents": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 999999999
+                  },
+                  "sourceUrl": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "format": "uri"
+                  },
+                  "paymentUrl": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "format": "uri"
+                  },
+                  "reference": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 500,
+                    "pattern": "^[^\\u0000]*$"
+                  },
+                  "reviewed": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "deadlineId": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 100,
+                    "pattern": "^[^\\u0000]*$"
+                  }
+                },
+                "required": [
+                  "year",
+                  "kind",
+                  "label",
+                  "period",
+                  "date",
+                  "amountCents",
+                  "sourceUrl",
+                  "paymentUrl",
+                  "reviewed"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "organization",
+              "version",
+              "key",
+              "action",
+              "data"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "organization": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2147483646
+              },
+              "key": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 128,
+                "pattern": "^[^\\u0000]*$"
+              },
+              "action": {
+                "type": "string",
+                "const": "reversal"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "year": {
+                    "type": "integer",
+                    "minimum": 2026,
+                    "maximum": 2100
+                  },
+                  "recordId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 500,
+                    "pattern": "^[^\\u0000]*$"
+                  }
+                },
+                "required": [
+                  "year",
+                  "recordId",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "organization",
+              "version",
+              "key",
+              "action",
+              "data"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
       "ExpenseRecorded": {
         "type": "object",
         "properties": {
@@ -3268,7 +4679,7 @@
     "Save work + completion is atomic; timer stops without automatic invoice/payment.",
     "Invoice charges/tax require actual agreement and owner review.",
     "Notification lock-screen payloads contain no customer contacts or financial figures.",
-    "POST limits: commands 12000 bytes; work 120000 bytes; phone device 4096 bytes; invoice record 4096 bytes; conversation note 17000 bytes.",
+    "POST limits: commands 12000 bytes; work 120000 bytes; phone device 4096 bytes; invoice record 4096 bytes; conversation note 17000 bytes; tax entry 100000 bytes.",
     "Hourly billing arithmetic, no-charge reason and customer-approved cap are additional runtime/SQL refinements."
   ]
 }
