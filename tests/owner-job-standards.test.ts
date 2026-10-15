@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {estimateVisit,examplePlanningStandards,ownerTaskStandards,trainingTopics,reviewTaskTime,preflightForWork,allTrainingTopics} from '../apps/web/lib/owner-job-standards.ts';
+import {estimateVisit,examplePlanningStandards,ownerTaskStandards,trainingTopics,reviewTaskTime,preflightForWork,allTrainingTopics,flatTrimMiterSetting,drywallRepairGuide} from '../apps/web/lib/owner-job-standards.ts';
 
 test('one-hour task allocation and combined two-hour visit minimum remain separate',()=>{
  const a=estimateVisit([{service:'Lawn care',task:'Mow, trim and blow-off'}],examplePlanningStandards,30);
@@ -53,4 +53,18 @@ test('scheduled shelf, drywall, trim and picture tasks have safe proactive prefl
  ]){const brief=preflightForWork(service!,task!);assert.ok(brief);assert.equal(brief?.topicId,id);assert.ok(brief?.questions.length);assert.ok(allTrainingTopics.some(t=>t.id===id));}
  assert.equal(preflightForWork('Something else','Unidentified work'),null);
  assert.match(preflightForWork('Help around the home','Smart lock replacement')!.stop,/held/);
+});
+
+test('flat-trim angle helper uses a conventional saw scale, not half-angle directly',()=>{
+ assert.equal(flatTrimMiterSetting(90).sawDegrees,45);
+ assert.equal(flatTrimMiterSetting(94).sawDegrees,43);
+ assert.equal(flatTrimMiterSetting(86).sawDegrees,47);
+ assert.throws(()=>flatTrimMiterSetting(160));
+ assert.throws(()=>flatTrimMiterSetting(Number.NaN));
+});
+test('drywall size tool distinguishes filler, patch and supported repair',()=>{
+ assert.equal(drywallRepairGuide(0.25).approach,'Small-hole filler');
+ assert.equal(drywallRepairGuide(2).approach,'Reinforced patch');
+ assert.equal(drywallRepairGuide(9).approach,'Supported drywall replacement');
+ assert.throws(()=>drywallRepairGuide(-3));
 });
