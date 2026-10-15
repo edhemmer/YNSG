@@ -1,4 +1,4 @@
-import type {WorkItem} from './packing-plan.js';
+import type {WorkItem,PackingLine} from './packing-plan.js';
 
 export type SupplyPrompt={name:string;reason:string;requiresVerification:boolean;category:'tool'|'consumable'|'material'|'measurement'};
 export type WorkSupplyReview={work:WorkItem;prompts:SupplyPrompt[];questions:string[];known:boolean;hold:boolean};
@@ -53,4 +53,20 @@ export function consolidateDaySupplies(workItems:WorkItem[]):DaySupplyReview{
   }
  }
  return {items:[...map.values()].sort((a,b)=>a.name.localeCompare(b.name)),unscoped,held,questions};
+}
+
+export type CombinedSupply=DaySupplyReview['items'][number]&{approved?:{quantity:number;unit:string;consumed:boolean}};
+export function mergeApprovedDaySupplies(suggested:DaySupplyReview,approved:PackingLine[]):DaySupplyReview&{items:CombinedSupply[]}{
+ const key=(v:string)=>v.trim().toLocaleLowerCase('en-US').replace(/\s+/g,' ');
+ const all=new Map<string,CombinedSupply>();
+ for(const x of suggested.items)all.set(key(x.name),{...x});
+ for(const x of approved){
+  if(!x.name.trim()||!Number.isInteger(x.quantity)||x.quantity<1||x.quantity>100000||!x.unit.trim())throw Error('INVALID_APPROVED_SUPPLY');
+  const k=key(x.name),previous=all.get(k);
+  const quantity={quantity:x.quantity,unit:x.unit,consumed:x.consumed};
+  if(previous){
+   all.set(k,{...previous,approved:quantity,reason:previous.reason+'; approved equipment quantity reviewed separately'});
+  }else all.set(k,{name:x.name,category:x.consumed?'consumable':'tool',reason:'Owner-approved equipment list',requiresVerification:true,tasks:['Approved day packing'],approved:quantity});
+ }
+ return {...suggested,items:[...all.values()].sort((a,b)=>a.name.localeCompare(b.name))};
 }
