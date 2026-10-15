@@ -15,6 +15,7 @@ import ScheduledInvoice from './scheduled-invoice';
 import {useEntrySafety,useUnsavedEntry} from './entry-safety';
 import CustomerPicker from './customer-picker';
 import OnSiteExtraReview from './on-site-extra-review';
+import UnforeseenJobReview from './unforeseen-job-review';
 type Job=LinkedJob;
 const money=(n:number)=>(n/100).toLocaleString('en-US',{style:'currency',currency:'USD'});
 export default function ServiceWorkflow({organization,request,quotes,jobs,invoices,timezone,canManage,canQuote,canWork,busy,onBusy,onReview,act,fieldAction,onChanged,onCustomer}:{organization:string;request:InboxRequest;quotes:LinkedQuote[];jobs:Job[];invoices:LinkedInvoice[];timezone:string;canManage:boolean;canQuote:boolean;canWork:boolean;busy:boolean;onBusy:(v:boolean)=>void;onReview:()=>void;act:(value:Record<string,unknown>)=>Promise<unknown>;fieldAction:(job:Job,action:'start'|'pause'|'resume')=>Promise<void>;onChanged:()=>void;onCustomer?:(id:string)=>void}){
@@ -51,6 +52,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
   </section>}
   </>}
   {canManage&&phase==='work'&&<OnSiteExtraReview />}
+  {canManage&&phase==='work'&&<UnforeseenJobReview />}
   {(phase==='work'||phase==='invoice')&&jobs.filter(j=>j.status!=='canceled'&&!invoices.some(i=>i.job_id===j.id)).length===0&&<p>Confirm the appointment, scope and price in step 1 before recording work.</p>}
   {(phase==='work'||phase==='invoice')&&jobs.filter(j=>j.status!=='canceled'&&!invoices.some(i=>i.job_id===j.id)).map(j=>{const hasInvoice=invoices.some(i=>i.job_id===j.id);const q=quotes.find(q=>q.id===j.quote_id),v=q?.quote_versions.find(v=>v.version===(j.approved_version??q.current_version));return <section className="workflow-section" key={j.id}><h3>Work & invoice</h3><p><strong>{j.status==='completed'?'Work completed':j.status==='working'?'Work in progress':j.status==='paused'?'Work paused':j.status==='canceled'?'Work canceled':'Ready to start'}</strong></p>
    {canWork&&next.action!=='schedule'&&<div className="actions">{['approved','scheduled','en_route','arrived'].includes(j.status)&&<button disabled={blocked} onClick={()=>void fieldAction(j,'start')}>Start work timer</button>}{j.status==='working'&&<button disabled={blocked} onClick={()=>void fieldAction(j,'pause')}>Pause work</button>}{j.status==='paused'&&<button disabled={blocked} onClick={()=>void fieldAction(j,'resume')}>Resume work</button>}</div>}
