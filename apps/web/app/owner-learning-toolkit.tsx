@@ -18,6 +18,16 @@ const lessonDetails:Record<string,{steps:string[];tools:string[];stop:string}>={
   tools:['Correct sealant','Caulk gun','Backer rod when required','Cleaning supplies','Tooling tool'],
   stop:'Avoid claims of waterproofing until substrate condition and full cure are verified.'
  },
+ 'miter-cuts-video':{
+  steps:['Watch the source video for the cut type; distinguish a regular corner miter from specialty crown molding.','Measure the actual corner rather than assuming every wall is 90 degrees.','Set the measured angle on the correct saw and check blade guard, clamp and work support.','Cut a scrap test piece before any final finish stock.'],
+  tools:['Tape measure','Angle finder or sliding bevel','Pencil','Scrap stock','Clamps','Guarded miter saw'],
+  stop:'Review manufacturer safety procedures and refer cuts outside your competence or approved work scope.'
+ },
+ 'caulking-video':{
+  steps:['Watch the referenced demonstration for removal and application; confirm the surface and caulk differ from the demonstration if applicable.','Remove all failing material without damaging the surface.','Clean and dry thoroughly; protect adjoining finishes.','Apply compatible caulk and follow its own printed cure time rather than assuming the video timing applies.'],
+  tools:['Surface-safe scraper','Painter tape','Cleaning supplies','Caulk gun','Compatible sealant','Gloves'],
+  stop:'Visible hidden water damage or unresolved leaks need separate assessment; do not cover the problem with caulk.'
+ },
  'miter-saw':{
   steps:['Read the exact saw manual. Inspect guard, blade condition and stable work surface.','Mark and measure stock, support and clamp it so hands stay outside the danger zone.','Set and lock the angle, check the cut line, and keep all guards in place.','Wait until the blade stops fully before repositioning work.'],
   tools:['Guarded miter saw','Work supports/clamps','Tape measure','Eye and hearing protection'],
