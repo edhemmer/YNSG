@@ -1,6 +1,6 @@
 'use client';
 import {useMemo,useState} from 'react';
-import {estimateVisit,examplePlanningStandards,trainingTopics,type TaskStandard} from '../lib/owner-job-standards';
+import {estimateVisit,examplePlanningStandards,trainingTopics,reviewTaskTime,type TaskStandard} from '../lib/owner-job-standards';
 
 const lessonDetails:Record<string,{steps:string[];tools:string[];stop:string}>={
  'smart-lock-triage':{
@@ -29,6 +29,7 @@ export default function OwnerLearningToolkit(){
  const [minutes,setMinutes]=useState(60);
  const [factor,setFactor]=useState(1);
  const [topic,setTopic]=useState<string>(trainingTopics[0]!.id);
+ const [actual,setActual]=useState(120),[diagnostic,setDiagnostic]=useState(20);
  const rule=examplePlanningStandards.find(x=>x.service+'::'+x.task===service)??examplePlanningStandards[0]!;
  const estimate=useMemo(()=>{
   const work:TaskStandard={...rule,plannedMinutes:minutes,typicalMinutes:Math.min(rule.typicalMinutes,minutes)};
@@ -50,6 +51,15 @@ export default function OwnerLearningToolkit(){
     </select></label>
    <p role="status"><strong>Estimated job time: {estimate.taskMinutes} minutes.</strong> Combined visit capacity with the existing two-hour minimum and a sample 30-minute travel buffer: {estimate.visitMinutes} minutes.</p>
    <p>{rule.notes}</p><p>Visit planning and billing are separate. Owner-approved customer pricing is confirmed before work; independently priced services may not use the hourly minimum.</p>
+  </details>
+  <details><summary>Learn from a completed job</summary>
+   <p>Private worksheet only. No customer information is saved, and this does not change an invoice or automatically reset a future time estimate.</p>
+   <label>Actual work time (minutes)<input type="number" min={1} max={1440} step={5} value={actual} onChange={e=>setActual(Math.max(1,Math.min(1440,Number(e.target.value)||1)))}/></label>
+   <label>Of that time, diagnosing the problem (minutes)<input type="number" min={0} max={actual} step={5} value={diagnostic} onChange={e=>setDiagnostic(Math.max(0,Math.min(actual,Number(e.target.value)||0)))}/></label>
+   {actual>=1&&diagnostic<=actual&&<p role="status">{(()=>{
+    const result=reviewTaskTime(estimate.taskMinutes,actual,diagnostic);
+    return 'Actual versus planned: '+(result.differenceMinutes>=0?'+':'')+result.differenceMinutes+' minutes ('+(result.variancePercent>=0?'+':'')+result.variancePercent+'%). Diagnosis used '+result.diagnosisSharePercent+'% of the job. '+result.nextAction;
+   })()}</p>}
   </details>
   <details><summary>Trade learning library</summary>
    <label>Topic<select value={topic} onChange={e=>setTopic(e.target.value)}>{trainingTopics.map(t=><option key={t.id} value={t.id}>{t.title}</option>)}</select></label>
