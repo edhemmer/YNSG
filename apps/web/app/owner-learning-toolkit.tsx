@@ -1,6 +1,6 @@
 'use client';
 import {useMemo,useState} from 'react';
-import {estimateVisit,examplePlanningStandards,allTrainingTopics,reviewTaskTime,type TaskStandard} from '../lib/owner-job-standards';
+import {estimateVisit,examplePlanningStandards,allTrainingTopics,reviewTaskTime,flatTrimMiterSetting,drywallRepairGuide,type TaskStandard} from '../lib/owner-job-standards';
 
 const lessonDetails:Record<string,{steps:string[];tools:string[];stop:string}>={
  'cutting-angles':{
@@ -61,6 +61,7 @@ export default function OwnerLearningToolkit(){
  const [factor,setFactor]=useState(1);
  const [topic,setTopic]=useState<string>(allTrainingTopics[0]!.id);
  const [actual,setActual]=useState(120),[diagnostic,setDiagnostic]=useState(20);
+ const [corner,setCorner]=useState(90),[hole,setHole]=useState(1);
  const rule=examplePlanningStandards.find(x=>x.service+'::'+x.task===service)??examplePlanningStandards[0]!;
  const estimate=useMemo(()=>{
   const work:TaskStandard={...rule,plannedMinutes:minutes,typicalMinutes:Math.min(rule.typicalMinutes,minutes)};
@@ -82,6 +83,15 @@ export default function OwnerLearningToolkit(){
     </select></label>
    <p role="status"><strong>Estimated job time: {estimate.taskMinutes} minutes.</strong> Combined visit capacity with the existing two-hour minimum and a sample 30-minute travel buffer: {estimate.visitMinutes} minutes.</p>
    <p>{rule.notes}</p><p>Visit planning and billing are separate. Owner-approved customer pricing is confirmed before work; independently priced services may not use the hourly minimum.</p>
+  </details>
+  <details><summary>Quick measurement helpers</summary>
+   <p>These calculations are for planning only. Confirm actual measurements and tooling before making a cut or repair.</p>
+   <h3>Flat-trim miter angle</h3>
+   <label>Measured inside corner (degrees)<input type="number" min={45} max={135} step={0.5} value={corner} onChange={e=>setCorner(Number(e.target.value))}/></label>
+   {corner>=45&&corner<=135&&<p role="status">For two equal pieces of flat trim, set a conventional miter saw to about <strong>{flatTrimMiterSetting(corner).sawDegrees}°</strong> off square on each piece. Half the actual corner is {flatTrimMiterSetting(corner).halfCornerDegrees}°. Test on scrap; compound crown molding and unusual profiles need separate setup.</p>}
+   <h3>Drywall repair size guide</h3>
+   <label>Approximate hole diameter (inches)<input type="number" min={0.1} max={48} step={0.1} value={hole} onChange={e=>setHole(Number(e.target.value))}/></label>
+   {hole>0&&hole<=48&&<p role="status"><strong>{drywallRepairGuide(hole).approach}.</strong> {drywallRepairGuide(hole).planning} This usually requires drying/curing time not counted as hands-on labor.</p>}
   </details>
   <details><summary>Learn from a completed job</summary>
    <p>Private worksheet only. No customer information is saved, and this does not change an invoice or automatically reset a future time estimate.</p>
