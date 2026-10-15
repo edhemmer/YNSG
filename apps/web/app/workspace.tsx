@@ -161,13 +161,15 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
   const [mobileNav,setMobileNav]=useState(false);
   const [workRequest,setWorkRequest]=useState<string|null>(null);
   const [customerFocus,setCustomerFocus]=useState<string|null>(null);
+  // A new workspace destination starts at its heading, never the previous screen's scroll.
+  useEffect(()=>{window.scrollTo({top:0,behavior:'instant'});document.querySelector<HTMLElement>('#main h1')?.focus({preventScroll:true});},[org,section,workRequest,customerFocus]);
   useBlockedEntry('workspace',pending||invoiceBusy);
   const sections=[{key:'Dashboard',label:'Today',icon:'dashboard'},{key:'Requests',label:'Requests',icon:'inbox'},{key:'Calendar',label:'Calendar',icon:'calendar'},{key:'Today',label:'Day routes',icon:'pin'},{key:'Customers',label:'Customers',icon:'users'},{key:'Work',label:'Jobs',icon:'work'},{key:'Money',label:'Invoices & money',icon:'money'},{key:'Snapshot',label:'Reports',icon:'chart'},{key:'Activity',label:'Activity & messages',icon:'bell'},{key:'Settings',label:'Settings',icon:'settings'}];
   const primarySections=sections.filter(s=>['Dashboard','Requests','Calendar','Today','Work','Money'].includes(s.key));
   const secondarySections=sections.filter(s=>['Customers','Snapshot','Activity','Settings'].includes(s.key));
   const canSeeSection=(s:{key:string})=>['owner','admin'].includes(role||'')||(role==='dispatcher'?['Requests','Customers','Work','Today'].includes(s.key):role==='bookkeeper'?['Customers','Money'].includes(s.key):['Today','Work'].includes(s.key));
   function navigate(next:string){if(pending||invoiceBusy||!canLeave())return;setPage(0);setMessage('');setError('');setSection(next);setCustomerFocus(null);setMobileNav(false);const url=new URL(window.location.href);url.searchParams.set('section',next);url.searchParams.delete('customer');if(next!=='Work'){setWorkRequest(null);url.searchParams.delete('request');}window.history.replaceState(null,'',url);void refresh();}
-  function openWork(id:string){if(pending||invoiceBusy||!canLeave())return;setActiveRequest(null);setWorkRequest(id);const url=new URL(window.location.href);url.searchParams.set('request',id);url.searchParams.set('section','Work');window.history.replaceState(null,'',url);setSection('Work');setPage(0);void refresh();}
+  function openWork(id:string){if(pending||invoiceBusy||!canLeave())return;setActiveRequest(null);setCustomerFocus(null);setWorkRequest(id);const url=new URL(window.location.href);url.searchParams.delete('customer');url.searchParams.set('request',id);url.searchParams.set('section','Work');window.history.replaceState(null,'',url);setSection('Work');setPage(0);void refresh();}
 
   function openCustomer(id:string){if(pending||invoiceBusy||!canLeave())return;setCustomerFocus(id);setSection('Customers');setActiveRequest(null);setWorkRequest(null);const url=new URL(window.location.href);url.searchParams.delete('request');url.searchParams.set('section','Customers');url.searchParams.set('customer',id);window.history.replaceState(null,'',url);}
 
@@ -430,7 +432,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
                 {data && (
                   <>
                     <div className="list-heading">
-                      <h1>
+                      <h1 tabIndex={-1}>
                         {section==='Dashboard'?'Your day, in focus.':sections.find(s=>s.key===section)?.label||section}
                       </h1>
                       <div className="heading-actions"><span className="tiny">{new Intl.DateTimeFormat('en-US',{timeZone:data.company.timezone,dateStyle:'full'}).format(new Date())}</span><button className="secondary" onClick={()=>void refresh()}><Icon name="refresh"/>Refresh</button></div>
