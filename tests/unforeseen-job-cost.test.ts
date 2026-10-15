@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {reviewUnforeseenJob} from '../apps/web/lib/unforeseen-job-cost.ts';
+import {reviewUnforeseenJob,hiddenConditionPreflight} from '../apps/web/lib/unforeseen-job-cost.ts';
 
 const good={
  kind:'wrong_part',description:'Wrong-size anchor discovered after inspection',
@@ -40,4 +40,15 @@ test('rejects invalid money, fractional minutes and missing issue description',(
  for(const patch of [{businessMaterialCostCents:-1},{expectedHandsOnMinutes:2.2},{description:' '},{supplyRunMinutes:1000},{ownerLaborCostCentsPerHour:Number.NaN}]){
   assert.throws(()=>reviewUnforeseenJob({...good,...patch}));
  }
+});
+
+test('pre-quote prompts flag unseen supply lines and valves without authorizing plumbing',()=>{
+ const p=hiddenConditionPreflight('Home maintenance','Replace kitchen faucet');
+ assert.equal(p?.hold,true);
+ assert.ok(p?.questions.some(x=>/corroded valves/.test(x)));
+ assert.ok(hiddenConditionPreflight('Home maintenance','Adjust door strike')?.questions.some(x=>/batteries/.test(x)));
+ assert.equal(hiddenConditionPreflight('Lawn care','Mow and trim'),null);
+});
+test('profit analysis cannot use zero or missing owner labor cost as a fabricated margin',()=>{
+ assert.throws(()=>reviewUnforeseenJob({...good,ownerLaborCostCentsPerHour:0}));
 });
