@@ -47,6 +47,12 @@ export function reviewTaskTime(plannedMinutes:number,actualMinutes:number,diagno
   diagnosisSharePercent:Math.round(100*diagnosisMinutes/actualMinutes)
  };
 }
+export const verifiedHandymanSources=[
+ {id:'cutting-angles',title:'Measure and bisect real-world corners for miter cuts',source:'This Old House (official video)',url:'https://www.youtube.com/watch?v=Idm2bJFFObU',checkedOn:'2026-10-15',safety:'Use actual wall angle, test on scrap and follow the guarded saw manual.'},
+ {id:'drywall-small-and-medium',title:'Repair drywall holes by damage size',source:'This Old House (step-by-step video and article)',url:'https://www.thisoldhouse.com/walls/how-to-patch-holes-in-drywall',checkedOn:'2026-10-15',safety:'Inspect for moisture, wiring or unusual wall materials. Compound drying may require a return visit.'},
+ {id:'shelf-anchors',title:'Locate studs and install wall-mounted shelving',source:'This Old House (illustrated installation)',url:'https://www.thisoldhouse.com/moving/how-to-install-wall-mounted-shelves',checkedOn:'2026-10-15',safety:'Verify wall structure, hidden utilities, expected load and manufacturer-rated hardware; avoid heavy structural installations.'},
+ {id:'hang-artwork',title:'Choose safe hardware for frames and pictures',source:'This Old House (hanger/anchor guide)',url:'https://www.thisoldhouse.com/walls/how-to-choose-the-right-hanging-hardware',checkedOn:'2026-10-15',safety:'Check object weight, anchor working load, wall type and fall/injury risk.'},
+] as const;
 export const trainingTopics=[
  {id:'smart-lock-triage',title:'Diagnose a smart lock before replacement',source:'Manufacturer-specific troubleshooting',url:'https://www.kwikset.com/support/topics/door-handing-process',safety:'Check make and exact model; do not reset without customer authorization or lockout recovery.'},
  {id:'remove-caulk',title:'Remove failing bathroom caulk',source:'This Old House',url:'https://www.thisoldhouse.com/bathrooms/removing-silicone-caulk',safety:'Protect acrylic/plastic surfaces and follow product cure time.'},
@@ -55,6 +61,7 @@ export const trainingTopics=[
  {id:'miter-cuts-video',title:'Video: make more accurate miter cuts',source:'This Old House — illustrated tutorial and video',url:'https://www.thisoldhouse.com/woodworking/how-to-cut-miters',safety:'Confirm saw model, blade guard, work holding and personal protective equipment before using any tutorial.'},
  {id:'caulking-video',title:'Video: remove and replace bathtub caulk',source:'Ask This Old House — tutorial and video',url:'https://www.thisoldhouse.com/bathrooms/how-to-caulk-around-a-bathtub',safety:'Confirm material compatibility, mold/water damage, sealant label and cure time; demonstrated timing is not universal.'},
 ] as const;
+export const allTrainingTopics=[...trainingTopics,...verifiedHandymanSources] as const;
 export const examplePlanningStandards:TaskStandard[]=ownerTaskStandards.parse([
  {service:'Lawn care',task:'Mow, trim and blow-off',plannedMinutes:60,typicalMinutes:45,difficulty:'routine',setupMinutes:10,pickupMinutes:0,notes:'Example only; slope, acreage, obstacles and access change the time.'},
  {service:'Yard & garden',task:'Pulling weeds by hand',plannedMinutes:120,typicalMinutes:120,difficulty:'variable',setupMinutes:15,pickupMinutes:0,notes:'Measure beds and weed density before committing.'},
