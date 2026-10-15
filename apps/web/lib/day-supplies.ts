@@ -56,7 +56,7 @@ export function consolidateDaySupplies(workItems:WorkItem[]):DaySupplyReview{
 }
 
 export type CombinedSupply=DaySupplyReview['items'][number]&{approved?:{quantity:number;unit:string;consumed:boolean}};
-export function mergeApprovedDaySupplies(suggested:DaySupplyReview,approved:PackingLine[]):DaySupplyReview&{items:CombinedSupply[]}{
+export function mergeApprovedDaySupplies(suggested:DaySupplyReview,approved:PackingLine[]):Omit<DaySupplyReview,'items'>&{items:CombinedSupply[]}{
  const key=(v:string)=>v.trim().toLocaleLowerCase('en-US').replace(/\s+/g,' ');
  const all=new Map<string,CombinedSupply>();
  for(const x of suggested.items)all.set(key(x.name),{...x});
