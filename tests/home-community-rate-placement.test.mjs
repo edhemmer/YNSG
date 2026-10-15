@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
-test('homepage presents standard rate without advertising community pricing',()=>{
+test('homepage focuses on appointments rather than publishing hourly prices',()=>{
  const home=readFileSync('site/pages/home.html','utf8');
- assert.match(home,/\$60\/hour/);
- assert.doesNotMatch(home,/Community Rate|\$45\/hour/);
+ assert.doesNotMatch(home,/Community Rate|\$45\/hour|\$60\/hour|two-hour minimum/i);
+ assert.match(home,/confirm the price with you before scheduling/);
  assert.match(home,/Request service appt/);
 });
 test('request details explain Community Rate while preserving the original Yes No input contract',()=>{
