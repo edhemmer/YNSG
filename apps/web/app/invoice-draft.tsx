@@ -7,7 +7,7 @@ import {salesTax,type TaxRule,type TaxComponent} from "../lib/taxes";
 type TaxContext={required:boolean;rules:TaxRule[];valid:boolean;tax:{taxCents:number;rule?:TaxRule;customerApprovalEvidence?:string}|null};
 import {hourlyCharge} from "../lib/invoice-billing";
 import {invoiceDraftFingerprint} from '../lib/service-workflow';
-import {useUnsavedEntry} from './entry-safety';
+import {useUnsavedEntry,useBlockedEntry} from './entry-safety';
 type Line = {
   billingBasis:"fixed"|"hourly";
   billingMinutes:number;
@@ -58,6 +58,8 @@ export default function InvoiceDraft({
   currentTarget.current=organization+":"+job+":"+revision;
   const retry = useRef<{ fingerprint: string; key: string } | null>(null);
   const completionAttempt=useRef<{body:string;revision:number}|null>(null);
+  const draftAttempt=useRef<{body:string;revision:number;target:string;fingerprint:string}|null>(null);
+  const [draftUnknown,setDraftUnknown]=useState(false);
   const [completionUncertain,setCompletionUncertain]=useState(false);
   const ownSaved=useRef<{revision:number;lines:string}|null>(null);
   const [readiness,setReadiness]=useState<{ready:boolean;reasons:string[]}|null>(null);
@@ -67,9 +69,10 @@ export default function InvoiceDraft({
   const dirtyRef=useRef(false);dirtyRef.current=entryDirty;
   const loadedRevision=useRef<number|null>(null);
   useUnsavedEntry('invoice:'+organization+':'+job,entryDirty);
+  useBlockedEntry('invoice-draft:'+organization+':'+job,busy||draftUnknown||completionUncertain);
   useEffect(() => {mounted.current=true;return()=>{mounted.current=false;onBusy(false);};}, [onBusy]);
   useEffect(() => {
-    if(completionAttempt.current)return;
+    if(completionAttempt.current||draftAttempt.current)return;
     if(dirtyRef.current&&loadedRevision.current!==revision&&ownSaved.current?.revision!==revision){setEntryConflict(true);setMessage('The saved job changed while you were editing. Your entries are still shown. Copy anything you need before reloading the current saved record.');return;}
     // Saving work does not save the tax agreement. Preserve its local review
     // through our own returned revision rather than silently clearing it.
@@ -119,47 +122,45 @@ export default function InvoiceDraft({
       items.map((item, i) => (i === index ? (()=>{const next={...item,...patch};if(next.billingBasis==="hourly"){const rate=invoiceChargeCents(next.hourlyAmount);if(rate!==null){try{next.chargedAmount=(hourlyCharge(next.billingMinutes,rate)/100).toFixed(2);}catch{next.chargedAmount="";}}else next.chargedAmount="";}return next;})() : item)),
     );
   }
+  async function replayDraft(){
+    const attempt=draftAttempt.current;
+    if(busy||!attempt)return;
+    setBusy(true);onBusy(true);setMessage('');
+    try{
+      const response=await sessionFetch("/api/invoice-draft",{method:"POST",headers:{"Content-Type":"application/json"},body:attempt.body});
+      if(response.status>=400&&response.status<500){
+        const result=await response.json().catch(()=>null);
+        if(draftUnknown){setMessage('The earlier save is still unconfirmed. Keep the original work here and check its result before making another change.');return;}
+        draftAttempt.current=null;
+        setMessage(typeof result?.error==='string'?result.error:'Draft was rejected; entries are preserved.');
+        return;
+      }
+      if(!response.ok)throw Error('UNCONFIRMED');
+      const result=await response.json();
+      if(!Number.isSafeInteger(result?.result?.revision)||result.result.revision!==attempt.revision+1||!Number.isSafeInteger(result?.result?.totalCents))throw Error('UNCONFIRMED');
+      if(!mounted.current||currentTarget.current!==attempt.target)return;
+      ownSaved.current={revision:result.result.revision,lines:attempt.fingerprint};
+      draftAttempt.current=null;retry.current=null;setDraftUnknown(false);setSavedDraft(true);setLoaded(false);
+      setMessage('Draft saved. Review the confirmed work before issuing the invoice.');
+      try{saved();}catch{setMessage('Draft saved but dashboard refresh failed. Refresh the work record before issuing.');}
+    }catch{
+      if(mounted.current&&currentTarget.current===attempt.target){setDraftUnknown(true);setMessage('We could not confirm the draft save. Your original work and its exact retry are kept. Check saved draft result before editing.');}
+    }finally{if(mounted.current&&currentTarget.current===attempt.target){setBusy(false);onBusy(Boolean(completionAttempt.current));}}
+  }
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    if (busy || blocked || completionUncertain || entryConflict || !loaded || !reviewed) return;
-    if(lines.some(line=>invoiceChargeCents(line.chargedAmount)===null)){setMessage("Enter each charge as dollars with up to two decimal places.");return;}
-    const target=organization+":"+job+":"+revision;
-    setBusy(true);
-    onBusy(true);
-    setMessage("");
-    try {
-      const savedLines=lines.map(({chargedAmount,hourlyAmount,billingMinutes,billingBasis,...line})=>({...line,billingBasis,...(billingBasis==="hourly"?{billingMinutes,unitRateCents:invoiceChargeCents(hourlyAmount)}:{}),chargedCents:invoiceChargeCents(chargedAmount)}));
-      if(savedLines.some(line=>line.chargedCents===null)){setMessage("Enter each charge as dollars with up to two decimal places. Nothing was saved.");return;}
-      const value = { organization, job, revision, lines:savedLines };
-      const fingerprint = JSON.stringify(value);
-      if (retry.current?.fingerprint !== fingerprint)
-        retry.current = { fingerprint, key: crypto.randomUUID() };
-      if(completeOnSave&&!completed){
-        completionAttempt.current={body:JSON.stringify({...value,key:retry.current.key,reviewed:true}),revision};
-        await checkCompletion();return;
-      }
-      const r = await sessionFetch("/api/invoice-draft", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...value, key: retry.current.key }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw Error(d.error);
-      if(!mounted.current||currentTarget.current!==target)return;
-      if(!Number.isSafeInteger(d.result?.revision)||d.result.revision<=revision)throw Error('The saved draft could not be confirmed. Refresh the work record.');
-      ownSaved.current={revision:d.result.revision,lines:invoiceDraftFingerprint(savedLines)};
-      setSavedDraft(true);
-      setLoaded(false);
-      setMessage(
-        "Draft saved. These charges will be used when you issue the invoice.",
-      );
-      retry.current = null;
-      saved();
-    } catch (e) {
-      if(mounted.current&&currentTarget.current===target)setMessage(publicError(e));
-    } finally {
-      if(mounted.current&&currentTarget.current===target){setBusy(false);onBusy(Boolean(completionAttempt.current));}
-    }
+    if(busy||blocked||draftUnknown||completionUncertain||entryConflict||!loaded||!reviewed)return;
+    if(lines.some(line=>invoiceChargeCents(line.chargedAmount)===null)){setMessage('Enter valid amounts in dollars and cents.');return;}
+    try{
+      const savedLines=lines.map(({chargedAmount,hourlyAmount,billingMinutes,billingBasis,...line})=>({...line,billingBasis,...(billingBasis==='hourly'?{billingMinutes,unitRateCents:invoiceChargeCents(hourlyAmount)}:{}),chargedCents:invoiceChargeCents(chargedAmount)}));
+      if(savedLines.some(line=>line.chargedCents===null)){setMessage('Check every charge. No changes were made.');return;}
+      const value={organization,job,revision,lines:savedLines};
+      const fingerprint=JSON.stringify(value);
+      if(retry.current?.fingerprint!==fingerprint)retry.current={fingerprint,key:crypto.randomUUID()};
+      if(completeOnSave&&!completed){completionAttempt.current={body:JSON.stringify({...value,key:retry.current.key,reviewed:true}),revision};await checkCompletion();return;}
+      draftAttempt.current={body:JSON.stringify({...value,key:retry.current.key}),revision,target:organization+":"+job+":"+revision,fingerprint:invoiceDraftFingerprint(savedLines)};
+      await replayDraft();
+    }catch{setMessage('Check each work item and amount before saving. Your entries are kept.');}
   }
   async function checkCompletion(){
     const attempt=completionAttempt.current;if(!attempt||busy)return;
@@ -175,7 +176,7 @@ export default function InvoiceDraft({
     finally{if(mounted.current){setBusy(false);onBusy(Boolean(completionAttempt.current));}}
   }
   async function approve() {
-    if (busy || blocked || entryConflict || !loaded || !savedDraft || !reviewed || !completed || readiness?.ready!==true)
+    if (busy || blocked || draftUnknown || entryConflict || !loaded || !savedDraft || !reviewed || !completed || readiness?.ready!==true)
       return;
     if(taxContext?.required&&(!taxPreview||!taxEvidence.trim())){setMessage("Choose the reviewed tax rule and record the customer-approved total.");return;}
     if(lines.some(line=>invoiceChargeCents(line.chargedAmount)===null)){setMessage("Enter each charge as dollars with up to two decimal places.");return;}
@@ -235,8 +236,9 @@ export default function InvoiceDraft({
           : "You can prepare the draft now. Complete the service call before approving its invoice."}
       </p>
       {completionUncertain&&<button type="button" disabled={busy} onClick={checkCompletion}>Check saved work</button>}
+      {draftUnknown&&<button type="button" disabled={busy} onClick={()=>void replayDraft()}>Check saved draft result</button>}
       <form onSubmit={save}>
-        <fieldset disabled={busy || blocked || completionUncertain || !loaded}>
+        <fieldset disabled={busy || blocked || draftUnknown || completionUncertain || !loaded}>
           <legend>{completed?"Invoice draft":"Work record"}</legend>
           {!loaded && (
             <p role="status">
