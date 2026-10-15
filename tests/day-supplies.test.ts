@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {consolidateDaySupplies,supplyReviewForWork} from '../apps/web/lib/day-supplies.ts';
+import {consolidateDaySupplies,supplyReviewForWork,mergeApprovedDaySupplies} from '../apps/web/lib/day-supplies.ts';
 
 test('multiple jobs produce one consolidated before-departure list with measurements',()=>{
  const result=consolidateDaySupplies([
@@ -26,4 +26,14 @@ test('unknown tasks remain unscoped and safety-held lock work is not cleared by 
 test('nothing in the planning contract claims inventory exists or purchases automatically',()=>{
  const p=consolidateDaySupplies([{service:'Help around the home',task:'Hang shelf'}]);
  assert.ok(p.items.every(i=>i.requiresVerification));
+});
+
+test('owner-approved equipment and quantities are represented, without claiming to be packed',()=>{
+ const suggestions=consolidateDaySupplies([{service:'Help around the home',task:'Hang a shelf'}]);
+ const merged=mergeApprovedDaySupplies(suggestions,[{name:'Stud finder',quantity:1,unit:'each',consumed:false,callIds:['a']},{name:'Shelf screws',quantity:12,unit:'each',consumed:true,callIds:['a']}]);
+ assert.equal(merged.items.filter(x=>x.name==='Stud finder').length,1);
+ assert.equal(merged.items.find(x=>x.name==='Stud finder')?.approved?.quantity,1);
+ assert.equal(merged.items.find(x=>x.name==='Shelf screws')?.approved?.quantity,12);
+ assert.ok(merged.items.every(x=>x.requiresVerification));
+ assert.throws(()=>mergeApprovedDaySupplies(suggestions,[{name:'Bad',quantity:0,unit:'each',consumed:true,callIds:[]}]));
 });

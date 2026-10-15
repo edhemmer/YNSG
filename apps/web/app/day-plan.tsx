@@ -239,7 +239,7 @@ export default function DailyCallSheet({
               </article>
             );
           })}
-          <DaySupplyReadiness key={organization+':'+date+':'+plan.fingerprint} workItems={plan.calls.filter(c=>c.status==='reserved').flatMap(c=>c.workItems)} />
+          <DaySupplyReadiness key={organization+':'+date+':'+plan.fingerprint} workItems={plan.calls.filter(c=>c.status==='reserved').flatMap(c=>c.workItems)} approvedPacking={plan.packing.items} packingAvailable={plan.packingRulesAvailable} />
           <details className="day-packing"><summary>Equipment & supplies for this day</summary>
           <section
             className="packing-summary"
