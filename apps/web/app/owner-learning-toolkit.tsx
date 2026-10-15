@@ -1,8 +1,29 @@
 'use client';
 import {useMemo,useState} from 'react';
-import {estimateVisit,examplePlanningStandards,trainingTopics,reviewTaskTime,type TaskStandard} from '../lib/owner-job-standards';
+import {estimateVisit,examplePlanningStandards,allTrainingTopics,reviewTaskTime,type TaskStandard} from '../lib/owner-job-standards';
 
 const lessonDetails:Record<string,{steps:string[];tools:string[];stop:string}>={
+ 'cutting-angles':{
+  steps:['Inspect the existing corner, trim profile, orientation and wall irregularities.','Measure the actual included angle or use two straight, equal-width reference boards to bisect an irregular corner.','For equal miters divide the included angle by two, then convert correctly to the saw’s setting; mark reference faces to avoid flipped cuts.','Make a sacrificial test joint and adjust before cutting finished stock.'],
+  tools:['Angle finder or sliding bevel','Square and tape measure','Pencil and equal-width reference boards','Scrap test stock','Clamps and guarded miter saw'],
+  stop:'Saw settings vary by saw/reference edge and inside versus outside corners; never guess orientation, bypass guards, or cut outside approved work/safe height.'
+ },
+ 'drywall-small-and-medium':{
+  steps:['Check hole size, loose board, underlying moisture and possible hidden utilities before cutting.','For tiny holes clean and apply suitable filler; for medium holes use an appropriately sized reinforced patch. Larger damage needs backing, cut replacement and tape.','Apply thin coats and feather the edge. Respect drying times between coats; sand with dust control when cured.','Prime and paint only when dry, and discuss any additional return visit with the customer.'],
+  tools:['Utility knife and putty knives','Suitable spackle/patch and joint compound','Tape and backing material when needed','Sanding equipment with dust control','Primer and finish paint'],
+  stop:'Water intrusion, suspected lead-containing coatings, asbestos-containing material, unknown wiring or substantial wall damage requires specialist review before disturbance.'
+ },
+ 'shelf-anchors':{
+  steps:['Ask where the customer wants the shelf and what it will hold. Confirm planned maximum loaded weight.','Identify wall material and locate studs; scan the drilling zone for known electrical/plumbing hazards.','Check shelf/bracket instructions and appropriate fasteners for the actual substrate; prioritize studs for significant loads.','Mark a level reference, drill safe pilot holes, mount brackets and secure the shelf.','Check stability within manufacturer load limits; explain restrictions to the customer.'],
+  tools:['Stud finder and utility detector','Level and tape','Appropriate rated anchors and screws','Drill/driver with suitable bits','Protective eyewear'],
+  stop:'Uncertain support, hidden utilities, large loads or required access above the approved five-foot limit means stop and refer.'
+ },
+ 'hang-artwork':{
+  steps:['Confirm actual frame weight, hanging points, wall type, target placement and child/pet exposure.','Locate studs or select suitable manufacturer-rated hanging hardware for the wall.','Measure placement and spacing; check hidden utility risks before drilling.','Install securely without overtightening, hang carefully and check alignment.'],
+  tools:['Scale or known documented picture weight','Tape measure and level','Stud finder','Correct rated hangers/anchors','Small hammer or drill if applicable'],
+  stop:'Overhead, exceptionally heavy, valuable or breakable items and uncertain substrates need separate handling and approval.'
+ },
+
  'smart-lock-triage':{
   steps:['Identify manufacturer and exact model. Ask about the symptom and whether a physical key and backup entry are available.','Check manufacturer-approved battery type, polarity and fresh batteries before removing anything.','With the door open, compare manual bolt movement with electronic operation. Inspect bolt/strike friction.','Follow only the model-specific calibration or handing instructions. Get permission before resets that may erase access codes.','After the first diagnostic window, explain the findings and obtain approval before extending work or ordering a replacement.'],
   tools:['Manufacturer model manual','Fresh manufacturer-approved batteries','Flashlight','Small screwdriver','Non-marring protective pad'],
@@ -38,14 +59,14 @@ export default function OwnerLearningToolkit(){
  const [service,setService]=useState(examplePlanningStandards[0]!.service+'::'+examplePlanningStandards[0]!.task);
  const [minutes,setMinutes]=useState(60);
  const [factor,setFactor]=useState(1);
- const [topic,setTopic]=useState<string>(trainingTopics[0]!.id);
+ const [topic,setTopic]=useState<string>(allTrainingTopics[0]!.id);
  const [actual,setActual]=useState(120),[diagnostic,setDiagnostic]=useState(20);
  const rule=examplePlanningStandards.find(x=>x.service+'::'+x.task===service)??examplePlanningStandards[0]!;
  const estimate=useMemo(()=>{
   const work:TaskStandard={...rule,plannedMinutes:minutes,typicalMinutes:Math.min(rule.typicalMinutes,minutes)};
   return estimateVisit([{service:work.service,task:work.task,sizeFactor:factor}],[work],30);
  },[rule,minutes,factor]);
- const selected=trainingTopics.find(t=>t.id===topic)??trainingTopics[0]!;
+ const selected=allTrainingTopics.find(t=>t.id===topic)??allTrainingTopics[0]!;
  const lesson=lessonDetails[selected.id]!;
  return <section className="card" aria-labelledby="learning-heading">
   <h2 id="learning-heading">Field guide & job planner</h2>
@@ -72,8 +93,8 @@ export default function OwnerLearningToolkit(){
    })()}</p>}
   </details>
   <details><summary>Trade learning library</summary>
-   <label>Topic<select value={topic} onChange={e=>setTopic(e.target.value)}>{trainingTopics.map(t=><option key={t.id} value={t.id}>{t.title}</option>)}</select></label>
-   <h3>{selected.title}</h3><p><strong>Before starting:</strong> {selected.safety}</p>
+   <label>Topic<select value={topic} onChange={e=>setTopic(e.target.value)}>{allTrainingTopics.map(t=><option key={t.id} value={t.id}>{t.title}</option>)}</select></label>
+   <h3>{selected.title}</h3>{("checkedOn" in selected)&&<p className="tiny">Reference checked: {selected.checkedOn}. Verify current manufacturer instructions before starting.</p>}<p><strong>Before starting:</strong> {selected.safety}</p>
    <h4>Checklist</h4><ol>{lesson.steps.map(s=><li key={s}>{s}</li>)}</ol>
    <h4>Useful tools and materials</h4><ul>{lesson.tools.map(s=><li key={s}>{s}</li>)}</ul>
    <p><strong>Stop / refer:</strong> {lesson.stop}</p>
