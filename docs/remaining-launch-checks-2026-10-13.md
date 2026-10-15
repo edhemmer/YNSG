@@ -1,6 +1,6 @@
 # YNSG launch checklist — updated 15 October 2026
 
-This is the current checklist; earlier audit files are historical. Stripe, native iOS packaging and full franchise rollout are excluded from this release. There is no claim of unrestricted launch certification while the open gates below remain.
+This is supporting implementation and historical acceptance evidence. The controlling completion plan is [docs/production/README.md](production/README.md) and `contracts/production-completion.json`; its gate status takes precedence. Stripe, native iOS packaging and full franchise rollout are excluded from this release. There is no claim of unrestricted launch certification while the open gates below remain.
 
 ## Completed engineering and verified evidence
 
@@ -67,4 +67,8 @@ The calendar no longer displays an arrange-time promise before the customer make
 
 The visit-design release separates service chips, appointment status/date/arrival/window and complete customer notes. Notes start expanded during confirmation; the primary appointment overview is not repeated in appointment management. Compact call/directions actions and existing light/dark colors remain. See `docs/owner-visit-design-2026-10-15.md` for the scoped acceptance checklist. Full-product design acceptance and physical accessibility remain open.
 
-Post-release database review identified the new history-author foreign key without an index. The follow-up migration covers it without changing history or permissions. Customer-editor follow-through gives the first field focus after an explicit edit action and separates optional account invitation from daily contact/address management. A new workspace destination resets scroll and focuses its heading; opening a job removes the prior customer-directory query from the URL. Refreshing saved data does not trigger this navigation reset. These follow-through changes require exact-head CI, hosted migration/catalog/advisor checks and deployed visual verification before being described as released.
+Post-release database review identified the new history-author foreign key without an index. The follow-up migration covers it without changing history or permissions. Customer-editor follow-through gives the first field focus after an explicit edit action and separates optional account invitation from daily contact/address management. A new workspace destination resets scroll and focuses its heading; opening a job removes the prior customer-directory query from the URL. Refreshing saved data does not trigger this navigation reset. These follow-through changes shipped in PR #27, merge dddd4783fc45a84f5f8a842e41a82ca6b852ff8c; exact-head CI, hosted index verification, both live SHAs and read-only navigation/focus checks passed. Full-device acceptance remains separate.
+
+## October 15 invoice closeout recovery
+
+PR #28, merge 56b0a9fec3f7c9e4664c2192c91564b9340b9584: invoice-record unknown results freeze/replay one exact command; payment and invoice drafts survive failed/current-document refresh; Total/Received/Remaining are separate labels. Release checks 38736654555 passed 363 application tests, native foundation and PostgreSQL lifecycle/recovery. Both production aliases were READY on this SHA, read-only health passed, anonymous invoice administration was denied and selected CRM routes showed no runtime errors in the sampled hour. Actual recipient/funds/device acceptance remains governed by WEB-05, WEB-10 and WEB-16, not inferred from these checks.

@@ -1,0 +1,570 @@
+{
+  "version": 1,
+  "updatedAt": "2026-10-15",
+  "baselineCommit": "56b0a9fec3f7c9e4664c2192c91564b9340b9584",
+  "milestones": [
+    "web",
+    "ios",
+    "scale"
+  ],
+  "gates": [
+    {
+      "id": "WEB-01",
+      "milestone": "web",
+      "title": "Audit every promised feature against current UI/API/SQL",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R01",
+        "R02",
+        "R04",
+        "R06",
+        "R14",
+        "R19"
+      ],
+      "dependsOn": [],
+      "nextAction": "Audit every promised feature against current UI/API/SQL; classify implemented, partial, missing or intentionally disabled. Include delegates, files/photos, imports, export/deletion, correction/reversal, route/weather/briefings, reporting and integrations.",
+      "acceptance": "No original requirement disappears. Each missing/partial feature has an issue, acceptance case and gate; disabled optional integrations are clearly labeled.",
+      "requiredEvidence": "Feature inventory with source paths, issue links and requirement mapping.",
+      "evidence": []
+    },
+    {
+      "id": "WEB-02",
+      "milestone": "web",
+      "title": "Walk public navigation, services, pricing, contact and Services \u2192 Time \u2192 Details with deliberate selection and optional account.",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R01",
+        "R05",
+        "R17"
+      ],
+      "dependsOn": [
+        "WEB-01"
+      ],
+      "nextAction": "Walk public navigation, services, pricing, contact and Services \u2192 Time \u2192 Details with deliberate selection and optional account.",
+      "acceptance": "Required name/email/phone/address; multiple services; honest arrange-time path; free address check is advisory; retry saves one request and one milestone notification; no abandoned hold leaks.",
+      "requiredEvidence": "Synthetic full-journey tests plus approved controlled delivery and physical-device evidence.",
+      "evidence": []
+    },
+    {
+      "id": "WEB-03",
+      "milestone": "web",
+      "title": "Close all owner/customer scheduling paths, cancellation, replacement, blocks, recurring visits, route/travel and Google outage handling.",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R08",
+        "R09",
+        "R20"
+      ],
+      "dependsOn": [
+        "WEB-01"
+      ],
+      "nextAction": "Close all owner/customer scheduling paths, cancellation, replacement, blocks, recurring visits, route/travel and Google outage handling.",
+      "acceptance": "No double booking or stale approval; preserved original visit until replacement; correct local time/DST, minimum duration, travel and per-visit reminders; clear configured/offline states.",
+      "requiredEvidence": "Native PostgreSQL races/replay tests, isolated provider tests and controlled connected-calendar acceptance.",
+      "evidence": []
+    },
+    {
+      "id": "WEB-04",
+      "milestone": "web",
+      "title": "Accept the complete phone workflow: open/read \u2192 confirm \u2192 complete \u2192 issue invoice \u2192 close out, including declined and zero-charge work.",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R07",
+        "R10",
+        "R20"
+      ],
+      "dependsOn": [
+        "WEB-01"
+      ],
+      "nextAction": "Accept the complete phone workflow: open/read \u2192 confirm \u2192 complete \u2192 issue invoice \u2192 close out, including declined and zero-charge work.",
+      "acceptance": "One guided record with distinct next action; appointment date/time separated from notes; draft invoice visible after scheduling without being an issued bill; actual work stops timers atomically; explicit agreement and invoice issue.",
+      "requiredEvidence": "Full scenario record linking UI, API, canonical revisions and isolated database assertions.",
+      "evidence": []
+    },
+    {
+      "id": "WEB-05",
+      "milestone": "web",
+      "title": "Finish invoice review, numbering, snapshot, recipient, PDF, email request, cash/Zelle split receipts and supported correction/archiving paths.",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R10",
+        "R11",
+        "R13"
+      ],
+      "dependsOn": [
+        "WEB-04"
+      ],
+      "nextAction": "Finish invoice review, numbering, snapshot, recipient, PDF, email request, cash/Zelle split receipts and supported correction/archiving paths.",
+      "acceptance": "Issued snapshots fixed; YYYYMM-#### unique numbering; actual receipts only; balanced journal; no duplicate issue/receipt/mail milestone; unknown save locks and replays exact attempt; drafts survive refresh.",
+      "requiredEvidence": "PR #28 plus current lifecycle/PDF tests and separately recorded recipient/inbox/funds acceptance.",
+      "evidence": []
+    },
+    {
+      "id": "WEB-06",
+      "milestone": "web",
+      "title": "Complete contact/property/history editing, current-vs-snapshot clarity, account claim/recovery, family/delegate authorization and retained records/deletion.",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R03",
+        "R06",
+        "R12"
+      ],
+      "dependsOn": [
+        "WEB-01"
+      ],
+      "nextAction": "Complete contact/property/history editing, current-vs-snapshot clarity, account claim/recovery, family/delegate authorization and retained records/deletion.",
+      "acceptance": "No email-string auto-claim; revoked access fails; supported edits remain discoverable on phone; immutable originals; private files authorized; gaps found in WEB-01 implemented before passing.",
+      "requiredEvidence": "Two-tenant/customer tests, upload/deletion/retention cases and accepted owner/customer walkthrough.",
+      "evidence": []
+    },
+    {
+      "id": "WEB-07",
+      "milestone": "web",
+      "title": "Consolidate request, decision, reminder, invoice and paid-follow-up communication",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R12",
+        "R13"
+      ],
+      "dependsOn": [
+        "WEB-03",
+        "WEB-05"
+      ],
+      "nextAction": "Consolidate request, decision, reminder, invoice and paid-follow-up communication; review all email/link wording and ambiguity recovery.",
+      "acceptance": "Natural concise copy; one intent per milestone; no repetitive blasts; link scanners cannot mutate; recipient/template snapshot retained; provider acceptance distinct from inbox delivery; failed/unknown sends have safe recovery.",
+      "requiredEvidence": "Template/link tests, queue crash/retry tests, controlled independent inbox receipts and reminder timing.",
+      "evidence": []
+    },
+    {
+      "id": "WEB-08",
+      "milestone": "web",
+      "title": "Reconcile expenses/mileage/reports/CSV and current-year federal/state tax helpers with supported jurisdictions.",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R14",
+        "R19"
+      ],
+      "dependsOn": [
+        "WEB-01",
+        "WEB-05"
+      ],
+      "nextAction": "Reconcile expenses/mileage/reports/CSV and current-year federal/state tax helpers with supported jurisdictions.",
+      "acceptance": "Reports drill into real canonical entries; no revenue-as-personal-income assumption; unsupported tax state/year/scope fails closed; sources checked at acceptance; reviewed actual owner inputs and sales-tax treatment required.",
+      "requiredEvidence": "Reconciled fixture exports/calculations and dated owner/accountant review; QBO only advertised connected after sandbox proof.",
+      "evidence": []
+    },
+    {
+      "id": "WEB-09",
+      "milestone": "web",
+      "title": "Finish deterministic daily guidance, briefings, equipment/route readiness and supervised assistant behavior.",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R15",
+        "R20"
+      ],
+      "dependsOn": [
+        "WEB-01",
+        "WEB-03",
+        "WEB-04"
+      ],
+      "nextAction": "Finish deterministic daily guidance, briefings, equipment/route readiness and supervised assistant behavior.",
+      "acceptance": "Next action comes from saved records; citations/current revisions; proposals cannot approve/book/charge/send; injection and provider outage cannot bypass authority; optional AI disabled without approved provider/budget.",
+      "requiredEvidence": "Scenario tests for incomplete records, stale data, prohibited commands, no provider and recovery.",
+      "evidence": []
+    },
+    {
+      "id": "WEB-10",
+      "milestone": "web",
+      "title": "Run design and usability acceptance from the protocol on desktop, phone and iPad",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R17"
+      ],
+      "dependsOn": [
+        "WEB-02",
+        "WEB-04",
+        "WEB-05",
+        "WEB-06"
+      ],
+      "nextAction": "Run design and usability acceptance from the protocol on desktop, phone and iPad; fix each observed failure.",
+      "acceptance": "Approved brand; restrained visible navigation; clear primary action/status; light/dark; no clipped financial amounts; labels, focus, large text, screen readers, keyboard and reduced motion. Meet measured task/performance targets or fix scope.",
+      "requiredEvidence": "Device/browser matrix, sanitized captures, task measurements and elderly/disabled participant findings.",
+      "evidence": []
+    },
+    {
+      "id": "WEB-11",
+      "milestone": "web",
+      "title": "Review auth, origin checks, tenant/customer revocation, private storage, financial commands, logs and dependency findings for the candidate.",
+      "owner": "Independent security reviewer",
+      "status": "open",
+      "requirements": [
+        "R03",
+        "R18",
+        "R20"
+      ],
+      "dependsOn": [
+        "WEB-01",
+        "WEB-06"
+      ],
+      "nextAction": "Review auth, origin checks, tenant/customer revocation, private storage, financial commands, logs and dependency findings for the candidate.",
+      "acceptance": "No unresolved exploitable critical/high finding; other findings have documented impact/remediation. Required MFA is not reintroduced; leaked-password setting/eligibility is confirmed. AI review cannot sign this gate.",
+      "requiredEvidence": "Named independent human review, candidate SHA, findings/resolutions and scoped retest.",
+      "evidence": []
+    },
+    {
+      "id": "WEB-12",
+      "milestone": "web",
+      "title": "Choose backup custodian/destination/retention/key custody and approve recovery targets",
+      "owner": "Ed / operations operator",
+      "status": "open",
+      "requirements": [
+        "R18"
+      ],
+      "dependsOn": [
+        "WEB-01"
+      ],
+      "nextAction": "Choose backup custodian/destination/retention/key custody and approve recovery targets; engineer the scheduled encrypted DB-plus-file backup and failure alerts; restore authorized backup in isolation.",
+      "acceptance": "Usable off-provider backups; no customer messages from restored environment; counts/hash/ledger/permissions reconciled; timed recovery meets approved RPO/RTO. Synthetic dump alone insufficient.",
+      "requiredEvidence": "Restricted dated export/restore record, retention check, measured recovery and operator acceptance.",
+      "evidence": []
+    },
+    {
+      "id": "WEB-13",
+      "milestone": "web",
+      "title": "Prove alert delivery, unattended worker failure/recovery, runbooks, safe rollback and commercial hosting eligibility.",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R18",
+        "R21"
+      ],
+      "dependsOn": [
+        "WEB-07",
+        "WEB-12"
+      ],
+      "nextAction": "Prove alert delivery, unattended worker failure/recovery, runbooks, safe rollback and commercial hosting eligibility.",
+      "acceptance": "Responsible operator receives controlled failure and recovery alert; no duplicate mail on recovery; rollback preserves evidence/queues; no credential disclosure; commercial plan confirmed without unauthorized purchase.",
+      "requiredEvidence": "Received alert evidence, rollback rehearsal, plan confirmation and dated operational handover.",
+      "evidence": []
+    },
+    {
+      "id": "WEB-14",
+      "milestone": "web",
+      "title": "Review actual company identity/contact, approved lawful services, pricing, schedule/territory, terms, invoice/tax inputs and privacy/retention.",
+      "owner": "Ed / business owner",
+      "status": "open",
+      "requirements": [
+        "R04",
+        "R07",
+        "R14"
+      ],
+      "dependsOn": [
+        "WEB-08"
+      ],
+      "nextAction": "Review actual company identity/contact, approved lawful services, pricing, schedule/territory, terms, invoice/tax inputs and privacy/retention.",
+      "acceptance": "Saved current settings explicitly reviewed; no invented agreement or tax approval; unsupported services held; no legal/regulatory certification by software.",
+      "requiredEvidence": "Private owner decisions with settings/version IDs and tax/accountant review where needed.",
+      "evidence": []
+    },
+    {
+      "id": "WEB-15",
+      "milestone": "web",
+      "title": "Verify real Google Business Profile and Search Console ownership, service area, contact/hours and sitemap/canonical indexing.",
+      "owner": "Ed / business owner",
+      "status": "open",
+      "requirements": [
+        "R01",
+        "R17"
+      ],
+      "dependsOn": [
+        "WEB-02"
+      ],
+      "nextAction": "Verify real Google Business Profile and Search Console ownership, service area, contact/hours and sitemap/canonical indexing.",
+      "acceptance": "Consistent real business information, structured metadata and crawl checks; no invented storefront/reviews/ranking promises.",
+      "requiredEvidence": "Account verification and inspection results plus current metadata/schema/sitemap checks.",
+      "evidence": []
+    },
+    {
+      "id": "WEB-16",
+      "milestone": "web",
+      "title": "Execute the supervised acceptance runbook using authorized test recipients and an actual agreed service only for work/funds evidence.",
+      "owner": "Ed / business owner",
+      "status": "open",
+      "requirements": [
+        "R05",
+        "R08",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R17"
+      ],
+      "dependsOn": [
+        "WEB-02",
+        "WEB-03",
+        "WEB-04",
+        "WEB-05",
+        "WEB-06",
+        "WEB-07",
+        "WEB-08",
+        "WEB-10",
+        "WEB-14"
+      ],
+      "nextAction": "Execute the supervised acceptance runbook using authorized test recipients and an actual agreed service only for work/funds evidence.",
+      "acceptance": "Customer can request/change/recover; mobile owner can execute visit and invoice; readable PDF and correct recipient inbox; actual receipts reconcile. No synthetic production work or payment.",
+      "requiredEvidence": "Dated acceptance outcomes, sanitized references and explicit owner decision; failed steps become linked defects.",
+      "evidence": []
+    },
+    {
+      "id": "WEB-17",
+      "milestone": "web",
+      "title": "Prepare exact release candidate, all required CI, migration catalog, both domain SHAs, configuration/provider checks and release decision.",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R21"
+      ],
+      "dependsOn": [
+        "WEB-01",
+        "WEB-02",
+        "WEB-03",
+        "WEB-04",
+        "WEB-05",
+        "WEB-06",
+        "WEB-07",
+        "WEB-08",
+        "WEB-09",
+        "WEB-10",
+        "WEB-11",
+        "WEB-12",
+        "WEB-13",
+        "WEB-14",
+        "WEB-15",
+        "WEB-16"
+      ],
+      "nextAction": "Prepare exact release candidate, all required CI, migration catalog, both domain SHAs, configuration/provider checks and release decision.",
+      "acceptance": "Zero unresolved blocker/high defect in included scope; all required gates verified and still applicable; intended production team/project/branch verified; accepted operations handover.",
+      "requiredEvidence": "Exact-head CI, tested merge/deployed SHA mapping, migration checks and signed candidate decision.",
+      "evidence": []
+    },
+    {
+      "id": "IOS-01",
+      "milestone": "ios",
+      "title": "Close native independent human security review gate.",
+      "owner": "Independent security reviewer",
+      "status": "open",
+      "requirements": [
+        "R16",
+        "R18"
+      ],
+      "dependsOn": [
+        "WEB-17"
+      ],
+      "nextAction": "Close native independent human security review gate.",
+      "acceptance": "Native auth/tenant/finance/push privacy reviewed; findings fixed and retested.",
+      "requiredEvidence": "Native register: human-security-review.",
+      "evidence": []
+    },
+    {
+      "id": "IOS-02",
+      "milestone": "ios",
+      "title": "Resolve native audit findings with supported SDK/dependencies.",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R16",
+        "R18"
+      ],
+      "dependsOn": [
+        "WEB-17"
+      ],
+      "nextAction": "Resolve native audit findings with supported SDK/dependencies.",
+      "acceptance": "No suppressed high/critical advisories; current audit and native checks pass.",
+      "requiredEvidence": "Native register: native-security-audit.",
+      "evidence": []
+    },
+    {
+      "id": "IOS-03",
+      "milestone": "ios",
+      "title": "Confirm Apple enrollment/bundle/signing and build a signed candidate.",
+      "owner": "Ed / Apple account owner",
+      "status": "open",
+      "requirements": [
+        "R16"
+      ],
+      "dependsOn": [
+        "IOS-02"
+      ],
+      "nextAction": "Confirm Apple enrollment/bundle/signing and build a signed candidate.",
+      "acceptance": "Approved real team/profiles/APNs environment and brand assets; no unauthorized fees.",
+      "requiredEvidence": "Native register: apple-signing.",
+      "evidence": []
+    },
+    {
+      "id": "IOS-04",
+      "milestone": "ios",
+      "title": "Verify optional new-request and next-appointment alerts on a physical signed device.",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R12",
+        "R16"
+      ],
+      "dependsOn": [
+        "IOS-03"
+      ],
+      "nextAction": "Verify optional new-request and next-appointment alerts on a physical signed device.",
+      "acceptance": "Privacy-safe lock screen, consent, quiet hours, denial/logout/rotation/cancellation; APNs acceptance and visible alert separately evidenced.",
+      "requiredEvidence": "Native register: push-delivery.",
+      "evidence": []
+    },
+    {
+      "id": "IOS-05",
+      "milestone": "ios",
+      "title": "Implement and accept secure native authentication handoff and authenticated PDF sharing.",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R03",
+        "R16"
+      ],
+      "dependsOn": [
+        "IOS-03"
+      ],
+      "nextAction": "Implement and accept secure native authentication handoff and authenticated PDF sharing.",
+      "acceptance": "No credential bridge, arbitrary navigation or lost callback/session; expiry/logout/offline safe.",
+      "requiredEvidence": "Native register: native-auth-and-sharing.",
+      "evidence": []
+    },
+    {
+      "id": "IOS-06",
+      "milestone": "ios",
+      "title": "Accept full entry/edit/workflow on iPhone/iPad, dark mode, largest text and VoiceOver.",
+      "owner": "Ed / acceptance participants",
+      "status": "open",
+      "requirements": [
+        "R16",
+        "R17"
+      ],
+      "dependsOn": [
+        "IOS-04",
+        "IOS-05"
+      ],
+      "nextAction": "Accept full entry/edit/workflow on iPhone/iPad, dark mode, largest text and VoiceOver.",
+      "acceptance": "Complete mobile workflow, keyboard/rotation/interruption/weak-network safe; no offline commercial confirmation.",
+      "requiredEvidence": "Native register: accessibility-and-entry.",
+      "evidence": []
+    },
+    {
+      "id": "IOS-07",
+      "milestone": "ios",
+      "title": "Complete privacy/manifests/assets/account deletion/retention and current Apple review requirements.",
+      "owner": "Ed / Apple account owner",
+      "status": "open",
+      "requirements": [
+        "R06",
+        "R16",
+        "R18"
+      ],
+      "dependsOn": [
+        "IOS-05"
+      ],
+      "nextAction": "Complete privacy/manifests/assets/account deletion/retention and current Apple review requirements.",
+      "acceptance": "Actual account-deletion flow and disclosures; assess minimum functionality; current official rules reviewed, no approval guarantee.",
+      "requiredEvidence": "Native register: apple-privacy-and-account-deletion.",
+      "evidence": []
+    },
+    {
+      "id": "IOS-08",
+      "milestone": "ios",
+      "title": "Run TestFlight acceptance and retain actual distribution/App Review decision.",
+      "owner": "Ed / Apple account owner",
+      "status": "open",
+      "requirements": [
+        "R16",
+        "R21"
+      ],
+      "dependsOn": [
+        "IOS-01",
+        "IOS-02",
+        "IOS-03",
+        "IOS-04",
+        "IOS-05",
+        "IOS-06",
+        "IOS-07"
+      ],
+      "nextAction": "Run TestFlight acceptance and retain actual distribution/App Review decision.",
+      "acceptance": "Processed signed build and owner/device acceptance; production distribution only after required Apple decision.",
+      "requiredEvidence": "Native register: testflight-acceptance plus actual App Review/distribution decision.",
+      "evidence": []
+    },
+    {
+      "id": "SCALE-01",
+      "milestone": "scale",
+      "title": "Accept second-company onboarding, branding/catalog/domain/sender isolation and platform subscription-only administration.",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R03",
+        "R04",
+        "R19"
+      ],
+      "dependsOn": [
+        "WEB-17"
+      ],
+      "nextAction": "Accept second-company onboarding, branding/catalog/domain/sender isolation and platform subscription-only administration.",
+      "acceptance": "No code fork or tenant privilege by domain; second tenant cannot access first; no placeholder owner assets or false integration status.",
+      "requiredEvidence": "Isolated two-company end-to-end results and onboarding/operator runbook.",
+      "evidence": []
+    },
+    {
+      "id": "SCALE-02",
+      "milestone": "scale",
+      "title": "Resolve actual franchise/SaaS terms, support, disclosures, territory and cost/capacity ownership before selling.",
+      "owner": "Ed / business and legal advisers",
+      "status": "open",
+      "requirements": [
+        "R04",
+        "R18",
+        "R19"
+      ],
+      "dependsOn": [
+        "SCALE-01"
+      ],
+      "nextAction": "Resolve actual franchise/SaaS terms, support, disclosures, territory and cost/capacity ownership before selling.",
+      "acceptance": "Current owner commercial decisions reconciled; no public franchise fee amounts; no invented legal documents/approval or automatic paid provisioning.",
+      "requiredEvidence": "Approved real business/legal package and supported tenant cost/capacity model.",
+      "evidence": []
+    },
+    {
+      "id": "SCALE-03",
+      "milestone": "scale",
+      "title": "Accept load, tenant recovery/export/offboarding and repeatable second-company release.",
+      "owner": "Engineering lead",
+      "status": "open",
+      "requirements": [
+        "R17",
+        "R18",
+        "R21"
+      ],
+      "dependsOn": [
+        "SCALE-01",
+        "SCALE-02"
+      ],
+      "nextAction": "Accept load, tenant recovery/export/offboarding and repeatable second-company release.",
+      "acceptance": "Measured published limits; isolated recovery/offboarding; support operator accepts handover.",
+      "requiredEvidence": "Load/recovery/security evidence and separate scale release decision.",
+      "evidence": []
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+> Historical checkpoint: status, test counts, provider and deployment observations below apply to their original date. Current completion authority is [the production charter](production/README.md) and `contracts/production-completion.json`. Original requirements and evidence are retained; superseded instructions do not override current owner directions.
+
 # Platform architecture and advertising acceptance — October 3, 2026
 
 Latest owner direction: add independent CRM and branded business websites to the build sequence; build remaining gaps so advertising can begin this week. Preserve all earlier service, accessibility, intake, security and workflow requirements. This document sets scope; it does not certify readiness.

@@ -1,3 +1,5 @@
+> Historical checkpoint: status, test counts, provider and deployment observations below apply to their original date. Current completion authority is [the production charter](production/README.md) and `contracts/production-completion.json`. Original requirements and evidence are retained; superseded instructions do not override current owner directions.
+
 # October 8 request recovery checkpoint
 
 Continued the existing CRM source at `a9de7be` on an isolated review branch. The latest October 5 atomic website holds supersede the earlier notes that guest selection did not reserve temporary capacity. The original October 2 traceability rows below are historical, not current release acceptance.

@@ -1,3 +1,5 @@
+> Historical checkpoint: status, test counts, provider and deployment observations below apply to their original date. Current completion authority is [the production charter](production/README.md) and `contracts/production-completion.json`. Original requirements and evidence are retained; superseded instructions do not override current owner directions.
+
 # Cost and dependency register — checked September 30, 2026
 
 | Dependency | Observed / constraint | Activation gate |

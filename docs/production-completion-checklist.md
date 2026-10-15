@@ -1,3 +1,5 @@
+> Historical checkpoint: status, test counts, provider and deployment observations below apply to their original date. Current completion authority is [the production charter](production/README.md) and `contracts/production-completion.json`. Original requirements and evidence are retained; superseded instructions do not override current owner directions.
+
 # Production completion checklist — October 2, 2026
 
 Authority: latest owner directions, business/technology governance, master prompt revisions and scheduler upgrade. Full production scope remains mandatory. No mocked evidence establishes live readiness.
