@@ -14,6 +14,7 @@ import DelayNotice from './delay-notice';
 import PackingRuleEditor from "./packing-rule-editor";
 import { workKey } from "../lib/packing-plan";
 import {preflightForWork,allTrainingTopics} from "../lib/owner-job-standards";
+import DaySupplyReadiness from './day-supply-readiness';
 export default function DailyCallSheet({
   organization,
   timezone,
@@ -238,6 +239,7 @@ export default function DailyCallSheet({
               </article>
             );
           })}
+          <DaySupplyReadiness key={organization+':'+date+':'+plan.fingerprint} workItems={plan.calls.filter(c=>c.status==='reserved').flatMap(c=>c.workItems)} />
           <details className="day-packing"><summary>Equipment & supplies for this day</summary>
           <section
             className="packing-summary"
