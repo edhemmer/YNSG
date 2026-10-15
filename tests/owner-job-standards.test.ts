@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {estimateVisit,examplePlanningStandards,ownerTaskStandards,trainingTopics} from '../apps/web/lib/owner-job-standards.ts';
+import {estimateVisit,examplePlanningStandards,ownerTaskStandards,trainingTopics,reviewTaskTime} from '../apps/web/lib/owner-job-standards.ts';
 
 test('one-hour task allocation and combined two-hour visit minimum remain separate',()=>{
  const a=estimateVisit([{service:'Lawn care',task:'Mow, trim and blow-off'}],examplePlanningStandards,30);
@@ -33,4 +33,13 @@ test('owner cannot enter negative, fractional, unreasonable durations or duplica
 test('education links have explicit sources and are not represented as AI verified outputs',()=>{
  for(const t of trainingTopics){assert.match(t.url,/^https:\/\//);assert.ok(t.source&&t.safety&&t.title);}
  assert.ok(trainingTopics.some(t=>t.id==='smart-lock-triage'));
+});
+
+test('actual-vs-plan learning highlights overruns without changing the recorded plan',()=>{
+ const overrun=reviewTaskTime(60,120,60);
+ assert.equal(overrun.variancePercent,100);
+ assert.equal(overrun.diagnosisSharePercent,50);
+ assert.equal(overrun.status,'review-overrun');
+ assert.equal(examplePlanningStandards[0]!.plannedMinutes,60);
+ assert.throws(()=>reviewTaskTime(60,120,121));
 });
