@@ -24,11 +24,17 @@ test('dishwasher planning catches the existing 90-degree adapter and remains hel
  assert.match(result.questions.join(' '),/90-degree inlet elbow/);
  assert.match(result.questions.join(' '),/whole kit is actually required/);
  assert.ok(result.prompts.some(x=>/existing supply elbow/.test(x.name)));
+ assert.ok(result.prompts.some(x=>/supply-line age/.test(x.name)));
+ assert.ok(result.prompts.some(x=>/shutoff valve/.test(x.name)));
+ assert.match(result.questions.join(' '),/valve that fails or leaks/);
 });
 test('field readiness never claims unconfirmed parts have been packed and separates added-scope customer approval',()=>{
  const ui=readFileSync('apps/web/app/day-supply-readiness.tsx','utf8');
  assert.match(ui,/Do not assume reuse is safe/);
  assert.match(ui,/Customer requested an extra unplanned job/);
  assert.match(ui,/does not authorize restricted trades/);
+ assert.match(ui,/plausible hidden failures/);
+ assert.match(ui,/unplanned replacement, additional labor or supplier run requires scope review/);
+ assert.match(ui,/contingenciesReviewed&&plan.held/);
  assert.match(ui,/not saved inventory/);
 });
