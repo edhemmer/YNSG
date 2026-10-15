@@ -31,7 +31,7 @@ export function reconcileDayWithRecordedStock(company:string,supplies:CombinedSu
   if(clean(existing.unit)!==clean(unit)||existing.kind!==(s.approved?.consumed?'consumable':'reusable'))
    return {name:s.name,needed,unit,recorded:existing.quantityOnHand,shortage:null,reason:'unit-mismatch',reorderSuggested:false,physicallyVerified:false};
   const shortage=Math.max(0,needed-existing.quantityOnHand);
-  return {name:s.name,needed,unit,recorded:existing.quantityOnHand,shortage,reason:shortage>0?'recorded-shortage':'recorded-sufficient',reorderSuggested:existing.quantityOnHand-needed<existing.reorderAt,physicallyVerified:false};
+  return {name:s.name,needed,unit,recorded:existing.quantityOnHand,shortage,reason:shortage>0?'recorded-shortage':'recorded-sufficient',reorderSuggested:shortage>0||(existing.reorderAt>0&&existing.quantityOnHand-needed<=existing.reorderAt),physicallyVerified:false};
  });
 }
 // Recorded inventory is advisory; actual packing/stock and store availability require owner verification.
