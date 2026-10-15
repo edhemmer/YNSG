@@ -9,7 +9,7 @@ export default function DaySupplyReadiness({workItems,approvedPacking,packingAva
  const [states,setStates]=useState<Record<string,State>>({});
  const unverified=plan.items.filter(x=>!states[x.name]||states[x.name]==='unknown');
  const toBuy=plan.items.filter(x=>states[x.name]==='purchase');
- const [measurementsReviewed,setMeasurementsReviewed]=useState(false),[copyStatus,setCopyStatus]=useState('');
+ const [measurementsReviewed,setMeasurementsReviewed]=useState(false),[scopeChange,setScopeChange]=useState(false),[copyStatus,setCopyStatus]=useState('');
  const ready=packingAvailable&&plan.items.length>0&&unverified.length===0&&toBuy.length===0&&measurementsReviewed&&plan.held.length===0&&plan.unscoped.length===0;
  return <details className="day-supplies card">
   <summary>Before you leave: consolidate tools, supplies & purchases</summary>
@@ -19,7 +19,10 @@ export default function DaySupplyReadiness({workItems,approvedPacking,packingAva
   {plan.unscoped.length>0&&<p role="alert">{plan.unscoped.length} job type(s) lack an approved preparation guide. Measure and review the full scope before departure.</p>}
   <h3>Confirm site details before buying</h3>
   <ul>{plan.questions.map((q,i)=><li key={i}><strong>{q.work}:</strong> {q.question}</li>)}</ul>
-  <label className="check"><input type="checkbox" checked={measurementsReviewed} onChange={e=>setMeasurementsReviewed(e.target.checked)}/>Measurements, materials, supplier availability and customer purchase authorization are checked</label>
+  <p><strong>Prevent repeat store trips:</strong> Identify existing parts and take photos of both connection ends before ordering replacements. Verify make/model, dimensions, fastener or fitting size, whether supplied or salvageable parts are manufacturer-approved, and each item's stock before leaving. Do not assume reuse is safe merely because a part fits.</p>
+  <label className="check"><input type="checkbox" checked={measurementsReviewed} onChange={e=>setMeasurementsReviewed(e.target.checked)}/>I checked exact models, photos, dimensions, existing reusable parts, needed items, supplier availability, safe scope and customer purchasing authorization.</label>
+  <label className="check"><input type="checkbox" checked={scopeChange} onChange={e=>setScopeChange(e.target.checked)}/>Customer requested an extra unplanned job and approved a separate parts/pickup discussion (does not waive safety or service limits).</label>
+  {scopeChange&&<p className="note">For a new customer-requested task: document the change, inspect it, explain any paid pickup or extra labor before travel, and obtain agreement. This does not authorize restricted trades or treat a store run as automatically billable.</p>}
   <h3>One combined departure checklist</h3>
   {plan.items.length===0?<p>There is no complete suggested list. Check every job’s scope and approved equipment before departure.</p>:<ul>{plan.items.map(item=><li key={item.name}>
    <label>{item.name}{item.approved?' — Owner-approved: '+item.approved.quantity+' '+item.approved.unit+(item.approved.consumed?' (consumable)':' (reusable)'):''} — {item.reason}. Needed for {item.tasks.join('; ')}.
