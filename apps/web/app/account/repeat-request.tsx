@@ -2,6 +2,8 @@
 import { publicError } from "../../lib/public-errors";
 import {useEffect,useRef,useState} from 'react';
 import {sessionFetch} from '../../lib/session-fetch';
+import {repeatRequest} from '../../../../packages/contracts/customer-intake';
+import {useBlockedEntry,useUnsavedEntry} from '../entry-safety';
 type Context={contacts:{id:string;customer_id:string;name:string;email:string;phone:string}[];properties:{id:string;customer_id:string;street:string;city:string;region:string}[];services:{name:string;scope:string}[]};
 const jobs:Record<string,string[]>={
  'Help around the home':['Furniture assembly','Shelving and organizing','Household product setup','Lightweight hanging','Small drywall patch','Moving manageable items','Several small jobs'],
@@ -12,22 +14,43 @@ const jobs:Record<string,string[]>={
  'Something else':['Describe below']
 };
 export default function RepeatRequest({organization,onSaved}:{organization:string;onSaved:()=>void}){
+ const [unknown,setUnknown]=useState(false);
  const [data,setData]=useState<Context|null>(null),[property,setProperty]=useState(''),[contact,setContact]=useState(''),[selected,setSelected]=useState<{service:string;task:string}[]>([]),[description,setDescription]=useState(''),[preferredTime,setPreferredTime]=useState(''),[communityRate,setCommunityRate]=useState('No'),[busy,setBusy]=useState(false),[error,setError]=useState(''),[saved,setSaved]=useState(false);
  const activeOrg=useRef(organization);activeOrg.current=organization;
- const retry=useRef<{fingerprint:string;key:string}|null>(null);
- useEffect(()=>{let active=true;setData(null);setError('');setProperty('');setContact('');setSelected([]);setDescription('');setPreferredTime('');setCommunityRate('No');setBusy(false);setSaved(false);retry.current=null;
+ const retry=useRef<{body:string}|null>(null);
+ const sending=useRef(false);
+ useBlockedEntry('repeat-request:'+organization,busy||unknown);
+ useUnsavedEntry('repeat-request:'+organization,!saved&&Boolean(selected.length||description||preferredTime));
+ useEffect(()=>{let active=true;setData(null);setError('');setProperty('');setContact('');setSelected([]);setDescription('');setPreferredTime('');setCommunityRate('No');setBusy(false);setSaved(false);setUnknown(false);retry.current=null;
   sessionFetch('/api/account-request?'+new URLSearchParams({organization})).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error);if(active){setData(d);if(d.properties.length===1)setProperty(d.properties[0].id);if(d.contacts.length===1)setContact(d.contacts[0].id);}}).catch(e=>{if(active)setError(publicError(e))});return()=>{active=false};
  },[organization]);
  const address=data?.properties.find(p=>p.id===property);
  const contacts=data?.contacts.filter(c=>c.customer_id===address?.customer_id)||[];
  const chosenContact=contacts.find(c=>c.id===contact)||(contacts.length===1?contacts[0]:undefined);
- async function submit(e:React.FormEvent){e.preventDefault();if(busy||!address||!chosenContact||!selected.length)return;setBusy(true);setError('');const submittedOrg=organization;try{
-  const input={services:selected,description,preferredTime,communityRate};const payload={organization,contact:chosenContact.id,property:address.id,input};const fingerprint=JSON.stringify(payload);
-  if(retry.current?.fingerprint!==fingerprint)retry.current={fingerprint,key:crypto.randomUUID()};
-  const r=await sessionFetch('/api/account-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,key:retry.current.key})});const d=await r.json();if(!r.ok||!d.request?.id)throw Error(d.error||'The saved request could not be confirmed. Try again with the same details.');
-  if(activeOrg.current!==submittedOrg)return;setSaved(true);retry.current=null;onSaved();
- }catch(e){if(activeOrg.current===submittedOrg)setError(publicError(e))}finally{if(activeOrg.current===submittedOrg)setBusy(false)}}
- return <section className="account-card" aria-label="New service request"><h2>Request service appt</h2>{error&&<p role="alert">{error}</p>}{!data&&!error&&<p role="status">Loading your saved details…</p>}{saved?<><p role="status">Your request is saved. We’ll contact you to confirm the work, cost and appointment.</p><button onClick={()=>{setSaved(false);setSelected([]);setDescription('');setPreferredTime('');}}>Start another request</button></>:data&&<form onSubmit={submit}><fieldset disabled={busy}>
+ async function sendFrozen(){if(sending.current||!retry.current)return;const org=organization;sending.current=true;setBusy(true);setError('');
+  try{const response=await sessionFetch('/api/account-request',{method:'POST',headers:{'Content-Type':'application/json'},body:retry.current.body});
+   if(response.status>=400&&response.status<500){
+    const result=await response.json().catch(()=>null);
+    if(activeOrg.current!==org)return;
+    if(unknown){setError('The earlier request is still unconfirmed. Keep these details and contact the business before sending another request.');return;}
+    retry.current=null;setError(typeof result?.error==='string'?result.error:'The request was rejected. Your details are kept.');return;
+   }
+   if(!response.ok)throw Error('UNKNOWN');
+   const result=await response.json();
+   if(!result?.request?.id||typeof result.request.id!=='string'||! /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(result.request.id))throw Error('UNKNOWN');
+   if(activeOrg.current!==org)return;
+   retry.current=null;setUnknown(false);setSaved(true);
+   try{onSaved()}catch{setError('Your request is saved, but your account overview could not refresh. Refresh the account overview to see the latest request.');}
+  }catch{if(activeOrg.current===org){setUnknown(true);setError('We could not confirm whether your request was saved. Do not send a different request. Use Check saved request result to safely retry the exact same submission.');}}
+  finally{sending.current=false;if(activeOrg.current===org)setBusy(false);}
+ }
+ async function submit(e:React.FormEvent){e.preventDefault();if(sending.current||busy||unknown||saved||!address||!chosenContact||!selected.length)return;
+  const payload={organization,contact:chosenContact.id,property:address.id,input:{services:selected,description,preferredTime,communityRate},key:crypto.randomUUID()};
+  const parsed=repeatRequest.safeParse(payload);
+  if(!parsed.success){setError('Check the selected work and visit details before sending.');return;}
+  retry.current={body:JSON.stringify(parsed.data)};await sendFrozen();
+ }
+ return <section className="account-card" aria-label="New service request"><h2>Request service appt</h2>{error&&<p role="alert">{error}</p>}{unknown&&<button type="button" disabled={busy} onClick={()=>void sendFrozen()}>{busy?'Checking saved request…':'Check saved request result'}</button>}{!data&&!error&&<p role="status">Loading your saved details…</p>}{saved?<><p role="status">Your request is saved. We’ll contact you to confirm the work, cost and appointment.</p><button onClick={()=>{setSaved(false);setSelected([]);setDescription('');setPreferredTime('');}}>Start another request</button></>:data&&<form onSubmit={submit}><fieldset disabled={busy||unknown}>
  <legend>Your saved details</legend>{data.properties.length===1?<p>{address?.street}, {address?.city}, {address?.region}</p>:<label>Where would you like the work done?<select required value={property} onChange={e=>{setProperty(e.target.value);setContact('');}}><option value="">Choose your address</option>{data.properties.map(p=><option key={p.id} value={p.id}>{p.street}, {p.city}, {p.region}</option>)}</select></label>}
  {contacts.length>1&&<label>Contact for this visit<select required value={contact} onChange={e=>setContact(e.target.value)}><option value="">Choose contact</option>{contacts.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
  {chosenContact&&<p>{chosenContact.name}<br/>{chosenContact.phone}<br/>{chosenContact.email}</p>}

@@ -15,7 +15,9 @@ export async function POST(request:Request){
  const text=await request.text();if(Buffer.byteLength(text)>12000)return NextResponse.json({error:'Request too large.'},{status:413,headers});
  const parsed=repeatRequest.safeParse(JSON.parse(text));if(!parsed.success)return NextResponse.json({error:'Check your services and details before sending.'},{status:400,headers});
  const v=parsed.data;const {db}=await authenticated();const r=await db.rpc('submit_customer_request',{p_org:v.organization,p_contact:v.contact,p_property:v.property,p_key:v.key,p_input:v.input});
- if(r.error)return NextResponse.json({error:r.error.message==='RATE_LIMITED'?'Please wait before sending another request.':'Your request was not saved. Check your linked details or contact the business.'},{status:r.error.message==='RATE_LIMITED'?429:409,headers});
+ if(r.error){if(r.error.message==='RATE_LIMITED')return NextResponse.json({error:'Please wait before sending another request.'},{status:429,headers});return NextResponse.json({error:'The request result could not be confirmed. Check the saved request result before changing the submission.'},{status:503,headers});}
+ const receipt=z.object({id:z.uuid()}).passthrough().safeParse(r.data);
+ if(!receipt.success)return NextResponse.json({error:'The request result could not be confirmed. Check the saved request result before changing the submission.'},{status:503,headers});
  return NextResponse.json({request:r.data},{headers});
  }catch(e){return failure(e)}
 }
