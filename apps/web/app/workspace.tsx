@@ -27,6 +27,7 @@ import RecurringVisits from './recurring-visits';
 import MonthCalendar from './month-calendar';
 import SchedulingReadiness from './scheduling-readiness';
 import CompanySettingsPanel from './company-settings';
+import OwnerLearningToolkit from './owner-learning-toolkit';
 import DailyCallSheet from './day-plan';
 import AvailabilityPanel from './availability-panel';
 import SchedulingReviewPanel from './scheduling-review-panel';
@@ -164,9 +165,9 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
   // A new workspace destination starts at its heading, never the previous screen's scroll.
   useEffect(()=>{window.scrollTo({top:0,behavior:'instant'});document.querySelector<HTMLElement>('#main h1')?.focus({preventScroll:true});},[org,section,workRequest,customerFocus]);
   useBlockedEntry('workspace',pending||invoiceBusy);
-  const sections=[{key:'Dashboard',label:'Today',icon:'dashboard'},{key:'Requests',label:'Requests',icon:'inbox'},{key:'Calendar',label:'Calendar',icon:'calendar'},{key:'Today',label:'Day routes',icon:'pin'},{key:'Customers',label:'Customers',icon:'users'},{key:'Work',label:'Jobs',icon:'work'},{key:'Money',label:'Invoices & money',icon:'money'},{key:'Snapshot',label:'Reports',icon:'chart'},{key:'Activity',label:'Activity & messages',icon:'bell'},{key:'Settings',label:'Settings',icon:'settings'}];
+  const sections=[{key:'Dashboard',label:'Today',icon:'dashboard'},{key:'Requests',label:'Requests',icon:'inbox'},{key:'Calendar',label:'Calendar',icon:'calendar'},{key:'Today',label:'Day routes',icon:'pin'},{key:'Customers',label:'Customers',icon:'users'},{key:'Work',label:'Jobs',icon:'work'},{key:'Money',label:'Invoices & money',icon:'money'},{key:'Snapshot',label:'Reports',icon:'chart'},{key:'Learning',label:'Field guide',icon:'book'},{key:'Activity',label:'Activity & messages',icon:'bell'},{key:'Settings',label:'Settings',icon:'settings'}];
   const primarySections=sections.filter(s=>['Dashboard','Requests','Calendar','Today','Work','Money'].includes(s.key));
-  const secondarySections=sections.filter(s=>['Customers','Snapshot','Activity','Settings'].includes(s.key));
+  const secondarySections=sections.filter(s=>['Customers','Snapshot','Learning','Activity','Settings'].includes(s.key));
   const canSeeSection=(s:{key:string})=>['owner','admin'].includes(role||'')||(role==='dispatcher'?['Requests','Customers','Work','Today'].includes(s.key):role==='bookkeeper'?['Customers','Money'].includes(s.key):['Today','Work'].includes(s.key));
   function navigate(next:string){if(pending||invoiceBusy||!canLeave())return;setPage(0);setMessage('');setError('');setSection(next);setCustomerFocus(null);setMobileNav(false);const url=new URL(window.location.href);url.searchParams.set('section',next);url.searchParams.delete('customer');if(next!=='Work'){setWorkRequest(null);url.searchParams.delete('request');}window.history.replaceState(null,'',url);void refresh();}
   function openWork(id:string){if(pending||invoiceBusy||!canLeave())return;setActiveRequest(null);setCustomerFocus(null);setWorkRequest(id);const url=new URL(window.location.href);url.searchParams.delete('customer');url.searchParams.set('request',id);url.searchParams.set('section','Work');window.history.replaceState(null,'',url);setSection('Work');setPage(0);void refresh();}
@@ -446,6 +447,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
                     {section === "Calendar" && ['owner','admin'].includes(role||'') && <>
                       <div className="calendar-inbox-link"><div><strong>New requests start in your inbox.</strong><span>Review proposed times here; schedule requests without a time from Requests.</span></div><button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/>Open requests</button></div><MonthCalendar key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest}/>
                     </>}
+                    {section === "Learning" && ['owner','admin'].includes(role||'') && <OwnerLearningToolkit />}
                     {section === "Settings" && ['owner','admin'].includes(role||'') && <>
                       <CalendarConnections key={"calendar-"+org} organization={org}/><details><summary>Optional Google calendar export</summary><GoogleControls key={org} organization={org} view="settings"/></details>
                       <OwnerSecurity key={org} organization={org}/>
