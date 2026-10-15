@@ -50,17 +50,10 @@ export async function POST(request: Request) {
       p_input: input,
       p_key: c.key,
     });
-    if (error)
-      return NextResponse.json(
-        {
-          error:
-            error.code === "23P01"
-              ? "That resource is already reserved for part of this time. Choose another time."
-              : messages[error.message] ||
-                "The appointment was not changed. Refresh and review your access.",
-        },
-        { status: error.code === "42501" ? 403 : 409 },
-      );
+    if(error){
+      const denied=error.code==='42501',occupied=error.code==='23P01',known=denied||occupied||Object.hasOwn(messages,error.message);
+      return NextResponse.json({error:denied?'Your account cannot make this scheduling change.':occupied?'That resource is reserved during the requested time. Choose another.':known?messages[error.message]:'The scheduling result is unknown. Check the same saved attempt before changing the appointment.'},{status:denied?403:known?409:503,headers:{'Cache-Control':'private, no-store'}});
+    }
     return NextResponse.json(
       { ok: true, result: data },
       { headers: { "Cache-Control": "no-store" } },
