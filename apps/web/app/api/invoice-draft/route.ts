@@ -43,20 +43,23 @@ export async function POST(request: Request) {
       p_lines: v.lines,
       p_key: v.key,
     });
-    if (r.error)
-      return NextResponse.json(
-        {
-          error:
-            r.error.message === "CHANGE_ORDER_REQUIRED"
-              ? "Charges exceed the approved labor amount. A change order is required."
-              : "The draft was not saved. Reload the job and check the recorded work.",
-        },
-        { status: 409, headers: { "Cache-Control": "no-store" } },
-      );
-    return NextResponse.json(
-      { result: r.data },
-      { headers: { "Cache-Control": "no-store" } },
-    );
+    if(r.error){
+      const named:Record<string,string>={
+        CHANGE_ORDER_REQUIRED:'Charges exceed approved labor. Review the change order.',
+        STALE_REVISION:'Work changed. Refresh the saved job before modifying it.',
+        TRANSITION:'The work record no longer accepts draft changes.',
+        VALIDATION:'Check work descriptions, amounts and waiver reasons.',
+        SETUP_REQUIRED:'Finance setup is not ready.',
+        IDEMPOTENCY_CONFLICT:'Original retry details differ. Keep the same attempt.',
+        NOT_FOUND:'This job is unavailable to this company.'
+      };
+      const denied=r.error.code==='42501',known=denied||Object.hasOwn(named,r.error.message);
+      return NextResponse.json({error:denied?'Your account cannot change this work draft.':known?named[r.error.message]:'The draft save result is unknown. Retry the same saved attempt.'},{status:denied?403:known?409:503,headers:{'Cache-Control':'private, no-store'}});
+    }
+    const receipt=z.object({revision:z.number().int().positive(),totalCents:z.number().int().nonnegative()}).strict().safeParse(r.data);
+    if(!receipt.success||receipt.data.revision!==v.revision+1)
+      return NextResponse.json({error:'The draft save result is unknown. Retry the same saved attempt.'},{status:503,headers:{'Cache-Control':'private, no-store'}});
+    return NextResponse.json({result:receipt.data},{headers:{'Cache-Control':'private, no-store'}});
   } catch (e) {
     if (e instanceof z.ZodError || e instanceof SyntaxError ||
         (e instanceof Error && e.message === "DRAFT_TOO_LARGE")) {
