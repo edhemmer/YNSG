@@ -52,6 +52,8 @@ export const trainingTopics=[
  {id:'remove-caulk',title:'Remove failing bathroom caulk',source:'This Old House',url:'https://www.thisoldhouse.com/bathrooms/removing-silicone-caulk',safety:'Protect acrylic/plastic surfaces and follow product cure time.'},
  {id:'apply-caulk',title:'Apply a clean new bead',source:'This Old House',url:'https://www.thisoldhouse.com/bathrooms/laying-down-a-perfect-bead',safety:'Surface must be clean and dry; confirm sealant compatibility.'},
  {id:'miter-saw',title:'Safer miter saw setup and cuts',source:'OSHA',url:'https://www.osha.gov/etools/machine-guarding/saws/miter',safety:'Guard, clamp and support the work; wear eye protection and follow saw manual.'},
+ {id:'miter-cuts-video',title:'Video: make more accurate miter cuts',source:'This Old House — illustrated tutorial and video',url:'https://www.thisoldhouse.com/woodworking/how-to-cut-miters',safety:'Confirm saw model, blade guard, work holding and personal protective equipment before using any tutorial.'},
+ {id:'caulking-video',title:'Video: remove and replace bathtub caulk',source:'Ask This Old House — tutorial and video',url:'https://www.thisoldhouse.com/bathrooms/how-to-caulk-around-a-bathtub',safety:'Confirm material compatibility, mold/water damage, sealant label and cure time; demonstrated timing is not universal.'},
 ] as const;
 export const examplePlanningStandards:TaskStandard[]=ownerTaskStandards.parse([
  {service:'Lawn care',task:'Mow, trim and blow-off',plannedMinutes:60,typicalMinutes:45,difficulty:'routine',setupMinutes:10,pickupMinutes:0,notes:'Example only; slope, acreage, obstacles and access change the time.'},
