@@ -18,6 +18,7 @@ select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-
 do $$begin begin perform public.read_relationship_notes('20000000-0000-4000-8000-000000000001','customer','30000000-0000-4000-8000-000000000001',0);raise exception 'TEST FAILED customer reads internal notes';exception when insufficient_privilege then null;end;end$$;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
 do $$begin begin perform public.read_relationship_notes('20000000-0000-4000-8000-000000000001','request','50000000-0000-4000-8000-000000000001',0);raise exception 'TEST FAILED other company reads notes';exception when insufficient_privilege then null;end;end$$;
+do $$begin begin perform public.add_relationship_note('20000000-0000-4000-8000-000000000001','request','50000000-0000-4000-8000-000000000001','Synthetic customer called about the visit','note-request-key-0001');raise exception 'TEST FAILED other company replays saved note';exception when insufficient_privilege then null;end;end$$;
 reset role;
 select pg_temp.assert_true((select count(*)=2 from private.relationship_notes),'two notes only');
 select pg_temp.assert_true((select count(*)=2 from public.audit_events where action='relationship.note_added'),'one audit per note');
