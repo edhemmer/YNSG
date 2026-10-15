@@ -2381,6 +2381,186 @@
         }
       }
     },
+    "/api/calendar-blocks": {
+      "get": {
+        "operationId": "readOwnerTimeBlocks",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner/admin; live company permission",
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Private validated unavailable ranges. Reasons are not returned. Display pages do not imply server pagination.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "blocks": {
+                      "maxItems": 10000,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "startsAt": {
+                            "type": "string",
+                            "allOf": [
+                              {
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                              },
+                              {
+                                "pattern": "^(?!0000-)"
+                              }
+                            ]
+                          },
+                          "endsAt": {
+                            "type": "string",
+                            "allOf": [
+                              {
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                              },
+                              {
+                                "pattern": "^(?!0000-)"
+                              }
+                            ]
+                          },
+                          "revision": {
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "maximum": 2147483646
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "startsAt",
+                          "endsAt",
+                          "revision"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "blocks"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      },
+      "post": {
+        "operationId": "manageOwnerTimeBlock",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner/admin; live company scheduling entitlement, original block revision and actor/input/key receipt",
+        "x-ynsg-origin-required": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarBlockCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Exact created/updated/removed block receipt. Appointment conflicts and revisions remain canonical SQL checks.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "result"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "revision": {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 2147483647
+                        },
+                        "removed": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "revision",
+                        "removed"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    },
     "/api/commands": {
       "post": {
         "operationId": "ownerCommand",
@@ -2736,6 +2916,95 @@
       }
     },
     "schemas": {
+      "CalendarBlockCommand": {
+        "type": "object",
+        "properties": {
+          "organization": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 2147483646
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "allOf": [
+                  {
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  {
+                    "pattern": "^(?!0000-)"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "allOf": [
+                  {
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  {
+                    "pattern": "^(?!0000-)"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "remove": {
+            "type": "boolean"
+          },
+          "key": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 128,
+            "pattern": "^[^\\u0000]*$"
+          }
+        },
+        "required": [
+          "organization",
+          "id",
+          "revision",
+          "start",
+          "end",
+          "remove",
+          "key"
+        ],
+        "additionalProperties": false
+      },
       "TaxEntryCommand": {
         "oneOf": [
           {
@@ -4679,7 +4948,7 @@
     "Save work + completion is atomic; timer stops without automatic invoice/payment.",
     "Invoice charges/tax require actual agreement and owner review.",
     "Notification lock-screen payloads contain no customer contacts or financial figures.",
-    "POST limits: commands 12000 bytes; work 120000 bytes; phone device 4096 bytes; invoice record 4096 bytes; conversation note 17000 bytes; tax entry 100000 bytes.",
+    "POST limits: commands 12000 bytes; work 120000 bytes; phone device 4096 bytes; invoice record 4096 bytes; conversation note 17000 bytes; tax entry 100000 bytes; calendar block 4096 bytes.",
     "Hourly billing arithmetic, no-charge reason and customer-approved cap are additional runtime/SQL refinements."
   ]
 }

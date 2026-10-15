@@ -174,3 +174,8 @@ html[data-theme=dark] .visit-summary{background:#203b2d;color:#def2e3;border-col
 .tax-workspace fieldset{min-width:0;max-width:100%;margin-inline:0}
 .tax-workspace .tax-estimator{border:0;padding:0}
 .tax-workspace input,.tax-workspace textarea,.tax-workspace select{max-width:100%;box-sizing:border-box}
+
+/* Date groups stay inside the owner's phone and tablet calendar cards. */
+.calendar-block-editor fieldset{min-width:0;max-width:100%;margin:0;padding:0;border:0}
+.calendar-block-editor input{max-width:100%;box-sizing:border-box}
+.calendar-block-editor time{overflow-wrap:anywhere}
