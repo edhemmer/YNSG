@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {estimateVisit,examplePlanningStandards,ownerTaskStandards,trainingTopics,reviewTaskTime} from '../apps/web/lib/owner-job-standards.ts';
+import {estimateVisit,examplePlanningStandards,ownerTaskStandards,trainingTopics,reviewTaskTime,preflightForWork,allTrainingTopics} from '../apps/web/lib/owner-job-standards.ts';
 
 test('one-hour task allocation and combined two-hour visit minimum remain separate',()=>{
  const a=estimateVisit([{service:'Lawn care',task:'Mow, trim and blow-off'}],examplePlanningStandards,30);
@@ -42,4 +42,15 @@ test('actual-vs-plan learning highlights overruns without changing the recorded 
  assert.equal(overrun.status,'review-overrun');
  assert.equal(examplePlanningStandards[0]!.plannedMinutes,60);
  assert.throws(()=>reviewTaskTime(60,120,121));
+});
+
+test('scheduled shelf, drywall, trim and picture tasks have safe proactive preflights',()=>{
+ for(const [service,task,id] of [
+  ['Help around the home','Install shelf brackets','shelf-anchors'],
+  ['Help around the home','Patch drywall hole','drywall-small-and-medium'],
+  ['Help around the home','Cut trim at an angle','cutting-angles'],
+  ['Help around the home','Hang picture','hang-artwork']
+ ]){const brief=preflightForWork(service!,task!);assert.ok(brief);assert.equal(brief?.topicId,id);assert.ok(brief?.questions.length);assert.ok(allTrainingTopics.some(t=>t.id===id));}
+ assert.equal(preflightForWork('Something else','Unidentified work'),null);
+ assert.match(preflightForWork('Help around the home','Smart lock replacement')!.stop,/held/);
 });
