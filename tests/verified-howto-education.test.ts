@@ -5,6 +5,8 @@ import {lesson,mayShowPublicly,aiLessonProposal} from '../packages/contracts/edu
 const candidate={
  id:'smart-lock-intro',title:'Identify a smart lock model safely',category:'doors-locks',audience:'beginner',publication:'draft',
  modelScope:'Identification only; not a model-specific reset procedure',
+ whereToUse:'At an authorized residential entry door with a battery smart lock.',
+ whenToUse:'Before troubleshooting, replacing batteries, calibrating or replacing hardware.',
  skillPrerequisites:['Can identify a manufacturer label'],tools:['Flashlight'],
  beforeStart:['Confirm authorization and another working entry method.'],
  warnings:['Never share access codes or close a malfunctioning door while testing.'],
