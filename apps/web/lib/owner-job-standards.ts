@@ -47,6 +47,18 @@ export function reviewTaskTime(plannedMinutes:number,actualMinutes:number,diagno
   diagnosisSharePercent:Math.round(100*diagnosisMinutes/actualMinutes)
  };
 }
+export function flatTrimMiterSetting(cornerDegrees:number){
+ if(!Number.isFinite(cornerDegrees)||cornerDegrees<45||cornerDegrees>135)throw Error('UNSUPPORTED_CORNER');
+ // For two identical flat pieces on an ordinary miter saw, 0° is a square crosscut.
+ // Does not apply to compound crown molding or unequal offsets.
+ return {sawDegrees:Math.round((90-cornerDegrees/2)*100)/100,cornerDegrees,halfCornerDegrees:cornerDegrees/2,assumption:'Two matching flat trim pieces; saw zero is square; confirm cut orientation with scrap.'};
+}
+export function drywallRepairGuide(holeDiameterInches:number){
+ if(!Number.isFinite(holeDiameterInches)||holeDiameterInches<=0||holeDiameterInches>48)throw Error('INVALID_HOLE_SIZE');
+ if(holeDiameterInches<0.5)return {approach:'Small-hole filler',planning:'Clean, fill, dry and sand. Finish may need repainting.',requiresReturn:true};
+ if(holeDiameterInches<=6)return {approach:'Reinforced patch',planning:'Assess edges, apply suitable patch and thin compound coats; cure between coats.',requiresReturn:true};
+ return {approach:'Supported drywall replacement',planning:'Confirm structure and utilities; cut/support replacement, tape and finish. Larger repairs may exceed approved scope.',requiresReturn:true};
+}
 export type FieldPreflight={topicId:string;title:string;questions:string[];tools:string[];stop:string};
 export function preflightForWork(service:string,task:string):FieldPreflight|null{
  const name=(service+' '+task).toLowerCase();
