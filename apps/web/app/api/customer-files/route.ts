@@ -54,11 +54,17 @@ export async function POST(request:Request){
    return NextResponse.json({error:unavailable},{status:503,headers});
   if(!ticket.data.ready){
    const uploaded=await db.storage.from(bucket).upload(ticket.data.path,bytes,{contentType:blob.type,upsert:false});
-   // A duplicate object might not have the expected bytes. Never promote
-   // metadata on an ambiguous upload; owner recovery must reconcile the
-   // private object before allowing finalization.
-   if(uploaded.error)return NextResponse.json({error:unavailable},{status:503,headers});
+   // A duplicate may be the exact previous upload after a lost response.
+   // Do not assume so: reread private object bytes and prove the saved digest.
+   if(uploaded.error&&!/already exists|Duplicate/i.test(uploaded.error.message))
+    return NextResponse.json({error:unavailable},{status:503,headers});
   }
+  const current=await db.storage.from(bucket).download(ticket.data.path);
+  if(current.error||!current.data)return NextResponse.json({error:unavailable},{status:503,headers});
+  const stored=new Uint8Array(await current.data.arrayBuffer());
+  if(stored.length!==bytes.length||!verifyImageBytes(stored,blob.type)||
+     createHash('sha256').update(stored).digest('hex')!==sha)
+   return NextResponse.json({error:'Stored image could not be reconciled with your original file. Contact support; do not upload another copy.'},{status:409,headers});
   const complete=await db.rpc('finalize_customer_file',{p_org:input.organization,p_file:ticket.data.id});
   const receipt=customerFileFinalize.safeParse(complete.data);
   if(complete.error||!receipt.success||receipt.data.id!==ticket.data.id)
