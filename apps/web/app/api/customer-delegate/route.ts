@@ -14,7 +14,10 @@ export async function POST(request:Request){
   const r=await db.rpc('manage_customer_delegate',{p_org:v.organization,p_customer:v.customer,p_user:v.user,p_action:v.action,p_can_approve:v.canApprove,p_can_view_billing:v.canViewBilling});
   if(r.error){const denial=r.error.code==='42501';return NextResponse.json({error:denial?'This account cannot change that customer access.':'Customer access result could not be confirmed. Reload to verify current access.'},{status:denial?403:503,headers});}
   const receipt=z.object({customer:z.uuid(),user:z.uuid(),revoked:z.boolean(),canApprove:z.boolean(),canViewBilling:z.boolean(),changed:z.boolean()}).safeParse(r.data);
-  if(!receipt.success||receipt.data.customer!==v.customer||receipt.data.user!==v.user)return NextResponse.json({error:'Customer access result could not be confirmed. Reload to verify current access.'},{status:503,headers});
+  if(!receipt.success||receipt.data.customer!==v.customer||receipt.data.user!==v.user||
+    (v.action==='revoke'&&!receipt.data.revoked)||
+    (v.action==='capabilities'&&(receipt.data.revoked||receipt.data.canApprove!==v.canApprove||receipt.data.canViewBilling!==v.canViewBilling)))
+    return NextResponse.json({error:'Customer access result could not be confirmed. Reload to verify current access.'},{status:503,headers});
   return NextResponse.json({result:receipt.data},{headers});
  }catch(e){return failure(e)}
 }
