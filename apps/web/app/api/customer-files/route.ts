@@ -54,10 +54,10 @@ export async function POST(request:Request){
    return NextResponse.json({error:unavailable},{status:503,headers});
   if(!ticket.data.ready){
    const uploaded=await db.storage.from(bucket).upload(ticket.data.path,bytes,{contentType:blob.type,upsert:false});
-   // Storage may already contain the same object if a previous response was lost.
-   // Never overwrite or claim that a failed upload succeeded: finalization checks existence.
-   if(uploaded.error&&!/already exists|Duplicate/i.test(uploaded.error.message))
-    return NextResponse.json({error:unavailable},{status:503,headers});
+   // A duplicate object might not have the expected bytes. Never promote
+   // metadata on an ambiguous upload; owner recovery must reconcile the
+   // private object before allowing finalization.
+   if(uploaded.error)return NextResponse.json({error:unavailable},{status:503,headers});
   }
   const complete=await db.rpc('finalize_customer_file',{p_org:input.organization,p_file:ticket.data.id});
   const receipt=customerFileFinalize.safeParse(complete.data);
