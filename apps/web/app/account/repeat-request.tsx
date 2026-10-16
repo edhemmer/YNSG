@@ -3,8 +3,9 @@ import { publicError } from "../../lib/public-errors";
 import {useEffect,useRef,useState} from 'react';
 import {sessionFetch} from '../../lib/session-fetch';
 import {repeatRequest} from '../../../../packages/contracts/customer-intake';
+import {parseRepeatContext,contactForProperty,type RepeatContext} from '../../lib/repeat-request-context';
 import {useBlockedEntry,useUnsavedEntry} from '../entry-safety';
-type Context={contacts:{id:string;customer_id:string;name:string;email:string;phone:string}[];properties:{id:string;customer_id:string;street:string;city:string;region:string}[];services:{name:string;scope:string}[]};
+type Context=RepeatContext;
 const jobs:Record<string,string[]>={
  'Help around the home':['Furniture assembly','Shelving and organizing','Household product setup','Lightweight hanging','Small drywall patch','Moving manageable items','Several small jobs'],
  'Lawn care':['Mowing','Trimming and edging','Mow, trim and blow-off','Leaf management','Recurring lawn care'],
@@ -22,11 +23,11 @@ export default function RepeatRequest({organization,onSaved}:{organization:strin
  useBlockedEntry('repeat-request:'+organization,busy||unknown);
  useUnsavedEntry('repeat-request:'+organization,!saved&&Boolean(selected.length||description||preferredTime));
  useEffect(()=>{let active=true;setData(null);setError('');setProperty('');setContact('');setSelected([]);setDescription('');setPreferredTime('');setCommunityRate('No');setBusy(false);setSaved(false);setUnknown(false);retry.current=null;
-  sessionFetch('/api/account-request?'+new URLSearchParams({organization})).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error);if(active){setData(d);if(d.properties.length===1)setProperty(d.properties[0].id);if(d.contacts.length===1)setContact(d.contacts[0].id);}}).catch(e=>{if(active)setError(publicError(e))});return()=>{active=false};
+  sessionFetch('/api/account-request?'+new URLSearchParams({organization})).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error);if(active){const context=parseRepeatContext(d);setData(context);if(context.properties.length===1)setProperty(context.properties[0].id);if(context.contacts.length===1)setContact(context.contacts[0].id);}}).catch(e=>{if(active)setError(publicError(e))});return()=>{active=false};
  },[organization]);
  const address=data?.properties.find(p=>p.id===property);
  const contacts=data?.contacts.filter(c=>c.customer_id===address?.customer_id)||[];
- const chosenContact=contacts.find(c=>c.id===contact)||(contacts.length===1?contacts[0]:undefined);
+ const chosenContact=data?contactForProperty(data,property,contact):undefined;
  async function sendFrozen(){if(sending.current||!retry.current)return;const org=organization;sending.current=true;setBusy(true);setError('');
   try{const response=await sessionFetch('/api/account-request',{method:'POST',headers:{'Content-Type':'application/json'},body:retry.current.body});
    if(response.status>=400&&response.status<500){
