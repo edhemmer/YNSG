@@ -314,6 +314,11 @@
       "file": "20261016180500_customer_delegation_revocation.sql",
       "name": "customer_delegation_revocation",
       "historyVersion": "20261016173740"
+    },
+    {
+      "file": "20261016201500_private_customer_supporting_files.sql",
+      "name": "private_customer_supporting_files",
+      "historyVersion": "20261016184532"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -344,14 +349,6 @@
     {
       "name": "silent_website_quotas",
       "historyVersion": "20261005123109"
-    }
-  ],
-  "pendingUnappliedMigrations": [
-    {
-      "file": "20261016201500_private_customer_supporting_files.sql",
-      "name": "private_customer_supporting_files",
-      "status": "not_applied_to_connected_supabase",
-      "reason": "Requires exact-head CI and object storage authorization review before migration."
     }
   ]
 }
