@@ -3,7 +3,7 @@ set local role authenticated;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 do $qa$declare cid uuid;r jsonb;again jsonb; rev integer; contacts jsonb:='[{"name":"Imported one","email":"imported.one@example.invalid","phone":"","relationship":"Friend"}]'::jsonb;properties jsonb:='[{"street":"111 Test Import Street","city":"DeKalb","state":"IL","postalCode":"60115"}]'::jsonb;
 begin
- insert into public.customers(organization_id,display_name) values('20000000-0000-4000-8000-000000000001','Synthetic import target') returning id into cid;
+ r:=public.manage_customer_record('20000000-0000-4000-8000-000000000001','{"action":"create_customer","value":{"displayName":"Synthetic import target"},"reason":"Synthetic import fixture"}','80000000-0000-4000-8000-000000000076'); cid:=(r->>'customerId')::uuid;
  r:=public.apply_customer_import('20000000-0000-4000-8000-000000000001',cid,1,'86000000-0000-4000-8000-000000000001',contacts,properties);
  perform pg_temp.assert_true((r->>'contactsAdded')::integer=1 and (r->>'propertiesAdded')::integer=1,'imports both children transactionally');
  perform pg_temp.assert_true((r->>'revision')::integer=3,'two new children advance parent revision twice');
