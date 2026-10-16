@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-15",
+  "updatedAt": "2026-10-16",
   "baselineCommit": "56b0a9fec3f7c9e4664c2192c91564b9340b9584",
   "milestones": [
     "web",
@@ -31,7 +31,7 @@
     {
       "id": "WEB-02",
       "milestone": "web",
-      "title": "Walk public navigation, services, pricing, contact and Services \u2192 Time \u2192 Details with deliberate selection and optional account.",
+      "title": "Walk public navigation, services, pricing, contact and Services → Time → Details with deliberate selection and optional account.",
       "owner": "Engineering lead",
       "status": "open",
       "requirements": [
@@ -42,7 +42,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Walk public navigation, services, pricing, contact and Services \u2192 Time \u2192 Details with deliberate selection and optional account.",
+      "nextAction": "PR #77 merged (booking field focus; exact-head CI passed). Execute A01–A03 full guest journey, failure/retry, controlled delivery, and physical mobile accessibility evidence before verification.",
       "acceptance": "Required name/email/phone/address; multiple services; honest arrange-time path; free address check is advisory; retry saves one request and one milestone notification; no abandoned hold leaks.",
       "requiredEvidence": "Synthetic full-journey tests plus approved controlled delivery and physical-device evidence.",
       "evidence": []
@@ -69,7 +69,7 @@
     {
       "id": "WEB-04",
       "milestone": "web",
-      "title": "Accept the complete phone workflow: open/read \u2192 confirm \u2192 complete \u2192 issue invoice \u2192 close out, including declined and zero-charge work.",
+      "title": "Accept the complete phone workflow: open/read → confirm → complete → issue invoice → close out, including declined and zero-charge work.",
       "owner": "Engineering lead",
       "status": "open",
       "requirements": [
@@ -80,7 +80,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Accept the complete phone workflow: open/read \u2192 confirm \u2192 complete \u2192 issue invoice \u2192 close out, including declined and zero-charge work.",
+      "nextAction": "Accept the complete phone workflow: open/read → confirm → complete → issue invoice → close out, including declined and zero-charge work.",
       "acceptance": "One guided record with distinct next action; appointment date/time separated from notes; draft invoice visible after scheduling without being an issued bill; actual work stops timers atomically; explicit agreement and invoice issue.",
       "requiredEvidence": "Full scenario record linking UI, API, canonical revisions and isolated database assertions.",
       "evidence": []
@@ -196,7 +196,7 @@
         "WEB-05",
         "WEB-06"
       ],
-      "nextAction": "Run design and usability acceptance from the protocol on desktop, phone and iPad; fix each observed failure.",
+      "nextAction": "PR #77 fixes booking validation focus with regression and passing exact-head CI. Complete keyboard, VoiceOver, iPhone/iPad, zoom, contrast and user task measurements; no device pass inferred.",
       "acceptance": "Approved brand; restrained visible navigation; clear primary action/status; light/dark; no clipped financial amounts; labels, focus, large text, screen readers, keyboard and reduced motion. Meet measured task/performance targets or fix scope.",
       "requiredEvidence": "Device/browser matrix, sanitized captures, task measurements and elderly/disabled participant findings.",
       "evidence": []
@@ -352,7 +352,7 @@
         "WEB-15",
         "WEB-16"
       ],
-      "nextAction": "Prepare exact release candidate, all required CI, migration catalog, both domain SHAs, configuration/provider checks and release decision.",
+      "nextAction": "Verify both Vercel production deployment SHAs and live read-only smoke; correct automatic per-merge double-build release strategy without breaking customer routing; then complete full release acceptance.",
       "acceptance": "Zero unresolved blocker/high defect in included scope; all required gates verified and still applicable; intended production team/project/branch verified; accepted operations handover.",
       "requiredEvidence": "Exact-head CI, tested merge/deployed SHA mapping, migration checks and signed candidate decision.",
       "evidence": []
