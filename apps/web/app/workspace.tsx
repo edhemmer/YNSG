@@ -13,6 +13,7 @@ import NotificationAttention from "./notification-attention";
 import OwnerSecurity from './owner-security';
 import BusinessSnapshot from './business-snapshot';
 import FinanceActivity from './finance-activity';
+import MileageActivity from './mileage-activity';
 import GoogleControls from './google-controls';
 import CalendarConnections from './calendar-connections';
 import OwnerSetup from './owner-setup';
@@ -507,6 +508,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
                         {["owner","admin"].includes(role||"")&&<p><a href={"/owner/production-check?"+new URLSearchParams({organization:org})}>View sample invoice and email checks</a></p>}
                         {finance && <p><a href={"/owner/taxes?"+new URLSearchParams({organization:org})}>Taxes · rules, due dates, payments and exports</a></p>}
                         {finance && <FinanceActivity key={org} organization={org} companyName={data.company.display_name} timezone={data.company.timezone}/>}
+                        {finance && <MileageActivity key={'mileage:'+org} organization={org} timezone={data.company.timezone}/> }
                         <p>
                           Issued amounts remain fixed. Payment status comes from
                           confirmed receipts.
