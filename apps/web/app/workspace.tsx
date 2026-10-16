@@ -298,32 +298,48 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
     }
   }
   async function decideTime(input: Record<string, unknown>) {
-    setPending(true);
-    setError("");
-    const fingerprint = JSON.stringify([org, input]);
-    if (!retryKeys.current.has(fingerprint))
-      retryKeys.current.set(fingerprint, crypto.randomUUID());
-    try {
-      await api("/api/scheduling", {
-        schemaVersion: 1,
-        organizationId: org,
-        key: retryKeys.current.get(fingerprint),
-        input,
-      });
-      setMessage(
-        "Decision saved. Customer delivery is shown separately in the communication queue.",
-      );
-      await refresh();
-    } catch (e) {
-      setError(publicError(e));
-    } finally {
-      setPending(false);
+    if(ownerCommandFlight.current)return;
+    const fingerprint=JSON.stringify(['schedule',org,input]);
+    if(unresolvedOwnerCommand.current && unresolvedOwnerCommand.current!==fingerprint){
+      setError("A prior change could not be confirmed. Check its saved result and retry only the same action first.");return;
     }
+    ownerCommandFlight.current=true;setPending(true);setError("");
+    if(!retryKeys.current.has(fingerprint))retryKeys.current.set(fingerprint,crypto.randomUUID());
+    try{
+      await api("/api/scheduling",{schemaVersion:1,organizationId:org,key:retryKeys.current.get(fingerprint),input});
+      retryKeys.current.delete(fingerprint);unresolvedOwnerCommand.current=null;
+      setMessage("Decision saved. Customer delivery is shown separately in the communication queue.");
+      await refresh();
+    }catch(e){
+      if(e instanceof SessionApiError&&[400,401,403,404,409,422].includes(e.status)){
+        retryKeys.current.delete(fingerprint);unresolvedOwnerCommand.current=null;setError(publicError(e));
+      }else{
+        unresolvedOwnerCommand.current=fingerprint;
+        setError("The scheduling result is unconfirmed. Check the calendar, then retry only this unchanged decision.");
+      }
+    }finally{ownerCommandFlight.current=false;setPending(false);}
   }
   async function fieldAction(j:Pick<Job,'id'|'revision'>,action:'start'|'pause'|'resume') {
-    setPending(true);setError('');const value={organizationId:org,id:j.id,revision:j.revision,action,note:''};const fingerprint=JSON.stringify(value);
+    if(ownerCommandFlight.current)return;
+    const value={organizationId:org,id:j.id,revision:j.revision,action,note:''};
+    const fingerprint=JSON.stringify(['job',value]);
+    if(unresolvedOwnerCommand.current&&unresolvedOwnerCommand.current!==fingerprint){
+      setError("A prior change could not be confirmed. Check its saved result and retry only the same action first.");return;
+    }
+    ownerCommandFlight.current=true;setPending(true);setError('');
     if(!retryKeys.current.has(fingerprint))retryKeys.current.set(fingerprint,crypto.randomUUID());
-    try{await api('/api/jobs',{...value,key:retryKeys.current.get(fingerprint)});setMessage('Job and time record saved.');await refresh();}catch(e){setError(publicError(e));}finally{setPending(false);}
+    try{
+      await api('/api/jobs',{...value,key:retryKeys.current.get(fingerprint)});
+      retryKeys.current.delete(fingerprint);unresolvedOwnerCommand.current=null;
+      setMessage('Job and time record saved.');await refresh();
+    }catch(e){
+      if(e instanceof SessionApiError&&[400,401,403,404,409,422].includes(e.status)){
+        retryKeys.current.delete(fingerprint);unresolvedOwnerCommand.current=null;setError(publicError(e));
+      }else{
+        unresolvedOwnerCommand.current=fingerprint;
+        setError("The job time result is unconfirmed. Review the saved job before retrying only this unchanged action.");
+      }
+    }finally{ownerCommandFlight.current=false;setPending(false);}
   }
   const role = session?.memberships.find(
     (m) => m.organization_id === org,
