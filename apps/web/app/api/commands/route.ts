@@ -3,6 +3,7 @@ import { z } from "zod";
 import {ownerCommandSchema} from "../../../lib/owner-command-contract";
 import { authenticated, sameOrigin, failure } from "../../../lib/session";
 import {validateExpenseReceipt,expenseFailure} from '../../../lib/expense-contract';
+import {ownerRpcFailure,ownerRpcResultConfirmed} from '../../../lib/owner-command-result';
 const expenseHeaders={'Cache-Control':'private, no-store'};
 const messages: Record<string, string> = {
   TAX_REVIEW_REQUIRED:"Review the applicable tax rule and customer-approved total before issuing this invoice.",
@@ -152,19 +153,23 @@ export async function POST(request: Request) {
       if(data===null||typeof data!=='object')return NextResponse.json({error:'Invoice issuance could not be confirmed. Check the saved invoice before issuing another.'},{status:503,headers});
       return NextResponse.json({ok:true,result:data},{headers});
     }
-    if (error)
+    if (error) {
+      const outcome=ownerRpcFailure(error);
       return NextResponse.json(
-        {
-          error:
-            messages[error.message] ||
-            "The action was not committed. Review the record and try again.",
-
-        },
-        { status: error.code === "42501" ? 403 : 409 },
+        { error: outcome.uncertain
+          ? "The saved result could not be confirmed. Check the same request or job before trying another action."
+          : messages[error.message] || "This action was rejected. Review the current record before retrying." },
+        { status: outcome.status, headers: { "Cache-Control": "private, no-store" } },
+      );
+    }
+    if (!ownerRpcResultConfirmed(data))
+      return NextResponse.json(
+        {error:"The saved result could not be confirmed. Check the same request or job before trying another action."},
+        {status:503,headers:{"Cache-Control":"private, no-store"}},
       );
     return NextResponse.json(
       { ok: true, result: data },
-      { headers: { "Cache-Control": "no-store" } },
+      { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (error) {
     if(isExpense){const result=expenseFailure(error);return NextResponse.json({error:result.error},{status:result.status,headers:expenseHeaders});}
