@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {verifyImageBytes,validCustomerFilePath} from '../apps/web/lib/customer-file-contract.ts';
+const png=Uint8Array.from([137,80,78,71,13,10,26,10,1,2]),jpeg=Uint8Array.from([255,216,255,1,2,3,255,217]);
+test('file signature must match saved declared type',()=>{assert.equal(verifyImageBytes(png,'image/png'),true);assert.equal(verifyImageBytes(png,'image/jpeg'),false);assert.equal(verifyImageBytes(jpeg,'image/jpeg'),true);assert.equal(verifyImageBytes(jpeg,'application/pdf'),false);assert.equal(verifyImageBytes(new Uint8Array(0),'image/png'),false)});
+test('object identity may never point outside saved tenant and file',()=>{const o='20000000-0000-4000-8000-000000000001',f='30000000-0000-4000-8000-000000000001';assert.equal(validCustomerFilePath(o,f,o+'/'+f),true);assert.equal(validCustomerFilePath(o,f,o+'/../'+f),false);assert.equal(validCustomerFilePath(o,f,'another/'+f),false);});
