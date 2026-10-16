@@ -340,5 +340,13 @@
       "name": "silent_website_quotas",
       "historyVersion": "20261005123109"
     }
+  ],
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261016180500_customer_delegation_revocation.sql",
+      "name": "customer_delegation_revocation",
+      "status": "not_applied_to_connected_supabase",
+      "reason": "Await controlled migration review and deployment; never misreport live parity."
+    }
   ]
 }
