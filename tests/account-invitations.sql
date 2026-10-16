@@ -14,8 +14,22 @@ select pg_temp.assert_true(private.customer_allowed('20000000-0000-4000-8000-000
 select pg_temp.assert_true(not private.customer_allowed('20000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000003',true,true),'claim grants no other company');
 reset role;
 select pg_temp.assert_true((select count(*)=2 from public.audit_events),'invitation and one claim audited');
+-- Delegation commands are owner-only; existing invited access may be narrowed, never recreated.
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select pg_temp.assert_true((public.manage_customer_delegate('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000003','capabilities',false,false)->>'changed')='true','owner can narrow existing invited capabilities');
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000003","session_id":"10000000-0000-4000-8000-000000000003","aal":"aal1"}',true);
+select pg_temp.assert_true(not private.customer_allowed('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',true,true),'narrowed delegate loses billing and approval');
+do $delegate$begin begin perform public.manage_customer_delegate('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000003','revoke');raise exception 'TEST FAILED delegate cannot revoke access';exception when insufficient_privilege then null;end;end$delegate$;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+do $delegate$begin begin perform public.manage_customer_delegate('20000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000003','00000000-0000-4000-8000-000000000003','revoke');raise exception 'TEST FAILED cross-tenant delegate revocation';exception when insufficient_privilege then null;end;end$delegate$;
+select pg_temp.assert_true((public.manage_customer_delegate('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000003','revoke')->>'changed')='true','owner revokes customer access');
+select pg_temp.assert_true((public.manage_customer_delegate('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000003','revoke')->>'changed')='false','repeated revocation stays idempotent');
+do $delegate$begin begin perform public.manage_customer_delegate('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000003','capabilities',true,true);raise exception 'TEST FAILED revoked delegate restored';exception when insufficient_privilege then null;end;end$delegate$;
+reset role;
 update public.customer_access set revoked_at=now() where user_id='00000000-0000-4000-8000-000000000003';
 set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000003","session_id":"10000000-0000-4000-8000-000000000003","aal":"aal1"}',true);
 select public.claim_customer_account(repeat('a',64));
 select pg_temp.assert_true(not private.customer_allowed('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',true,true),'replay cannot restore revoked access');
 reset role;

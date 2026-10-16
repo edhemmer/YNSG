@@ -13,6 +13,10 @@ export function validateMigrationHistoryMap(map, files){
  assert.ok(Array.isArray(map.repositoryMigrations));
  assert.ok(Array.isArray(map.supabaseOnlyHistoricalMigrations));
  const source=files.filter(f=>f.endsWith('.sql')).sort();
+ const pending=map.pendingUnappliedMigrations||[];
+ assert.ok(Array.isArray(pending));
+ for(const entry of pending){assert.match(entry.file,/^\d{14}_[a-z0-9_]+\.sql$/);assert.equal(entry.name,entry.file.replace(/^\d+_/,'').replace(/\.sql$/,''));assert.equal(entry.status,'not_applied_to_connected_supabase');}
+ const pendingFiles=pending.map(e=>e.file);
  const names=new Set(),versions=new Set();
  const saved=map.repositoryMigrations.map(entry=>{
   assert.match(entry.file,/^\d{14}_[a-z0-9_]+\.sql$/);
@@ -22,7 +26,7 @@ export function validateMigrationHistoryMap(map, files){
   assert.ok(!versions.has(entry.historyVersion),'Duplicate Supabase history version');
   names.add(entry.name);versions.add(entry.historyVersion);return entry.file;
  }).sort();
- assert.deepEqual(saved,source,'GitHub migration filenames diverged from recorded history mapping');
+ assert.deepEqual([...saved,...pendingFiles].sort(),source,'GitHub migration filenames diverged from applied plus pending migration inventory');
  for(const entry of map.supabaseOnlyHistoricalMigrations){
   assert.match(entry.name,/^[a-z0-9_]+$/);assert.match(entry.historyVersion,/^\d{14}$/);
   assert.ok(!names.has(entry.name),'Supplemental migration name duplicates a source migration');
