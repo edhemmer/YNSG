@@ -334,6 +334,11 @@
       "file": "20261016233000_customer_export_audit.sql",
       "name": "customer_export_audit",
       "historyVersion": "20261016200839"
+    },
+    {
+      "file": "20261016235500_atomic_customer_import.sql",
+      "name": "atomic_customer_import",
+      "historyVersion": "20261016202341"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -364,14 +369,6 @@
     {
       "name": "silent_website_quotas",
       "historyVersion": "20261005123109"
-    }
-  ],
-  "pendingUnappliedMigrations": [
-    {
-      "file": "20261016235500_atomic_customer_import.sql",
-      "name": "atomic_customer_import",
-      "status": "not_applied_to_connected_supabase",
-      "reason": "Pending exact-head PostgreSQL/contract CI before controlled migration"
     }
   ]
 }
