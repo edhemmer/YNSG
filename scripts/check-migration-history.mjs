@@ -6,7 +6,7 @@ import {resolve} from 'node:path';
 /** Offline guard: compare source migration identities to an independently observed
  * Supabase history snapshot. Does NOT assert SQL body equivalence or live drift. */
 export function validateMigrationHistoryMap(map, files){
- assert.match(map.observedOn,/^\\d{4}-\\d{2}-\\d{2}$/);
+ assert.match(map.observedOn,/^\d{4}-\d{2}-\d{2}$/);
  assert.match(map.sourceCommit,/^[a-f0-9]{40}$/);
  assert.match(map.supabaseProjectRef,/^[a-z]{20}$/);
  assert.ok(map.verificationScope.includes('Does not establish equal SQL content'));
@@ -15,16 +15,16 @@ export function validateMigrationHistoryMap(map, files){
  const source=files.filter(f=>f.endsWith('.sql')).sort();
  const names=new Set(),versions=new Set();
  const saved=map.repositoryMigrations.map(entry=>{
-  assert.match(entry.file,/^\\d{14}_[a-z0-9_]+\\.sql$/);
-  assert.match(entry.historyVersion,/^\\d{14}$/);
-  assert.equal(entry.name,entry.file.replace(/^\\d+_/,'').replace(/\\.sql$/,''));
+  assert.match(entry.file,/^\d{14}_[a-z0-9_]+\\.sql$/);
+  assert.match(entry.historyVersion,/^\d{14}$/);
+  assert.equal(entry.name,entry.file.replace(/^\d+_/,'').replace(/\\.sql$/,''));
   assert.ok(!names.has(entry.name),'Duplicate migration name');
   assert.ok(!versions.has(entry.historyVersion),'Duplicate Supabase history version');
   names.add(entry.name);versions.add(entry.historyVersion);return entry.file;
  }).sort();
  assert.deepEqual(saved,source,'GitHub migration filenames diverged from recorded history mapping');
  for(const entry of map.supabaseOnlyHistoricalMigrations){
-  assert.match(entry.name,/^[a-z0-9_]+$/);assert.match(entry.historyVersion,/^\\d{14}$/);
+  assert.match(entry.name,/^[a-z0-9_]+$/);assert.match(entry.historyVersion,/^\d{14}$/);
   assert.ok(!names.has(entry.name),'Supplemental migration name duplicates a source migration');
   assert.ok(!versions.has(entry.historyVersion),'Supplemental version duplicates applied history');
   names.add(entry.name);versions.add(entry.historyVersion);
