@@ -29,8 +29,8 @@ begin
  if not found then raise exception 'NOT_FOUND' using errcode='42501';end if;
  if c.revision<>p_revision then raise exception 'STALE_REVISION';end if;
  if c.archived_at is not null then raise exception 'CUSTOMER_ARCHIVED';end if;
- if exists(select 1 from (select lower(trim(v->>'name')) name,lower(trim(coalesce(v->>'email',''))) email,regexp_replace(coalesce(v->>'phone',''),'[^0-9]','','g') phone,count(*) n from jsonb_array_elements(p_contacts) v group by 1,2,3 having count(*)>1) duplicates) then raise exception 'DUPLICATE_CONTACT';end if;
- if exists(select 1 from (select lower(trim(v->>'street')) street,lower(trim(v->>'city')) city,v->>'state' region,coalesce(v->>'postalCode','') postal,count(*) n from jsonb_array_elements(p_properties) v group by 1,2,3,4 having count(*)>1) duplicates) then raise exception 'DUPLICATE_PROPERTY';end if;
+ if exists(select 1 from (select lower(trim(v->>'name')) name,lower(trim(coalesce(v->>'email',''))) email,regexp_replace(coalesce(v->>'phone',''),'[^0-9]','','g') phone,count(*) n from jsonb_array_elements(p_contacts) as e(v) group by 1,2,3 having count(*)>1) duplicates) then raise exception 'DUPLICATE_CONTACT';end if;
+ if exists(select 1 from (select lower(trim(v->>'street')) street,lower(trim(v->>'city')) city,v->>'state' region,coalesce(v->>'postalCode','') postal,count(*) n from jsonb_array_elements(p_properties) as e(v) group by 1,2,3,4 having count(*)>1) duplicates) then raise exception 'DUPLICATE_PROPERTY';end if;
  count_contacts:=(select count(*) from public.contacts where organization_id=p_org and customer_id=p_customer);
  count_properties:=(select count(*) from public.properties where organization_id=p_org and customer_id=p_customer);
  if count_contacts+jsonb_array_length(p_contacts)>100 or count_properties+jsonb_array_length(p_properties)>100 then raise exception 'DETAIL_LIMIT';end if;
