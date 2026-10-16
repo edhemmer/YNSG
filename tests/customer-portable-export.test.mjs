@@ -13,6 +13,8 @@ test('customer portability route refuses incomplete or unstable paginated snapsh
  assert.match(code,/const latest=await pages\(0,0\)/);
  assert.match(code,/contacts:latest\.contacts,properties:latest\.properties/);
  assert.doesNotMatch(code,/service_role|createSignedUrl|download.*storage/i);
+ assert.match(code,/db.rpc\('audit_customer_export'/);
+ assert.match(code,/if\(audit.error\|\|!proof.success/);
 });
 test('customer export UI requires complete scope and exact organization/customer receipt',()=>{
  const ui=readFileSync('apps/web/app/customer-export.tsx','utf8');
