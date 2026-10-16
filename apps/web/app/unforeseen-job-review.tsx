@@ -16,7 +16,7 @@ const cents=(v:string)=>Math.max(0,Math.min(10000000,Math.round((Number(v)||0)*1
 export default function UnforeseenJobReview(){
  const [kind,setKind]=useState<UnforeseenInput['kind']>('wrong_part');
  const [description,setDescription]=useState('');
- const [hands,setHands]=useState(30),[trip,setTrip]=useState(0),[remaining,setRemaining]=useState(60);
+ const [hands,setHands]=useState(0),[trip,setTrip]=useState(0),[remaining,setRemaining]=useState(0);
  const [laborCost,setLaborCost]=useState(0),[materials,setMaterials]=useState(0),[approvedCharge,setApprovedCharge]=useState(0);
  const [customerApproved,setCustomerApproved]=useState(false),[compatible,setCompatible]=useState(false),[safe,setSafe]=useState(false),[permitted,setPermitted]=useState(false);
  const hasDescription=description.trim().length>=5&&laborCost>0;
@@ -37,7 +37,7 @@ export default function UnforeseenJobReview(){
   {blockedKind&&<p role="alert">Stop and review licensing and safety before proceeding. In Illinois, plumbing installation and repair generally require appropriate licensing. Identifying an issue does not authorize YNSG to replace supply lines, valves or damaged plumbing.</p>}
   <label>Additional hands-on minutes<input type="number" min={0} max={1440} step={15} value={hands} onChange={e=>setHands(Math.max(0,Math.min(1440,Math.round(Number(e.target.value)||0))))}/></label>
   <label>Extra supplier-trip minutes<input type="number" min={0} max={480} step={15} value={trip} onChange={e=>setTrip(Math.max(0,Math.min(480,Math.round(Number(e.target.value)||0))))}/></label>
-  <label>Time remaining before your next commitment<input type="number" min={0} max={720} step={15} value={remaining} onChange={e=>setRemaining(Math.max(0,Math.min(720,Math.round(Number(e.target.value)||0))))}/></label>
+  <label>Minutes available before next commitment (0 if unknown)<input type="number" min={0} max={720} step={15} value={remaining} onChange={e=>setRemaining(Math.max(0,Math.min(720,Math.round(Number(e.target.value)||0))))}/></label>
   <label>Owner cost of labor per hour ($) — required to calculate contribution<input type="number" min={0} max={1000} step={1} value={laborCost/100} onChange={e=>setLaborCost(cents(e.target.value))}/></label>
   <label>Materials paid by the business ($)<input type="number" min={0} max={100000} step={0.01} value={materials/100} onChange={e=>setMaterials(cents(e.target.value))}/></label>
   <label>Approved extra revenue ($)<input type="number" min={0} max={100000} step={0.01} value={approvedCharge/100} onChange={e=>setApprovedCharge(cents(e.target.value))}/></label>

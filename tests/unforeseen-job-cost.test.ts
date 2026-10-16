@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {reviewUnforeseenJob,hiddenConditionPreflight} from '../apps/web/lib/unforeseen-job-cost.ts';
 
 const good={
@@ -54,4 +55,11 @@ test('pre-quote prompts flag unseen supply lines and valves without authorizing 
 });
 test('profit analysis cannot use zero or missing owner labor cost as a fabricated margin',()=>{
  assert.throws(()=>reviewUnforeseenJob({...good,ownerLaborCostCentsPerHour:0}));
+});
+
+test('private field worksheet does not invent time before the next appointment',()=>{
+ const source=readFileSync('apps/web/app/unforeseen-job-review.tsx','utf8');
+ assert.match(source,/\[remaining,setRemaining\]=useState\(0\)/);
+ assert.match(source,/0 if unknown/);
+ assert.match(source,/does not change a customer agreement, appointment or invoice/);
 });
