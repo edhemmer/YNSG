@@ -139,6 +139,8 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
   const handledRequestLink=useRef(false),initialWorkspaceChosen=useRef(false);
   const [sessionUnavailable,setSessionUnavailable]=useState(false);
   const retryKeys = useRef(new Map<string, string>());
+  const ownerCommandFlight = useRef(false);
+  const unresolvedOwnerCommand = useRef<string|null>(null);
   const [session, setSession] = useState<{
       email: string;
       memberships: Membership[];
@@ -258,10 +260,16 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
   }
 
   async function act(value: Record<string, unknown>) {
+    if (ownerCommandFlight.current) return;
+    const fingerprint = JSON.stringify([org, value]);
+    if (unresolvedOwnerCommand.current && unresolvedOwnerCommand.current !== fingerprint) {
+      setError("An earlier action is not confirmed. Check the saved request or job and retry only the exact original action before making another change.");
+      return;
+    }
+    ownerCommandFlight.current=true;
     setPending(true);
     setError("");
     setMessage("");
-    const fingerprint = JSON.stringify([org, value]);
     if (!retryKeys.current.has(fingerprint))
       retryKeys.current.set(fingerprint, crypto.randomUUID());
     try {
@@ -270,12 +278,22 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
         key: retryKeys.current.get(fingerprint),
         ...value,
       });
+      unresolvedOwnerCommand.current=null;
+      retryKeys.current.delete(fingerprint);
       setMessage("Saved. The current record is shown below.");
       await refresh();
       return r;
     } catch (e) {
-      setError(publicError(e));
+      if (e instanceof SessionApiError && [400,401,403,404,409,422].includes(e.status)) {
+        unresolvedOwnerCommand.current=null;
+        retryKeys.current.delete(fingerprint);
+        setError(publicError(e));
+      } else {
+        unresolvedOwnerCommand.current=fingerprint;
+        setError("The result of that action is unconfirmed. Your original retry is protected. Check the saved request or job, then retry the same unchanged action; do not submit a different one.");
+      }
     } finally {
+      ownerCommandFlight.current=false;
       setPending(false);
     }
   }
