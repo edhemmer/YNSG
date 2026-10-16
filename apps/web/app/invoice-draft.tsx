@@ -3,6 +3,7 @@ import { publicError } from "../lib/public-errors";
 import { useEffect, useRef, useState } from "react";
 import { sessionFetch } from "../lib/session-fetch";
 import {invoiceChargeCents} from "../lib/invoice-charge";
+import {confirmInvoiceIssued} from "../lib/invoice-issuance-receipt";
 import {salesTax,type TaxRule,type TaxComponent} from "../lib/taxes";
 type TaxContext={required:boolean;rules:TaxRule[];valid:boolean;tax:{taxCents:number;rule?:TaxRule;customerApprovalEvidence?:string}|null};
 import {hourlyCharge} from "../lib/invoice-billing";
@@ -58,6 +59,8 @@ export default function InvoiceDraft({
   currentTarget.current=organization+":"+job+":"+revision;
   const retry = useRef<{ fingerprint: string; key: string } | null>(null);
   const completionAttempt=useRef<{body:string;revision:number}|null>(null);
+  const issuanceAttempt=useRef<{body:string;totalCents:number}|null>(null);
+  const [issuanceUnknown,setIssuanceUnknown]=useState(false);
   const draftAttempt=useRef<{body:string;revision:number;target:string;fingerprint:string}|null>(null);
   const [draftUnknown,setDraftUnknown]=useState(false);
   const [completionUncertain,setCompletionUncertain]=useState(false);
@@ -69,10 +72,10 @@ export default function InvoiceDraft({
   const dirtyRef=useRef(false);dirtyRef.current=entryDirty;
   const loadedRevision=useRef<number|null>(null);
   useUnsavedEntry('invoice:'+organization+':'+job,entryDirty);
-  useBlockedEntry('invoice-draft:'+organization+':'+job,busy||draftUnknown||completionUncertain);
+  useBlockedEntry('invoice-draft:'+organization+':'+job,busy||draftUnknown||completionUncertain||issuanceUnknown);
   useEffect(() => {mounted.current=true;return()=>{mounted.current=false;onBusy(false);};}, [onBusy]);
   useEffect(() => {
-    if(completionAttempt.current||draftAttempt.current)return;
+    if(completionAttempt.current||draftAttempt.current||issuanceAttempt.current)return;
     if(dirtyRef.current&&loadedRevision.current!==revision&&ownSaved.current?.revision!==revision){setEntryConflict(true);setMessage('The saved job changed while you were editing. Your entries are still shown. Copy anything you need before reloading the current saved record.');return;}
     // Saving work does not save the tax agreement. Preserve its local review
     // through our own returned revision rather than silently clearing it.
@@ -195,23 +198,35 @@ export default function InvoiceDraft({
         reviewed: true,
       };
       const fingerprint = JSON.stringify(value);
-      if (retry.current?.fingerprint !== fingerprint)
-        retry.current = { fingerprint, key: crypto.randomUUID() };
+      if (!issuanceAttempt.current) {
+        if (retry.current?.fingerprint !== fingerprint)
+          retry.current = { fingerprint, key: crypto.randomUUID() };
+        issuanceAttempt.current={body:JSON.stringify({...value,key:retry.current.key}),totalCents:value.totalCents};
+      }
+      const attempt=issuanceAttempt.current;
       const response = await sessionFetch("/api/commands", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...value, key: retry.current.key }),
+        body: attempt.body,
       });
       const data = await response.json();
-      if (!response.ok) throw Error(data.error);
+      if (!response.ok) {
+        if(response.status>=400&&response.status<500&&!issuanceUnknown){issuanceAttempt.current=null;retry.current=null;}
+        throw Error(data.error);
+      }
+      if(data.ok!==true)throw Error("UNVERIFIED");
+      confirmInvoiceIssued(data.result,attempt.totalCents);
       if(!mounted.current||currentTarget.current!==target)return;
-      retry.current = null;
+      issuanceAttempt.current=null;setIssuanceUnknown(false);retry.current = null;
       setMessage(
         "Invoice approved and issued. Review the invoice below and separately request email delivery.",
       );
       saved();
     } catch (error) {
-      if(mounted.current&&currentTarget.current===target)setMessage(publicError(error));
+      if(mounted.current&&currentTarget.current===target){
+        if(issuanceAttempt.current){setIssuanceUnknown(true);setMessage("Invoice issuance is unconfirmed. The original approval and retry key are preserved. Check the issued invoices in another tab before retrying this same attempt.");}
+        else setMessage(publicError(error));
+      }
     } finally {
       if(mounted.current&&currentTarget.current===target){setBusy(false);onBusy(false);}
     }
@@ -237,8 +252,9 @@ export default function InvoiceDraft({
       </p>
       {completionUncertain&&<button type="button" disabled={busy} onClick={checkCompletion}>Check saved work</button>}
       {draftUnknown&&<button type="button" disabled={busy} onClick={()=>void replayDraft()}>Check saved draft result</button>}
+      {issuanceUnknown&&<div className="card" role="status"><p>Invoice approval is unconfirmed. No new approval can be started until this exact attempt is resolved.</p><a target="_blank" rel="noopener noreferrer" href={"/owner?"+new URLSearchParams({section:"Money"})}>Inspect issued invoices in another tab</a><button type="button" disabled={busy} onClick={()=>void approve()}>Retry exact original approval</button></div>}
       <form onSubmit={save}>
-        <fieldset disabled={busy || blocked || draftUnknown || completionUncertain || !loaded}>
+        <fieldset disabled={busy || blocked || draftUnknown || completionUncertain || issuanceUnknown || !loaded}>
           <legend>{completed?"Invoice draft":"Work record"}</legend>
           {!loaded && (
             <p role="status">
