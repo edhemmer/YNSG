@@ -29,12 +29,20 @@ export function previewMileage(raw:unknown){
 }
 export function sumConfirmedBusinessMiles(entries:unknown[]){
  const parsed=entries.map(entry=>mileageEntry.parse(entry));
- const seen=new Set<string>();let miles=0;
+ const seen=new Set<string>();const businessTrips: MileageEntry[]=[];let miles=0;
  for(const trip of parsed){
   const key=trip.organizationId+':'+trip.id;
   if(seen.has(key))throw Error('DUPLICATE_TRIP');
   seen.add(key);
-  if(trip.businessUse==='business')miles+=trip.odometerEnd-trip.odometerStart;
+  if(trip.businessUse==='business'){
+   // Flag potentially double-counted odometer intervals; do not silently inflate totals.
+   const conflict=businessTrips.some(other=>other.organizationId===trip.organizationId &&
+    other.tripDate===trip.tripDate && other.vehicleLabel.trim().toLowerCase()===trip.vehicleLabel.trim().toLowerCase() &&
+    trip.odometerStart<other.odometerEnd && other.odometerStart<trip.odometerEnd);
+   if(conflict)throw Error('OVERLAPPING_BUSINESS_MILEAGE');
+   businessTrips.push(trip);
+   miles+=trip.odometerEnd-trip.odometerStart;
+  }
  }
  if(!Number.isSafeInteger(miles))throw Error('MILEAGE_OVERFLOW');
  return miles;
