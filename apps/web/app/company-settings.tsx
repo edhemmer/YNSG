@@ -83,8 +83,10 @@ function template(name: string, organization: string): CompanySettings {
       ownerName: organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" ? "Ed Hemmer" : null,
       logoUrl: "https://www.yourneighborhoodserviceguy.com/assets/logo.jpg",
     },
-    sender: "edhemmer@gmail.com",
-    notificationRecipient: "edhemmer@gmail.com",
+    // A new franchise tenant must supply its own verified message routing.
+    // Only the original business may default to the founder's contact.
+    sender: organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" ? "edhemmer@gmail.com" : "",
+    notificationRecipient: organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" ? "edhemmer@gmail.com" : "",
     intakeEnabled: false,
     hourly: {
       standardCents: 6000,
