@@ -4,7 +4,7 @@ import {verifyImageBytes,validCustomerFilePath,customerFileRecord,customerFileRe
 const org='20000000-0000-4000-8000-000000000001',id='30000000-0000-4000-8000-000000000001';
 test('private object identity is exactly scoped to customer organization and reserved UUID',()=>{
  assert.ok(validCustomerFilePath(org,id,org+'/'+id));
- for(const bad of ['../'+id,org+'/'+id+'/../another',org+'/other',id,'',org.toUpperCase()+'/'+id])
+ for(const bad of ['../'+id,org+'/'+id+'/../another',org+'/other',id,'','A0000000-0000-4000-8000-000000000001/'+id])
   assert.equal(validCustomerFilePath(org,id,bad),false);
 });
 test('attachment binary signatures fail closed for spoofed mime, empty and truncated content',()=>{
