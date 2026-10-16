@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {existsSync,readFileSync} from 'node:fs';
+import {join,resolve} from 'node:path';
+const root=resolve('.');
+const doc=readFileSync('docs/production/feature-inventory-2026-10-15.md','utf8');
+const paths=[...doc.matchAll(/`([^`\n]+)`/g)].map(m=>m[1]).filter(p=>/\.(?:ts|tsx|js|mjs|sql|css)$/.test(p));
+const places=(name)=>[name,'apps/web/app/'+name,'apps/web/lib/'+name,'apps/web/app/api/'+name,'supabase/migrations/'+name];
+const missing=[...new Set(paths.filter(p=>!places(p).some(candidate=>existsSync(join(root,candidate)))))];
+const gates=JSON.parse(readFileSync('contracts/production-completion.json','utf8')).gates;
+const reqs=[...new Set(gates.flatMap(g=>g.requirements))];
+assert.equal(gates.length,28,'All original production gates remain required');
+assert.deepEqual(missing,[],'Every source path named by the inventory must resolve');
+const scope=readFileSync('docs/governance.md','utf8');
+assert.ok(scope.length>0);
+console.log('PASS source inventory: '+paths.length+' file references resolve; '+reqs.length+' requirement IDs; '+gates.length+' gates remain. This is not runtime acceptance.');
