@@ -44,7 +44,7 @@ export default function RepeatRequest({organization,onSaved}:{organization:strin
    retry.current=null;setUnknown(false);setSaved(true);
    try{onSaved()}catch{setError('Your request is saved, but your account overview could not refresh. Refresh the account overview to see the latest request.');}
   }catch{if(activeOrg.current===org&&generation.current===attemptGeneration){if(retry.current)retry.current.uncertain=true;setUnknown(true);setError('We could not confirm whether your request was saved. Do not send a different request. Use Check saved request result to safely retry the exact same submission.');}}
-  finally{sending.current=false;if(activeOrg.current===org&&generation.current===attemptGeneration)setBusy(false;}
+  finally{sending.current=false;if(activeOrg.current===org&&generation.current===attemptGeneration)setBusy(false);
  }
  async function submit(e:React.FormEvent){e.preventDefault();if(sending.current||busy||unknown||saved||!address||!chosenContact||!selected.length)return;
   const payload={organization,contact:chosenContact.id,property:address.id,input:{services:selected,description,preferredTime,communityRate},key:crypto.randomUUID()};
