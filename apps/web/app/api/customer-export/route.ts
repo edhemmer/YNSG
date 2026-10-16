@@ -44,6 +44,10 @@ export async function GET(request:Request){
   if(JSON.stringify({customer:latest.customer,contacts:latest.contacts,properties:latest.properties,requests:latest.requests,history:latest.history,requestsMore:latest.requestsMore,historyMore:latest.historyMore})!==
      JSON.stringify({customer:initial.customer,contacts:initial.contacts,properties:initial.properties,requests:initial.requests,history:initial.history,requestsMore:initial.requestsMore,historyMore:initial.historyMore}))
    throw Error('CHANGED');
+  const key=crypto.randomUUID();
+  const audit=await db.rpc('audit_customer_export',{p_org:organization,p_customer:customer,p_key:key});
+  const proof=z.object({logged:z.literal(true),customer:z.uuid(),key:z.uuid()}).strict().safeParse(audit.data);
+  if(audit.error||!proof.success||proof.data.customer!==customer||proof.data.key!==key)throw Error('UNVERIFIED');
   // No private file URLs, access invitations, credentials, or third-party records.
   return new Response(JSON.stringify({format:'ynsg-customer-record-v1',exportedAt:new Date().toISOString(),organization,customer:initial.customer,contacts:initial.contacts,properties:initial.properties,requests,history,scope:'Customer CRM profile, addresses, contacts, linked request summaries and change history. Excludes uploaded document bytes, financial ledgers and third-party messages.'},null,2),{status:200,headers});
  }catch(e){
