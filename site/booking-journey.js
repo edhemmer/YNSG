@@ -34,7 +34,7 @@ export function bookingJourney({form,services,requestData}){
  form.querySelector('#calendar-clear').addEventListener('click',()=>{if(locked())return;arrange=true;hadTime=false;show(3);});
  form.addEventListener('appointment-selection-changed',refresh);form.addEventListener('input',refresh);form.addEventListener('change',refresh);
  form.addEventListener('submit',event=>{if(step<3&&!locked()){event.preventDefault();event.stopImmediatePropagation();advance();}},true);
- form.addEventListener('invalid',event=>{const stage=event.target.closest('[data-stage]');if(stage&&!locked())show(Number(stage.dataset.stage),false);},true);
+ form.addEventListener('invalid',event=>{const stage=event.target.closest('[data-stage]');if(stage&&!locked()){show(Number(stage.dataset.stage),false);event.target.focus({preventScroll:true});event.target.scrollIntoView?.({block:'nearest'});}},true);
  form.addEventListener('appointment-conflict',()=>{arrange=false;if(!locked())show(services().length?2:1);refresh();});
  if(form.dataset.deliveryUnknown==='true')show(3,false);else show(1,false);
  refresh();return {refresh};
