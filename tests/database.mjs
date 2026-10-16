@@ -34,6 +34,7 @@ try {
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/mail-dispatch.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/owner-blocks.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/account-invitations.sql','utf8'));
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/private-customer-files.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/platform-admin.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/invoice-waivers.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/invoice-zero.sql','utf8'));
