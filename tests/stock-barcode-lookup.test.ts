@@ -41,3 +41,15 @@ test('purchase without an attached receipt never advertises receipt evidence',()
  assert.equal(v.priceSource,'recorded-purchase');
  assert.equal(v.receiptSource,null);
 });
+
+test('duplicate purchase lot identity cannot double count stock or source cost',()=>{
+ assert.throws(()=>lookupPurchasedItem(request,[product],[lot,{...lot,quantityRemaining:20}]),/DUPLICATE_PURCHASE_LOT/);
+});
+test('each available lot reports its own receipt evidence instead of borrowing another lot receipt',()=>{
+ const second={...lot,id:'40000000-0000-4000-8000-000000000001',receiptId:null,pretaxCents:870};
+ const v=lookupPurchasedItem(request,[product],[lot,second]);
+ assert.equal(v.lots[0]?.receiptSource,'private-company-record');
+ assert.equal(v.lots[1]?.receiptSource,null);
+ assert.equal(v.lots[1]?.receiptId,null);
+ assert.equal(v.needsLotSelection,true);
+});
