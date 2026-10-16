@@ -28,7 +28,7 @@ export function previewMileage(raw:unknown){
   recordedSource:v.recordedSource,jobId:v.jobId};
 }
 export function sumConfirmedBusinessMiles(entries:unknown[]){
- const parsed=entries.map(mileageEntry.parse);
+ const parsed=entries.map(entry=>mileageEntry.parse(entry));
  const seen=new Set<string>();let miles=0;
  for(const trip of parsed){
   const key=trip.organizationId+':'+trip.id;
