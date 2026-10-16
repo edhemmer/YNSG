@@ -8,10 +8,10 @@ select pg_temp.assert_true(private.customer_file_object_permission('20000000-000
 select pg_temp.assert_true(not private.customer_file_object_permission('another/path','insert'),'unknown path refused');
 select pg_temp.assert_true((public.list_customer_files('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001'))='[]'::jsonb,'pending object not public to list');
 reset role;
-create temp table pg_temp.saved_customer_file_path as select object_path from private.customer_supporting_files;
+select set_config('ynsg.qa_saved_file_path',(select object_path from private.customer_supporting_files limit 1),true);
 set local role authenticated;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000004","session_id":"10000000-0000-4000-8000-000000000004","aal":"aal1"}',true);
-select pg_temp.assert_true(not private.customer_file_object_permission('20000000-0000-4000-8000-000000000001/'||(select split_part(object_path,'/',2) from pg_temp.saved_customer_file_path limit 1),'insert'),'other actor denied upload');
+select pg_temp.assert_true(not private.customer_file_object_permission('20000000-0000-4000-8000-000000000001/'||split_part(current_setting('ynsg.qa_saved_file_path'), '/',2),'insert'),'other actor denied upload');
 do $assert$begin begin perform public.list_customer_files('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001');raise exception 'TEST FAILED non-owner list';exception when insufficient_privilege then null;end;end$assert$;
 reset role;
 rollback;
