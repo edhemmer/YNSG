@@ -2,7 +2,7 @@
   "observedOn": "2026-10-16",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
   "sourceBranch": "codex/crm-workflow",
-  "sourceCommit": "42621f22a5143e5a7fc71449e2abb20fac6db9fd",
+  "sourceCommit": "00eee3bd344116431f0dd73c4d5aba1cb2148223",
   "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
   "repositoryMigrations": [
     {
@@ -309,6 +309,11 @@
       "file": "20261015120508_customer_record_author_index.sql",
       "historyVersion": "20261015121246",
       "name": "customer_record_author_index"
+    },
+    {
+      "file": "20261016180500_customer_delegation_revocation.sql",
+      "name": "customer_delegation_revocation",
+      "historyVersion": "20261016173740"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -339,14 +344,6 @@
     {
       "name": "silent_website_quotas",
       "historyVersion": "20261005123109"
-    }
-  ],
-  "pendingUnappliedMigrations": [
-    {
-      "file": "20261016180500_customer_delegation_revocation.sql",
-      "name": "customer_delegation_revocation",
-      "status": "not_applied_to_connected_supabase",
-      "reason": "Await controlled migration review and deployment; never misreport live parity."
     }
   ]
 }
