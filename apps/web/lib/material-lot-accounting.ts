@@ -26,6 +26,7 @@ export function previewMaterialUse(rawLot:unknown,rawUsage:unknown){
  if(usage.unitsUsed>lot.quantityRemaining)throw Error('MATERIAL_STOCK_SHORTAGE');
  // Allocate tax already paid within source cost. Do not bill it as a new sales tax.
  const total=lot.pretaxCents+lot.taxPaidCents;
+ if(!Number.isSafeInteger(total))throw Error('MATERIAL_COST_OVERFLOW');
  const before=lot.purchasedUnits-lot.quantityRemaining;
  const allocated=(n:number)=>Math.floor(total*n/lot.purchasedUnits);
  const costCents=allocated(before+usage.unitsUsed)-allocated(before);
