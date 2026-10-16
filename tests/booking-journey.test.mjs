@@ -30,5 +30,5 @@ test('unknown delivery recovery keeps the final stage and prevents navigation or
 });
 test('invalid details become visible and Enter advances the current step rather than submitting early',()=>{
  const h=harness();h.select();let submissions=0;h.form.addEventListener('submit',()=>submissions++);const event=new h.dom.window.Event('submit',{cancelable:true,bubbles:true});h.form.dispatchEvent(event);assert.equal(h.stage(),2);assert.equal(submissions,0);assert.equal(event.defaultPrevented,true);
- h.held();h.click('#booking-time-next');h.click('[data-booking-back="2"]');h.form.querySelector('#name').dispatchEvent(new h.dom.window.Event('invalid',{cancelable:true}));assert.equal(h.stage(),3);h.dom.window.close();
+ h.held();h.click('#booking-time-next');h.click('[data-booking-back="2"]');h.form.querySelector('#name').dispatchEvent(new h.dom.window.Event('invalid',{cancelable:true}));assert.equal(h.stage(),3);assert.equal(h.dom.window.document.activeElement,h.form.querySelector('#name'));h.dom.window.close();
 });
