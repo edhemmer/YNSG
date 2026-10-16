@@ -16,7 +16,7 @@ const sql=(input,database='ynsg_test')=>run(['psql','-U','postgres','-d',databas
 const testSource=await readFile('tests/database.mjs','utf8');
 const bootstrap=testSource.match(/await db\.exec\(`([\s\S]*?)`\);/)?.[1];assert.ok(bootstrap,'Auth fixture bootstrap not found');
 await sql(bootstrap);
-await sql("create schema storage;\n create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);\n create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text references storage.buckets(id),name text);\n grant usage on schema storage to authenticated,anon,service_role;\n grant select,insert on storage.objects to authenticated;\n");
+await sql(`create schema storage; create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]); create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text references storage.buckets(id),name text); grant usage on schema storage to authenticated,anon,service_role; grant select,insert on storage.objects to authenticated;`);
 for(const path of (await readdir('supabase/migrations')).filter(p=>p.endsWith('.sql')).sort())await sql(await readFile('supabase/migrations/'+path,'utf8'));
 const foundation=await readFile('tests/foundation.sql','utf8'),prefix=foundation.split('set local role service_role;')[0];
 await sql(foundation);
