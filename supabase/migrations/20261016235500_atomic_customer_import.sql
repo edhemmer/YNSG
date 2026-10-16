@@ -42,7 +42,7 @@ begin
    raise exception 'DUPLICATE_CONTACT';
   end if;
   i:=i+1;
-  created:=private.manage_customer_record(p_org,jsonb_build_object('action','save_contact','customer',p_customer,'revision',c.revision,'record',null,'recordRevision',null,'reason','Approved customer import','value',item),p_key::text||':contact:'||i::text);
+  created:=private.manage_customer_record(p_org,jsonb_build_object('action','save_contact','customer',p_customer,'revision',c.revision,'record',null,'recordRevision',null,'reason','Approved customer import','value',item),md5(p_key::text||':contact:'||i::text)::uuid::text);
   c.revision:=(created->>'revision')::integer;
  end loop;
  i:=0;
@@ -53,7 +53,7 @@ begin
    and t.region=item->>'state' and coalesce(t.postal_code,'')=coalesce(item->>'postalCode',''))
     then raise exception 'DUPLICATE_PROPERTY';end if;
   i:=i+1;
-  created:=private.manage_customer_record(p_org,jsonb_build_object('action','save_property','customer',p_customer,'revision',c.revision,'record',null,'recordRevision',null,'reason','Approved customer import','value',item),p_key::text||':property:'||i::text);
+  created:=private.manage_customer_record(p_org,jsonb_build_object('action','save_property','customer',p_customer,'revision',c.revision,'record',null,'recordRevision',null,'reason','Approved customer import','value',item),md5(p_key::text||':property:'||i::text)::uuid::text);
   c.revision:=(created->>'revision')::integer;
  end loop;
  created:=jsonb_build_object('saved',true,'customer',p_customer,'revision',c.revision,'contactsAdded',jsonb_array_length(p_contacts),'propertiesAdded',jsonb_array_length(p_properties));
