@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { authenticated, sameOrigin, failure } from "../../../lib/session";
+const headers = { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer" };
 const schema = z.discriminatedUnion("action", [
   z
     .object({
@@ -29,7 +30,13 @@ export async function POST(request: Request) {
       { status: 403 },
     );
   try {
-    const v = schema.parse(await request.json());
+    const raw = await request.text();
+    if (Buffer.byteLength(raw, "utf8") > 4096)
+      return NextResponse.json({ error: "Invitation request too large." }, { status: 413, headers });
+    const parsed = schema.safeParse(JSON.parse(raw));
+    if (!parsed.success)
+      return NextResponse.json({ error: "Check the invitation details." }, { status: 400, headers });
+    const v = parsed.data;
     const { db } = await authenticated();
     if (v.action === "invite") {
       const token = randomBytes(32).toString("base64url");
@@ -41,17 +48,18 @@ export async function POST(request: Request) {
         p_hash: hash,
       });
       if (r.error) throw r.error;
+      const receipt = z.object({ expiresAt: z.iso.datetime({ offset: true }) }).passthrough().safeParse(r.data);
+      if (!receipt.success)
+        return NextResponse.json({ error: "Invitation status could not be confirmed. Contact support before sending another invitation." }, { status: 503, headers });
+      const origin = process.env.APP_ORIGIN;
+      if (!origin || !/^https:\/\/[a-z0-9.-]+$/i.test(origin))
+        return NextResponse.json({ error: "Invitation link delivery is unavailable. Contact support." }, { status: 503, headers });
       return NextResponse.json(
         {
-          url: process.env.APP_ORIGIN + "/account#invite=" + token,
-          expiresAt: r.data.expiresAt,
+          url: origin + "/account#invite=" + token,
+          expiresAt: receipt.data.expiresAt,
         },
-        {
-          headers: {
-            "Cache-Control": "no-store",
-            "Referrer-Policy": "no-referrer",
-          },
-        },
+        { headers },
       );
     }
     const token =
@@ -66,11 +74,12 @@ export async function POST(request: Request) {
           error:
             "This invitation could not be connected. Sign in with the invited email, or ask the business for a new invitation.",
         },
-        { status: 403, headers: { "Cache-Control": "no-store" } },
+        { status: 403, headers },
       );
-    const response = NextResponse.json(r.data, {
-      headers: { "Cache-Control": "no-store" },
-    });
+    const claimed = z.object({ organization: z.uuid(), customer: z.uuid() }).passthrough().safeParse(r.data);
+    if (!claimed.success)
+      return NextResponse.json({ error: "Account link result could not be confirmed." }, { status: 503, headers });
+    const response = NextResponse.json(claimed.data, { headers });
     response.cookies.set("ynsg-account-invitation", "", {
       httpOnly: true,
       path: "/api/account-link",
@@ -91,7 +100,7 @@ export async function GET() {
           (await cookies()).get("ynsg-account-invitation")?.value,
         ),
       },
-      { headers: { "Cache-Control": "no-store" } },
+      { headers },
     );
   } catch (e) {
     return failure(e);
