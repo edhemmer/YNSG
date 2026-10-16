@@ -14,13 +14,13 @@ export default function CustomerFiles({organization,customer}:{organization:stri
    const r=await sessionFetch('/api/customer-files?'+new URLSearchParams({organization,customer}),{cache:'no-store'}),data=await r.json();
    if(!r.ok||!Array.isArray(data.files))throw Error('UNAVAILABLE');
    if(id!==generation.current)return;
-   setFiles(data.files);setUnknown(false);frozen.current=null;
+   setFiles(data.files);if(!unknown)frozen.current=null;
   }catch{if(id===generation.current)setError('Attachments could not be verified. Refresh before adding or sharing files.');}
   finally{if(id===generation.current)setLoading(false);}
  }
  useEffect(()=>{setFiles([]);setFile(null);setUnknown(false);frozen.current=null;void reload();return()=>{generation.current++};},[organization,customer]);
  async function submit(){
-  if(sending.current||busy||unknown||loading)return;
+  if(sending.current||busy||loading||(unknown&&!frozen.current))return;
   if(!frozen.current){
    if(!file||file.size>8388608||file.size<8||!['image/png','image/jpeg'].includes(file.type)){setError('Choose a JPG or PNG up to 8 MB.');return;}
    frozen.current={file,purpose,key:crypto.randomUUID()};
@@ -30,12 +30,12 @@ export default function CustomerFiles({organization,customer}:{organization:stri
   try{
    const r=await sessionFetch('/api/customer-files',{method:'POST',body:form}),answer=await r.json();
    if(!r.ok){
-    if(r.status>=400&&r.status<500){frozen.current=null;setError(typeof answer.error==='string'?answer.error:'Attachment rejected.');return;}
+    if(r.status>=400&&r.status<500){if(r.status!==409){frozen.current=null;setUnknown(false);}else setUnknown(true);setError(typeof answer.error==='string'?answer.error:'Attachment rejected.');return;}
     throw Error('UNCERTAIN');
    }
    if(answer.ok!==true||typeof answer.file!=='string')throw Error('UNCERTAIN');
-   setFile(null);setNotice('Attachment saved. Refreshing the private file list.');await reload();
-  }catch{setUnknown(true);setError('The upload result is uncertain. Do not upload again. Refresh attachments to check the saved result.');}
+   setFile(null);setUnknown(false);frozen.current=null;setNotice('Attachment saved. Refreshing the private file list.');await reload();
+  }catch{setUnknown(true);setError('The upload result is uncertain. Review saved attachments, then retry only the same original upload attempt.');}
   finally{sending.current=false;setBusy(false);}
  }
  async function open(id:string){
@@ -52,6 +52,7 @@ export default function CustomerFiles({organization,customer}:{organization:stri
   <p>Visible only to authorized business owners. These files are never public marketing material.</p>
   {error&&<p role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
   <button type="button" className="secondary" disabled={busy||loading} onClick={()=>void reload()}>{loading?'Checking saved files…':'Refresh attachments'}</button>
+  {unknown&&frozen.current&&<button type="button" disabled={busy||loading} onClick={()=>void submit()}>Retry original upload safely</button>}
   <form onSubmit={e=>{e.preventDefault();void submit();}}>
    <fieldset disabled={busy||loading||unknown}><legend>Add one image</legend>
     <label>What is this image?<select value={purpose} onChange={e=>setPurpose(e.target.value)}><option value="job_photo">Job photo</option><option value="receipt">Receipt</option><option value="customer_document">Customer supporting document</option></select></label>
