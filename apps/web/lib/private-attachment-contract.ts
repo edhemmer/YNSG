@@ -27,7 +27,7 @@ export function inspectPrivateAttachment(value:unknown,bytes:Uint8Array){
   'image/webp':/\.webp$/i,
   'application/pdf':/\.pdf$/i,
  };
- if(!allowedExtensions[input.contentType].test(filename))throw Error('ATTACHMENT_EXTENSION_MISMATCH');
+ if(!allowedExtensions[input.contentType]?.test(filename))throw Error('ATTACHMENT_EXTENSION_MISMATCH');
  if(!(bytes instanceof Uint8Array)||bytes.byteLength!==input.bytes||bytes.byteLength>MAX_PRIVATE_ATTACHMENT_BYTES)throw Error('INVALID_ATTACHMENT_SIZE');
  const head=bytes.subarray(0,16);
  const starts=(...signature:number[])=>signature.every((n,i)=>head[i]===n);
