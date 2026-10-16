@@ -1,13 +1,16 @@
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
 import {authenticated,sameOrigin,failure} from '../../../lib/session';
-import {repeatRequest} from '../../../../../packages/contracts/customer-intake';
+import {repeatRequest,repeatRequestContext} from '../../../../../packages/contracts/customer-intake';
 const headers={'Cache-Control':'private, no-store'};
 export async function GET(request:Request){try{
- const org=z.uuid().parse(new URL(request.url).searchParams.get('organization'));
- const {db}=await authenticated();const r=await db.rpc('customer_intake_context',{p_org:org});
- if(r.error)return NextResponse.json({error:'Your saved details are not available for a new request. Contact the business to check your account connection.'},{status:403,headers});
- return NextResponse.json(r.data,{headers});
+ const org=z.uuid().safeParse(new URL(request.url).searchParams.get('organization'));
+ if(!org.success)return NextResponse.json({error:'Choose a valid business.'},{status:400,headers});
+ const {db}=await authenticated();const r=await db.rpc('customer_intake_context',{p_org:org.data});
+ if(r.error){const denied=r.error.code==='42501'||r.error.message==='FORBIDDEN';return NextResponse.json({error:denied?'Your saved details are not available for this business. Contact the business to check your account connection.':'Your saved details could not be loaded. Please try again.'},{status:denied?403:503,headers});}
+ const context=repeatRequestContext.safeParse(r.data);
+ if(!context.success)return NextResponse.json({error:'Your saved details could not be loaded. Please try again.'},{status:503,headers});
+ return NextResponse.json(context.data,{headers});
 }catch(e){return failure(e)}}
 export async function POST(request:Request){
  if(!sameOrigin(request))return NextResponse.json({error:'Request not accepted.'},{status:403,headers});
