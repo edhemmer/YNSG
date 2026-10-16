@@ -39,6 +39,9 @@ export async function POST(request: Request) {
     const v = parsed.data;
     const { db } = await authenticated();
     if (v.action === "invite") {
+      const origin = process.env.APP_ORIGIN;
+      if (!origin || !/^https:\/\/[a-z0-9.-]+$/i.test(origin))
+        return NextResponse.json({ error: "Invitation link delivery is unavailable. Contact support." }, { status: 503, headers });
       const token = randomBytes(32).toString("base64url");
       const hash = createHash("sha256").update(token).digest("hex");
       const r = await db.rpc("invite_customer_account", {
@@ -51,9 +54,6 @@ export async function POST(request: Request) {
       const receipt = z.object({ expiresAt: z.iso.datetime({ offset: true }) }).passthrough().safeParse(r.data);
       if (!receipt.success)
         return NextResponse.json({ error: "Invitation status could not be confirmed. Contact support before sending another invitation." }, { status: 503, headers });
-      const origin = process.env.APP_ORIGIN;
-      if (!origin || !/^https:\/\/[a-z0-9.-]+$/i.test(origin))
-        return NextResponse.json({ error: "Invitation link delivery is unavailable. Contact support." }, { status: 503, headers });
       return NextResponse.json(
         {
           url: origin + "/account#invite=" + token,
