@@ -35,8 +35,8 @@ export function lookupPurchasedItem(rawRequest:unknown,rawProducts:unknown,rawLo
   })),
   needsLotSelection:available.length!==1,
   foundInInventory:available.length>0,
-  priceSource:'recorded-purchase' as const,
-  receiptSource:'private-company-record' as const,
+  priceSource:available.length>0?'recorded-purchase' as const:null,
+  receiptSource:available.some(l=>l.receiptId!==null)?'private-company-record' as const:null,
   invoiceUpdated:false as const,
  };
 }

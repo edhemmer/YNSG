@@ -31,3 +31,10 @@ test('object key is fully server-assigned from three validated UUIDs, never file
  assert.equal(privateAttachmentObjectPath(org,parent,file),org+'/'+parent+'/'+file);
  for(const invalid of ['../other-company','not-a-uuid','','00000000-0000-0000-0000-000000000000/other'])assert.throws(()=>privateAttachmentObjectPath(invalid,parent,file));
 });
+
+test('file extension must match the claimed content type even with a valid signature',()=>{
+ for(const filename of ['invoice.jpg.pdf','receipt.png','photo.webp','photo.jpg.exe']){
+  assert.throws(()=>inspectPrivateAttachment({...meta,filename},jpeg),/ATTACHMENT_EXTENSION_MISMATCH|UNSUPPORTED_ATTACHMENT/);
+ }
+ assert.equal(inspectPrivateAttachment({...meta,filename:'BEFORE.JPEG'},jpeg).filename,'BEFORE.JPEG');
+});

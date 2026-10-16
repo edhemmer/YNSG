@@ -25,6 +25,7 @@ test('two purchases of same barcode retain distinct costs and receipts without g
 test('missing recorded purchase cannot fabricate an actual price',()=>{
  const v=lookupPurchasedItem(request,[product],[]);
  assert.equal(v.foundInInventory,false);assert.equal(v.needsLotSelection,true);assert.equal(v.lots.length,0);
+ assert.equal(v.priceSource,null);assert.equal(v.receiptSource,null);
 });
 test('cross-tenant receipt/lot exposure is blocked before lookup',()=>{
  assert.throws(()=>lookupPurchasedItem(request,[product],[{...lot,organizationId:other}]),/CROSS_TENANT/);
@@ -33,4 +34,10 @@ test('cross-tenant receipt/lot exposure is blocked before lookup',()=>{
 test('returned and exhausted purchases are not available for a new material use',()=>{
  const result=lookupPurchasedItem(request,[product],[{...lot,returnStatus:'returned'},{...lot,id:'40000000-0000-4000-8000-000000000001',quantityRemaining:0}]);
  assert.equal(result.lots.length,0);
+});
+
+test('purchase without an attached receipt never advertises receipt evidence',()=>{
+ const v=lookupPurchasedItem(request,[product],[{...lot,receiptId:null}]);
+ assert.equal(v.priceSource,'recorded-purchase');
+ assert.equal(v.receiptSource,null);
 });
