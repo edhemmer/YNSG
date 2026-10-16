@@ -18,7 +18,7 @@ export default function RepeatRequest({organization,onSaved}:{organization:strin
  const [unknown,setUnknown]=useState(false);
  const [data,setData]=useState<Context|null>(null),[property,setProperty]=useState(''),[contact,setContact]=useState(''),[selected,setSelected]=useState<{service:string;task:string}[]>([]),[description,setDescription]=useState(''),[preferredTime,setPreferredTime]=useState(''),[communityRate,setCommunityRate]=useState('No'),[busy,setBusy]=useState(false),[error,setError]=useState(''),[saved,setSaved]=useState(false);
  const activeOrg=useRef(organization);activeOrg.current=organization;
- const retry=useRef<{body:string}|null>(null);
+ const retry=useRef<{body:string;uncertain:boolean}|null>(null);
  const sending=useRef(false);
  useBlockedEntry('repeat-request:'+organization,busy||unknown);
  useUnsavedEntry('repeat-request:'+organization,!saved&&Boolean(selected.length||description||preferredTime));
@@ -33,7 +33,7 @@ export default function RepeatRequest({organization,onSaved}:{organization:strin
    if(response.status>=400&&response.status<500){
     const result=await response.json().catch(()=>null);
     if(activeOrg.current!==org)return;
-    if(unknown){setError('The earlier request is still unconfirmed. Keep these details and contact the business before sending another request.');return;}
+    if(retry.current?.uncertain){setUnknown(true);setError('The earlier request is still unconfirmed. Keep these details and contact the business before sending another request.');return;}
     retry.current=null;setError(typeof result?.error==='string'?result.error:'The request was rejected. Your details are kept.');return;
    }
    if(!response.ok)throw Error('UNKNOWN');
@@ -42,14 +42,14 @@ export default function RepeatRequest({organization,onSaved}:{organization:strin
    if(activeOrg.current!==org)return;
    retry.current=null;setUnknown(false);setSaved(true);
    try{onSaved()}catch{setError('Your request is saved, but your account overview could not refresh. Refresh the account overview to see the latest request.');}
-  }catch{if(activeOrg.current===org){setUnknown(true);setError('We could not confirm whether your request was saved. Do not send a different request. Use Check saved request result to safely retry the exact same submission.');}}
+  }catch{if(activeOrg.current===org){if(retry.current)retry.current.uncertain=true;setUnknown(true);setError('We could not confirm whether your request was saved. Do not send a different request. Use Check saved request result to safely retry the exact same submission.');}}
   finally{sending.current=false;if(activeOrg.current===org)setBusy(false);}
  }
  async function submit(e:React.FormEvent){e.preventDefault();if(sending.current||busy||unknown||saved||!address||!chosenContact||!selected.length)return;
   const payload={organization,contact:chosenContact.id,property:address.id,input:{services:selected,description,preferredTime,communityRate},key:crypto.randomUUID()};
   const parsed=repeatRequest.safeParse(payload);
   if(!parsed.success){setError('Check the selected work and visit details before sending.');return;}
-  retry.current={body:JSON.stringify(parsed.data)};await sendFrozen();
+  retry.current={body:JSON.stringify(parsed.data),uncertain:false};await sendFrozen();
  }
  return <section className="account-card" aria-label="New service request"><h2>Request service appt</h2>{error&&<p role="alert">{error}</p>}{unknown&&<button type="button" disabled={busy} onClick={()=>void sendFrozen()}>{busy?'Checking saved request…':'Check saved request result'}</button>}{!data&&!error&&<p role="status">Loading your saved details…</p>}{saved?<><p role="status">Your request is saved. We’ll contact you to confirm the work, cost and appointment.</p><button onClick={()=>{setSaved(false);setSelected([]);setDescription('');setPreferredTime('');}}>Start another request</button></>:data&&<form onSubmit={submit}><fieldset disabled={busy||unknown}>
  <legend>Your saved details</legend>{data.properties.length===1?<p>{address?.street}, {address?.city}, {address?.region}</p>:<label>Where would you like the work done?<select required value={property} onChange={e=>{setProperty(e.target.value);setContact('');}}><option value="">Choose your address</option>{data.properties.map(p=><option key={p.id} value={p.id}>{p.street}, {p.city}, {p.region}</option>)}</select></label>}
