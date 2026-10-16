@@ -15,9 +15,9 @@ export function validateMigrationHistoryMap(map, files){
  const source=files.filter(f=>f.endsWith('.sql')).sort();
  const names=new Set(),versions=new Set();
  const saved=map.repositoryMigrations.map(entry=>{
-  assert.match(entry.file,/^\d{14}_[a-z0-9_]+\\.sql$/);
+  assert.match(entry.file,/^\d{14}_[a-z0-9_]+\.sql$/);
   assert.match(entry.historyVersion,/^\d{14}$/);
-  assert.equal(entry.name,entry.file.replace(/^\d+_/,'').replace(/\\.sql$/,''));
+  assert.equal(entry.name,entry.file.replace(/^\d+_/,'').replace(/\.sql$/,''));
   assert.ok(!names.has(entry.name),'Duplicate migration name');
   assert.ok(!versions.has(entry.historyVersion),'Duplicate Supabase history version');
   names.add(entry.name);versions.add(entry.historyVersion);return entry.file;
