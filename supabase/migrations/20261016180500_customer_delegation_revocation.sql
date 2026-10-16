@@ -32,3 +32,16 @@ begin
 end$$;
 revoke all on function public.manage_customer_delegate(uuid,uuid,uuid,text,boolean,boolean) from public,anon,service_role;
 grant execute on function public.manage_customer_delegate(uuid,uuid,uuid,text,boolean,boolean) to authenticated;
+
+-- Read-only owner/customer relationship list; the current customer email is
+-- shown only to authorized company owners and admins.
+create function public.customer_delegates(p_org uuid,p_customer uuid) returns jsonb
+language plpgsql stable security definer set search_path='' as $delegates$
+begin
+ if not private.staff(p_org,array['owner','admin']) then raise exception 'FORBIDDEN' using errcode='42501';end if;
+ if not exists(select 1 from public.customers where organization_id=p_org and id=p_customer) then raise exception 'NOT_FOUND' using errcode='42501';end if;
+ return coalesce((select jsonb_agg(jsonb_build_object('user',a.user_id,'email',u.email,'canApprove',a.can_approve,'canViewBilling',a.can_view_billing,'revoked',a.revoked_at is not null,'expired',a.expires_at is not null and a.expires_at<=now()) order by a.created_at,a.user_id)
+ from public.customer_access a join auth.users u on u.id=a.user_id where a.organization_id=p_org and a.customer_id=p_customer),'[]'::jsonb);
+end$delegates$;
+revoke all on function public.customer_delegates(uuid,uuid) from public,anon,service_role;
+grant execute on function public.customer_delegates(uuid,uuid) to authenticated;
