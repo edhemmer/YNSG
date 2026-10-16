@@ -10,6 +10,8 @@ test('customer portability route refuses incomplete or unstable paginated snapsh
  assert.match(code,/if\(current\.customer\.revision!==initial\.customer\.revision/);
  assert.match(code,/if\(seenRequests\.has\(item\.id\)\)throw Error\('CHANGED'\)/);
  assert.match(code,/if\(seenHistory\.has\(item\.id\)\)throw Error\('CHANGED'\)/);
+ assert.match(code,/const latest=await pages\(0,0\)/);
+ assert.match(code,/contacts:latest\.contacts,properties:latest\.properties/);
  assert.doesNotMatch(code,/service_role|createSignedUrl|download.*storage/i);
 });
 test('customer export UI requires complete scope and exact organization/customer receipt',()=>{
