@@ -29,6 +29,7 @@ do $delegate$begin begin perform public.manage_customer_delegate('20000000-0000-
 reset role;
 update public.customer_access set revoked_at=now() where user_id='00000000-0000-4000-8000-000000000003';
 set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000003","session_id":"10000000-0000-4000-8000-000000000003","aal":"aal1"}',true);
 select public.claim_customer_account(repeat('a',64));
 select pg_temp.assert_true(not private.customer_allowed('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',true,true),'replay cannot restore revoked access');
 reset role;
