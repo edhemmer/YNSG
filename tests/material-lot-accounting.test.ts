@@ -27,3 +27,11 @@ test('cross-company/lot usage, depleted lots and return in progress fail closed'
  assert.throws(()=>previewMaterialUse({...lot,returnStatus:'returned'},use));
  assert.throws(()=>previewMaterialUse({...lot,quantityRemaining:200},use));
 });
+
+test('materials must remain a reviewed quote and cannot be consumed twice in the same preview',()=>{
+ const before=previewMaterialUse(lot,use);
+ const after=previewMaterialUse({...lot,quantityRemaining:50},use);
+ assert.equal(before.recordedCostCents+after.recordedCostCents,800);
+ assert.equal(after.quantityRemainingAfter,0);
+ assert.throws(()=>previewMaterialUse({...lot,quantityRemaining:0},use),/MATERIAL_STOCK_SHORTAGE/);
+});
