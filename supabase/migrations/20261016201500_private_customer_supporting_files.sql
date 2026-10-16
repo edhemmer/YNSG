@@ -75,11 +75,19 @@ begin
 end$read$;
 revoke all on function public.reserve_customer_file(uuid,uuid,uuid,text,text,text,integer,text),public.finalize_customer_file(uuid,uuid),public.list_customer_files(uuid,uuid),public.authorize_customer_file(uuid,uuid) from public,anon,service_role;
 grant execute on function public.reserve_customer_file(uuid,uuid,uuid,text,text,text,integer,text),public.finalize_customer_file(uuid,uuid),public.list_customer_files(uuid,uuid),public.authorize_customer_file(uuid,uuid) to authenticated;
+create function private.customer_file_object_permission(p_path text,p_mode text) returns boolean
+language sql stable security definer set search_path='' as $permission$
+ select exists(select 1 from private.customer_supporting_files f
+ where f.object_path=p_path
+ and ((p_mode='insert' and f.status='pending' and f.actor_id=auth.uid())
+      or (p_mode='select' and f.status='ready'))
+ and private.staff(f.organization_id,array['owner','admin']))
+$permission$;
+revoke all on function private.customer_file_object_permission(text,text) from public,anon,service_role;
+grant execute on function private.customer_file_object_permission(text,text) to authenticated;
 create policy ynsg_customer_file_upload on storage.objects for insert to authenticated with check(
- bucket_id='ynsg-customer-files' and exists(select 1 from private.customer_supporting_files f
- where f.object_path=name and f.status='pending' and f.actor_id=auth.uid() and private.staff(f.organization_id,array['owner','admin']))
+ bucket_id='ynsg-customer-files' and private.customer_file_object_permission(name,'insert')
 );
 create policy ynsg_customer_file_read on storage.objects for select to authenticated using(
- bucket_id='ynsg-customer-files' and exists(select 1 from private.customer_supporting_files f
- where f.object_path=name and f.status='ready' and private.staff(f.organization_id,array['owner','admin']))
+ bucket_id='ynsg-customer-files' and private.customer_file_object_permission(name,'select')
 );
