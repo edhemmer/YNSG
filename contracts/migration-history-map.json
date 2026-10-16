@@ -324,6 +324,11 @@
       "file": "20261016212500_owner_mileage_lifecycle.sql",
       "name": "owner_mileage_lifecycle",
       "historyVersion": "20261016190147"
+    },
+    {
+      "file": "20261016222500_private_file_byte_verification.sql",
+      "name": "private_file_byte_verification",
+      "historyVersion": "20261016190751"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -354,14 +359,6 @@
     {
       "name": "silent_website_quotas",
       "historyVersion": "20261005123109"
-    }
-  ],
-  "pendingUnappliedMigrations": [
-    {
-      "file": "20261016222500_private_file_byte_verification.sql",
-      "name": "private_file_byte_verification",
-      "status": "not_applied_to_connected_supabase",
-      "reason": "Requires exact-head CI before applying pending object validation policy."
     }
   ]
 }
