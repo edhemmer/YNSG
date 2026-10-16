@@ -38,6 +38,12 @@ export async function GET(request:Request){
    historyMore=current.historyMore;
    if(historyMore&&current.history.length===0)throw Error('UNVERIFIED');
   }
+  // Re-fetch the first page before delivering the download: contact/property
+  // edits do not necessarily advance the customer profile revision.
+  const latest=await pages(0,0);
+  if(JSON.stringify({customer:latest.customer,contacts:latest.contacts,properties:latest.properties,requests:latest.requests,history:latest.history,requestsMore:latest.requestsMore,historyMore:latest.historyMore})!==
+     JSON.stringify({customer:initial.customer,contacts:initial.contacts,properties:initial.properties,requests:initial.requests,history:initial.history,requestsMore:initial.requestsMore,historyMore:initial.historyMore}))
+   throw Error('CHANGED');
   // No private file URLs, access invitations, credentials, or third-party records.
   return new Response(JSON.stringify({format:'ynsg-customer-record-v1',exportedAt:new Date().toISOString(),organization,customer:initial.customer,contacts:initial.contacts,properties:initial.properties,requests,history,scope:'Customer CRM profile, addresses, contacts, linked request summaries and change history. Excludes uploaded document bytes, financial ledgers and third-party messages.'},null,2),{status:200,headers});
  }catch(e){
