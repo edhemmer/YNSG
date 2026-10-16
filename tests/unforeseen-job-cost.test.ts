@@ -35,6 +35,7 @@ test('negative incremental contribution is flagged, not hidden',()=>{
  const r=reviewUnforeseenJob({...good,additionalApprovedChargeCents:0});
  assert.ok(r.estimatedIncrementalContributionCents<0);
  assert.ok(r.flags.some(x=>/negative estimated/.test(x)));
+ assert.equal(r.decision,'approval-required');
 });
 test('rejects invalid money, fractional minutes and missing issue description',()=>{
  for(const patch of [{businessMaterialCostCents:-1},{expectedHandsOnMinutes:2.2},{description:' '},{supplyRunMinutes:1000},{ownerLaborCostCentsPerHour:Number.NaN}]){
@@ -48,6 +49,8 @@ test('pre-quote prompts flag unseen supply lines and valves without authorizing 
  assert.ok(p?.questions.some(x=>/corroded valves/.test(x)));
  assert.ok(hiddenConditionPreflight('Home maintenance','Adjust door strike')?.questions.some(x=>/batteries/.test(x)));
  assert.equal(hiddenConditionPreflight('Lawn care','Mow and trim'),null);
+ assert.equal(hiddenConditionPreflight('Yard care','Trim small bushes'),null);
+ assert.ok(hiddenConditionPreflight('Home repairs','Repair baseboard trim')?.questions.length);
 });
 test('profit analysis cannot use zero or missing owner labor cost as a fabricated margin',()=>{
  assert.throws(()=>reviewUnforeseenJob({...good,ownerLaborCostCentsPerHour:0}));

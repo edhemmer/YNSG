@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';const s=readFileSync('apps/web/app/invoice-delivery.tsx','utf8');
+test('email attempts replay serialized body and do not create new request after uncertainty',()=>{assert.match(s,/body:attempt\.current/);assert.match(s,/setUncertain\(true\)/);assert.match(s,/Check saved email request/);assert.match(s,/data\.status!=='not_requested'/);});
+test('a confirmed queue receipt clears pending attempt and UI does not claim inbox delivery',()=>{assert.match(s,/typeof d\?\.delivery\?\.id!=='string'/);assert.match(s,/attempt\.current=null/);assert.match(s,/Inbox receipt is not confirmed/);});

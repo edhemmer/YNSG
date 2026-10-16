@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import {ownerCommandSchema} from "../../../lib/owner-command-contract";
 import { authenticated, sameOrigin, failure } from "../../../lib/session";
 import {validateExpenseReceipt,expenseFailure} from '../../../lib/expense-contract';
+import {ownerRpcFailure,ownerRpcResultConfirmed} from '../../../lib/owner-command-result';
 const expenseHeaders={'Cache-Control':'private, no-store'};
 const messages: Record<string, string> = {
   TAX_REVIEW_REQUIRED:"Review the applicable tax rule and customer-approved total before issuing this invoice.",
@@ -130,20 +132,44 @@ export async function POST(request: Request) {
       if(error)throw Error(error.code==='42501'?'FORBIDDEN':error.message);
       return NextResponse.json({ok:true,result:validateExpenseReceipt(c,data)},{headers:expenseHeaders});
     }
-    if(error&&c.command==='RecordPayment'&&!['P0001','42501','22023','23514','23503'].includes(error.code))return NextResponse.json({error:'The payment result could not be confirmed. Check the saved result before entering another payment.'},{status:503,headers:{'Cache-Control':'no-store'}});
-    if (error)
+    if(c.command==='RecordPayment'){
+      const headers={'Cache-Control':'private, no-store'};
+      if(error){
+        const denied=error.code==='42501';
+        const known=denied||['OVERPAYMENT_REQUIRES_REVIEW','CARD_PAYMENT_PENDING','IDEMPOTENCY_CONFLICT','INVOICE_ALREADY_ISSUED','STALE_REVISION','FORBIDDEN','VALIDATION','NOT_FOUND'].includes(error.message);
+        return NextResponse.json({error:denied?'This account cannot record the payment.':known?(messages[error.message]||'The payment was rejected. Review the invoice before retrying.'):'The payment result could not be confirmed. Check the same saved attempt before entering another payment.'},{status:denied?403:known?409:503,headers});
+      }
+      const receipt=z.object({id:z.uuid()}).passthrough().safeParse(data);
+      if(!receipt.success)return NextResponse.json({error:'The payment result could not be confirmed. Check the same saved attempt before entering another payment.'},{status:503,headers});
+      return NextResponse.json({ok:true,result:data},{headers});
+    }
+    if(c.command==='ApproveInvoice'){
+      const headers={'Cache-Control':'private, no-store'};
+      if(error){
+        const denied=error.code==='42501';
+        const known=denied||['TAX_REVIEW_REQUIRED','TAX_JURISDICTION_MISMATCH','INVOICE_REVIEW_REQUIRED','INVOICE_DRAFT_REQUIRED','INVOICE_TOTAL_CHANGED','INVOICE_ALREADY_ISSUED','STALE_REVISION','SETUP_REQUIRED','CHANGE_ORDER_REQUIRED','TRANSITION','FORBIDDEN','IDEMPOTENCY_CONFLICT'].includes(error.message);
+        return NextResponse.json({error:denied?'This account cannot issue the invoice.':known?(messages[error.message]||'Review the invoice and its saved state before issuing.'):'The invoice issuance result is unknown. Check the same saved attempt before issuing another invoice.'},{status:denied?403:known?409:503,headers});
+      }
+      if(data===null||typeof data!=='object')return NextResponse.json({error:'Invoice issuance could not be confirmed. Check the saved invoice before issuing another.'},{status:503,headers});
+      return NextResponse.json({ok:true,result:data},{headers});
+    }
+    if (error) {
+      const outcome=ownerRpcFailure(error);
       return NextResponse.json(
-        {
-          error:
-            messages[error.message] ||
-            "The action was not committed. Review the record and try again.",
-
-        },
-        { status: error.code === "42501" ? 403 : 409 },
+        { error: outcome.uncertain
+          ? "The saved result could not be confirmed. Check the same request or job before trying another action."
+          : messages[error.message] || "This action was rejected. Review the current record before retrying." },
+        { status: outcome.status, headers: { "Cache-Control": "private, no-store" } },
+      );
+    }
+    if (!ownerRpcResultConfirmed(data))
+      return NextResponse.json(
+        {error:"The saved result could not be confirmed. Check the same request or job before trying another action."},
+        {status:503,headers:{"Cache-Control":"private, no-store"}},
       );
     return NextResponse.json(
       { ok: true, result: data },
-      { headers: { "Cache-Control": "no-store" } },
+      { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (error) {
     if(isExpense){const result=expenseFailure(error);return NextResponse.json({error:result.error},{status:result.status,headers:expenseHeaders});}

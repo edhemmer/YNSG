@@ -22,7 +22,13 @@ export async function POST(request:Request){
  const permission=await db.rpc('mail_delivery_status',{p_org:v.organization});if(permission.error)throw permission.error;
  if(!mailDeliveryReady(permission.data?.enabled===true,await mailTransport(v.organization),process.env.GOOGLE_GMAIL_DELIVERY_ENABLED==='true'))return NextResponse.json({error:'Business email is not ready. Verify the sender and enable notifications in Settings.'},{status:503,headers});
  const r=await db.rpc('request_invoice_delivery',{p_org:v.organization,p_invoice:v.invoice,p_reviewed:v.reviewed,p_key:v.key});
- if(r.error)return NextResponse.json({error:'Invoice email was not queued. Check the issued invoice, recipient and Business email verification.'},{status:409,headers});
- return NextResponse.json({delivery:r.data},{headers});
+ if(r.error){
+  const denied=r.error.code==='42501';
+  const known=denied||['INVOICE_REVIEW_REQUIRED','SETUP_REQUIRED','IDEMPOTENCY_CONFLICT','NOT_FOUND','INVOICE_APPROVAL_REQUIRED','INVOICE_CUSTOMER_DETAILS_REQUIRED','GMAIL_RECEIPT_REQUIRED'].includes(r.error.message);
+  return NextResponse.json({error:denied?'Your account cannot request invoice delivery.':known?'Check the issued invoice, recipient, and business email setup.':'The email queue result is uncertain. Check the same saved attempt before requesting another email.'},{status:denied?403:known?409:503,headers});
+ }
+ const receipt=z.object({id:z.uuid(),status:z.string().min(1)}).passthrough().safeParse(r.data);
+ if(!receipt.success)return NextResponse.json({error:'The email queue result is uncertain. Check the same saved attempt before requesting another email.'},{status:503,headers});
+ return NextResponse.json({delivery:receipt.data},{headers});
  }catch(e){return failure(e)}
 }

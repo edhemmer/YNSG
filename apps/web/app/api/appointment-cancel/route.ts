@@ -10,7 +10,7 @@ export async function POST(request:Request){
   const v=z.object({organizationId:z.uuid(),id:z.uuid(),revision:z.number().int().positive(),reason:z.string().trim().min(2).max(1000),key:z.string().min(16).max(128)}).strict().parse(JSON.parse(raw));
   const {db}=await authenticated();
   const r=await db.rpc('cancel_owner_appointment',{p_org:v.organizationId,p_id:v.id,p_revision:v.revision,p_reason:v.reason,p_key:v.key});
-  if(r.error)return NextResponse.json({error:messages[r.error.message]||'The appointment was not canceled. Refresh and review its current status.'},{status:r.error.code==='42501'?403:409,headers});
+  if(r.error){const denied=r.error.code==='42501',known=denied||Object.hasOwn(messages,r.error.message);return NextResponse.json({error:denied?'Owner access is required.':known?messages[r.error.message]:'The cancellation result is unknown. Check the same saved attempt before another decision.'},{status:denied?403:known?409:503,headers});}
   return NextResponse.json({ok:true,result:r.data},{headers});
  }catch(e){if(e instanceof z.ZodError)return NextResponse.json({error:'Enter a short cancellation reason for the customer.'},{status:400,headers});return failure(e);}
 }

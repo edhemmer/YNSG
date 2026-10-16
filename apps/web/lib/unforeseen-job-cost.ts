@@ -42,7 +42,7 @@ export function reviewUnforeseenJob(raw:unknown):UnforeseenReview{
  if(v.supplyRunMinutes>0)flags.push('Supplier trip time is included as an owner cost; group purchases and confirm stock before driving.');
  if(estimatedIncrementalContributionCents<0)flags.push('The extra work has negative estimated incremental contribution at these assumptions. Review price and options.');
  const decision:UnforeseenReview['decision']=hazardous||!v.safeConditionsConfirmed||!v.permittedByLicenseAndScope
-  ?'stop-refer':extraMinutes>v.minutesBeforeNextCommitment?'reschedule':!v.customerApprovedExtra||!v.materialCompatibilityConfirmed?'approval-required':'review-before-proceed';
+  ?'stop-refer':extraMinutes>v.minutesBeforeNextCommitment?'reschedule':!v.customerApprovedExtra||!v.materialCompatibilityConfirmed||estimatedIncrementalContributionCents<0?'approval-required':'review-before-proceed';
  return {decision,extraMinutes,laborOpportunityCostCents,estimatedIncrementalContributionCents,flags};
 }
 // These are scenario numbers, not authoritative quotes, material orders, invoice lines or licensed-trade determinations.
@@ -64,7 +64,7 @@ export function hiddenConditionPreflight(service:string,task:string):{title:stri
   'Check access, backup entry and whether alignment, dead batteries or old hardware might be the real cause before proposing replacement.',
   'Confirm screw sizes, thickness, backset and installation tools before buying parts; held smart-lock tasks require separate authorization.'
  ],hold:/smart.lock|electronic.lock/.test(name)};
- if(/drywall|shelf|picture|mount|trim|miter|caulk/.test(name))return {title:'Finishing and mounting hidden-condition check',questions:[
+ if(/drywall|shelf|picture|mount|baseboard|miter|caulk|crown.molding|door.trim|window.trim/.test(name))return {title:'Finishing and mounting hidden-condition check',questions:[
   'Ask for photos, measurements, wall type, existing damage and intended load or finished appearance.',
   'Prepare suitable alternative anchors, fasteners, finishes or patch materials after confirming compatibility and approved costs.',
   'Check moisture, utilities, substrate condition and return-visit drying times before promising a one-visit result.'
