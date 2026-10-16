@@ -355,5 +355,13 @@
       "name": "silent_website_quotas",
       "historyVersion": "20261005123109"
     }
+  ],
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261016222500_private_file_byte_verification.sql",
+      "name": "private_file_byte_verification",
+      "status": "not_applied_to_connected_supabase",
+      "reason": "Requires exact-head CI before applying pending object validation policy."
+    }
   ]
 }
