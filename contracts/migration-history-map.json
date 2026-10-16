@@ -319,6 +319,11 @@
       "file": "20261016201500_private_customer_supporting_files.sql",
       "name": "private_customer_supporting_files",
       "historyVersion": "20261016184532"
+    },
+    {
+      "file": "20261016212500_owner_mileage_lifecycle.sql",
+      "name": "owner_mileage_lifecycle",
+      "historyVersion": "20261016190147"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -349,14 +354,6 @@
     {
       "name": "silent_website_quotas",
       "historyVersion": "20261005123109"
-    }
-  ],
-  "pendingUnappliedMigrations": [
-    {
-      "file": "20261016212500_owner_mileage_lifecycle.sql",
-      "name": "owner_mileage_lifecycle",
-      "status": "not_applied_to_connected_supabase",
-      "reason": "Await green exact-head CI and controlled apply"
     }
   ]
 }
