@@ -20,6 +20,9 @@ export function lookupPurchasedItem(rawRequest:unknown,rawProducts:unknown,rawLo
  const lots=z.array(materialPurchaseLot).max(10000).parse(rawLots);
  // Never let a caller-supplied list mix another company's private receipts or costs.
  if(products.some(p=>p.organizationId!==request.organizationId)||lots.some(l=>l.organizationId!==request.organizationId))throw Error('CROSS_TENANT_MATERIAL');
+ // Duplicate purchase-lot IDs cannot be interpreted as independent stock or receipts.
+ const lotIds=new Set(lots.map(l=>l.id));
+ if(lotIds.size!==lots.length)throw Error('DUPLICATE_PURCHASE_LOT');
  const matchingProducts=products.filter(p=>parseProductBarcode(p.barcode).gtin14===code);
  if(matchingProducts.length!==1)throw Error(matchingProducts.length?'PRODUCT_DUPLICATE':'PRODUCT_NOT_FOUND');
  const item=matchingProducts[0]!;
@@ -32,6 +35,7 @@ export function lookupPurchasedItem(rawRequest:unknown,rawProducts:unknown,rawLo
    lotId:l.id,quantityRemaining:l.quantityRemaining,purchasedUnits:l.purchasedUnits,
    unitName:l.unitName,pretaxCents:l.pretaxCents,taxPaidCents:l.taxPaidCents,
    totalPaidCents:l.pretaxCents+l.taxPaidCents,receiptId:l.receiptId,
+   receiptSource:l.receiptId!==null?'private-company-record' as const:null,
   })),
   needsLotSelection:available.length!==1,
   foundInInventory:available.length>0,
