@@ -19,3 +19,16 @@ test('request details explain Community Rate while preserving the original Yes N
  assert.match(pricing,/name="communityRate" value="No" checked/);
  assert.match(pricing,/confirm eligibility and pricing/);
 });
+
+test('homepage service cards open matching service details instead of starting a booking',()=>{
+ const home=readFileSync('site/pages/home.html','utf8');
+ const services=readFileSync('site/pages/services.html','utf8');
+ const anchors=["help-around-the-home","lawn-care","yard-and-garden","snow-clearing","concrete-washing","something-else"];
+ assert.equal((home.match(/class="home-service" href="\/services\/#/g)||[]).length,anchors.length);
+ assert.doesNotMatch(home,/class="home-service" href="\/request\//);
+ for(const id of anchors){
+  assert.match(home,new RegExp('class="home-service" href="/services/#'+id+'"'));
+  assert.match(services,new RegExp('<article id="'+id+'">'));
+ }
+ assert.doesNotMatch(services,/Request service appt(?:\\s|<)/);
+});
