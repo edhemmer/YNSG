@@ -49,7 +49,7 @@ export default function MonthCalendar({organization,timezone,revision,onOpen}:{o
    <button type="button" className="secondary" disabled={month==='2000-01'} onClick={()=>move(-1)} aria-label={"Previous "+view}>← Previous</button>
    <button type="button" className="secondary" onClick={()=>{setMonth(today.slice(0,7));setDay(today);}}>Today</button>
    <button type="button" className="secondary" disabled={month==='2100-12'} onClick={()=>move(1)} aria-label={"Next "+view}>Next →</button>
-   <button type="button" className="secondary" disabled={busy} onClick={()=>setReload(n=>n+1)}>Refresh calendar</button>
+   <button type="button" className="secondary" disabled={busy} onClick={()=>setReload(n=>n+1)} aria-label="Refresh calendar">↻ Refresh</button>
   </div></div>
   <div className="calendar-view-bar"><div className="filter-tabs" role="group" aria-label="Calendar view">{(["month","week","day"] as const).map(v=><button key={v} aria-pressed={view===v} onClick={()=>setView(v)}>{v[0].toUpperCase()+v.slice(1)}</button>)}</div><label className="check tiny"><input type="checkbox" checked={history} onChange={e=>setHistory(e.target.checked)}/>Show previous outcomes</label></div><p className="tiny">Press a visit to manage the request and appointment here. All times use {timezone}.</p>
   <div className="calendar-key" aria-label="Service colors">{[['home','Home'],['lawn','Lawn'],['garden','Yard & garden'],['snow','Snow'],['wash','Pressure washing'],['other','Other / mixed']].map(([tone,text])=><span className={'calendar-tone-'+tone} key={tone}>{text}</span>)}</div>
