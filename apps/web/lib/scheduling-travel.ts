@@ -8,7 +8,7 @@ export async function schedulingTravel(db:SupabaseClient,org:string,requestId:st
  const request=await db.from('service_requests').select('original_submission').eq('organization_id',org).eq('id',requestId).single();if(request.error)throw Error('ROUTE_UNAVAILABLE');
  const address=(r:Record<string,string>)=>[r.street,r.city,r.state||r.region,r.zip||r.postal_code||r.postalCode].filter(Boolean).join(', '),destination=address(request.data.original_submission);if(!request.data.original_submission?.street||!request.data.original_submission?.city)throw Error('ROUTE_ADDRESS_REQUIRED');
  const sameAddress=(a:string,b:string)=>a.toLowerCase().replace(/[^a-z0-9]/g,'')===b.toLowerCase().replace(/[^a-z0-9]/g,'');
- const dayStart=localMinute(start,timezone).slice(0,10),windowStart=new Date(localInstant(dayStart+'T00:00',timezone)).toISOString(),windowEnd=new Date(localInstant(addDays(dayStart,1)+'T00:00',timezone)).toISOString();
+ const dayStart=localMinute(start,timezone).slice(0,10),windowStart=new Date(localInstant(addDays(dayStart,-1)+'T00:00',timezone)).toISOString(),windowEnd=new Date(localInstant(addDays(dayStart,2)+'T00:00',timezone)).toISOString();
  const reservations=await db.from('resource_reservations').select('appointment_id,resource_id',{count:'exact'}).eq('organization_id',org).eq('active',true).in('resource_id',operators).overlaps('during',`[${windowStart},${windowEnd})`).range(0,999);
  if(reservations.error||reservations.count===null||reservations.count!==reservations.data.length)throw Error('ROUTE_UNAVAILABLE');
  const ids=[...new Set(reservations.data.map(r=>r.appointment_id))].filter(id=>id!==appointmentId);if(!ids.length)return {before:0,after:0,status:'verified' as const};
@@ -18,6 +18,7 @@ export async function schedulingTravel(db:SupabaseClient,org:string,requestId:st
  for(const operator of operators){
   const relevant=new Set(reservations.data.filter(r=>r.resource_id===operator).map(r=>r.appointment_id));
   const day=appointments.data.filter(a=>relevant.has(a.id));
+  if(day.some(a=>Date.parse(a.start_at)<end&&Date.parse(a.end_at)>start))throw Error('ROUTE_TRAVEL_CONFLICT');
   const previous=day.filter(a=>Date.parse(a.end_at)<=start).sort((a,b)=>Date.parse(b.end_at)-Date.parse(a.end_at))[0];
   const next=day.filter(a=>Date.parse(a.start_at)>=end).sort((a,b)=>Date.parse(a.start_at)-Date.parse(b.start_at))[0];
   for(const [side,a] of [['before',previous],['after',next]] as const){if(!a)continue;
