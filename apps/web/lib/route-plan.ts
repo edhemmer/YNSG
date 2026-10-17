@@ -8,13 +8,14 @@ const sameStop=(a:string,b:string)=>a.trim().toLowerCase().replace(/[^a-z0-9]/g,
 // sharing the last stop of each segment so no appointment disappears.
 export function dayRouteUrls(calls:Pick<DayCall,'address'>[]):string[]{
  if(calls.some(c=>!c.address.trim()))return [];
+ if(calls.length<2)return calls.length===1?[`https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${encodeURIComponent(calls[0]!.address)}`]:[];
  const urls:string[]=[];
  for(let start=0;start<calls.length;start+=4){
   const segment=calls.slice(start,start+5);if(!segment.length)break;
   const url=new URL('https://www.google.com/maps/dir/');url.searchParams.set('api','1');url.searchParams.set('travelmode','driving');
   url.searchParams.set('destination',segment.at(-1)!.address);
-  if(start>0)url.searchParams.set('origin',segment[0]!.address);
-  const via=segment.slice(start>0?1:0,-1).map(c=>c.address);if(via.length>3){url.searchParams.set('origin',segment[0]!.address);via.shift();}
+  url.searchParams.set('origin',segment[0]!.address);
+  const via=segment.slice(1,-1).map(c=>c.address);
   if(via.length)url.searchParams.set('waypoints',via.join('|'));urls.push(url.toString());if(start+5>=calls.length)break;
  }return urls;
 }
