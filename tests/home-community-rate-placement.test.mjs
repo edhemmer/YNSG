@@ -7,6 +7,9 @@ test('homepage focuses on appointments rather than publishing hourly prices',()=
  assert.doesNotMatch(home,/Community Rate|\$45\/hour|\$60\/hour|two-hour minimum/i);
  assert.match(home,/confirm the price with you before scheduling/);
  assert.match(home,/>Request service appointment(?:\s|<)/);
+ const build=readFileSync('scripts/build.mjs','utf8');
+ assert.doesNotMatch(build,/nav-request-short[^>]*>Request appt</);
+ assert.match(build,/nav-request-short[^>]*>Request service appointment</);
 });
 test('request details explain Community Rate while preserving the original Yes No input contract',()=>{
  const form=readFileSync('site/pages/form.html','utf8');
