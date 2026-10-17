@@ -2,6 +2,18 @@
 
 Use the [charter](README.md) and [execution protocol](execution.md). Record case ID, candidate SHA, environment, tester/device, observed result, evidence reference and pass/fail. A failure gets a linked defect and affected gate; a proposed fix or screenshot alone is not a pass. No full-gate approval based solely on synthetic fixtures.
 
+## Owner verification progress — October 17, 2026
+
+The owner reports that the first three items on the verification list have been checked and that CRM routing and scheduling issues were discovered. **Checked means exercised, not accepted or passed.** Record the actual device, outcome, defect and evidence for each before closing the corresponding gate.
+
+| Case | Owner progress | Acceptance | Follow-up |
+| --- | --- | --- | --- |
+| A01 — Public site/service navigation | Checked by owner (reported) | Not formally accepted | Capture device/result evidence; owner reports public pages look good enough for launch, with future visual polish deferred |
+| A02 — Availability/calendar/appointment selection | Checked by owner (reported) | Open — scheduling issues reported | Reconcile offered times against final route checks, buffers, actual customer address and adjacent visits |
+| A03 — Hold/race/retry resilience | Checked by owner (reported) | Not verified as passed | Obtain isolated race, expiry, disconnected submission and duplicate-submit evidence; do not treat owner check as proof all edge cases passed |
+
+**Known CRM follow-up:** The owner reported an unexplained travel-time conflict on a proposed October 19 appointment. Routing fixes and repository checks do not establish that the live appointment was correctly evaluated. Verify actual neighboring appointments, operator, departure times, addresses, routing-provider response, buffers and final approval behavior without modifying live bookings for testing.
+
 ## Setup and evidence safety
 
 Engineering first prepares an isolated compatible environment and synthetic records; it must not silently connect staging workers to production mail/APNs/Calendar. A Vercel preview pointing at production is not an isolated staging database. Only approved recipients receive controlled messages. Actual agreed service, tax approval, work completion and funds are owner actions on real facts; never create these in production to satisfy a test. Production evidence remains private/sanitized. Existing authorized earlier test evidence may be reviewed for current applicability rather than repeated without cause.
