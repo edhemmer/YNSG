@@ -45,6 +45,10 @@ jobs:
           pnpm install --frozen-lockfile
       - name: Check contracts, permissions, application tests and browser dependency security
         run: npm run verify:release
+      - name: Build production public website and CRM
+        run: |
+          node scripts/build.mjs
+          pnpm --dir apps/web exec next build
       - name: Install isolated locked native dependencies
         run: pnpm --dir apps/mobile install --frozen-lockfile
       - name: Verify native types, lint, SDK and iOS JavaScript bundle
