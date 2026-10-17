@@ -22,7 +22,8 @@ export function dayRouteUrls(calls:Pick<DayCall,'address'>[]):string[]{
 export async function buildRoutePlan(calls:DayCall[],provider:RouteProvider|null,now=new Date()):Promise<RoutePlan>{
  const route:RoutePlan={legs:[],warnings:[],grouping:[],complete:true,mapsUrls:dayRouteUrls(calls)};
  if(calls.some(c=>c.status!=='reserved')){route.complete=false;route.warnings.push('Visits needing review are excluded from travel estimates. Confirm them before planning the route.');}
- const booked=calls.filter(c=>c.status==='reserved');route.mapsUrls=dayRouteUrls(booked);
+ const booked=calls.filter(c=>c.status==='reserved').sort((a,b)=>Date.parse(a.startAt)-Date.parse(b.startAt));route.mapsUrls=dayRouteUrls(booked);
+ if(booked.some(c=>c.arrivalAt!==c.startAt)){route.complete=false;route.mapsUrls=[];route.warnings.push('Supplier pickup needs its own location. Review the route before departure.');}
  if(booked.some(c=>!c.address.trim()||!c.address.includes(','))){route.complete=false;route.mapsUrls=[];route.warnings.push('One or more confirmed visits have incomplete addresses. Check all locations before opening directions.');}
  if(booked.some(c=>!Number.isFinite(Date.parse(c.startAt))||!Number.isFinite(Date.parse(c.endAt))||!Number.isFinite(Date.parse(c.arrivalAt))||Date.parse(c.endAt)<=Date.parse(c.startAt))){route.complete=false;route.mapsUrls=[];route.warnings.push('One or more confirmed visits have invalid appointment times. Review the schedule before departure.');}
  if(booked.length>12){route.complete=false;route.warnings.push('Travel estimates support up to 12 confirmed visits per day. All visits remain listed.');return route;}
