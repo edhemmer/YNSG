@@ -23,7 +23,7 @@ export async function schedulingTravel(db:SupabaseClient,org:string,requestId:st
   const next=day.filter(a=>Date.parse(a.start_at)>=end).sort((a,b)=>Date.parse(a.start_at)-Date.parse(b.start_at))[0];
   for(const [side,a] of [['before',previous],['after',next]] as const){if(!a)continue;
    if(a.arrival_at!==a.start_at)throw Error('ROUTE_PICKUP_REVIEW');
-   const linked=Array.isArray(a.request)?a.request[0]:a.request,other=address(linked?.original_submission||{});if(!other)throw Error('ROUTE_ADDRESS_REQUIRED');
+   const linked=Array.isArray(a.request)?a.request[0]:a.request,other=address(linked?.original_submission||{});if(!linked?.original_submission?.street||!linked?.original_submission?.city)throw Error('ROUTE_ADDRESS_REQUIRED');
    const departure=side==='before'?Date.parse(a.end_at):end;if(departure<=Date.now())throw Error('ROUTE_DEPARTURE_PAST');
    if(!provider&&!sameAddress(other,destination))throw Error('ROUTE_UNAVAILABLE');
    const estimate=sameAddress(other,destination)?Promise.resolve({minutes:0,meters:0}):provider!(side==='before'?other:destination,side==='before'?destination:other,new Date(departure).toISOString());
