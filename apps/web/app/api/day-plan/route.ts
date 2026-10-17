@@ -103,7 +103,7 @@ export async function GET(request: Request) {
           name: r.name || "Customer name needs review",
           phone: r.phone || "",
           email: r.email || "",
-          address: [r.street, r.city].filter(Boolean).join(", "),
+          address: [r.street, r.city, r.state || r.region, r.zip || r.postal_code || r.postalCode].filter(Boolean).join(", "),
           tasks: requestedTasks(r),
           workItems: r.services?.length
             ? r.services.map((item: { service: string; task?: string }) => ({
