@@ -21,8 +21,10 @@ export function dayRouteUrls(calls:Pick<DayCall,'address'>[]):string[]{
 }
 export async function buildRoutePlan(calls:DayCall[],provider:RouteProvider|null,now=new Date()):Promise<RoutePlan>{
  const route:RoutePlan={legs:[],warnings:[],grouping:[],complete:true,mapsUrls:dayRouteUrls(calls)};
- if(calls.some(c=>c.status!=='reserved'))route.warnings.push('Visits needing review are excluded from travel estimates. Confirm them before planning the route.');
+ if(calls.some(c=>c.status!=='reserved')){route.complete=false;route.warnings.push('Visits needing review are excluded from travel estimates. Confirm them before planning the route.');}
  const booked=calls.filter(c=>c.status==='reserved');route.mapsUrls=dayRouteUrls(booked);
+ if(booked.some(c=>!c.address.trim()||!c.address.includes(','))){route.complete=false;route.mapsUrls=[];route.warnings.push('One or more confirmed visits have incomplete addresses. Check all locations before opening directions.');}
+ if(booked.some(c=>!Number.isFinite(Date.parse(c.startAt))||!Number.isFinite(Date.parse(c.endAt))||!Number.isFinite(Date.parse(c.arrivalAt))||Date.parse(c.endAt)<=Date.parse(c.startAt))){route.complete=false;route.mapsUrls=[];route.warnings.push('One or more confirmed visits have invalid appointment times. Review the schedule before departure.');}
  if(booked.length>12){route.complete=false;route.warnings.push('Travel estimates support up to 12 confirmed visits per day. All visits remain listed.');return route;}
  await Promise.all(booked.slice(1).map(async(next,offset)=>{
   const i=offset+1;
@@ -32,6 +34,7 @@ export async function buildRoutePlan(calls:DayCall[],provider:RouteProvider|null
   else if(leg.gapMinutes<0)leg.reason='Confirmed appointments overlap. Review the schedule before routing.';
   else if(next.startAt!==next.arrivalAt||previous.startAt!==previous.arrivalAt)leg.reason='Supplier pickup needs its own location. Review this route leg.';
   else if(!previous.address.trim()||!next.address.trim())leg.reason='A complete customer address is required.';
+  else if(!previous.address.includes(',')||!next.address.includes(','))leg.reason='Review the street and city for both visits before routing.';
   else if(Date.parse(previous.endAt)<=now.getTime())leg.reason='This departure is in the past. Use Maps for a current route.';
   else if(sameStop(previous.address,next.address)){leg.minutes=0;leg.meters=0;leg.lateMinutes=0;}
   else if(!provider)leg.reason='Live travel estimates are not connected. Check travel in Maps before confirming the schedule.';

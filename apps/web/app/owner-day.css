@@ -17,3 +17,14 @@
 .workflow-customer-note>p{white-space:pre-wrap;overflow-wrap:anywhere;border-top:1px solid var(--line);padding-top:14px;margin:0 0 16px}
 .work-context-bar[hidden]{display:none}
 @media(max-width:600px){.workflow-header{padding-bottom:16px}.workflow-services{gap:6px}.workflow-services li{padding:7px 10px}.service-workflow .workflow-header .actions a.button{flex:1;justify-content:center}.workflow-customer-note{padding:0 14px}}
+
+/* Route readiness: restrained, high-contrast operational feedback. */
+.day-route-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px}
+.day-route-header h3{margin:0}
+.day-route-status{display:inline-flex;align-items:center;gap:8px;border-radius:999px;border:1px solid var(--line);padding:8px 13px;font-size:14px;font-weight:700;line-height:1.4}
+.day-route-status::before{content:"";display:block;width:9px;height:9px;border-radius:50%;background:currentColor;flex:none}
+.day-route-ready{color:#165d40;background:#ecf7f0;border-color:#a9d8bd}
+.day-route-review{color:#82450a;background:#fff4df;border-color:#e4c48c}
+.route-summary-review{border-left:4px solid #b77521;padding-left:16px}
+.route-summary-ready{border-left:4px solid #28704c;padding-left:16px}
+@media(max-width:600px){.day-route-header{align-items:flex-start;flex-direction:column}.day-route-status{font-size:14px}}
