@@ -362,7 +362,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
       <main className={`shell${session?' workspace-main':''}`} id="main">
 
         <div className="workspace-feedback">
-          {error && <p role="alert" className="error card">{error}</p>}
+          {error && <div role="alert" className="error card" style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:"1rem"}}><p style={{margin:0}}>{error}</p><button type="button" className="secondary" aria-label="Dismiss message" onClick={()=>setError("")}>Dismiss</button></div>}
           {message && <p role="status" className="note">{message}</p>}
         </div>
         {!configured ? (
