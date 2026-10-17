@@ -32,6 +32,7 @@ export async function buildRoutePlan(calls:DayCall[],provider:RouteProvider|null
   else if(leg.gapMinutes<0)leg.reason='Confirmed appointments overlap. Review the schedule before routing.';
   else if(next.startAt!==next.arrivalAt||previous.startAt!==previous.arrivalAt)leg.reason='Supplier pickup needs its own location. Review this route leg.';
   else if(!previous.address.trim()||!next.address.trim())leg.reason='A complete customer address is required.';
+  else if(!/^\\d+\\s+[^,]+,\\s*[^,]+,\\s*[A-Z]{2}(?:,?\\s+\\d{5}(?:-\\d{4})?)?$/i.test(previous.address)||!/^\\d+\\s+[^,]+,\\s*[^,]+,\\s*[A-Z]{2}(?:,?\\s+\\d{5}(?:-\\d{4})?)?$/i.test(next.address))leg.reason='Review the full street, city and state for both visits before routing.';
   else if(Date.parse(previous.endAt)<=now.getTime())leg.reason='This departure is in the past. Use Maps for a current route.';
   else if(sameStop(previous.address,next.address)){leg.minutes=0;leg.meters=0;leg.lateMinutes=0;}
   else if(!provider)leg.reason='Live travel estimates are not connected. Check travel in Maps before confirming the schedule.';
