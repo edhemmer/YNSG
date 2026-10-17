@@ -14,3 +14,16 @@ test('scheduling adds verified travel above the configured buffer, scopes by ope
 });
 
 test('travel checks adjacent visit starting on previous local day when reservation overlaps today',async()=>{const start=Date.parse('2099-10-16T05:00:00Z'),end=start+7200000;const previous={id:'overnight',start_at:'2099-10-15T22:00:00Z',end_at:'2099-10-16T04:30:00Z',arrival_at:'2099-10-15T22:00:00Z',request:{original_submission:{street:'10 Prior St',city:'DeKalb',state:'IL',zip:'60115'}}};const response:Record<string,any>={service_requests:{data:{original_submission:{street:'20 Next St',city:'DeKalb',state:'IL',zip:'60115'}},error:null},resource_reservations:{data:[{appointment_id:'overnight',resource_id:'operator'}],count:1,error:null},appointments:{data:[previous],count:1,error:null}};const db={from(table:string){const chain={select(){return chain;},eq(){return chain;},in(){return chain;},overlaps(){return chain;},range(){return chain;},single(){return Promise.resolve(response[table]);},then(resolve:(v:unknown)=>unknown){return Promise.resolve(response[table]).then(resolve);}};return chain;}} as unknown as SupabaseClient;await assert.rejects(schedulingTravel(db,'tenant','request',null,['operator'],['operator'],start,end,'America/Chicago',10,async()=>({minutes:35,meters:9000})),/ROUTE_TRAVEL_CONFLICT/);});
+
+test('no neighboring appointments needs no Google routing provider',async()=>{
+ const data:Record<string,any>={service_requests:{data:{original_submission:{street:'298 Quinlan Ave',city:'DeKalb',state:'IL',zip:'60115'}},error:null},resource_reservations:{data:[],count:0,error:null}};
+ const db={from(table:string){const q={select(){return q;},eq(){return q;},in(){return q;},overlaps(){return q;},range(){return q;},single(){return Promise.resolve(data[table]);},then(resolve:(v:unknown)=>unknown){return Promise.resolve(data[table]).then(resolve);}};return q;}} as unknown as SupabaseClient;
+ const start=Date.parse('2099-10-15T15:00:00Z');assert.deepEqual(await schedulingTravel(db,'tenant','request',null,['operator'],['operator'],start,start+7200000,'America/Chicago',15,null),{before:0,after:0,status:'verified'});
+});
+test('same-address adjacent appointment has zero driving without provider',async()=>{
+ const start=Date.parse('2099-10-15T15:00:00Z');
+ const address={street:'298 Quinlan Ave',city:'DeKalb',state:'IL',zip:'60115'};
+ const data:Record<string,any>={service_requests:{data:{original_submission:address},error:null},resource_reservations:{data:[{appointment_id:'previous',resource_id:'operator'}],count:1,error:null},appointments:{data:[{id:'previous',start_at:'2099-10-15T12:00:00Z',end_at:'2099-10-15T14:30:00Z',arrival_at:'2099-10-15T12:00:00Z',request:{original_submission:address}}],count:1,error:null}};
+ const db={from(table:string){const q={select(){return q;},eq(){return q;},in(){return q;},overlaps(){return q;},range(){return q;},single(){return Promise.resolve(data[table]);},then(resolve:(v:unknown)=>unknown){return Promise.resolve(data[table]).then(resolve);}};return q;}} as unknown as SupabaseClient;
+ assert.deepEqual(await schedulingTravel(db,'tenant','request',null,['operator'],['operator'],start,start+7200000,'America/Chicago',15,null),{before:0,after:0,status:'verified'});
+});
