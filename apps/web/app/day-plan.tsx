@@ -154,8 +154,8 @@ export default function DailyCallSheet({
             </p>
           )}
           <RouteMap plan={plan}/>
-          {plan.route&&<section className="route-summary" aria-label="Travel between visits">
-            <h3>Travel & schedule</h3>
+          {plan.route&&<section className={`route-summary ${plan.route.complete?"route-summary-ready":"route-summary-review"}`} aria-label="Travel between visits">
+            <div className="day-route-header"><h3>Travel & schedule</h3><span className={`day-route-status ${plan.route.complete?"day-route-ready":"day-route-review"}`} role="status">{plan.route.complete?"Route checks complete":"Review before departure"}</span></div>
             <div className="actions day-plan-controls">{plan.route.mapsUrls.map((url,i)=><a key={url} className="button" href={url} target="_blank" rel="noopener noreferrer">{plan.route!.mapsUrls.length===1?'Open day route in Maps':`Open route segment ${i+1}`}</a>)}</div>
             {plan.route.legs.length>0&&<p className="tiny">Google Maps travel estimates use each visit’s scheduled finish as departure. Times can change with traffic. Check supplier pickups separately.</p>}
             {plan.route.warnings.map(w=><p key={w} className="note">{w}</p>)}
