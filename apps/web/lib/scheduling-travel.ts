@@ -4,10 +4,11 @@ import {addDays} from '../../../lib/appointment-window.js';
 import {googleRouteProvider} from './google-routes.ts';
 import type {RouteProvider} from './route-plan.ts';
 export async function schedulingTravel(db:SupabaseClient,org:string,requestId:string,appointmentId:string|null,resources:string[],operatorIds:string[],start:number,end:number,timezone:string,buffer:number,provider:RouteProvider|null=googleRouteProvider()){
- if(!provider)return {before:0,after:0,status:'unavailable' as const};
+ if(!provider)throw Error('ROUTE_UNAVAILABLE');
  const operators=resources.filter(id=>operatorIds.includes(id));if(!operators.length)throw Error('INVALID_RESOURCES');
  const request=await db.from('service_requests').select('original_submission').eq('organization_id',org).eq('id',requestId).single();if(request.error)throw Error('ROUTE_UNAVAILABLE');
- const address=(r:Record<string,string>)=>[r.street,r.city].filter(Boolean).join(', '),destination=address(request.data.original_submission);if(!destination)throw Error('ROUTE_ADDRESS_REQUIRED');
+ const address=(r:Record<string,string>)=>[r.street,r.city,r.state||r.region,r.zip||r.postal_code||r.postalCode].filter(Boolean).join(', '),destination=address(request.data.original_submission);if(!request.data.original_submission?.street||!request.data.original_submission?.city)throw Error('ROUTE_ADDRESS_REQUIRED');
+ const sameAddress=(a:string,b:string)=>a.toLowerCase().replace(/[^a-z0-9]/g,'')===b.toLowerCase().replace(/[^a-z0-9]/g,'');
  const dayStart=localMinute(start,timezone).slice(0,10),windowStart=new Date(localInstant(dayStart+'T00:00',timezone)).toISOString(),windowEnd=new Date(localInstant(addDays(dayStart,1)+'T00:00',timezone)).toISOString();
  const reservations=await db.from('resource_reservations').select('appointment_id,resource_id',{count:'exact'}).eq('organization_id',org).eq('active',true).in('resource_id',operators).overlaps('during',`[${windowStart},${windowEnd})`).range(0,999);
  if(reservations.error||reservations.count===null||reservations.count!==reservations.data.length)throw Error('ROUTE_UNAVAILABLE');
@@ -25,7 +26,8 @@ export async function schedulingTravel(db:SupabaseClient,org:string,requestId:st
    if(a.arrival_at!==a.start_at)throw Error('ROUTE_PICKUP_REVIEW');
    const linked=Array.isArray(a.request)?a.request[0]:a.request,other=address(linked?.original_submission||{});if(!other)throw Error('ROUTE_ADDRESS_REQUIRED');
    const departure=side==='before'?Date.parse(a.end_at):end;if(departure<=Date.now())throw Error('ROUTE_DEPARTURE_PAST');
-   legs.push(provider(side==='before'?other:destination,side==='before'?destination:other,new Date(departure).toISOString()).then(estimate=>{const minutes=Math.ceil(estimate.minutes),gap=(side==='before'?start-Date.parse(a.end_at):Date.parse(a.start_at)-end)/60000;if(minutes>gap)throw Error('ROUTE_TRAVEL_CONFLICT');return {side,minutes};}));
+   const estimate=sameAddress(other,destination)?Promise.resolve({minutes:0,meters:0}):provider(side==='before'?other:destination,side==='before'?destination:other,new Date(departure).toISOString());
+   legs.push(estimate.then(result=>{const minutes=Math.ceil(result.minutes),gap=(side==='before'?start-Date.parse(a.end_at):Date.parse(a.start_at)-end)/60000;if(!Number.isFinite(minutes)||minutes<0)throw Error('ROUTE_UNAVAILABLE');if(minutes>gap)throw Error('ROUTE_TRAVEL_CONFLICT');return {side,minutes};}));
   }
  }
  const facts=await Promise.all(legs);
