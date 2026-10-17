@@ -34,6 +34,7 @@ export async function buildRoutePlan(calls:DayCall[],provider:RouteProvider|null
   else if(sameStop(previous.address,next.address)){leg.minutes=0;leg.meters=0;leg.lateMinutes=0;}
   else if(!provider)leg.reason='Live travel estimates are not connected. Check travel in Maps before confirming the schedule.';
   else try{const estimate=await provider(previous.address,next.address,previous.endAt);if(!Number.isFinite(estimate.minutes)||estimate.minutes<0||!Number.isFinite(estimate.meters)||estimate.meters<0)throw Error();if(estimate.polyline)leg.polyline=estimate.polyline;leg.minutes=Math.ceil(estimate.minutes);leg.meters=estimate.meters;leg.lateMinutes=Math.max(0,leg.minutes-leg.gapMinutes);}catch{leg.reason='Travel could not be verified. Check this leg in Maps.';}
+  if(leg.lateMinutes!==null&&leg.lateMinutes>0){route.complete=false;route.warnings.push('A confirmed visit has insufficient driving time before the next appointment. Review the route and contact the customer before changing the schedule.');}
   if(leg.reason){route.complete=false;route.warnings.push(leg.reason);}
  }));
  // Flag A → B → C where A and C are much closer. This is a geographic review
