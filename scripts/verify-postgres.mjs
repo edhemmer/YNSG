@@ -1,7 +1,10 @@
+import {verifyCustomerFileRestore} from './verify-customer-file-restore.mjs';
+import {createHash} from 'node:crypto';
+import {generateRecoveryKey,packRecoveryBundle,unpackRecoveryBundle} from './recovery-bundle.mjs';
 // Synthetic-only PostgreSQL 17 checks inside the explicitly named CI service.
 // No production database URL, account credentials, mail provider or customer data.
 import {spawn} from 'node:child_process';
-import {readFile,readdir,mkdtemp,writeFile} from 'node:fs/promises';
+import {readFile,readdir,mkdtemp,writeFile,mkdir} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import assert from 'node:assert/strict';
@@ -69,8 +72,19 @@ const snapshotSql=`select jsonb_build_object('invoices',(select jsonb_agg(to_jso
 const before=JSON.parse((await sql(snapshotSql)).trim());assert.equal(before.invoices.length,1);assert.equal(before.payments.length,8);assert.equal(before.payments.filter(p=>p.reverses_payment_id).length,3);assert.equal(before.payments.filter(p=>p.reverses_payment_id).reduce((n,p)=>n+p.cents,0),-17000);assert.equal(before.payments.reduce((n,p)=>n+p.cents,0),12000);
 const dump=await run(['pg_dump','-U','postgres','--format=custom','ynsg_test'],undefined,true);
 const temp=await mkdtemp(join(tmpdir(),'ynsg-synthetic-restore-'));await writeFile(join(temp,'synthetic.dump'),dump,{mode:0o600});
+// Exercise the encrypted transport with an actual synthetic pg_dump plus image bytes.
+const keyPath=join(temp,'recovery.key'),filesRoot=join(temp,'files'),manifestPath=join(temp,'manifest.json'),output=join(temp,'backup.ynsg'),outputDirectory=join(temp,'isolated');
+const bytes=Buffer.from([137,80,78,71,13,10,26,10,1,2,3,4]);
+const files=before.fileMetadata.filter(f=>f.status==='ready').map(f=>({organization:f.organization_id,id:f.id,path:f.object_path,bytes:f.bytes,mime:f.mime,sha256:f.sha256}));
+for(const f of files){assert.equal(createHash('sha256').update(bytes).digest('hex'),f.sha256,'Dump metadata must attest the actual bundled bytes');await mkdir(join(filesRoot,f.organization),{recursive:true});await writeFile(join(filesRoot,f.path),bytes,{mode:0o600});}
+await writeFile(manifestPath,JSON.stringify({format:'ynsg-customer-file-backup-v1',files}),{mode:0o600});
+await generateRecoveryKey(keyPath);const bundleArgs={keyPath,dumpPath:join(temp,'synthetic.dump'),manifestPath,filesRoot,output,outputDirectory,candidate:'a'.repeat(40)};
+await packRecoveryBundle(bundleArgs);await unpackRecoveryBundle({...bundleArgs,bundlePath:output});
+for(const f of files)assert.deepEqual(await readFile(join(outputDirectory,'verified/files',f.path)),bytes);
+assert.equal((await verifyCustomerFileRestore(join(outputDirectory,'verified/manifest.json'),join(outputDirectory,'verified/files'))).verified,files.length);
+const recoveredDump=await readFile(join(outputDirectory,'verified/database.dump'));assert.deepEqual(recoveredDump,dump);
 await sql('create database ynsg_restore;');
-await run(['pg_restore','-U','postgres','--exit-on-error','--dbname=ynsg_restore'],dump);
+await run(['pg_restore','-U','postgres','--exit-on-error','--dbname=ynsg_restore'],recoveredDump);
 const after=JSON.parse((await sql(snapshotSql,'ynsg_restore')).trim());assert.deepEqual(after,before,'Restored money, appointment and capacity records must match');
 assert.equal((await sql('select sum(debit_cents::bigint-credit_cents) from public.journal_lines;','ynsg_restore')).trim(),'0');
-console.log('PASS: full PostgreSQL dump restored into a second isolated database; invoices, receipts, journal, appointments and reservations match exactly');
+console.log('PASS: encrypted bundle recovered real synthetic pg_dump and exact image bytes; isolated pg_restore matches invoices, receipts, journal, appointments and reservations');
