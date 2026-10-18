@@ -31,3 +31,9 @@ Scenario coverage: no provider call before live permission or explicit UI reques
 Remaining acceptance: actual authorized owner/provider/device review, October 19 route reconciliation and controlled Google/reminder recovery under #36. Weather facts are not a substitute for actual site assessment, approved equipment instructions or the owner's scheduling decision. Whole-gate/product acceptance is not asserted.
 
 The public privacy notice discloses owner-initiated outdoor weather planning separately from customer-initiated address checking, including the address/coordinate boundary and absence of customer names/contact details/job notes in provider requests. Historical submissions and configuration approval evidence are not rewritten.
+
+## Legacy intake compatibility
+
+The canonical public intake deliberately records street/city without state. Weather resolution uses the exact configuration version in the request's saved owner-notification intent, reads its immutable region and validates that the original city belonged to that configuration. It never assumes Illinois, reads today's company region as a substitute, combines a changed property with the original address, or rewrites original submissions. This historical region source/version is returned for owner review and bound into the location fingerprint. Missing/invalid source history withholds weather guidance. Explicit state already in a saved request remains authoritative. Regression tests exercise the actual legacy shape and reject missing history before any geocoder call.
+
+A read-only aggregate production shape check confirmed that existing request notices retain their intake configuration version while their linked submissions use the street/city-only shape. No contacts, addresses, messages or business records were exported, changed or copied into fixtures.
