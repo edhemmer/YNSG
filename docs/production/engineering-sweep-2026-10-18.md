@@ -88,3 +88,7 @@ The original shell push was blocked and later failed for missing shell credentia
 ## Private-file organization follow-up
 
 The [production association batch](private-file-associations-2026-10-18.md) connects owner file organization to canonical jobs/invoices and reviewed company receipt/expense targets, with append-only correction/history and related-work entry points. Release evidence is recorded in that batch; retention/account deletion and acceptance are not implied.
+
+## Outdoor weather follow-up
+
+The [source-backed weather batch](outdoor-weather-review-2026-10-18.md) adds explicit location-reviewed Census/NWS guidance to reserved outdoor visits. It is a guarded read, with current source/time, complete period/alert checks and owner scheduling review. Actual connected acceptance, October 19 route reconciliation and reminder recovery remain under #36. No automatic cancellation or paid/model activation is claimed.

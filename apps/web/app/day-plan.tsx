@@ -15,6 +15,8 @@ import PackingRuleEditor from "./packing-rule-editor";
 import { workKey } from "../lib/packing-plan";
 import {preflightForWork,allTrainingTopics} from "../lib/owner-job-standards";
 import DaySupplyReadiness from './day-supply-readiness';
+import OutdoorWeatherReview from './outdoor-weather-review';
+import {hasOutdoorWork} from '../lib/weather-contract';
 export default function DailyCallSheet({
   organization,
   timezone,
@@ -204,6 +206,7 @@ export default function DailyCallSheet({
                     <li key={i}>{task}</li>
                   ))}
                 </ul>
+                {call.status==='reserved'&&call.revision&&hasOutdoorWork(call.workItems)&&<OutdoorWeatherReview organization={organization} appointment={call.id} revision={call.revision} address={call.address} request={call.requestId} timezone={timezone}/>}
                 {call.workItems.length>0&&<details className="day-preflight"><summary>Before this visit: task preparation</summary>
                   <p>Review these prompts against the actual job and approved scope. They are not proof of stocked tools, safe conditions or permission to perform held work.</p>
                   {call.workItems.map((item,i)=>{const preflight=preflightForWork(item.service,item.task),source=preflight?allTrainingTopics.find(t=>t.id===preflight.topicId):null;return <div key={workKey(item)+':'+i}>

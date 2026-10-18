@@ -174,7 +174,7 @@
       "milestone": "web",
       "title": "Finish deterministic daily guidance, briefings, equipment/route readiness and supervised assistant behavior.",
       "owner": "Engineering lead",
-      "status": "open",
+      "status": "working",
       "requirements": [
         "R15",
         "R20"
@@ -184,7 +184,7 @@
         "WEB-03",
         "WEB-04"
       ],
-      "nextAction": "Finish deterministic daily guidance, briefings, equipment/route readiness and supervised assistant behavior.",
+      "nextAction": "Verify the source-backed outdoor weather review under #36: explicit Census street-range review, canonical visit/version/owner rechecks, complete NWS hourly/active-alert evidence, freshness/outage/SSRF boundaries and owner-only scheduling review entry point. No automatic weather changes/messages or paid/model activation. Actual provider/device and route/reminder acceptance remain separate.",
       "acceptance": "Next action comes from saved records; citations/current revisions; proposals cannot approve/book/charge/send; injection and provider outage cannot bypass authority; optional AI disabled without approved provider/budget.",
       "requiredEvidence": "Scenario tests for incomplete records, stale data, prohibited commands, no provider and recovery.",
       "evidence": []
