@@ -29,3 +29,13 @@ test('same-address adjacent appointment has zero driving without provider',async
 });
 
 test('operator scheduling rejects a partially overlapping confirmed visit without calling Google',async()=>{const start=Date.parse('2099-10-15T15:00:00Z'),end=start+7200000;const data:Record<string,any>={service_requests:{data:{original_submission:{street:'298 Quinlan Ave',city:'DeKalb'}},error:null},resource_reservations:{data:[{appointment_id:'overlap',resource_id:'operator'}],count:1,error:null},appointments:{data:[{id:'overlap',start_at:'2099-10-15T14:00:00Z',end_at:'2099-10-15T15:30:00Z',arrival_at:'2099-10-15T14:00:00Z',request:{original_submission:{street:'1 Main St',city:'DeKalb'}}}],count:1,error:null}};const db={from(table:string){const q={select(){return q;},eq(){return q;},in(){return q;},overlaps(){return q;},range(){return q;},single(){return Promise.resolve(data[table]);},then(resolve:(v:unknown)=>unknown){return Promise.resolve(data[table]).then(resolve);}};return q;}} as unknown as SupabaseClient;let called=false;await assert.rejects(schedulingTravel(db,'tenant','request',null,['operator'],['operator'],start,end,'America/Chicago',15,async()=>{called=true;return {minutes:0,meters:0};}),/ROUTE_TRAVEL_CONFLICT/);assert.equal(called,false);});
+
+
+test('adjacent visit without a city fails closed before requesting driving estimates',async()=>{
+ const start=Date.parse('2099-10-15T15:00:00Z'),end=start+7200000;
+ const data:Record<string,any>={service_requests:{data:{original_submission:{street:'298 Quinlan Ave',city:'DeKalb',state:'IL'}},error:null},resource_reservations:{data:[{appointment_id:'prior',resource_id:'operator'}],count:1,error:null},appointments:{data:[{id:'prior',start_at:'2099-10-15T12:00:00Z',end_at:'2099-10-15T14:00:00Z',arrival_at:'2099-10-15T12:00:00Z',request:{original_submission:{street:'1 Prior St',state:'IL'}}}],count:1,error:null}};
+ const db={from(table:string){const q={select(){return q;},eq(){return q;},in(){return q;},overlaps(){return q;},range(){return q;},single(){return Promise.resolve(data[table]);},then(resolve:(v:unknown)=>unknown){return Promise.resolve(data[table]).then(resolve);}};return q;}} as unknown as SupabaseClient;
+ let called=false;
+ await assert.rejects(schedulingTravel(db,'tenant','request',null,['operator'],['operator'],start,end,'America/Chicago',15,async()=>{called=true;return {minutes:5,meters:1000};}),/ROUTE_ADDRESS_REQUIRED/);
+ assert.equal(called,false);
+});
