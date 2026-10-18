@@ -22,6 +22,7 @@ try {
  await db.exec(foundation);
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/operations-health.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/private-owner-api.sql','utf8'));
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/security-command-surface.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/commercial.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/scheduler.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/google.sql','utf8'));

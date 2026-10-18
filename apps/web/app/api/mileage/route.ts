@@ -1,7 +1,7 @@
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
 import {authenticated,sameOrigin,failure} from '../../../lib/session';
-import {mileageEntry} from '../../../lib/mileage-contract';
+import {mileageEntry,verifiedMileageReceipt} from '../../../lib/mileage-contract';
 const headers={'Cache-Control':'private, no-store'};
 const uuid=z.uuid();
 const query=z.object({organization:uuid,from:z.iso.date(),to:z.iso.date(),page:z.coerce.number().int().min(0).max(10000)}).strict();
@@ -42,6 +42,7 @@ export async function POST(request:Request){
   if(r.error)return NextResponse.json({error:r.error.code==='42501'?'You cannot change mileage for that company.':r.error.message==='OVERLAPPING_MILEAGE'?'These odometer readings overlap a saved business trip. Review the trip list.':errorText},{status:r.error.code==='42501'?403:r.error.message==='OVERLAPPING_MILEAGE'?409:503,headers});
   const response=receipt.safeParse(r.data);
   if(!response.success||response.data.id!==(v.action==='record'?v.entry.id:v.id))return NextResponse.json({error:errorText},{status:503,headers});
+  try{verifiedMileageReceipt({result:response.data},raw);}catch{return NextResponse.json({error:errorText},{status:503,headers});}
   return NextResponse.json({result:response.data},{headers});
  }catch(e){return failure(e)}
 }

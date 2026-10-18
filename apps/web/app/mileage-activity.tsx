@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
-import {mileageEntry} from '../lib/mileage-contract';
+import {mileageEntry,mileageReport,verifiedMileageReceipt} from '../lib/mileage-contract';
 import {useBlockedEntry,useUnsavedEntry} from './entry-safety';
 import {localDate} from '../lib/day-plan';
 type Trip={id:string;trip_date:string;purpose:string;origin:string;destination:string;vehicle_label:string;odometer_start:number;odometer_end:number;business_use:string;reversed_at:string|null;reversal_reason:string|null};
@@ -11,40 +11,49 @@ const blank=(day:string):Draft=>({tripDate:day,purpose:'',origin:'',destination:
 export default function MileageActivity({organization,timezone}:{organization:string;timezone:string}){
  const day=localDate(new Date(),timezone);
  const [draft,setDraft]=useState(()=>blank(day)),[data,setData]=useState<Data|null>(null),[from,setFrom]=useState(day.slice(0,4)+'-01-01'),[to,setTo]=useState(day),[page,setPage]=useState(0),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[unknown,setUnknown]=useState(false),[stale,setStale]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[reason,setReason]=useState(''),[selected,setSelected]=useState('');
- const attempt=useRef<string|null>(null),sending=useRef(false),revision=useRef(0);
+ const attempt=useRef<string|null>(null),sending=useRef(false),writingOrg=useRef<string|null>(null),revision=useRef(0);
+ const identity=useRef(organization);identity.current=organization;
+ useEffect(()=>{attempt.current=null;setData(null);setDraft(blank(day));setReason('');setSelected('');setUnknown(false);setBusy(false);setNotice('');},[organization]);
  const dirty=JSON.stringify(draft)!==JSON.stringify(blank(day))||Boolean(reason);
  useUnsavedEntry('mileage:'+organization,dirty);
  useBlockedEntry('mileage:'+organization,busy||unknown);
  async function reload(){
-  const n=++revision.current;setLoading(true);setError('');setStale(true);
+  if(sending.current&&writingOrg.current===organization)return;
+  const target=organization,n=++revision.current;setLoading(true);setError('');setStale(true);
   try{
    const r=await sessionFetch('/api/mileage?'+new URLSearchParams({organization,from,to,page:String(page)}),{cache:'no-store'}),v=await r.json();
-   if(!r.ok||v.from!==from||v.to!==to||v.page!==page||!Array.isArray(v.trips)||typeof v.businessMiles!=='number')throw Error('unverified');
+   if(!r.ok){if((r.status===401||r.status===403)&&target===identity.current&&n===revision.current)setData(null);throw Error('unverified');}
+   const report=mileageReport.parse(v);
+   if(report.from!==from||report.to!==to||report.page!==page||new Set(report.trips.map(t=>t.id)).size!==report.trips.length)throw Error('unverified');
    if(n!==revision.current)return;
-   setData(v);setStale(false);setUnknown(false);attempt.current=null;
+   setData(report);setStale(false);
+   // Reading a list cannot prove the outcome of a particular command.
+   // Retain the frozen attempt until its exact receipt is recovered.
   }catch{if(n===revision.current)setError('Trip records could not be confirmed. Refresh before another change or export.');}
   finally{if(n===revision.current)setLoading(false);}
  }
  useEffect(()=>{void reload();return()=>{revision.current++;};},[organization,from,to,page]);
  async function send(){
   if(sending.current||!attempt.current)return;
-  sending.current=true;setBusy(true);setError('');setNotice('');setStale(true);
-  const payload=attempt.current;
+  sending.current=true;writingOrg.current=organization;setBusy(true);setError('');setNotice('');setStale(true);
+  const payload=attempt.current,target=organization,generation=revision.current;
   try{
    const r=await sessionFetch('/api/mileage',{method:'POST',headers:{'Content-Type':'application/json'},body:payload}),v=await r.json();
+   if(target!==identity.current||generation!==revision.current)return;
    if(!r.ok&&r.status>=400&&r.status<500&&!unknown){attempt.current=null;setError(typeof v.error==='string'?v.error:'Trip change was rejected.');return;}
-   if(!r.ok||typeof v.result?.id!=='string')throw Error('uncertain');
+   if(!r.ok)throw Error('uncertain');
+   verifiedMileageReceipt(v,payload);
    attempt.current=null;setUnknown(false);setDraft(blank(day));setReason('');setSelected('');setNotice('Mileage record saved. No tax deduction or customer charge was created.');
-   await reload();
-  }catch{setUnknown(true);setError('Save result uncertain. Check the same saved attempt instead of creating another trip.');}
-  finally{sending.current=false;setBusy(false);}
+   sending.current=false;await reload();
+  }catch{if(target===identity.current&&generation===revision.current){setUnknown(true);setError('Save result uncertain. Check the same saved attempt instead of creating another trip.');}}
+  finally{sending.current=false;writingOrg.current=null;if(target===identity.current)setBusy(false);}
  }
- function record(e:React.FormEvent){e.preventDefault();if(busy||unknown||stale||loading||selected)return;
+ function record(e:React.FormEvent){e.preventDefault();if(sending.current||busy||unknown||stale||loading||selected)return;
   const v=mileageEntry.safeParse({organizationId:organization,id:crypto.randomUUID(),tripDate:draft.tripDate,purpose:draft.purpose,origin:draft.origin,destination:draft.destination,vehicleLabel:draft.vehicleLabel,odometerStart:Number(draft.odometerStart),odometerEnd:Number(draft.odometerEnd),businessUse:draft.businessUse,recordedSource:'manual-odometer',jobId:null,notes:draft.notes});
   if(!v.success||!draft.odometerStart||!draft.odometerEnd){setError('Review the date, purpose, places, vehicle and both odometer readings.');return;}
   attempt.current=JSON.stringify({action:'record',key:crypto.randomUUID(),entry:v.data});void send();
  }
- function reverse(e:React.FormEvent){e.preventDefault();if(!selected||reason.trim().length<10||busy||unknown||loading||stale)return;
+ function reverse(e:React.FormEvent){e.preventDefault();if(sending.current||!selected||reason.trim().length<10||busy||unknown||loading||stale)return;
   if(!window.confirm('Reverse this trip from your totals? Its original record remains retained.'))return;
   attempt.current=JSON.stringify({action:'reverse',organization,id:selected,key:crypto.randomUUID(),reason:reason.trim()});void send();
  }

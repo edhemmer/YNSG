@@ -1,9 +1,10 @@
 "use client";
+import {z} from 'zod';
 import { publicError } from "../lib/public-errors";
 import { useEffect, useRef, useState } from "react";
 import {settingsIssue,settingsFieldLabel,type SettingsIssue} from "../lib/settings-validation";
 import {configurationCommand} from "../../../packages/contracts/operations";
-import type { CompanySettings } from "../../../packages/contracts";
+import {companySettings,type CompanySettings } from "../../../packages/contracts";
 import {
   validateConfiguration,
   releaseGates,
@@ -11,6 +12,7 @@ import {
 import { sessionFetch } from "../lib/session-fetch";
 import {useBlockedEntry,useUnsavedEntry} from "./entry-safety";
 import { clockLabel, clockOptions } from "../lib/settings-display";
+const settingsRead=z.object({ready:z.boolean(),configuration:z.object({version:z.number().int().positive(),settings:companySettings}).passthrough().nullable(),catalog:z.array(z.object({name:z.string(),scope:z.string(),exclusions:z.string(),compliance:z.enum(['review','approved','held']),pricing_mode:z.enum(['hourly','starting','quote','review'])}).strict()).max(100)}).strict();
 const categories = [
   [
     "Lawn care",
@@ -132,14 +134,18 @@ export default function CompanySettingsPanel({
     [preview, setPreview] = useState(false),
     [ready, setReady] = useState(false),
     [loading, setLoading] = useState(true);
+  const [readVersion,setReadVersion]=useState(0);
   const formRef=useRef<HTMLFormElement>(null);
   const [fieldIssue,setFieldIssue]=useState<SettingsIssue|null>(null);
   const retry = useRef<{ body: string; expectedVersion: number; key: string } | null>(null);
-  const sending=useRef(false);
+  const sending=useRef(false),activeOrganization=useRef(organization),generation=useRef(0);
+  activeOrganization.current=organization;
+  const [baseline,setBaseline]=useState('');
+  const snapshot=JSON.stringify({draft,catalog});
   useBlockedEntry("settings:"+organization,pending||unknown);
-  useUnsavedEntry("settings:"+organization,Boolean(draft&&preview));
+  useUnsavedEntry("settings:"+organization,Boolean(draft&&snapshot!==baseline));
   useEffect(() => {
-    let live = true;
+    let live = true;generation.current+=1;setBaseline('');setPending(false);
     setLoading(true);
     setDraft(null);
     setCatalog([]);
@@ -155,14 +161,14 @@ export default function CompanySettingsPanel({
       "/api/configuration?organization=" + encodeURIComponent(organization),
     )
       .then(async (r) => {
-        const d = await r.json();
-        if (!r.ok) throw Error(d.error || "Unable to load settings");
+        const raw = await r.json();
+        if (!r.ok) throw Error(raw.error || "Unable to load settings");
+        const d=settingsRead.parse(raw);
         if (live) setReady(d.ready === true);
         if (live && d.configuration) {
           setVersion(d.configuration.version);
           setDraft(d.configuration.settings);
-          setCatalog(
-            (d.catalog || []).map(
+          const loadedCatalog=(d.catalog || []).map(
               (c: {
                 name: string;
                 scope: string;
@@ -177,8 +183,8 @@ export default function CompanySettingsPanel({
                 pricingMode: c.pricing_mode,
                 existing: true,
               }),
-            ),
-          );
+            );
+          setCatalog(loadedCatalog);setBaseline(JSON.stringify({draft:d.configuration.settings,catalog:loadedCatalog}));
         }
       })
       .catch((e) => {
@@ -190,7 +196,7 @@ export default function CompanySettingsPanel({
     return () => {
       live = false;
     };
-  }, [organization]);
+  }, [organization,readVersion]);
   const change = (patch: Partial<CompanySettings>) => {
     setDraft((d) => (d ? { ...d, ...patch } : d));
     setPreview(false);
@@ -291,11 +297,14 @@ export default function CompanySettingsPanel({
   }
   async function sendReviewedSettings() {
     if(sending.current||!retry.current)return;
+    const target=organization,attemptGeneration=generation.current;
     sending.current=true;setPending(true);setError("");
     try {
       const response=await sessionFetch("/api/configuration",{method:"POST",headers:{"Content-Type":"application/json"},body:retry.current.body});
+      if(activeOrganization.current!==target||generation.current!==attemptGeneration)return;
       if(response.status>=400&&response.status<500){
         const result=await response.json().catch(()=>null);
+        if(activeOrganization.current!==target||generation.current!==attemptGeneration)return;
         if(unknown){setError("The earlier settings change is still unconfirmed. Keep the reviewed settings here and contact support before another publish.");return;}
         retry.current=null;
         setError(typeof result?.error==="string"?result.error:"Settings were rejected. Your edits are kept.");
@@ -303,16 +312,19 @@ export default function CompanySettingsPanel({
       }
       if(!response.ok)throw Error("UNCONFIRMED");
       const result=await response.json();
+      if(activeOrganization.current!==target||generation.current!==attemptGeneration||!retry.current)return;
       const expected=retry.current.expectedVersion+1;
       if(result?.ok!==true||!Number.isInteger(result?.result?.version)||result.result.version!==expected)throw Error("UNCONFIRMED");
       retry.current=null;setUnknown(false);
       setVersion(result.result.version);
-      setCatalog(c=>c.map(item=>({...item,existing:true})));
+      const savedCatalog=catalog.map(item=>({...item,existing:true}));
+      setCatalog(savedCatalog);setBaseline(JSON.stringify({draft,catalog:savedCatalog}));
       setPreview(false);
       setMessage("Settings version "+result.result.version+" published. Google and customer delivery remain separately controlled.");
     } catch {
+      if(activeOrganization.current!==target||generation.current!==attemptGeneration)return;
       setUnknown(true);setError("We could not confirm whether the settings were published. Do not edit or publish a different version. Use Check saved settings result to retry the exact same request.");
-    } finally {sending.current=false;setPending(false);}
+    } finally {sending.current=false;if(activeOrganization.current===target&&generation.current===attemptGeneration)setPending(false);}
   }
   async function publish() {
     if(!draft||pending||unknown||sending.current||!preview)return;
@@ -352,7 +364,7 @@ export default function CompanySettingsPanel({
       {message && <p role="status">{message}</p>}
       {loading ? (
         <p role="status">Loading your company settings…</p>
-      ) : !draft ? (
+      ) : !draft && error ? (<button type="button" onClick={()=>setReadVersion(v=>v+1)}>Retry loading company settings</button>) : !draft ? (
         <>
           <p>
             No settings are published yet. The YNSG template is a starting point
@@ -458,12 +470,12 @@ export default function CompanySettingsPanel({
               />
             </label>
           </fieldset>
-          <fieldset disabled={pending}>
+          <fieldset disabled={pending||unknown}>
             <legend>Email logo and signature</legend>
             <label>Owner name for email signature<input name="brand.ownerName" maxLength={160} value={draft.brand.ownerName || ""} placeholder="Your name" onChange={e=>change({brand:{...draft.brand,ownerName:e.target.value||null}})}/><small>Emails close with Best Regards, followed by this name.</small></label>
             <p>The licensed name, official logo and colors are managed centrally. Personalization uses your owner name, contact details and approved services.</p>
           </fieldset>
-          <fieldset disabled={pending}>
+          <fieldset disabled={pending||unknown}>
             <legend>After an invoice is paid</legend>
             <p>A thank-you email queues when confirmed payments cover the full invoice. Sending requires a verified business email service and enabled email delivery.</p>
             <label className="check"><input type="checkbox" checked={draft.review.enabled} onChange={e=>change({review:{...draft.review,enabled:e.target.checked}})} />Include a review request in the thank-you email</label>
@@ -471,7 +483,7 @@ export default function CompanySettingsPanel({
             {organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" && <button type="button" className="secondary" onClick={()=>change({review:{enabled:true,url:"https://g.page/r/CWxW2KabD1UWECE/review"}})}>Use our Google review link</button>}
             <p>Use the HTTPS link where customers can leave a review. Leave this off until your review page is ready.</p>
           </fieldset>
-          <fieldset disabled={pending}>
+          <fieldset disabled={pending||unknown}>
             <legend>Rates and invoices</legend>
             <label>
               Standard hourly rate ($)
@@ -557,7 +569,7 @@ export default function CompanySettingsPanel({
               I confirm the business name is correct.
             </label>
           </fieldset>
-          <fieldset disabled={pending}>
+          <fieldset disabled={pending||unknown}>
             <legend>Tax setup</legend>
             <label>
               Tax review status
@@ -592,7 +604,7 @@ export default function CompanySettingsPanel({
               before invoicing.
             </p>
           </fieldset>
-          <fieldset disabled={pending}>
+          <fieldset disabled={pending||unknown}>
             <legend>Appointment hours</legend>
             <p>
               Times use {draft.timezone}. Visits need at least two hours; you
@@ -645,7 +657,7 @@ export default function CompanySettingsPanel({
               )}
             </div>
           </fieldset>
-          <fieldset disabled={pending}>
+          <fieldset disabled={pending||unknown}>
             <legend>Booking rules</legend>
             <div className="settings-grid">
               {duration(
@@ -703,7 +715,7 @@ export default function CompanySettingsPanel({
               appointment needs approval before it is confirmed.
             </p>
           </fieldset>
-          <fieldset disabled={pending}>
+          <fieldset disabled={pending||unknown}>
             <legend>Company service catalog</legend>
             <p>
               Choose the services you offer, their scope and pricing approach. Only offer work you are qualified, insured and legally permitted to perform. Keep

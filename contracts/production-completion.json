@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-16",
+  "updatedAt": "2026-10-18",
   "baselineCommit": "56b0a9fec3f7c9e4664c2192c91564b9340b9584",
   "milestones": [
     "web",
@@ -23,7 +23,7 @@
         "R19"
       ],
       "dependsOn": [],
-      "nextAction": "Finish field-level inventory review under #31; #32 advances notes, expense, tax and calendar-block recovery; continue repeat requests and settings.",
+      "nextAction": "Local source-inventory review passed for 2edf64dc6ff4c400c2897caabaa21f0d8f5b6a50. Publish the reviewed batch after the automatic publication restriction is cleared, verify its evidence URL, then record WEB-01 acceptance. No full gate is closed from inaccessible local evidence.",
       "acceptance": "No original requirement disappears. Each missing/partial feature has an issue, acceptance case and gate; disabled optional integrations are clearly labeled.",
       "requiredEvidence": "Feature inventory with source paths, issue links and requirement mapping.",
       "evidence": []
@@ -61,7 +61,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Accept calendar block create/edit/removal and exact-attempt recovery under #32; continue connected recurring/travel/cancellation/provider acceptance under this gate.",
+      "nextAction": "Consolidate PR #113 invalid-duration protection into the engineering sweep; finish October 19 neighboring-route review and controlled cancellation/recurrence/calendar outage evidence under #36/#37.",
       "acceptance": "No double booking or stale approval; preserved original visit until replacement; correct local time/DST, minimum duration, travel and per-visit reminders; clear configured/offline states.",
       "requiredEvidence": "Native PostgreSQL races/replay tests, isolated provider tests and controlled connected-calendar acceptance.",
       "evidence": []
@@ -90,7 +90,7 @@
       "milestone": "web",
       "title": "Finish invoice review, numbering, snapshot, recipient, PDF, email request, cash/Zelle split receipts and supported correction/archiving paths.",
       "owner": "Engineering lead",
-      "status": "open",
+      "status": "working",
       "requirements": [
         "R10",
         "R11",
@@ -99,7 +99,7 @@
       "dependsOn": [
         "WEB-04"
       ],
-      "nextAction": "Finish invoice review, numbering, snapshot, recipient, PDF, email request, cash/Zelle split receipts and supported correction/archiving paths.",
+      "nextAction": "Verify invoice-delivery single-attempt lock, strict private status and receipt validation; finish actual invoice/PDF/cash-Zelle journey and missing receipt-credit reversal/accounting work under #35/#37.",
       "acceptance": "Issued snapshots fixed; YYYYMM-#### unique numbering; actual receipts only; balanced journal; no duplicate issue/receipt/mail milestone; unknown save locks and replays exact attempt; drafts survive refresh.",
       "requiredEvidence": "PR #28 plus current lifecycle/PDF tests and separately recorded recipient/inbox/funds acceptance.",
       "evidence": []
@@ -109,7 +109,7 @@
       "milestone": "web",
       "title": "Complete contact/property/history editing, current-vs-snapshot clarity, account claim/recovery, family/delegate authorization and retained records/deletion.",
       "owner": "Engineering lead",
-      "status": "open",
+      "status": "working",
       "requirements": [
         "R03",
         "R06",
@@ -118,7 +118,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Complete contact/property/history editing, current-vs-snapshot clarity, account claim/recovery, family/delegate authorization and retained records/deletion.",
+      "nextAction": "Verify customer-switch guards for delegates, exports and imports, strict import receipt counts, and repeat-request read/callback recovery; retain private-file integrity, job/receipt associations and retention/deletion work under #33/#34.",
       "acceptance": "No email-string auto-claim; revoked access fails; supported edits remain discoverable on phone; immutable originals; private files authorized; gaps found in WEB-01 implemented before passing.",
       "requiredEvidence": "Two-tenant/customer tests, upload/deletion/retention cases and accepted owner/customer walkthrough.",
       "evidence": []
@@ -128,7 +128,7 @@
       "milestone": "web",
       "title": "Consolidate request, decision, reminder, invoice and paid-follow-up communication",
       "owner": "Engineering lead",
-      "status": "open",
+      "status": "working",
       "requirements": [
         "R12",
         "R13"
@@ -137,7 +137,7 @@
         "WEB-03",
         "WEB-05"
       ],
-      "nextAction": "Consolidate request, decision, reminder, invoice and paid-follow-up communication; review all email/link wording and ambiguity recovery.",
+      "nextAction": "Verify invoice email exact retry and unknown-result navigation lock; complete controlled provider delivery, reminder replacement and reconciliation evidence under #37.",
       "acceptance": "Natural concise copy; one intent per milestone; no repetitive blasts; link scanners cannot mutate; recipient/template snapshot retained; provider acceptance distinct from inbox delivery; failed/unknown sends have safe recovery.",
       "requiredEvidence": "Template/link tests, queue crash/retry tests, controlled independent inbox receipts and reminder timing.",
       "evidence": []
@@ -156,7 +156,7 @@
         "WEB-01",
         "WEB-05"
       ],
-      "nextAction": "Accept deployed expense and tax-entry recovery under #32; continue mileage, report/export reconciliation under #35 and actual owner/accountant tax inputs under WEB-14.",
+      "nextAction": "Verify mileage exact-receipt recovery and strict report parsing, including refresh during uncertainty; complete transaction-level exports/accounting reconciliation under #35 and actual owner tax inputs under WEB-14.",
       "acceptance": "Reports drill into real canonical entries; no revenue-as-personal-income assumption; unsupported tax state/year/scope fails closed; sources checked at acceptance; reviewed actual owner inputs and sales-tax treatment required.",
       "requiredEvidence": "Reconciled fixture exports/calculations and dated owner/accountant review; QBO only advertised connected after sandbox proof.",
       "evidence": []
@@ -206,7 +206,7 @@
       "milestone": "web",
       "title": "Review auth, origin checks, tenant/customer revocation, private storage, financial commands, logs and dependency findings for the candidate.",
       "owner": "Independent security reviewer",
-      "status": "open",
+      "status": "working",
       "requirements": [
         "R03",
         "R18",
@@ -216,7 +216,7 @@
         "WEB-01",
         "WEB-06"
       ],
-      "nextAction": "Review auth, origin checks, tenant/customer revocation, private storage, financial commands, logs and dependency findings for the candidate.",
+      "nextAction": "Review hosted advisor diagnostics: 11 owner RPCs deny anonymous execution, lock search_path and call private.staff; new security-command-surface SQL protects these invariants. Finish independent review and private-file trust boundary work; no warning suppression.",
       "acceptance": "No unresolved exploitable critical/high finding; other findings have documented impact/remediation. Required MFA is not reintroduced; leaked-password setting/eligibility is confirmed. AI review cannot sign this gate.",
       "requiredEvidence": "Named independent human review, candidate SHA, findings/resolutions and scoped retest.",
       "evidence": []
@@ -380,7 +380,8 @@
       "milestone": "ios",
       "title": "Resolve native audit findings with supported SDK/dependencies.",
       "owner": "Engineering lead",
-      "status": "open",
+      "status": "blocked",
+      "blocker": "Native audit reports unpatched high advisories in node-forge and braces; supported upstream patched versions and passing audit required. WEB-17 acceptance also remains required.",
       "requirements": [
         "R16",
         "R18"
@@ -388,7 +389,7 @@
       "dependsOn": [
         "WEB-17"
       ],
-      "nextAction": "Resolve native audit findings with supported SDK/dependencies.",
+      "nextAction": "Upstream patched supported dependency versions are required for node-forge GHSA-86w9-cpqp-85rv and braces GHSA-vfj7-8cjw-p6xm. Current native typecheck/lint/SDK/bundle pass; audit still reports two high advisories. Do not suppress advisories or distribute.",
       "acceptance": "No suppressed high/critical advisories; current audit and native checks pass.",
       "requiredEvidence": "Native register: native-security-audit.",
       "evidence": []
