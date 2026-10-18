@@ -11,6 +11,7 @@ import InvoiceDraft from './invoice-draft';
 import AppointmentSummary from './appointment-summary';
 import InvoiceDelivery from './invoice-delivery';
 import InvoicePayments from './invoice-payments';
+import RelatedCustomerFiles from './related-customer-files';
 import ScheduledInvoice from './scheduled-invoice';
 import {useEntrySafety,useUnsavedEntry} from './entry-safety';
 import CustomerPicker from './customer-picker';
@@ -40,6 +41,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
  return <section className="card service-workflow" aria-label={'Service workflow for '+request.original_submission.name}>
   <header className="workflow-header"><p className="eyebrow">Your service visit</p><h2>{request.original_submission.name}</h2><p>{request.original_submission.street}, {request.original_submission.city}</p><ul className="workflow-services" aria-label="Requested services">{requestTasks(request.original_submission).map((t,i)=><li key={i}><Icon name="work"/>{t.task||t.service}</li>)}</ul><div className="actions"><a className="button secondary" href={'tel:'+request.original_submission.phone}><Icon name="phone"/>Call</a><a className="button secondary" href={navigationUrl([request.original_submission.street,request.original_submission.city].join(', '))||undefined} target="_blank" rel="noreferrer"><Icon name="pin"/>Directions</a></div></header>
   {canManage&&request.customer_id&&onCustomer&&<p><button type="button" className="secondary" disabled={blocked} onClick={()=>onCustomer(request.customer_id!)}>Customer record & current contacts</button><span className="tiny"> Visit details above are from the original request.</span></p>}
+  {canManage&&request.customer_id&&jobs.length>0&&<RelatedCustomerFiles key={organization+':'+request.customer_id} organization={organization} customer={request.customer_id} targets={[...jobs.map(j=>({kind:'job' as const,id:j.id})),...invoices.map(i=>({kind:'invoice' as const,id:i.id}))]} disabled={blocked} onManage={onCustomer?()=>onCustomer(request.customer_id!):undefined}/>}
   <nav className="mobile-workflow-steps" aria-label="Guided service steps">{mobilePhases.map((p,i)=><button type="button" key={p.id} className={phase===p.id?'is-current':''} aria-current={phase===p.id?'step':undefined} disabled={blocked} onClick={()=>{if(p.id===phase||canLeave())setSelection({phase:p.id,state:stateKey});}}><Icon name={p.icon}/><span>{i+1}. {p.label}</span></button>)}</nav>
   <div className="workflow-next" role="status"><strong>{plan.settled?'Paid and complete':'Next: '+next.title}</strong><p>{next.detail}</p></div>
   <section className="workflow-visit-overview" aria-label="Appointment at a glance">{request.appointments.some(a=>['reserved','proposal','needs_review'].includes(visitState(a)))?<div className="workflow-job-context">{request.appointments.filter(a=>['reserved','proposal','needs_review'].includes(visitState(a))).map(a=><AppointmentSummary key={a.id} visit={a} timezone={timezone}/>)}</div>:<p>{timing.label}: <strong>{timing.text}</strong></p>}</section>

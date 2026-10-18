@@ -82,5 +82,36 @@ do $$begin begin perform public.accounting_journal_export('20000000-0000-4000-80
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
 do $$begin begin perform public.accounting_journal_export('20000000-0000-4000-8000-000000000001',current_date-1,current_date+1);raise exception 'TEST FAILED cross-tenant journal';exception when insufficient_privilege then null;end;end$$;
 reset role;
+-- Isolated file metadata fixture: byte attestation is covered in private-customer-files.sql.
+reset role;
+insert into private.customer_supporting_files(organization_id,id,customer_id,actor_id,request_key,purpose,original_name,mime,bytes,sha256,object_path,status)
+select organization_id,'83000000-0000-4000-8000-000000000001',customer_id,'00000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000002','receipt','synthetic.png','image/png',12,repeat('a',64),organization_id::text||'/83000000-0000-4000-8000-000000000001','ready' from public.jobs limit 1;
+insert into public.customers(organization_id,id,display_name) values('20000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000003','Synthetic unrelated customer');
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select public.link_customer_file('20000000-0000-4000-8000-000000000001',(select customer_id from public.jobs),'83000000-0000-4000-8000-000000000001',0,'job',(select id from public.jobs),'Synthetic photo associated with original job',true,'83000000-0000-4000-8000-000000000004');
+select public.link_customer_file('20000000-0000-4000-8000-000000000001',(select customer_id from public.jobs),'83000000-0000-4000-8000-000000000001',0,'job',(select id from public.jobs),'Synthetic photo associated with original job',true,'83000000-0000-4000-8000-000000000004');
+do $$begin begin perform public.link_customer_file('20000000-0000-4000-8000-000000000001',(select customer_id from public.jobs),'83000000-0000-4000-8000-000000000001',0,'job',(select id from public.jobs),'Synthetic changed reason must fail',true,'83000000-0000-4000-8000-000000000004');raise exception 'TEST FAILED changed link replay';exception when others then if sqlerrm<>'IDEMPOTENCY_CONFLICT' then raise;end if;end;end$$;
+do $$begin begin perform public.link_customer_file('20000000-0000-4000-8000-000000000001',(select customer_id from public.jobs),'83000000-0000-4000-8000-000000000001',0,'invoice',(select id from public.invoices),'Synthetic stale version must fail',true,'83000000-0000-4000-8000-000000000005');raise exception 'TEST FAILED stale link';exception when others then if sqlerrm<>'STALE_REVISION' then raise;end if;end;end$$;
+do $$begin begin perform public.link_customer_file('20000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000003','83000000-0000-4000-8000-000000000001',1,'job',(select id from public.jobs),'Synthetic different customer must fail',true,'83000000-0000-4000-8000-000000000006');raise exception 'TEST FAILED wrong customer';exception when insufficient_privilege then null;end;end$$;
+select public.link_customer_file('20000000-0000-4000-8000-000000000001',(select customer_id from public.jobs),'83000000-0000-4000-8000-000000000001',1,'invoice',(select id from public.invoices),'Synthetic corrected association to issued invoice',true,'83000000-0000-4000-8000-000000000007');
+select pg_temp.assert_true(jsonb_array_length(public.customer_file_workspace('20000000-0000-4000-8000-000000000001',(select customer_id from public.jobs),'83000000-0000-4000-8000-000000000001')->'events')=2,'original link retained with one correction');
+select pg_temp.assert_true((public.customer_file_workspace('20000000-0000-4000-8000-000000000001',(select customer_id from public.jobs))->'files'->0->'link'->>'kind')='invoice','latest corrected link listed');
+select pg_temp.assert_true(jsonb_array_length(public.customer_file_targets('20000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000003','job')->'rows')=0,'unrelated customer has no job targets');
+select public.record_business_expense('20000000-0000-4000-8000-000000000001',current_date,'Synthetic Vendor','supplies','Synthetic receipt association',600,'cash','synthetic-receipt',true,'file-link-synthetic-expense');
+select public.link_customer_file('20000000-0000-4000-8000-000000000001',(select customer_id from public.jobs),'83000000-0000-4000-8000-000000000001',2,'expense',(select id from public.business_expenses limit 1),'Synthetic reviewed company receipt association',true,'83000000-0000-4000-8000-000000000008');
+select pg_temp.assert_true(jsonb_array_length(public.customer_file_targets('20000000-0000-4000-8000-000000000001',(select customer_id from public.jobs),'expense','Synthetic Vendor')->'rows')=1,'bounded expense search returns recorded expense');
+select public.link_customer_file('20000000-0000-4000-8000-000000000001',(select customer_id from public.jobs),'83000000-0000-4000-8000-000000000001',3,'customer',(select customer_id from public.jobs),'Synthetic correction to customer record only',true,'83000000-0000-4000-8000-000000000009');
+reset role;
+select pg_temp.assert_true((select count(*)=4 from private.customer_file_links),'four append-only link events; exact replay adds none');
+select pg_temp.assert_true((select count(*)=4 from public.audit_events where action='customer.file_linked'),'one audit per confirmed association');
+select pg_temp.assert_true((select bytes=12 and sha256=repeat('a',64) from private.customer_supporting_files),'link corrections retain frozen byte evidence');
+do $$begin begin delete from private.customer_file_links;raise exception 'TEST FAILED link history deletion';exception when others then if sqlerrm='TEST FAILED link history deletion' then raise;end if;end;end$$;
+update auth.sessions set not_after=now()-interval '1 hour' where id='10000000-0000-4000-8000-000000000001';
+set local role authenticated;
+do $$begin begin perform public.customer_file_workspace('20000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000003');raise exception 'TEST FAILED expired session reads';exception when insufficient_privilege then null;end;end$$;
+reset role;
+update auth.sessions set not_after=null where id='10000000-0000-4000-8000-000000000001';
+select pg_temp.assert_true(not has_function_privilege('anon','public.link_customer_file(uuid,uuid,uuid,integer,text,uuid,text,boolean,uuid)','execute') and not has_function_privilege('service_role','public.link_customer_file(uuid,uuid,uuid,integer,text,uuid,text,boolean,uuid)','execute'),'no anonymous or service link mutation');
 set constraints all immediate;
 rollback;

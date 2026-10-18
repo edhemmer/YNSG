@@ -376,5 +376,11 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": []
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261018190517_private_file_associations.sql",
+      "name": "private_file_associations",
+      "status": "not_applied_to_connected_supabase"
+    }
+  ]
 }
