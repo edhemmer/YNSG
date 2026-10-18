@@ -48,4 +48,26 @@ set local role authenticated;
 select pg_temp.assert_true((public.verified_customer_file_access('20000000-0000-4000-8000-000000000001',current_setting('ynsg.qa_file_id')::uuid)->>'sha256')=repeat('a',64),'read authorization retains frozen byte digest');
 reset role;
 
+-- More than the former 250-file ceiling; all metadata is isolated synthetic.
+insert into private.customer_supporting_files(organization_id,id,customer_id,actor_id,request_key,purpose,original_name,mime,bytes,sha256,object_path,status,created_at)
+select '20000000-0000-4000-8000-000000000001',('84000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,'30000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001',gen_random_uuid(),'receipt','pagination-fixture.png','image/png',12,repeat('a',64),'20000000-0000-4000-8000-000000000001/84000000-0000-4000-8000-'||lpad(n::text,12,'0'),'ready','2026-01-01T00:00:00.123456Z' from generate_series(1,260) n;
+set local role authenticated;
+do $$declare p jsonb; stamp timestamptz; last_id uuid; seen uuid[]='{}';item jsonb;begin
+ loop
+  p=public.customer_file_pages('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',stamp,last_id);
+  if jsonb_array_length(p->'files')>50 then raise exception 'TEST FAILED unbounded file page';end if;
+  for item in select value from jsonb_array_elements(p->'files') loop
+   if (item->>'id')::uuid=any(seen) then raise exception 'TEST FAILED duplicate file';end if;
+   seen=array_append(seen,(item->>'id')::uuid);
+  end loop;
+  exit when not (p->>'hasMore')::boolean;
+  stamp=(p->'nextCursor'->>'createdAt')::timestamptz;last_id=(p->'nextCursor'->>'id')::uuid;
+ end loop;
+ perform pg_temp.assert_true(cardinality(seen)=261,'all 261 ready files across equal-microsecond timestamps; no missing or duplicate records');
+ begin perform public.customer_file_pages('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',now(),null);raise exception 'TEST FAILED partial cursor';exception when others then if sqlerrm<>'VALIDATION' then raise;end if;end;
+end$$;
+select pg_temp.assert_true(not has_function_privilege('anon','public.customer_file_pages(uuid,uuid,timestamptz,uuid,uuid[],uuid[])','execute'),'anonymous cannot enumerate private pages');
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000004","session_id":"10000000-0000-4000-8000-000000000004","aal":"aal1"}',true);
+do $$begin begin perform public.customer_file_pages('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001');raise exception 'TEST FAILED non-owner page';exception when insufficient_privilege then null;end;end$$;
+reset role;
 rollback;

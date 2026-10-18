@@ -126,7 +126,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Verify the production private-file association batch under #34/#37: canonical same-customer job/invoice links, explicitly reviewed company receipt/expense links, append-only correction history, owner work/invoice entry points and uncertain-save/read recovery. Retention/account deletion and broader file pagination remain open; no full-gate acceptance.",
+      "nextAction": "Guarded keyset file pages and same-customer current-link filtering remove the former 250-record screen ceiling under #34. Verify complete paging, retry and draft/unknown-save recovery with current session/tenant denial. Retention/deletion, capture consent/device acceptance and object-byte restore remain separate.",
       "acceptance": "No email-string auto-claim; revoked access fails; supported edits remain discoverable on phone; immutable originals; private files authorized; gaps found in WEB-01 implemented before passing.",
       "requiredEvidence": "Two-tenant/customer tests, upload/deletion/retention cases and accepted owner/customer walkthrough.",
       "evidence": []

@@ -6,7 +6,7 @@ const map=JSON.parse(readFileSync('contracts/migration-history-map.json','utf8')
 const files=readdirSync('supabase/migrations');
 test('all GitHub migrations map to observed Supabase history without claiming SQL equivalence',()=>{
  const result=validateMigrationHistoryMap(map,files);
- assert.equal(result.mapped,69);
+ assert.equal(result.mapped,71);
  assert.equal(result.supabaseOnly,7);
 });
 test('unmapped future migration must update the observed migration register',()=>{
