@@ -31,7 +31,8 @@ export async function buildRoutePlan(calls:DayCall[],provider:RouteProvider|null
   const i=offset+1;
   const previous=booked[i-1]!;
   const leg:RouteLeg={fromId:previous.id,toId:next.id,departureAt:previous.endAt,gapMinutes:Math.floor((Date.parse(next.startAt)-Date.parse(previous.endAt))/60000),minutes:null,meters:null,lateMinutes:null};route.legs[offset]=leg;
-  if(!Number.isFinite(leg.gapMinutes))leg.reason='Appointment times could not be read. Review the schedule before routing.';
+  if(!Number.isFinite(Date.parse(previous.startAt))||!Number.isFinite(Date.parse(previous.endAt))||!Number.isFinite(Date.parse(next.startAt))||!Number.isFinite(Date.parse(next.endAt))||Date.parse(previous.endAt)<=Date.parse(previous.startAt)||Date.parse(next.endAt)<=Date.parse(next.startAt))leg.reason='Invalid appointment duration. Review the schedule before routing.';
+  else if(!Number.isFinite(leg.gapMinutes))leg.reason='Appointment times could not be read. Review the schedule before routing.';
   else if(leg.gapMinutes<0)leg.reason='Confirmed appointments overlap. Review the schedule before routing.';
   else if(next.startAt!==next.arrivalAt||previous.startAt!==previous.arrivalAt)leg.reason='Supplier pickup needs its own location. Review this route leg.';
   else if(!previous.address.trim()||!next.address.trim())leg.reason='A complete customer address is required.';

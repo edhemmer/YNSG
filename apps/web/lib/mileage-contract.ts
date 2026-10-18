@@ -47,3 +47,24 @@ export function sumConfirmedBusinessMiles(entries:unknown[]){
  if(!Number.isSafeInteger(miles))throw Error('MILEAGE_OVERFLOW');
  return miles;
 }
+
+
+export const mileageTrip=z.object({
+ id:uuid,trip_date:z.iso.date(),purpose:z.string(),origin:z.string(),destination:z.string(),vehicle_label:z.string(),
+ odometer_start:odometer,odometer_end:odometer,business_use:z.enum(['business','personal','mixed-review']),
+ recorded_source:z.enum(['manual-odometer','verified-trip-log']),job_id:uuid.nullable(),notes:z.string(),
+ created_at:z.iso.datetime({offset:true}),reversed_at:z.iso.datetime({offset:true}).nullable(),reversal_reason:z.string().nullable()
+}).strict().refine(v=>v.odometer_end>v.odometer_start);
+export const mileageReport=z.object({from:z.iso.date(),to:z.iso.date(),page:z.number().int().min(0),businessMiles:z.number().int().min(0),activeTrips:z.number().int().min(0),trips:z.array(mileageTrip).max(50),hasMore:z.boolean()}).strict();
+export function verifiedMileageReceipt(raw:unknown,body:string){
+ const command=JSON.parse(body),result=(raw as {result?:unknown})?.result;
+ if(command.action==='record'){
+  const entry=mileageEntry.parse(command.entry),receipt=z.object({id:uuid,miles:z.number().int().positive(),businessMiles:z.number().int().min(0),reversed:z.literal(false)}).strict().parse(result);
+  const miles=entry.odometerEnd-entry.odometerStart;
+  if(receipt.id!==entry.id||receipt.miles!==miles||receipt.businessMiles!==(entry.businessUse==='business'?miles:0))throw Error('UNCONFIRMED_MILEAGE');
+  return receipt;
+ }
+ const receipt=z.object({id:uuid,reversed:z.literal(true)}).strict().parse(result);
+ if(command.action!=='reverse'||receipt.id!==command.id)throw Error('UNCONFIRMED_MILEAGE');
+ return receipt;
+}

@@ -35,3 +35,18 @@ test('route directions and travel legs follow scheduled start times even if API 
  assert.equal(plan.legs[0]?.toId,'B');
  assert.equal(new URL(plan.mapsUrls[0]!).searchParams.get('origin'),a.address);
 });
+
+
+test('invalid duration on either neighboring visit prevents provider calls',async()=>{
+ const valid=call('A','2099-10-15T13:00:00Z','2099-10-15T15:00:00Z');
+ const later=call('B','2099-10-15T16:00:00Z','2099-10-15T18:00:00Z');
+ for(const visits of [[{...valid,endAt:'2099-10-15T12:00:00Z'},later],[valid,{...later,endAt:'2099-10-15T15:30:00Z'}]]){
+  let calls=0;
+  const plan=await buildRoutePlan(visits,async()=>{calls++;return {minutes:5,meters:1000};},new Date('2099-10-01'));
+  assert.equal(calls,0);
+  assert.equal(plan.complete,false);
+  assert.equal(plan.legs[0]?.minutes,null);
+  assert.deepEqual(plan.mapsUrls,[]);
+  assert.ok(plan.legs[0]?.reason?.includes('Invalid appointment duration'));
+ }
+});
