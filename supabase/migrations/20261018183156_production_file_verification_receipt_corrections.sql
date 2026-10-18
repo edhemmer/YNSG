@@ -41,10 +41,11 @@ end$$;
 revoke all on function public.verified_customer_file_access(uuid,uuid) from public,anon,service_role;
 grant execute on function public.verified_customer_file_access(uuid,uuid) to authenticated;
 -- Match supported image contracts; retained legacy metadata is not rewritten.
-update storage.buckets set allowed_mime_types=array['image/jpeg','image/png'] where id='ynsg-customer-files';
+update storage.buckets set file_size_limit=4194304,allowed_mime_types=array['image/jpeg','image/png'] where id='ynsg-customer-files';
 do $$declare d text;begin
  d:=pg_get_functiondef('public.reserve_customer_file(uuid,uuid,uuid,text,text,text,integer,text)'::regprocedure);
  d:=replace(d,'''image/jpeg'',''image/png'',''application/pdf''','''image/jpeg'',''image/png''');
+ d:=replace(d,'p_bytes not between 1 and 8388608','p_bytes not between 1 and 4194304');
  execute d;
 end$$;
 

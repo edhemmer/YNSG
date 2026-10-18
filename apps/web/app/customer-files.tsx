@@ -22,7 +22,7 @@ export default function CustomerFiles({organization,customer}:{organization:stri
  async function submit(){
   if(sending.current||busy||loading||(unknown&&!frozen.current))return;
   if(!frozen.current){
-   if(!file||file.size>8388608||file.size<8||!['image/png','image/jpeg'].includes(file.type)){setError('Choose a JPG or PNG up to 8 MB.');return;}
+   if(!file||file.size>4194304||file.size<8||!['image/png','image/jpeg'].includes(file.type)){setError('Choose a JPG or PNG up to 4 MB.');return;}
    frozen.current={file,purpose,key:crypto.randomUUID()};
   }
   const target=frozen.current;sending.current=true;setBusy(true);setError('');setNotice('');
@@ -56,7 +56,7 @@ export default function CustomerFiles({organization,customer}:{organization:stri
   <form onSubmit={e=>{e.preventDefault();void submit();}}>
    <fieldset disabled={busy||loading||unknown}><legend>Add one image</legend>
     <label>What is this image?<select value={purpose} onChange={e=>setPurpose(e.target.value)}><option value="job_photo">Job photo</option><option value="receipt">Receipt</option><option value="customer_document">Customer supporting document</option></select></label>
-    <label>Choose JPG or PNG, 8 MB maximum<input type="file" accept="image/jpeg,image/png" onChange={e=>setFile(e.target.files?.[0]||null)}/></label>
+    <label>Choose JPG or PNG, 4 MB maximum<input type="file" accept="image/jpeg,image/png" onChange={e=>setFile(e.target.files?.[0]||null)}/></label>
     <button type="submit" disabled={!file}>{busy?'Saving…':'Save private attachment'}</button>
    </fieldset>
   </form>

@@ -41,14 +41,14 @@ export async function GET(request:Request){
 export async function POST(request:Request){
  if(!sameOrigin(request))return NextResponse.json({error:'Request not accepted.'},{status:403,headers});
  const size=Number(request.headers.get('content-length')||0);
- if(!size||size>9000000)return NextResponse.json({error:'Choose one image of up to 8 MB.'},{status:413,headers});
+ if(!size||size>4500000)return NextResponse.json({error:'Choose one image of up to 4 MB.'},{status:413,headers});
  try{
   const data=await request.formData();
   const parsed=z.object({organization:z.uuid(),customer:z.uuid(),key:z.uuid(),purpose:customerFilePurpose}).strict().safeParse(Object.fromEntries(['organization','customer','key','purpose'].map(k=>[k,data.get(k)])));
   const blob=data.get('file');
   if(!parsed.success||!(blob instanceof File))return NextResponse.json({error:'Choose a customer, attachment type and image.'},{status:400,headers});
-  if(blob.size<8||blob.size>8388608||!['image/jpeg','image/png'].includes(blob.type)||blob.name.length>180||blob.name.length<1)
-   return NextResponse.json({error:'Use a JPG or PNG image up to 8 MB.'},{status:400,headers});
+  if(blob.size<8||blob.size>4194304||!['image/jpeg','image/png'].includes(blob.type)||blob.name.length>180||blob.name.length<1)
+   return NextResponse.json({error:'Use a JPG or PNG image up to 4 MB.'},{status:400,headers});
   const bytes=new Uint8Array(await blob.arrayBuffer());
   if(!verifyImageBytes(bytes,blob.type))return NextResponse.json({error:'The image content did not match its file type.'},{status:400,headers});
   const {db,user,access}=await authenticated(),session=verifiedFileSession(access,user.id),sha=createHash('sha256').update(bytes).digest('hex');

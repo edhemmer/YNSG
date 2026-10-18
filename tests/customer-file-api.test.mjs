@@ -59,3 +59,11 @@ test('successful private storage write may reach canonical finalize exactly once
 test('file download verifies frozen digest before creating a short-lived signed link',async()=>{
  for(const valid of [true,false]){const h=harness(null,valid?validImage:Uint8Array.from([...validImage.slice(0,-1),5]));const r=await h.get(new Request('https://example.invalid/api/customer-files?'+new URLSearchParams({organization:org,file})));assert.equal(r.status,valid?200:409);assert.deepEqual(h.calls,valid?['verified_customer_file_access','download','signed']:['verified_customer_file_access','download']);}
 });
+
+test('oversized images are rejected before reserving or uploading',async()=>{
+ const form=new FormData();form.set('organization',org);form.set('customer',customer);form.set('key','50000000-0000-4000-8000-000000000001');form.set('purpose','receipt');form.set('file',new File([new Uint8Array(4194305)],'large.png',{type:'image/png'}));
+ const h=harness(null),r=await h.post(new Request('https://example.invalid/api/customer-files',{method:'POST',body:form,headers:{'content-length':'4195000'}}));
+ assert.equal(r.status,400);assert.deepEqual(h.calls,[]);
+ const tooLarge=await h.post(new Request('https://example.invalid/api/customer-files',{method:'POST',body:'x',headers:{'content-length':'4500001'}}));
+ assert.equal(tooLarge.status,413);assert.deepEqual(h.calls,[]);
+});

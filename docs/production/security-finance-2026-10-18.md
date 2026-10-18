@@ -33,3 +33,5 @@ This is a double-entry accounting export, not a tax return, cash/accrual tax-bas
 - Verify both production deployment SHAs and read-only health. Actual owner/provider/device/human security acceptance remains open.
 
 Preserved: approved public copy/brand/services/rates, one combined minimum, existing issued snapshots, optional accounts and no required MFA. No Stripe activation, paid resource, real financial mutation or native distribution.
+
+New uploads are limited to 4 MiB in the form, API, reservation and bucket, below the Vercel 4.5 MB request limit including multipart overhead. Existing retained file metadata and verified downloads keep the prior 8 MiB bound. Reference: https://vercel.com/docs/functions/limitations#request-body-size
