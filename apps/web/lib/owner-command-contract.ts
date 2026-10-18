@@ -1,5 +1,6 @@
 import {z} from "zod";
 import {recordExpenseCommand,reverseExpenseCommand} from './expense-contract.ts';
+import {paymentCorrection} from './payment-correction-contract.ts';
 const base = { organizationId: z.uuid(), key: z.string().min(16).max(128) };
 export const ownerCommandSchema = z.discriminatedUnion("command", [
   z.object({
@@ -53,6 +54,7 @@ export const ownerCommandSchema = z.discriminatedUnion("command", [
     receivedAt: z.iso.datetime(),
     confirmed: z.literal(true),
   }).strict(),
+  paymentCorrection,
   recordExpenseCommand,
   reverseExpenseCommand,
 ]);

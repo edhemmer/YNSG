@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {paymentCorrection,verifyPaymentCorrection} from '../apps/web/lib/payment-correction-contract.ts';
+import {verifiedFileSession} from '../apps/web/lib/customer-file-verification.ts';
+const org='20000000-0000-4000-8000-000000000001',id='30000000-0000-4000-8000-000000000001',payment='40000000-0000-4000-8000-000000000001';
+const c={organizationId:org,command:'ReverseRecordedPayment' as const,id,paymentId:payment,key:crypto.randomUUID(),reason:'Incorrect receipt was entered',reviewed:true as const};
+test('receipt correction requires exact original identity, reason and explicit review',()=>{paymentCorrection.parse(c);for(const change of [{reviewed:false},{reason:'short'},{paymentId:'unknown'},{cents:100}])assert.equal(paymentCorrection.safeParse({...c,...change}).success,false);});
+test('correction receipts reject a different invoice/payment and any claimed positive receipt',()=>{const r={id:crypto.randomUUID(),paymentId:payment,invoiceId:id,reversed:true,cents:-6000,balanceCents:6000};verifyPaymentCorrection(r,c);for(const change of [{paymentId:org},{invoiceId:org},{cents:6000},{reversed:false}])assert.throws(()=>verifyPaymentCorrection({...r,...change},c));});
+test('file verifier session comes from the already validated token and must match its user',()=>{const token=(value:unknown)=>'header.'+Buffer.from(JSON.stringify(value)).toString('base64url')+'.signature';assert.equal(verifiedFileSession(token({sub:org,session_id:id}),org),id);for(const v of [{sub:id,session_id:id},{sub:org,session_id:'bad'},{sub:org}])assert.throws(()=>verifiedFileSession(token(v),org));});

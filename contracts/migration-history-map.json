@@ -370,5 +370,12 @@
       "name": "silent_website_quotas",
       "historyVersion": "20261005123109"
     }
+  ],
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261018183156_production_file_verification_receipt_corrections.sql",
+      "name": "production_file_verification_receipt_corrections",
+      "status": "not_applied_to_connected_supabase"
+    }
   ]
 }

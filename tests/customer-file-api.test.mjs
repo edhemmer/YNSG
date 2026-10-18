@@ -15,17 +15,17 @@ function harness(uploadError,storedBytes=validImage){
  const db={rpc:async(name)=>{
   calls.push(name);
   if(name==='reserve_customer_file')return {data:{id:file,path:org+'/'+file,ready:false},error:null};
-  if(name==='finalize_customer_file')return {data:{id:file,ready:true},error:null};
+  if(name==='verified_customer_file_access')return {data:{path:org+'/'+file,name:'receipt.png',mime:'image/png',bytes:validImage.length,sha256:createHash('sha256').update(validImage).digest('hex')},error:null};
   return {data:[],error:null};
- },storage:{from:()=>({upload:async()=>({error:uploadError}),download:async()=>{calls.push('download');return {data:new Blob([storedBytes]),error:null};}})}};
+ },storage:{from:()=>({createSignedUrl:async()=>{calls.push('signed');return {data:{signedUrl:'https://storage.example.invalid/sample'},error:null};},upload:async()=>({error:uploadError}),download:async()=>{calls.push('download');return {data:new Blob([storedBytes]),error:null};}})}};
  const headers={};
  const NextResponse={json:(data,options={})=>new Response(JSON.stringify(data),{status:options.status||200,headers:options.headers})};
- const imports={createHash,z,NextResponse,authenticated:async()=>({db}),sameOrigin:()=>true,failure:()=>NextResponse.json({error:'error'},{status:503}),...contract};
+ const imports={createHash,z,NextResponse,authenticated:async()=>({db,user:{id:customer},access:'validated-access'}),verifiedFileSession:()=>customer,confirmVerifiedCustomerFile:async()=>{calls.push('confirm_verified_customer_file');return {data:{id:file,ready:true},error:null};},sameOrigin:()=>true,failure:()=>NextResponse.json({error:'error'},{status:503}),...contract};
  let code=src.split('\n').filter(line=>!line.startsWith('import ')&&!line.startsWith('export const dynamic')).join('\n');
- code=stripTypeScriptTypes(code.replace(/^export /gm,''))+'\nexports.POST=POST;';
+ code=stripTypeScriptTypes(code.replace(/^export /gm,''))+'\nexports.POST=POST;exports.GET=GET;';
  const scope={...imports,exports:{},Buffer,File,FormData,Uint8Array,Request,Response,URL};
  runInNewContext(code,scope);
- return {post:scope.exports.POST,calls};
+ return {post:scope.exports.POST,get:scope.exports.GET,calls};
 }
 function input(){
  const png=validImage;
@@ -40,7 +40,7 @@ test('storage error never promotes an unknown blob',async()=>{
 test('same-byte duplicate after lost response may be reconciled once',async()=>{
  for(const message of ['The resource already exists','Duplicate']){
   const h=harness({message}),r=await h.post(input());
-  assert.equal(r.status,200);assert.deepEqual(h.calls,['reserve_customer_file','download','finalize_customer_file']);
+  assert.equal(r.status,200);assert.deepEqual(h.calls,['reserve_customer_file','download','confirm_verified_customer_file']);
  }
 });
 test('wrong object bytes or altered size cannot be finalized',async()=>{
@@ -52,6 +52,10 @@ test('wrong object bytes or altered size cannot be finalized',async()=>{
 test('successful private storage write may reach canonical finalize exactly once',async()=>{
  const h=harness(null),r=await h.post(input());
  assert.equal(r.status,200);
- assert.deepEqual(h.calls,['reserve_customer_file','download','finalize_customer_file']);
+ assert.deepEqual(h.calls,['reserve_customer_file','download','confirm_verified_customer_file']);
  assert.equal((await r.json()).file,file);
+});
+
+test('file download verifies frozen digest before creating a short-lived signed link',async()=>{
+ for(const valid of [true,false]){const h=harness(null,valid?validImage:Uint8Array.from([...validImage.slice(0,-1),5]));const r=await h.get(new Request('https://example.invalid/api/customer-files?'+new URLSearchParams({organization:org,file})));assert.equal(r.status,valid?200:409);assert.deepEqual(h.calls,valid?['verified_customer_file_access','download','signed']:['verified_customer_file_access','download']);}
 });

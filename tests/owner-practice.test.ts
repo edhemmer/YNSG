@@ -66,3 +66,8 @@ test('practice reload validates bounded tab storage and discards malformed or in
  const raw=JSON.stringify(s.snapshot()),restored=restorePractice(raw);assert.ok(restored);assert.equal(createPracticeStore(restored).snapshot().requests[0]!.status,'reviewing');
  for(const value of ['{bad','{}',JSON.stringify({...s.snapshot(),requests:[{id:r.id}]}),JSON.stringify({...s.snapshot(),payments:null}),' '.repeat(1500001)])assert.equal(restorePractice(value),undefined);
 });
+test('sample receipt correction restores balance and survives tab reload without live activity',async()=>{
+ const s=createPracticeStore(),i=s.snapshot().invoices[0]!,original=s.snapshot().payments[i.id]![0]!;
+ const r=await command(s,{command:'ReverseRecordedPayment',id:i.id,paymentId:original.id,reason:'Synthetic mistaken receipt entry',reviewed:true});assert.ok(r.ok);
+ assert.equal(s.document(i.id).balanceCents,12000);const restored=restorePractice(JSON.stringify(s.snapshot()));assert.ok(restored);assert.equal(createPracticeStore(restored).document(i.id).balanceCents,12000);
+});
