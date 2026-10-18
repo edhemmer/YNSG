@@ -7,7 +7,7 @@ import type {filePage} from '../lib/customer-file-page-contract';
 type Page=z.infer<typeof filePage>;
 type Position={cursor:FilePageCursor|null;index:number;previous:(FilePageCursor|null)[]};
 const first=():Position=>({cursor:null,index:0,previous:[]});
-export function useCustomerFilePage(organization:string,customer:string,filters:{job?:string;invoice?:string}={},autoLoad=false){
+export function useCustomerFilePage(organization:string,customer:string,filters:{jobs?:string;invoices?:string}={},autoLoad=false){
  const [page,setPage]=useState<Page|null>(null),[loading,setLoading]=useState(autoLoad),[readFailed,setReadFailed]=useState(false),[error,setError]=useState(''),[index,setIndex]=useState(0);
  const position=useRef(first()),attempt=useRef(first()),active=useRef(false),sequence=useRef(0),mounted=useRef(true);
  async function load(target:Position){

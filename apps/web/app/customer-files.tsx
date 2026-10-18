@@ -46,8 +46,8 @@ function Files({organization,customer}:{organization:string;customer:string}){
     <button type="submit" disabled={!file}>{busy?'Saving…':'Save private attachment'}</button>
    </fieldset>
   </form>
-  {list.page&&<nav aria-label="Attachment pages"><button type="button" className="secondary" disabled={!list.index||busy||unknown||linkBusy||loading||readFailed} onClick={()=>{if(canLeave())void list.previous();}}>Previous attachments</button><span role="status">Page {list.index+1} · {files.length} attachments</span><button type="button" className="secondary" disabled={!list.page.hasMore||busy||unknown||linkBusy||loading||readFailed} onClick={()=>{if(canLeave())void list.next();}}>Next attachments</button></nav>}
+  {list.page&&<nav className="actions" aria-label="Attachment pages"><button type="button" className="secondary" disabled={!list.index||busy||unknown||linkBusy||loading||readFailed} onClick={()=>{if(canLeave())void list.previous();}}>Previous attachments</button><span role="status">Page {list.index+1} · {files.length} attachments</span><button type="button" className="secondary" disabled={!list.page.hasMore||busy||unknown||linkBusy||loading||readFailed} onClick={()=>{if(canLeave())void list.next();}}>Next attachments</button></nav>}
   {files.map(f=><div className="customer-item" key={f.id}><strong>{f.name}</strong> · {f.purpose.replaceAll('_',' ')} <PrivateFileDownload key={organization+':'+f.id} organization={organization} file={f.id} disabled={busy||unknown||linkBusy||loading||readFailed}/>{<CustomerFileLinkEditor key={f.id} organization={organization} customer={customer} file={f} saved={list.refresh} busy={setLinkBusy} disabled={busy||unknown||loading||readFailed||linkBusy}/>}</div>)}
-  {!loading&&!readFailed&&!files.length&&<p>No saved attachments.</p>}
+  {!loading&&!readFailed&&!files.length&&<p>{list.index?"No attachments on this page.":"No saved attachments."}</p>}
  </section>;
 }
