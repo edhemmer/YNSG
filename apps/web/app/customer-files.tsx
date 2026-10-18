@@ -9,7 +9,7 @@ import PrivateFileDownload from './private-file-download';
 export default function CustomerFiles(props:{organization:string;customer:string}){return <Files key={props.organization+':'+props.customer} {...props}/>;}
 function Files({organization,customer}:{organization:string;customer:string}){
  const [files,setFiles]=useState<LinkedFile[]>([]),[file,setFile]=useState<File|null>(null),[purpose,setPurpose]=useState('job_photo'),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[unknown,setUnknown]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[linkBusy,setLinkBusy]=useState(false),[readFailed,setReadFailed]=useState(false);
- const frozen=useRef<{file:File;purpose:string;key:string}|null>(null),sending=useRef(false),generation=useRef(0),mounted=useRef(true);
+ const frozen=useRef<{file:File;purpose:string;key:string}|null>(null),sending=useRef(false),generation=useRef(0),mounted=useRef(true),picker=useRef<HTMLInputElement|null>(null);
  useBlockedEntry('customer-files:'+organization+customer,busy||unknown||linkBusy);
  useUnsavedEntry('customer-files:'+organization+customer,Boolean(file));
  async function reload(){
@@ -39,7 +39,7 @@ function Files({organization,customer}:{organization:string;customer:string}){
     throw Error('UNCERTAIN');
    }
    if(answer.ok!==true||!customerFileFinalize.safeParse({id:answer.file,ready:true}).success)throw Error('UNCERTAIN');
-   setFile(null);setUnknown(false);frozen.current=null;setNotice('Attachment saved. Refreshing the private file list.');await reload();
+   setFile(null);if(picker.current)picker.current.value='';setUnknown(false);frozen.current=null;setNotice('Attachment saved. Refreshing the private file list.');await reload();
   }catch{if(!mounted.current)return;setUnknown(true);setError('The upload result is uncertain. Review saved attachments, then retry only the same original upload attempt.');}
   finally{sending.current=false;if(mounted.current)setBusy(false);}
  }
@@ -51,11 +51,11 @@ function Files({organization,customer}:{organization:string;customer:string}){
   <form onSubmit={e=>{e.preventDefault();void submit();}}>
    <fieldset disabled={busy||loading||unknown||linkBusy||readFailed}><legend>Add one image</legend>
     <label>What is this image?<select value={purpose} onChange={e=>setPurpose(e.target.value)}><option value="job_photo">Job photo</option><option value="receipt">Receipt</option><option value="customer_document">Customer supporting document</option></select></label>
-    <label>Choose JPG or PNG, 4 MB maximum<input type="file" accept="image/jpeg,image/png" onChange={e=>setFile(e.target.files?.[0]||null)}/></label>
+    <label>Choose JPG or PNG, 4 MB maximum<input ref={picker} type="file" accept="image/jpeg,image/png" onChange={e=>setFile(e.target.files?.[0]||null)}/></label>
     <button type="submit" disabled={!file}>{busy?'Saving…':'Save private attachment'}</button>
    </fieldset>
   </form>
   {files.map(f=><div className="customer-item" key={f.id}><strong>{f.name}</strong> · {f.purpose.replaceAll('_',' ')} <PrivateFileDownload key={organization+':'+f.id} organization={organization} file={f.id} disabled={busy||unknown||linkBusy||loading||readFailed}/>{<CustomerFileLinkEditor key={f.id} organization={organization} customer={customer} file={f} saved={reload} busy={setLinkBusy} disabled={busy||unknown||loading||readFailed||linkBusy}/>}</div>)}
-  {!loading&&!files.length&&<p>No saved attachments.</p>}
+  {!loading&&!readFailed&&!files.length&&<p>No saved attachments.</p>}
  </section>;
 }
