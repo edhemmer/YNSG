@@ -17,3 +17,21 @@ test('overlapping confirmed visits never appear as a complete daily route',async
 test('route is not ready while visits need review or a confirmed destination lacks city',async()=>{const a=call('A','2099-10-15T13:00:00Z','2099-10-15T15:00:00Z');const pending=await buildRoutePlan([{...a,status:'needs_review'}],null,new Date('2099-10-01'));assert.equal(pending.complete,false);const incomplete=await buildRoutePlan([{...a,address:'298 Quinlan Ave'}],null,new Date('2099-10-01'));assert.equal(incomplete.complete,false);assert.deepEqual(incomplete.mapsUrls,[]);});
 
 test('a single confirmed visit with invalid times is not route ready',async()=>{const a=call('A','2099-10-15T15:00:00Z','2099-10-15T13:00:00Z');const plan=await buildRoutePlan([a],null,new Date('2099-10-01'));assert.equal(plan.complete,false);assert.deepEqual(plan.mapsUrls,[]);assert.ok(plan.warnings.some(w=>w.includes('invalid appointment times')));});
+
+
+test('single confirmed supplier pickup requires location even without neighboring stops',async()=>{
+ const a=call('A','2099-10-15T13:00:00Z','2099-10-15T15:00:00Z');
+ const plan=await buildRoutePlan([{...a,arrivalAt:'2099-10-15T12:30:00Z'}],null,new Date('2099-10-01'));
+ assert.equal(plan.complete,false);
+ assert.deepEqual(plan.mapsUrls,[]);
+ assert.ok(plan.warnings.some(w=>w.includes('Supplier pickup')));
+});
+
+test('route directions and travel legs follow scheduled start times even if API rows arrive out of order',async()=>{
+ const a=call('A','2099-10-15T13:00:00Z','2099-10-15T15:00:00Z');
+ const b=call('B','2099-10-15T16:00:00Z','2099-10-15T18:00:00Z');
+ const plan=await buildRoutePlan([b,a],async()=>({minutes:10,meters:1000}),new Date('2099-10-01'));
+ assert.equal(plan.legs[0]?.fromId,'A');
+ assert.equal(plan.legs[0]?.toId,'B');
+ assert.equal(new URL(plan.mapsUrls[0]!).searchParams.get('origin'),a.address);
+});
