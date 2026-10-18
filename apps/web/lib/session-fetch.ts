@@ -1,3 +1,4 @@
+import {isPracticePath} from './practice-scope.ts';
 // Refresh only after authentication rejection, never after an ambiguous action
 // response. The original body/idempotency key is reused exactly once.
 export function createSessionFetch(fetcher:typeof fetch=fetch,lock?:(run:()=>Promise<Response>)=>Promise<Response>){
@@ -35,7 +36,15 @@ export function createSessionFetch(fetcher:typeof fetch=fetch,lock?:(run:()=>Pro
  };
 }
 
-export const sessionFetch=createSessionFetch((...args)=>fetch(...args),run=>{
+export const sessionFetch=createSessionFetch(async (...args)=>{
+ if(typeof window!=='undefined'&&isPracticePath(window.location.pathname)){
+  // Never fall back to the network, including unknown operations and session
+  // renewal. The dynamic module contains synthetic data and no credentials.
+  const {browserPracticeFetch}=await import('./practice-store.ts');
+  return browserPracticeFetch(String(args[0]),args[1]);
+ }
+ return fetch(...args);
+},run=>{
  // Serialize refreshes between tabs on supported browsers. Recheck inside
  // the lock so the second tab reuses the first tab's rotated cookies.
  if(typeof navigator!=='undefined'&&navigator.locks)return navigator.locks.request('ynsg-session-refresh',run);

@@ -390,6 +390,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
           <form className="auth card" onSubmit={login}><ThemeToggle/>
             <p className="eyebrow">{loginBrand}</p>
             <h1>Sign in to your workspace</h1>
+            <p><a href="/owner/practice">Try the workflow with sample data</a> · no sign-in or real customer activity</p>
             <p>{authMode === "recover" ? "Enter your email to reset your password." : "Sign in with your email and password."}</p>
             {ownerGoogle?.enabled && <div>
               <button type="button" disabled={pending} onClick={async()=>{
@@ -560,6 +561,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
                       <div className="card">
                         <h2>Business preferences</h2>
                         <p><a href="/account?password=change">Change my password</a></p>
+                        <p><a href="/owner/practice">Practice with sample requests, jobs and payments</a></p>
                         <p><a href={"/owner/production-check?"+new URLSearchParams({organization:org})}>Sample invoices and email checks</a></p>
                         <p className="badge">{data.company.status}</p>
                         <p>Timezone: {data.company.timezone}</p>

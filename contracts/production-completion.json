@@ -39,7 +39,7 @@
     {
       "id": "WEB-02",
       "milestone": "web",
-      "title": "Walk public navigation, services, pricing, contact and Services → Time → Details with deliberate selection and optional account.",
+      "title": "Walk public navigation, services, pricing, contact and Services \u2192 Time \u2192 Details with deliberate selection and optional account.",
       "owner": "Engineering lead",
       "status": "open",
       "requirements": [
@@ -50,7 +50,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "PR #77 merged (booking field focus; exact-head CI passed). Execute A01–A03 full guest journey, failure/retry, controlled delivery, and physical mobile accessibility evidence before verification.",
+      "nextAction": "PR #77 merged (booking field focus; exact-head CI passed). Execute A01\u2013A03 full guest journey, failure/retry, controlled delivery, and physical mobile accessibility evidence before verification.",
       "acceptance": "Required name/email/phone/address; multiple services; honest arrange-time path; free address check is advisory; retry saves one request and one milestone notification; no abandoned hold leaks.",
       "requiredEvidence": "Synthetic full-journey tests plus approved controlled delivery and physical-device evidence.",
       "evidence": []
@@ -77,9 +77,9 @@
     {
       "id": "WEB-04",
       "milestone": "web",
-      "title": "Accept the complete phone workflow: open/read → confirm → complete → issue invoice → close out, including declined and zero-charge work.",
+      "title": "Accept the complete phone workflow: open/read \u2192 confirm \u2192 complete \u2192 issue invoice \u2192 close out, including declined and zero-charge work.",
       "owner": "Engineering lead",
-      "status": "open",
+      "status": "working",
       "requirements": [
         "R07",
         "R10",
@@ -88,7 +88,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Accept the complete phone workflow: open/read → confirm → complete → issue invoice → close out, including declined and zero-charge work.",
+      "nextAction": "Owner practice workspace provides six browser-local scenarios using real workflow screens: scheduling, estimate/agreement, timer, completion, invoice and cash/Zelle closeout. Use docs/production/owner-practice.md for phone acceptance; canonical backend, real provider and actual-work/funds evidence remain separate.",
       "acceptance": "One guided record with distinct next action; appointment date/time separated from notes; draft invoice visible after scheduling without being an issued bill; actual work stops timers atomically; explicit agreement and invoice issue.",
       "requiredEvidence": "Full scenario record linking UI, API, canonical revisions and isolated database assertions.",
       "evidence": []
@@ -194,7 +194,7 @@
       "milestone": "web",
       "title": "Run design and usability acceptance from the protocol on desktop, phone and iPad",
       "owner": "Engineering lead",
-      "status": "open",
+      "status": "working",
       "requirements": [
         "R17"
       ],
@@ -204,7 +204,7 @@
         "WEB-05",
         "WEB-06"
       ],
-      "nextAction": "PR #77 fixes booking validation focus with regression and passing exact-head CI. Complete keyboard, VoiceOver, iPhone/iPad, zoom, contrast and user task measurements; no device pass inferred.",
+      "nextAction": "Use the resettable /owner/practice sample workspace for phone/iPad large-text, dark/light, keyboard and task review without production QA records. Interaction tests enforce zero network calls; actual device/performance/accessibility evidence remains required.",
       "acceptance": "Approved brand; restrained visible navigation; clear primary action/status; light/dark; no clipped financial amounts; labels, focus, large text, screen readers, keyboard and reduced motion. Meet measured task/performance targets or fix scope.",
       "requiredEvidence": "Device/browser matrix, sanitized captures, task measurements and elderly/disabled participant findings.",
       "evidence": []

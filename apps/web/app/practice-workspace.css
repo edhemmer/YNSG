@@ -1,0 +1,9 @@
+.practice-workspace{max-width:1060px;padding-block:24px 80px;overflow-wrap:anywhere}
+.practice-banner{border:2px solid var(--gold,#c1a65a);border-radius:20px;padding:clamp(18px,4vw,32px);margin-bottom:20px;background:var(--paper)}
+.practice-banner h1{font-size:clamp(1.7rem,4vw,2.5rem);margin-top:8px}.practice-banner p{max-width:78ch}
+.practice-nav{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}.practice-nav button{min-height:44px}
+.practice-guide{border:1px solid var(--line,#c8d2cd);border-radius:12px;padding:16px;margin-bottom:24px}.practice-guide li{margin-block:10px}
+.practice-workspace .actions{flex-wrap:wrap}.practice-workspace .invoice-document{max-width:100%}
+@media print{.practice-banner,.practice-nav,.practice-guide{display:none}.practice-workspace::before{content:'SAMPLE — NOT A BILL';font-size:22px;font-weight:700}}
+
+.practice-nav button[aria-pressed=true]{box-shadow:inset 0 0 0 3px var(--gold);text-decoration:underline;text-underline-offset:4px}

@@ -1,5 +1,6 @@
 'use client';
 import AppointmentSummary from './appointment-summary';
+import {isPracticePath} from '../lib/practice-scope';
 import {appointmentDeliveryMessage} from '../lib/appointment-delivery';
 import RecurringPreviewPanel from './recurring-preview-panel';
 import { publicError } from "../lib/public-errors";
@@ -63,7 +64,7 @@ export default function SchedulingReviewPanel({organization,requestId,appointmen
   setPending(true);setError('');setMessage('');setNotice('');
   try{const r=await sessionFetch('/api/scheduling-review',{method:'POST',headers:{'Content-Type':'application/json'},body:attempt.current});const d=await r.json();if(!r.ok){knownFailure=r.status>=400&&r.status<500;refreshContext=r.status===400||r.status===409;throw Error(d.error);}
    if(d.result?.status!=='reserved')throw Error('The time has not been confirmed. Open Review to check its status.');
-   if(s===sequence.current){attempt.current=null;setUncertain(false);setDirty(false);const message=appointmentDeliveryMessage(d.delivery);setMessage(message);completed('reserved',message);}}
+   if(s===sequence.current){attempt.current=null;setUncertain(false);setDirty(false);const message=isPracticePath(window.location.pathname)?'Practice appointment saved in this tab. No calendar provider or email was contacted.':appointmentDeliveryMessage(d.delivery);setMessage(message);completed('reserved',message);}}
 
   catch(e){if(s===sequence.current){setUncertain(!knownFailure);if(knownFailure){attempt.current=null;setError(publicError(e));if(refreshContext){setNotice('The appointment was not saved. Current scheduling details are being refreshed. Your private note is retained.');setRetry(n=>n+1);}else if(!appointmentId)setTimeRefresh(n=>n+1);}else setError('The scheduling result is uncertain. Your submitted details are locked. Check the saved result before changing the time or scheduling again.');}}
   finally{sending.current=false;if(s===sequence.current)setPending(false);}
