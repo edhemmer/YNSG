@@ -9,7 +9,7 @@ const MAX=32*1024**3,HEADER_MAX=4*1024**2,MAGIC=Buffer.from('YNSGREC1');
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
 const sha=/^[a-f0-9]{64}$/;
 const shape=(v,keys)=>v!==null&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).length===keys.length&&keys.every(k=>Object.hasOwn(v,k));
-function manifestParse(m){
+export function manifestParse(m){
  if(!shape(m,['format','files'])||m.format!=='ynsg-customer-file-backup-v1'||!Array.isArray(m.files)||m.files.length>10000)fail('INVALID_MANIFEST');
  const seen=new Set();for(const e of m.files){if(!shape(e,['organization','id','path','bytes','mime','sha256'])||typeof e.organization!=='string'||!uuid.test(e.organization)||typeof e.id!=='string'||!uuid.test(e.id)||e.path!==e.organization+'/'+e.id||seen.has(e.path)||!Number.isSafeInteger(e.bytes)||e.bytes<8||e.bytes>8388608||!['image/png','image/jpeg'].includes(e.mime)||typeof e.sha256!=='string'||!sha.test(e.sha256))fail('INVALID_MANIFEST');seen.add(e.path);}return m;
 }

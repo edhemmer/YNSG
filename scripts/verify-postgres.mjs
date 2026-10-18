@@ -1,6 +1,7 @@
 import {verifyCustomerFileRestore} from './verify-customer-file-restore.mjs';
 import {createHash} from 'node:crypto';
 import {generateRecoveryKey,packRecoveryBundle,unpackRecoveryBundle} from './recovery-bundle.mjs';
+import {reconcileRecoveryCatalog,verifyRecoveryCatalog} from './verify-recovery-catalog.mjs';
 // Synthetic-only PostgreSQL 17 checks inside the explicitly named CI service.
 // No production database URL, account credentials, mail provider or customer data.
 import {spawn} from 'node:child_process';
@@ -68,6 +69,10 @@ const linkFile=n=>`select public.link_customer_file('20000000-0000-4000-8000-000
 const linkRace=await Promise.allSettled([sql(ownerClaim+linkFile(1)+'select pg_sleep(0.5);commit;'),sql(ownerClaim+linkFile(2)+'select pg_sleep(0.5);commit;')]);assert.equal(linkRace.filter(r=>r.status==='fulfilled').length,1);assert.match(linkRace.find(r=>r.status==='rejected').reason.message,/STALE_REVISION/);
 await sql(ownerClaim+linkFile(linkRace[0].status==='fulfilled'?1:2)+'commit;');assert.equal(Number((await sql(`select count(*) from private.customer_file_links where file_id='${linkTarget.file}';`)).trim()),5);
 console.log('PASS: two file links race one version; one winner, one stale rejection and exact replay');
+// Pending metadata remains recoverable without pretending an upload completed.
+await sql(`insert into private.customer_supporting_files(organization_id,id,customer_id,actor_id,request_key,purpose,original_name,mime,bytes,sha256,object_path,status)
+ select organization_id,'85000000-0000-4000-8000-000000000001',customer_id,actor_id,'85000000-0000-4000-8000-000000000002',purpose,'synthetic-pending.png',mime,bytes,sha256,organization_id::text||'/85000000-0000-4000-8000-000000000001','pending'
+ from private.customer_supporting_files where status='ready' limit 1;`);
 const snapshotSql=`select jsonb_build_object('invoices',(select jsonb_agg(to_jsonb(i) order by id) from public.invoices i),'payments',(select jsonb_agg(to_jsonb(p) order by id) from public.payments p),'journal',(select jsonb_agg(to_jsonb(j) order by entry_id,account) from public.journal_lines j),'appointments',(select jsonb_agg(to_jsonb(a) order by id) from public.appointments a),'fileLinks',(select jsonb_agg(to_jsonb(f) order by file_id,revision) from private.customer_file_links f),'fileMetadata',(select jsonb_agg(to_jsonb(f) order by id) from private.customer_supporting_files f),'reservations',(select jsonb_agg(to_jsonb(r) order by appointment_id,resource_id) from public.resource_reservations r))::text;`;
 const before=JSON.parse((await sql(snapshotSql)).trim());assert.equal(before.invoices.length,1);assert.equal(before.payments.length,8);assert.equal(before.payments.filter(p=>p.reverses_payment_id).length,3);assert.equal(before.payments.filter(p=>p.reverses_payment_id).reduce((n,p)=>n+p.cents,0),-17000);assert.equal(before.payments.reduce((n,p)=>n+p.cents,0),12000);
 const dump=await run(['pg_dump','-U','postgres','--format=custom','ynsg_test'],undefined,true);
@@ -86,5 +91,15 @@ const recoveredDump=await readFile(join(outputDirectory,'verified/database.dump'
 await sql('create database ynsg_restore;');
 await run(['pg_restore','-U','postgres','--exit-on-error','--dbname=ynsg_restore'],recoveredDump);
 const after=JSON.parse((await sql(snapshotSql,'ynsg_restore')).trim());assert.deepEqual(after,before,'Restored money, appointment and capacity records must match');
+const catalogQuery=await readFile('scripts/recovery-file-catalog.sql','utf8');
+const restoredCatalog=JSON.parse((await sql(catalogQuery,'ynsg_restore')).trim());
+const recoveredManifest=JSON.parse(await readFile(join(outputDirectory,'verified/manifest.json'),'utf8'));
+const catalogPath=join(temp,'restored-catalog.json');await writeFile(catalogPath,JSON.stringify(restoredCatalog),{mode:0o600});
+assert.equal((await verifyRecoveryCatalog({catalogPath,manifestPath:join(outputDirectory,'verified/manifest.json'),filesRoot:join(outputDirectory,'verified/files')})).verified,files.length);
+assert.ok(restoredCatalog.pendingCount>0,'Pending fixture metadata must be explicitly accounted for');
+assert.throws(()=>reconcileRecoveryCatalog(restoredCatalog,{...recoveredManifest,files:recoveredManifest.files.slice(1)}),'A valid but incomplete bundle must fail restored-catalog reconciliation');
+const changed=structuredClone(recoveredManifest);changed.files[0].sha256='b'.repeat(64);
+assert.throws(()=>reconcileRecoveryCatalog(restoredCatalog,changed),'Same counts cannot hide metadata divergence');
+console.log('PASS: restored database catalog reconciles every ready object and pending count; missing or changed manifest entries fail');
 assert.equal((await sql('select sum(debit_cents::bigint-credit_cents) from public.journal_lines;','ynsg_restore')).trim(),'0');
 console.log('PASS: encrypted bundle recovered real synthetic pg_dump and exact image bytes; isolated pg_restore matches invoices, receipts, journal, appointments and reservations');

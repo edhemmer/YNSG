@@ -241,7 +241,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Offline encrypted database-plus-file bundle and isolated unpack verification are engineered under #37, including actual synthetic pg_dump/pg_restore CI and exact object-byte/hash checks. Choose custodian/destination/retention/key custody/RPO/RTO, implement authorized consistent source extraction and scheduling/failure alerts, then perform a restricted actual backup/restore; no operational acceptance inferred.",
+      "nextAction": "Offline encrypted database-plus-file bundle and isolated unpack verification are engineered under #37, including actual synthetic pg_dump/pg_restore CI, exact object-byte/hash checks and independent restored-database catalog reconciliation for every ready file (docs/production/recovery-catalog-2026-10-18.md). Choose custodian/destination/retention/key custody/RPO/RTO, implement authorized consistent source extraction and scheduling/failure alerts, then perform a restricted actual backup/restore; no operational acceptance inferred.",
       "acceptance": "Usable off-provider backups; no customer messages from restored environment; counts/hash/ledger/permissions reconciled; timed recovery meets approved RPO/RTO. Synthetic dump alone insufficient.",
       "requiredEvidence": "Restricted dated export/restore record, retention check, measured recovery and operator acceptance.",
       "evidence": []
