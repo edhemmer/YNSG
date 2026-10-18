@@ -338,7 +338,7 @@
       "milestone": "web",
       "title": "Prepare exact release candidate, all required CI, migration catalog, both domain SHAs, configuration/provider checks and release decision.",
       "owner": "Engineering lead",
-      "status": "open",
+      "status": "working",
       "requirements": [
         "R21"
       ],
@@ -360,7 +360,7 @@
         "WEB-15",
         "WEB-16"
       ],
-      "nextAction": "Verify both Vercel production deployment SHAs and live read-only smoke; correct automatic per-merge double-build release strategy without breaking customer routing; then complete full release acceptance.",
+      "nextAction": "Release b514b0c: post-merge CI passed; both public and CRM Vercel production deployments READY at identical SHA with custom domains. Read-only HTTP 200 verified for public home/request/services, CRM owner/account and API health. Complete actual authenticated workflows, delivery, rollback and owner-supervised acceptance before marking verified. Do not fetch customer exports or private mileage records as a smoke test. Release links and manual checks: docs/production/manual-review-2026-10-18.md; technical smoke is not full-gate acceptance.",
       "acceptance": "Zero unresolved blocker/high defect in included scope; all required gates verified and still applicable; intended production team/project/branch verified; accepted operations handover.",
       "requiredEvidence": "Exact-head CI, tested merge/deployed SHA mapping, migration checks and signed candidate decision.",
       "evidence": []
