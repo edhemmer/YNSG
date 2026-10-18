@@ -6,6 +6,10 @@ Reviewed 18 October 2026 UTC. Candidate: `b514b0c363577ffa958e8c2123a24fc45ef252
 
 The browser walkthrough timed out; no visual/interactive pass is claimed. The transient checkout was unavailable after that timeout, so the earlier complete test results are release evidence, not a newly rerun suite. PR #115's evidence URL strings violate the register contract; this revision removes them from the gate evidence array and retains technical release references here. WEB-17 remains working, not accepted.
 
+## Start with sample data
+
+Open [owner practice](https://yourneighborhoodserviceguy.app/owner/practice) and follow the [sample review sequence](owner-practice.md). Six fictional visits let you test the actual workflow screens for items 4, 6, 7 (document layout), 8, 10 (supported editing/mileage) and 11 now. Changes stay in this tab and can be reset. You do not need real customers or money to rehearse these screens. Sample responses are simulated; sign-in, canonical server behavior, provider delivery, private files, actual tax settings and the real October 19 route require separate evidence. No gate is accepted merely by exercising samples.
+
 ## Your check list
 Use your normal phone first, then iPad/desktop for items 1, 3, 4 and 11. Record Pass / Fail / Not exercised for each. Use only actual agreed service and received money for live commands. Do not create dummy bookings, invoices, consent, payments or messages in production. Engineer-owned isolated tests cover race/failure cases; you need not reproduce them against customers.
 
