@@ -40,5 +40,47 @@ select pg_temp.assert_true((select sum(debit_cents::bigint-credit_cents)=0 from 
 select pg_temp.assert_true((select count(*)=1 from public.service_requests),'customer request retained through payment');
 select pg_temp.assert_true((select count(*)=1 from public.appointments where status='reserved'),'confirmed appointment retained through payment');
 select pg_temp.assert_true((select count(*)=0 from public.work_sessions where ended_at is null),'completed work has no running timer');
+
+-- Mistaken receipt correction retains the original and appends a balanced opposite.
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select public.reverse_recorded_payment('20000000-0000-4000-8000-000000000001',(select id from public.invoices),(select id from public.payments where method='cash'),'Synthetic mistaken receipt correction','lifecycle-correction-01');
+select public.reverse_recorded_payment('20000000-0000-4000-8000-000000000001',(select id from public.invoices),(select id from public.payments where method='cash'),'Synthetic mistaken receipt correction','lifecycle-correction-01');
+select pg_temp.assert_true((select count(*)=3 and sum(cents)=7000 from public.payments),'correction replay appends exactly one opposite receipt');
+select pg_temp.assert_true((select cents=5000 and reference='Synthetic partial cash receipt' from public.payments where method='cash'),'original receipt retained unchanged');
+do $$begin begin perform public.reverse_recorded_payment('20000000-0000-4000-8000-000000000001',(select id from public.invoices),(select id from public.payments where method='cash'),'Different synthetic correction reason','lifecycle-correction-01');raise exception 'TEST FAILED changed replay';exception when others then if sqlerrm<>'IDEMPOTENCY_CONFLICT' then raise;end if;end;end$$;
+do $$begin begin perform public.reverse_recorded_payment('20000000-0000-4000-8000-000000000001',(select id from public.invoices),(select id from public.payments where method='cash'),'Synthetic second correction attempt','lifecycle-correction-02');raise exception 'TEST FAILED double correction';exception when others then if sqlerrm<>'PAYMENT_ALREADY_REVERSED' then raise;end if;end;end$$;
+reset role;
+select pg_temp.assert_true((select status='suppressed' from public.outbox where kind='invoice.paid'),'unsent paid notice suppressed when balance reopens');
+select pg_temp.assert_true((select sum(debit_cents::bigint-credit_cents)=0 from public.journal_lines),'corrected ledger balances');
+set local role authenticated;
+select public.record_payment('20000000-0000-4000-8000-000000000001',(select id from public.invoices),5000,'cash','Synthetic corrected receipt',now(),true,'lifecycle-new-payment-01');
+reset role;
+select pg_temp.assert_true((select count(*)=1 and bool_and(status='pending') from public.outbox where kind='invoice.paid'),'same definitely suppressed paid notice requeues without duplicate');
+update public.outbox set status='accepted' where kind='invoice.paid';
+set local role authenticated;
+select public.reverse_recorded_payment('20000000-0000-4000-8000-000000000001',(select id from public.invoices),(select id from public.payments where method='zelle'),'Synthetic mistaken Zelle correction','lifecycle-correction-03');
+select public.record_payment('20000000-0000-4000-8000-000000000001',(select id from public.invoices),7000,'zelle','Synthetic corrected Zelle receipt',now(),true,'lifecycle-new-payment-02');
+reset role;
+select pg_temp.assert_true((select count(*)=1 and bool_and(status='accepted') from public.outbox where kind='invoice.paid'),'already accepted paid milestone never resent');
+select pg_temp.assert_true((select sum(cents)=12000 from public.payments),'corrected receipts settle exact invoice amount');
+select pg_temp.assert_true((select sum(debit_cents::bigint-credit_cents)=0 from public.journal_lines),'all correction journals remain balanced');
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
+do $$begin begin perform public.reverse_recorded_payment('20000000-0000-4000-8000-000000000001','80000000-0000-4000-8000-000000000001','80000000-0000-4000-8000-000000000002','Synthetic forbidden correction','lifecycle-denied-correction');raise exception 'TEST FAILED cross tenant';exception when insufficient_privilege then null;end;end$$;
+reset role;
+
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select pg_temp.assert_true(jsonb_array_length(public.accounting_journal_export('20000000-0000-4000-8000-000000000001',current_date-1,current_date+1)->'rows')=(select count(*) from public.journal_lines),'journal export contains all original/correcting transaction lines');
+select pg_temp.assert_true((public.accounting_journal_export('20000000-0000-4000-8000-000000000001',current_date-1,current_date+1)->>'complete')::boolean,'journal export explicitly complete');
+reset role;
+with entries as (insert into public.journal_entries(organization_id,source_kind,source_id) select '20000000-0000-4000-8000-000000000001','expense',gen_random_uuid() from generate_series(1,5001) returning organization_id,id)
+insert into public.journal_lines(organization_id,entry_id,account,debit_cents,credit_cents) select e.organization_id,e.id,case when side=0 then 'cash' else 'expenses' end,case when side=0 then 1 else 0 end,case when side=0 then 0 else 1 end from entries e cross join generate_series(0,1) side;
+set local role authenticated;
+do $$begin begin perform public.accounting_journal_export('20000000-0000-4000-8000-000000000001',current_date-1,current_date+1);raise exception 'TEST FAILED partial oversized export';exception when others then if sqlerrm<>'EXPORT_RANGE_TOO_LARGE' then raise;end if;end;end$$;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
+do $$begin begin perform public.accounting_journal_export('20000000-0000-4000-8000-000000000001',current_date-1,current_date+1);raise exception 'TEST FAILED cross-tenant journal';exception when insufficient_privilege then null;end;end$$;
+reset role;
 set constraints all immediate;
 rollback;

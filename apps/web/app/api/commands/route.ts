@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import {verifyPaymentCorrection} from '../../../lib/payment-correction-contract';
 import {ownerCommandSchema} from "../../../lib/owner-command-contract";
 import { authenticated, sameOrigin, failure } from "../../../lib/session";
 import {validateExpenseReceipt,expenseFailure} from '../../../lib/expense-contract';
@@ -118,6 +119,8 @@ export async function POST(request: Request) {
           p_key: c.key,
         };
         break;
+      case 'ReverseRecordedPayment':
+        name='reverse_recorded_payment';args={p_org:c.organizationId,p_invoice:c.id,p_payment:c.paymentId,p_reason:c.reason,p_key:c.key};break;
       case "RecordBusinessExpense":
         name = "record_business_expense";
         args = {p_org:c.organizationId,p_date:c.date,p_vendor:c.vendor,p_category:c.category,p_description:c.description,p_cents:c.cents,p_method:c.method,p_reference:c.reference,p_confirmed:c.confirmed,p_key:c.key};
@@ -128,6 +131,11 @@ export async function POST(request: Request) {
         break;
     }
     const { data, error } = await db.rpc(name, args);
+    if(c.command==='ReverseRecordedPayment'){
+      const headers={'Cache-Control':'private, no-store'};
+      if(error){const denied=error.code==='42501',known=denied||['PAYMENT_ALREADY_REVERSED','UNSUPPORTED_PAYMENT_CORRECTION','PAYMENT_BALANCE_REVIEW_REQUIRED','CARD_PAYMENT_PENDING','IDEMPOTENCY_CONFLICT','NOT_FOUND','VALIDATION','SETUP_REQUIRED'].includes(error.message);return NextResponse.json({error:denied?'Your account cannot correct this receipt.':known?'The receipt correction was rejected. Refresh the payment history and review the original receipt.':'The correction result is uncertain. Check the same saved attempt before changing another receipt.'},{status:denied?403:known?409:503,headers});}
+      try{return NextResponse.json({ok:true,result:verifyPaymentCorrection(data,c)},{headers});}catch{return NextResponse.json({error:'The correction result could not be confirmed. Check the same saved attempt.'},{status:503,headers});}
+    }
     if(c.command==='RecordBusinessExpense'||c.command==='ReverseBusinessExpense'){
       if(error)throw Error(error.code==='42501'?'FORBIDDEN':error.message);
       return NextResponse.json({ok:true,result:validateExpenseReceipt(c,data)},{headers:expenseHeaders});

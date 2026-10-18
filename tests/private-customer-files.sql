@@ -16,4 +16,36 @@ select pg_temp.assert_true(not private.customer_file_object_permission('20000000
 select pg_temp.assert_true(not private.customer_file_object_permission(current_setting('ynsg.qa_saved_file_path'),'verify'),'other actor cannot inspect pending bytes');
 do $assert$begin begin perform public.list_customer_files('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001');raise exception 'TEST FAILED non-owner list';exception when insufficient_privilege then null;end;end$assert$;
 reset role;
+
+-- Only the server verifier can promote bytes. Raw authenticated RPC is closed.
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select set_config('ynsg.qa_file_id',(select id::text from private.customer_supporting_files limit 1),true);
+set local role authenticated;
+do $$begin begin perform public.finalize_customer_file('20000000-0000-4000-8000-000000000001',current_setting('ynsg.qa_file_id')::uuid);raise exception 'TEST FAILED direct finalize';exception when others then if sqlerrm<>'SERVER_VERIFICATION_REQUIRED' then raise;end if;end;end$$;
+select pg_temp.assert_true(not has_function_privilege('authenticated','public.confirm_verified_customer_file(uuid,uuid,uuid,uuid,text,integer,text)','execute'),'browser cannot attest file verification');
+reset role;
+insert into storage.objects(bucket_id,name) values('ynsg-customer-files',current_setting('ynsg.qa_saved_file_path'));
+set local role service_role;
+do $$begin begin perform public.confirm_verified_customer_file('20000000-0000-4000-8000-000000000001',current_setting('ynsg.qa_file_id')::uuid,'00000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','image/png',12,repeat('b',64));raise exception 'TEST FAILED mismatched verifier';exception when others then if sqlerrm<>'FILE_VERIFICATION_MISMATCH' then raise;end if;end;end$$;
+reset role;
+update auth.sessions set not_after=now()-interval '1 hour' where id='10000000-0000-4000-8000-000000000001';
+set local role service_role;
+do $$begin begin perform public.confirm_verified_customer_file('20000000-0000-4000-8000-000000000001',current_setting('ynsg.qa_file_id')::uuid,'00000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','image/png',12,repeat('a',64));raise exception 'TEST FAILED revoked verifier session';exception when insufficient_privilege then null;end;end$$;
+reset role;
+update auth.sessions set not_after=null where id='10000000-0000-4000-8000-000000000001';
+reset role;
+update public.memberships set revoked_at=now() where user_id='00000000-0000-4000-8000-000000000001';
+set local role service_role;
+do $$begin begin perform public.confirm_verified_customer_file('20000000-0000-4000-8000-000000000001',current_setting('ynsg.qa_file_id')::uuid,'00000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','image/png',12,repeat('a',64));raise exception 'TEST FAILED revoked verifier membership';exception when insufficient_privilege then null;end;end$$;
+reset role;
+update public.memberships set revoked_at=null where user_id='00000000-0000-4000-8000-000000000001';
+set local role service_role;
+select public.confirm_verified_customer_file('20000000-0000-4000-8000-000000000001',current_setting('ynsg.qa_file_id')::uuid,'00000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','image/png',12,repeat('a',64));
+select public.confirm_verified_customer_file('20000000-0000-4000-8000-000000000001',current_setting('ynsg.qa_file_id')::uuid,'00000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','image/png',12,repeat('a',64));
+reset role;
+select pg_temp.assert_true((select count(*)=1 from public.audit_events where action='customer.file_uploaded'),'one file verification audit after retry');
+set local role authenticated;
+select pg_temp.assert_true((public.verified_customer_file_access('20000000-0000-4000-8000-000000000001',current_setting('ynsg.qa_file_id')::uuid)->>'sha256')=repeat('a',64),'read authorization retains frozen byte digest');
+reset role;
+
 rollback;

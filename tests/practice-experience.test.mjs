@@ -69,6 +69,6 @@ test('customer screen shows editable sample contacts and hides unavailable exter
  const h=await mount();try{
   await click('Customers');assert.match(node.textContent,/Sample — New request/);
   const card=[...node.querySelectorAll('button')].find(b=>b.querySelector('strong')?.textContent==='Sample — New request');assert.ok(card);await act(async()=>{card.click();await settle();});
-  assert.match(node.textContent,/sample1@example.invalid/);assert.match(node.textContent,/Account invitations, delegates, attachments and file transfers are disabled/);assert.equal(node.querySelector('input[type="file"]'),null);assert.equal(h.calls(),0);
+  await until(()=>node.textContent.includes('sample1@example.invalid'),'Sample contact details loaded');assert.match(node.textContent,/sample1@example.invalid/);assert.match(node.textContent,/Account invitations, delegates, attachments and file transfers are disabled/);assert.equal(node.querySelector('input[type="file"]'),null);assert.equal(h.calls(),0);
  }finally{await h.close();}
 });
