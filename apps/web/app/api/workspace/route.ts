@@ -44,7 +44,7 @@ export async function GET(request: Request) {
         .range(from,to),
       db
         .from("invoices")
-        .select("id,job_id,number,total_cents,issued_at,snapshot,payments(cents)")
+        .select("id,customer_id,job_id,number,total_cents,issued_at,snapshot,payments(cents)")
         .eq("organization_id", org)
         .order("id")
         .range(from,to),
@@ -76,7 +76,7 @@ export async function GET(request: Request) {
       const jobs=quoteIds.length?await db.from('jobs').select('id,customer_id,quote_id,approved_version,status,revision').eq('organization_id',org).in('quote_id',quoteIds).order('id').limit(1001):{data:[],error:null};
       if(jobs.error||jobs.data!.length>1000)throw Error('FAILED');
       const jobIds=jobs.data!.map(j=>j.id);
-      const invoices=jobIds.length?await db.from('invoices').select('id,job_id,number,total_cents,issued_at,snapshot,payments(cents)').eq('organization_id',org).in('job_id',jobIds).order('id').limit(1001):{data:[],error:null};
+      const invoices=jobIds.length?await db.from('invoices').select('id,customer_id,job_id,number,total_cents,issued_at,snapshot,payments(cents)').eq('organization_id',org).in('job_id',jobIds).order('id').limit(1001):{data:[],error:null};
       if(invoices.error||invoices.data!.length>1000)throw Error('FAILED');
       results[3]!.data=quotes.data;results[4]!.data=jobs.data!;results[5]!.data=invoices.data!;
       if(results[7]!.data!.length>1000)throw Error('FAILED');

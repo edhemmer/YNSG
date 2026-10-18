@@ -126,7 +126,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Server-only file finalization rechecks the original live actor/session and frozen byte metadata; download verifies saved content before signing. Verify release migration and security tests. Full file associations and retention/deletion under #33/#34 remain engineering work.",
+      "nextAction": "Verify the production private-file association batch under #34/#37: canonical same-customer job/invoice links, explicitly reviewed company receipt/expense links, append-only correction history, owner work/invoice entry points and uncertain-save/read recovery. Retention/account deletion and broader file pagination remain open; no full-gate acceptance.",
       "acceptance": "No email-string auto-claim; revoked access fails; supported edits remain discoverable on phone; immutable originals; private files authorized; gaps found in WEB-01 implemented before passing.",
       "requiredEvidence": "Two-tenant/customer tests, upload/deletion/retention cases and accepted owner/customer walkthrough.",
       "evidence": []

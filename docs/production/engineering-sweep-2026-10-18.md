@@ -84,3 +84,7 @@ Read-only live baseline: all 11 public pages returned HTTP 200 and did not conta
 ## Publication and candidate mapping
 
 The original shell push was blocked and later failed for missing shell credentials. The authorized connected GitHub app published the reviewed batch in PR #114 at `b8ada287677c2f2778c45b8340faeed0b74d73f9`. Its full tree `b5a7b415c7dda60b736a51f3f03a6778501461c9` exactly matches the tested local batch `b1ed2ef6440879c7f968bf06d336cfd92b3bcbd1`. Source evidence is now reviewable at that published commit. This documentation/register-only follow-up carries that source inventory forward without code/schema changes. Remote CI, reviewed merge and production validation remain release requirements. PR #113 is included in this consolidated batch rather than deployed separately.
+
+## Private-file organization follow-up
+
+The [production association batch](private-file-associations-2026-10-18.md) connects owner file organization to canonical jobs/invoices and reviewed company receipt/expense targets, with append-only correction/history and related-work entry points. Release evidence is recorded in that batch; retention/account deletion and acceptance are not implied.

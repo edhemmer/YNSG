@@ -2,7 +2,7 @@
   "observedOn": "2026-10-18",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
   "sourceBranch": "codex/crm-workflow",
-  "sourceCommit": "4e08f6d0a3c7a587ffe50c032362ba4e0f3d4972",
+  "sourceCommit": "68079e8d2490308245fbf8e2f16e602e1efddde3",
   "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
   "repositoryMigrations": [
     {
@@ -344,6 +344,11 @@
       "file": "20261018183156_production_file_verification_receipt_corrections.sql",
       "historyVersion": "20261018185446",
       "name": "production_file_verification_receipt_corrections"
+    },
+    {
+      "file": "20261018190517_private_file_associations.sql",
+      "historyVersion": "20261018191836",
+      "name": "private_file_associations"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
