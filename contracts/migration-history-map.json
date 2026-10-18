@@ -1,8 +1,8 @@
 {
-  "observedOn": "2026-10-16",
+  "observedOn": "2026-10-18",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
   "sourceBranch": "codex/crm-workflow",
-  "sourceCommit": "00eee3bd344116431f0dd73c4d5aba1cb2148223",
+  "sourceCommit": "4e08f6d0a3c7a587ffe50c032362ba4e0f3d4972",
   "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
   "repositoryMigrations": [
     {
@@ -339,6 +339,11 @@
       "file": "20261016235500_atomic_customer_import.sql",
       "name": "atomic_customer_import",
       "historyVersion": "20261016202341"
+    },
+    {
+      "file": "20261018183156_production_file_verification_receipt_corrections.sql",
+      "historyVersion": "20261018185446",
+      "name": "production_file_verification_receipt_corrections"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -371,11 +376,5 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": [
-    {
-      "file": "20261018183156_production_file_verification_receipt_corrections.sql",
-      "name": "production_file_verification_receipt_corrections",
-      "status": "not_applied_to_connected_supabase"
-    }
-  ]
+  "pendingUnappliedMigrations": []
 }
