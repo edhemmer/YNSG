@@ -85,7 +85,7 @@ reset role;
 -- Isolated file metadata fixture: byte attestation is covered in private-customer-files.sql.
 reset role;
 insert into private.customer_supporting_files(organization_id,id,customer_id,actor_id,request_key,purpose,original_name,mime,bytes,sha256,object_path,status)
-select organization_id,'83000000-0000-4000-8000-000000000001',customer_id,'00000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000002','receipt','synthetic.png','image/png',12,repeat('a',64),organization_id::text||'/83000000-0000-4000-8000-000000000001','ready' from public.jobs limit 1;
+select organization_id,'83000000-0000-4000-8000-000000000001',customer_id,'00000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000002','receipt','synthetic.png','image/png',12,'4353a1de7e0dcc4e87350e22d5c9ee9f3e70e8ce9c31533ec991bee8870c4814',organization_id::text||'/83000000-0000-4000-8000-000000000001','ready' from public.jobs limit 1;
 insert into public.customers(organization_id,id,display_name) values('20000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000003','Synthetic unrelated customer');
 set local role authenticated;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
@@ -108,11 +108,11 @@ select public.link_customer_file('20000000-0000-4000-8000-000000000001',(select 
 reset role;
 select pg_temp.assert_true((select count(*)=4 from private.customer_file_links),'four append-only link events; exact replay adds none');
 select pg_temp.assert_true((select count(*)=4 from public.audit_events where action='customer.file_linked'),'one audit per confirmed association');
-select pg_temp.assert_true((select bytes=12 and sha256=repeat('a',64) from private.customer_supporting_files),'link corrections retain frozen byte evidence');
+select pg_temp.assert_true((select bytes=12 and sha256='4353a1de7e0dcc4e87350e22d5c9ee9f3e70e8ce9c31533ec991bee8870c4814' from private.customer_supporting_files),'link corrections retain frozen byte evidence');
 do $$begin begin delete from private.customer_file_links;raise exception 'TEST FAILED link history deletion';exception when others then if sqlerrm='TEST FAILED link history deletion' then raise;end if;end;end$$;
 -- A real same-company file for another customer still cannot target this job.
 insert into private.customer_supporting_files(organization_id,id,customer_id,actor_id,request_key,purpose,original_name,mime,bytes,sha256,object_path,status)
-values('20000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000010','83000000-0000-4000-8000-000000000003','00000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000011','receipt','other-synthetic.png','image/png',12,repeat('a',64),'20000000-0000-4000-8000-000000000001/83000000-0000-4000-8000-000000000010','ready');
+values('20000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000010','83000000-0000-4000-8000-000000000003','00000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000011','receipt','other-synthetic.png','image/png',12,'4353a1de7e0dcc4e87350e22d5c9ee9f3e70e8ce9c31533ec991bee8870c4814','20000000-0000-4000-8000-000000000001/83000000-0000-4000-8000-000000000010','ready');
 set local role authenticated;
 do $$begin begin perform public.link_customer_file('20000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000003','83000000-0000-4000-8000-000000000010',0,'job',(select id from public.jobs),'Synthetic same company wrong customer',true,'83000000-0000-4000-8000-000000000012');raise exception 'TEST FAILED foreign customer job target';exception when insufficient_privilege then null;end;end$$;
 reset role;
