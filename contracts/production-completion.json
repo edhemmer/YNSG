@@ -69,7 +69,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Consolidate PR #113 invalid-duration protection into the engineering sweep; finish October 19 neighboring-route review and controlled cancellation/recurrence/calendar outage evidence under #36/#37.",
+      "nextAction": "Historical intake region now scopes daily routes and scheduling travel checks; validate the actual October 19 neighboring route and controlled cancellation/recurrence/calendar outage evidence under #36/#37. Missing address history requires review rather than an ambiguous provider estimate.",
       "acceptance": "No double booking or stale approval; preserved original visit until replacement; correct local time/DST, minimum duration, travel and per-visit reminders; clear configured/offline states.",
       "requiredEvidence": "Native PostgreSQL races/replay tests, isolated provider tests and controlled connected-calendar acceptance.",
       "evidence": []
