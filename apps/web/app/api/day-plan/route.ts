@@ -14,6 +14,7 @@ import {
   type DayCall,
 } from "../../../lib/day-plan";
 import {buildRoutePlan} from "../../../lib/route-plan";
+import {requestRouteAddresses} from '../../../lib/request-route-addresses';
 import {googleRouteProvider} from "../../../lib/google-routes";
 export const maxDuration=60;
 export const dynamic = "force-dynamic";
@@ -81,13 +82,15 @@ export async function GET(request: Request) {
     const assignments=selectedOperator?await db.from('resource_reservations').select('appointment_id',{count:'exact'}).eq('organization_id',org).eq('resource_id',selectedOperator).eq('active',true).in('appointment_id',appointments.data.length?appointments.data.map(a=>a.id):['00000000-0000-4000-8000-000000000000']).range(0,1000):null;
     if(assignments?.error||assignments&&assignments.count!==assignments.data?.length)throw Error('INCOMPLETE_ROUTE_ASSIGNMENTS');
     const assigned=new Set(assignments?.data?.map(a=>a.appointment_id)||[]);
-    const calls: DayCall[] = appointments.data
+    const selectedAppointments = appointments.data
       .filter(
         (a) =>
           (!selectedOperator||assigned.has(a.id))&&
           localDate(new Date(a.arrival_at), company.data.timezone) === date,
       )
-      .map((a) => {
+      ;
+    const addresses=await requestRouteAddresses(db,org,selectedAppointments.map(a=>{const r=Array.isArray(a.request)?a.request[0]:a.request;return {key:a.id,requestId:a.request_id,submission:r?.original_submission||{}};}));
+    const calls:DayCall[]=selectedAppointments.map((a) => {
         const linked = Array.isArray(a.request) ? a.request[0] : a.request;
         if (!linked?.original_submission) throw Error("INCOMPLETE_ORDER");
         const r = linked.original_submission;
@@ -103,7 +106,7 @@ export async function GET(request: Request) {
           name: r.name || "Customer name needs review",
           phone: r.phone || "",
           email: r.email || "",
-          address: [r.street, r.city, r.state || r.region, r.zip || r.postal_code || r.postalCode].filter(Boolean).join(", "),
+          address: addresses.get(a.id)||'',
           tasks: requestedTasks(r),
           workItems: r.services?.length
             ? r.services.map((item: { service: string; task?: string }) => ({
