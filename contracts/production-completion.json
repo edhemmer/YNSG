@@ -13,7 +13,7 @@
       "milestone": "web",
       "title": "Audit every promised feature against current UI/API/SQL",
       "owner": "Engineering lead",
-      "status": "working",
+      "status": "verified",
       "requirements": [
         "R01",
         "R02",
@@ -23,10 +23,18 @@
         "R19"
       ],
       "dependsOn": [],
-      "nextAction": "Local source-inventory review passed for 2edf64dc6ff4c400c2897caabaa21f0d8f5b6a50. Publish the reviewed batch after the automatic publication restriction is cleared, verify its evidence URL, then record WEB-01 acceptance. No full gate is closed from inaccessible local evidence.",
+      "nextAction": "Source inventory accepted at published candidate b8ada287677c2f2778c45b8340faeed0b74d73f9. Keep source and missing-work mapping current as remaining engineering and external acceptance proceeds.",
       "acceptance": "No original requirement disappears. Each missing/partial feature has an issue, acceptance case and gate; disabled optional integrations are clearly labeled.",
       "requiredEvidence": "Feature inventory with source paths, issue links and requirement mapping.",
-      "evidence": []
+      "evidence": [
+        {
+          "candidate": "b8ada287677c2f2778c45b8340faeed0b74d73f9",
+          "checkedAt": "2026-10-18T00:30:59.923227Z",
+          "reviewer": "Codex engineering source-inventory review",
+          "url": "https://github.com/edhemmer/YNSG/blob/b8ada287677c2f2778c45b8340faeed0b74d73f9/docs/production/engineering-sweep-2026-10-18.md",
+          "result": "pass"
+        }
+      ]
     },
     {
       "id": "WEB-02",

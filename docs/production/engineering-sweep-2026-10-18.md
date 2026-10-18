@@ -32,7 +32,7 @@ Local release, optimized CRM, native checks and exact-head CI outcomes are recor
 
 | Gates | Engineering or external work still required |
 | --- | --- |
-| WEB-01 | Local source inventory reviewed below; publication/evidence verification is blocked by automatic approval review. All implementation/acceptance gaps remain assigned to their original gates. |
+| WEB-01 | Local source inventory reviewed below; published source evidence verified at b8ada287677c2f2778c45b8340faeed0b74d73f9. All implementation/acceptance gaps remain assigned to their original gates. |
 | WEB-02–04 | Complete full guest-to-owner synthetic/provider recovery and real device acceptance, including the actual October 19 routing report. A01–A03 were exercised, not signed off. |
 | WEB-05 | Invoice/PDF/mail and actual received-funds acceptance; non-Stripe mistaken receipt reversal/credit and broader financial correction remain engineering work under #35. |
 | WEB-06 | Delegation management, customer export/import, private files and mileage now have implementations; the older inventory's “missing” labels are historical. Retention/deletion is still incomplete; private-file direct-RPC finalization trust and full job/receipt associations remain engineering review/work under #33/#34. |
@@ -62,7 +62,7 @@ These are prepared acceptance steps, not a claim that every engineering gap is c
 
 ## Inventory acceptance and local results
 
-WEB-01 local source-inventory review: **pass**, engineering reviewer Codex, 18 October 2026 UTC. This reviews the inventory, source/issue mapping and honest integration status only. WEB-01 remains working until the evidence is published and its URL verified. It does not accept implementation, device/provider behavior or any other gate. The retained source matrix supplies R01–R21 paths; the current amendment above corrects its stale implementation labels. Remaining omissions are explicitly linked to #32–#39 and the A01–A14 acceptance catalog.
+WEB-01 local source-inventory review: **pass**, engineering reviewer Codex, 18 October 2026 UTC. This reviews the inventory, source/issue mapping and honest integration status only. Published evidence was verified through the GitHub connector at candidate b8ada287677c2f2778c45b8340faeed0b74d73f9; WEB-01 inventory acceptance is recorded separately from implementation gates. It does not accept implementation, device/provider behavior or any other gate. The retained source matrix supplies R01–R21 paths; the current amendment above corrects its stale implementation labels. Remaining omissions are explicitly linked to #32–#39 and the A01–A14 acceptance catalog.
 
 | Requirement coverage | Current source inventory and issue ownership |
 | --- | --- |
@@ -81,6 +81,6 @@ The earlier full run exposed three connected customer-editor failures caused by 
 Read-only live baseline: all 11 public pages returned HTTP 200 and did not contain the rejected wording. This is not post-release evidence; the release PR must identify tested head, merge SHA, deployment IDs and subsequent live checks. No production schema change is required.
 
 
-## Publication boundary
+## Publication and candidate mapping
 
-The reviewed batch remains local. Automatic approval review rejected publishing this batch to the public `edhemmer/YNSG` remote, stating that the previous authorization covered a different commit. No alternate publication path, PR, merge or production deployment was used to bypass that rejection. The source inventory remains working until its remote evidence is reviewable. Exact-head GitHub/native PostgreSQL CI and post-release verification remain pending. The code commit is `2edf64dc6ff4c400c2897caabaa21f0d8f5b6a50`; subsequent commits change only evidence/publication bookkeeping.
+The original shell push was blocked and later failed for missing shell credentials. The authorized connected GitHub app published the reviewed batch in PR #114 at `b8ada287677c2f2778c45b8340faeed0b74d73f9`. Its full tree `b5a7b415c7dda60b736a51f3f03a6778501461c9` exactly matches the tested local batch `b1ed2ef6440879c7f968bf06d336cfd92b3bcbd1`. Source evidence is now reviewable at that published commit. This documentation/register-only follow-up carries that source inventory forward without code/schema changes. Remote CI, reviewed merge and production validation remain release requirements. PR #113 is included in this consolidated batch rather than deployed separately.
