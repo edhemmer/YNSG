@@ -107,6 +107,12 @@ select pg_temp.assert_true((select count(*)=4 from private.customer_file_links),
 select pg_temp.assert_true((select count(*)=4 from public.audit_events where action='customer.file_linked'),'one audit per confirmed association');
 select pg_temp.assert_true((select bytes=12 and sha256=repeat('a',64) from private.customer_supporting_files),'link corrections retain frozen byte evidence');
 do $$begin begin delete from private.customer_file_links;raise exception 'TEST FAILED link history deletion';exception when others then if sqlerrm='TEST FAILED link history deletion' then raise;end if;end;end$$;
+-- A real same-company file for another customer still cannot target this job.
+insert into private.customer_supporting_files(organization_id,id,customer_id,actor_id,request_key,purpose,original_name,mime,bytes,sha256,object_path,status)
+values('20000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000010','83000000-0000-4000-8000-000000000003','00000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000011','receipt','other-synthetic.png','image/png',12,repeat('a',64),'20000000-0000-4000-8000-000000000001/83000000-0000-4000-8000-000000000010','ready');
+set local role authenticated;
+do $$begin begin perform public.link_customer_file('20000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000003','83000000-0000-4000-8000-000000000010',0,'job',(select id from public.jobs),'Synthetic same company wrong customer',true,'83000000-0000-4000-8000-000000000012');raise exception 'TEST FAILED foreign customer job target';exception when insufficient_privilege then null;end;end$$;
+reset role;
 update auth.sessions set not_after=now()-interval '1 hour' where id='10000000-0000-4000-8000-000000000001';
 set local role authenticated;
 do $$begin begin perform public.customer_file_workspace('20000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000003');raise exception 'TEST FAILED expired session reads';exception when insufficient_privilege then null;end;end$$;

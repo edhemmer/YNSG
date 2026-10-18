@@ -69,6 +69,7 @@ type Job = {
 };
 type Invoice = {
   id: string;
+  customer_id?: string;
   job_id: string;
   number: number;
   total_cents: number;
@@ -551,7 +552,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
                               </p>
                               <p>Subtotal {usd(i.total_cents-(i.snapshot?.taxCents||0))} · sales tax {usd(i.snapshot?.taxCents||0)} · issued total {usd(i.total_cents)}</p><p>Confirmed paid {usd(i.total_cents-balance)}. Record each cash or Zelle amount when received. Open the invoice for its PDF, due date and history.</p>
                               {["owner","admin"].includes(role||"")&&<InvoiceDelivery organization={org} invoice={i.id}/>}
-                              {['owner','admin'].includes(role||'')&&data.jobs.find(j=>j.id===i.job_id)?.customer_id&&<RelatedCustomerFiles organization={org} customer={data.jobs.find(j=>j.id===i.job_id)!.customer_id} targets={[{kind:'invoice',id:i.id},{kind:'job',id:i.job_id}]} disabled={pending||invoiceBusy} onManage={()=>openCustomer(data.jobs.find(j=>j.id===i.job_id)!.customer_id)}/>}
+                              {['owner','admin'].includes(role||'')&&(i.customer_id||data.jobs.find(j=>j.id===i.job_id)?.customer_id)&&<RelatedCustomerFiles organization={org} customer={i.customer_id||data.jobs.find(j=>j.id===i.job_id)!.customer_id} targets={[{kind:'invoice',id:i.id},{kind:'job',id:i.job_id}]} disabled={pending||invoiceBusy} onManage={()=>openCustomer(i.customer_id||data.jobs.find(j=>j.id===i.job_id)!.customer_id)}/>}
                               {finance&&<InvoicePayments organization={org} invoice={i.id} totalCents={i.total_cents} timezone={data.company.timezone} onChanged={()=>void refresh()}/>}
                             </article>
                           );
