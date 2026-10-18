@@ -2,7 +2,7 @@
   "observedOn": "2026-10-18",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
   "sourceBranch": "codex/crm-workflow",
-  "sourceCommit": "0e3cf01726202b631a2583017b3dc69776a16525",
+  "sourceCommit": "b2b4e909753a80cc4b91c3b969558b41e223204c",
   "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
   "repositoryMigrations": [
     {
@@ -354,6 +354,11 @@
       "file": "20261018215902_private_file_pagination.sql",
       "historyVersion": "20261018220657",
       "name": "private_file_pagination"
+    },
+    {
+      "file": "20261018220830_private_file_multi_target_pages.sql",
+      "historyVersion": "20261018221301",
+      "name": "private_file_multi_target_pages"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -386,11 +391,5 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": [
-    {
-      "file": "20261018220830_private_file_multi_target_pages.sql",
-      "name": "private_file_multi_target_pages",
-      "status": "not_applied_to_connected_supabase"
-    }
-  ]
+  "pendingUnappliedMigrations": []
 }
