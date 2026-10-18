@@ -1,13 +1,17 @@
 'use client';
-import {useEffect,useRef,useState} from 'react';
-import {fileLinkWorkspace,type LinkedFile} from '../lib/customer-file-link-contract';
-import {sessionFetch} from '../lib/session-fetch';
+import {useCustomerFilePage} from './use-customer-file-page';
 import PrivateFileDownload from './private-file-download';
 type Props={organization:string;customer:string;targets:{kind:'job'|'invoice';id:string}[];disabled?:boolean;onManage?:()=>void};
 export default function RelatedCustomerFiles(props:Props){return <RelatedFiles key={props.organization+':'+props.customer+':'+JSON.stringify(props.targets)} {...props}/>;}
 function RelatedFiles({organization,customer,targets,disabled=false,onManage}:Props){
- const [files,setFiles]=useState<LinkedFile[]|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),sequence=useRef(0),sending=useRef(false),identity=organization+':'+customer+':'+JSON.stringify(targets),current=useRef(identity);current.current=identity;
- useEffect(()=>{setFiles(null);setError('');setBusy(false);return()=>{sequence.current++;sending.current=false;};},[identity]);
- async function load(){if(sending.current||disabled)return;sending.current=true;setBusy(true);setError('');const seq=++sequence.current,at=identity;try{const r=await sessionFetch('/api/customer-file-links?'+new URLSearchParams({organization,customer}),{cache:'no-store',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error();const data=fileLinkWorkspace.parse(await r.json());if(data.organization!==organization||data.customer!==customer)throw Error();if(seq===sequence.current&&current.current===at)setFiles(data.files.filter(f=>f.link&&targets.some(t=>t.kind===f.link!.kind&&t.id===f.link!.target)));}catch{if(seq===sequence.current&&current.current===at){setFiles(null);setError('Linked files could not be verified. Retry before using this list.');}}finally{if(seq===sequence.current&&current.current===at){sending.current=false;setBusy(false);}}}
- return <details className="workflow-private-files"><summary>Private photos &amp; receipts for this work</summary><p>Only authorized owners can open these files. Manage uploads and record links in the customer record.</p><button type="button" className="secondary" disabled={disabled||busy} onClick={()=>void load()}>{busy?'Checking linked files…':'Load linked files'}</button>{onManage&&<button type="button" className="secondary" disabled={disabled||busy} onClick={onManage}>Manage customer attachments</button>}{error&&<p role="alert">{error}</p>}{files&&(!files.length?<p>No files are linked to these jobs or invoices in the current list.</p>:files.map(f=><div className="customer-item" key={f.id}><strong>{f.name}</strong><p>{f.link?.label}</p><PrivateFileDownload key={organization+':'+f.id} organization={organization} file={f.id} disabled={disabled||busy}/></div>))}</details>;
+ const job=targets.find(t=>t.kind==='job')?.id,invoice=targets.find(t=>t.kind==='invoice')?.id;
+ const list=useCustomerFilePage(organization,customer,{...(job?{job}:{}),...(invoice?{invoice}:{})}),busy=list.loading,files=list.page?.files;
+ const validTargets=targets.length>0&&targets.length<=2&&new Set(targets.map(t=>t.kind)).size===targets.length;
+ return <details className="workflow-private-files"><summary>Private photos &amp; receipts for this work</summary><p>Only authorized owners can open these files. Manage uploads and record links in the customer record.</p>
+  <button type="button" className="secondary" disabled={disabled||busy||!validTargets} onClick={()=>void (list.readFailed?list.retry():list.reset())}>{busy?'Checking linked files…':list.readFailed?'Retry linked file page':'Load linked files'}</button>
+  {onManage&&<button type="button" className="secondary" disabled={disabled||busy} onClick={onManage}>Manage customer attachments</button>}
+  {list.error&&<p role="alert">{list.error}</p>}
+  {list.page&&<nav aria-label="Linked attachment pages"><button type="button" className="secondary" disabled={disabled||busy||list.readFailed||!list.index} onClick={()=>void list.previous()}>Previous linked files</button><span role="status">Page {list.index+1}</span><button type="button" className="secondary" disabled={disabled||busy||list.readFailed||!list.page.hasMore} onClick={()=>void list.next()}>Next linked files</button></nav>}
+  {files&&(!files.length&&!list.readFailed?<p>No files are linked to these jobs or invoices on this page.</p>:files.map(f=><div className="customer-item" key={f.id}><strong>{f.name}</strong><p>{f.link?.label}</p><PrivateFileDownload key={organization+':'+f.id} organization={organization} file={f.id} disabled={disabled||busy||list.readFailed}/></div>))}
+ </details>;
 }
