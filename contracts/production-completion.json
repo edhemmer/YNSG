@@ -338,7 +338,7 @@
       "milestone": "web",
       "title": "Prepare exact release candidate, all required CI, migration catalog, both domain SHAs, configuration/provider checks and release decision.",
       "owner": "Engineering lead",
-      "status": "open",
+      "status": "working",
       "requirements": [
         "R21"
       ],
@@ -360,10 +360,16 @@
         "WEB-15",
         "WEB-16"
       ],
-      "nextAction": "Verify both Vercel production deployment SHAs and live read-only smoke; correct automatic per-merge double-build release strategy without breaking customer routing; then complete full release acceptance.",
+      "nextAction": "Release b514b0c: post-merge CI passed; both public and CRM Vercel production deployments READY at identical SHA with custom domains. Read-only HTTP 200 verified for public home/request/services, CRM owner/account and API health. Complete actual authenticated workflows, delivery, rollback and owner-supervised acceptance before marking verified. Do not fetch customer exports or private mileage records as a smoke test.",
       "acceptance": "Zero unresolved blocker/high defect in included scope; all required gates verified and still applicable; intended production team/project/branch verified; accepted operations handover.",
       "requiredEvidence": "Exact-head CI, tested merge/deployed SHA mapping, migration checks and signed candidate decision.",
-      "evidence": []
+      "evidence": [
+        "https://github.com/edhemmer/YNSG/pull/114",
+        "https://github.com/edhemmer/YNSG/commit/b514b0c363577ffa958e8c2123a24fc45ef2528e",
+        "https://www.yourneighborhoodserviceguy.com/",
+        "https://www.yourneighborhoodserviceguy.com/request",
+        "https://yourneighborhoodserviceguy.app/api/health"
+      ]
     },
     {
       "id": "IOS-01",
