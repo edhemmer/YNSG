@@ -1,9 +1,13 @@
 import {NextResponse} from 'next/server';
-import {z} from 'zod';
-import {authenticated,sameOrigin,failure} from '../../../lib/session';
+import {invoicePaymentQuery,verifiedPaymentContext} from '../../../lib/invoice-payment-context';
+import {authenticated,sameOrigin} from '../../../lib/session';
 import {invoiceRecordCommand,invoiceRecordSaved,MAX_INVOICE_RECORD_BYTES} from '../../../lib/invoice-record-contract';
 import {stripeConfigured} from '../../../lib/stripe-server';
-export async function GET(request:Request){try{const q=new URL(request.url).searchParams,org=z.uuid().parse(q.get('organization')),invoice=z.uuid().parse(q.get('invoice'));const {db}=await authenticated();const r=await db.rpc('invoice_payment_context',{p_org:org,p_invoice:invoice});if(r.error)throw Error(r.error.message);return NextResponse.json({...r.data,cardConfigured:stripeConfigured(org)},{headers:{'Cache-Control':'no-store'}});}catch(e){return failure(e)}}
+export async function GET(request:Request){
+ const parsed=invoicePaymentQuery.safeParse(Object.fromEntries(new URL(request.url).searchParams));if(!parsed.success)return NextResponse.json({error:'Choose a valid invoice.'},{status:400,headers:{'Cache-Control':'private, no-store'}});
+ try{const {organization,invoice}=parsed.data,{db}=await authenticated();const r=await db.rpc('invoice_payment_context',{p_org:organization,p_invoice:invoice});if(r.error)throw Error(r.error.code==='42501'?'FORBIDDEN':r.error.message);const data=verifiedPaymentContext(r.data);return NextResponse.json({...data,organization,invoice,cardConfigured:stripeConfigured(organization)},{headers:{'Cache-Control':'private, no-store'}});}
+ catch(e){const code=e instanceof Error?e.message:'';return NextResponse.json({error:code==='UNAUTHORIZED'?'Sign in to continue.':code==='FORBIDDEN'?'Your account cannot open this payment history.':'The complete payment history could not be verified. Refresh before recording another change.'},{status:code==='UNAUTHORIZED'?401:code==='FORBIDDEN'?403:503,headers:{'Cache-Control':'private, no-store'}});}
+}
 const headers={'Cache-Control':'private, no-store'};
 const messages:Record<string,string>={STALE_REVISION:'This invoice record changed elsewhere. Your entries are kept; reload the saved details before continuing.',IDEMPOTENCY_CONFLICT:'This saved attempt has different details. Review the invoice record before making another change.',VALIDATION:'Check the due date, archive choice and reason.',NOT_FOUND:'This invoice is no longer available to your account.',FORBIDDEN:'Your account cannot update this invoice record.',UNAUTHORIZED:'Sign in to continue.'};
 function recordFailure(error:unknown){const code=error instanceof Error?error.message:'';return NextResponse.json({error:messages[code]||'The saved invoice record could not be verified. Check the same saved attempt before changing it.'},{status:code==='UNAUTHORIZED'?401:code==='FORBIDDEN'?403:messages[code]?409:503,headers});}

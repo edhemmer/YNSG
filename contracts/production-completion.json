@@ -107,7 +107,7 @@
       "dependsOn": [
         "WEB-04"
       ],
-      "nextAction": "Main-build correction command appends an audited opposite cash/Zelle receipt, restores the balance and balances the ledger; exact replay and owner recovery tests required. Keep invoice credits/other financial corrections and actual invoice/PDF/delivery/funds acceptance under #35/#37 open.",
+      "nextAction": "Append-only cash/Zelle receipt corrections and complete invoice/receipt reconciliation are implemented under #35. Verify strict scoped payment-history reads, matching original/opposite receipt entries, safe balance arithmetic, failed-refresh action locks and retained drafts/exact unknown-save retries. Invoice credits and actual invoice/PDF/delivery/funds acceptance remain open.",
       "acceptance": "Issued snapshots fixed; YYYYMM-#### unique numbering; actual receipts only; balanced journal; no duplicate issue/receipt/mail milestone; unknown save locks and replays exact attempt; drafts survive refresh.",
       "requiredEvidence": "PR #28 plus current lifecycle/PDF tests and separately recorded recipient/inbox/funds acceptance.",
       "evidence": []
