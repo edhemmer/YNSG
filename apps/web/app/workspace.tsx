@@ -433,17 +433,17 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
             </>}
             {authMode==='link'&&sent&&<div><h2>Check your email</h2><p>Open the newest sign-in link in this browser. Return here to request another link only if it has expired.</p></div>}
             {authMode === "recover" && sent && <div><h2>Check your email</h2><p>Open the newest password reset link in this browser. The link will take you to a screen where you can choose a new password.</p></div>}
-            <div className="actions">
-              <button disabled={pending || ((authMode === "recover"||authMode==='link') && sent)}>
+            <div className="actions" style={{display:"grid",gridTemplateColumns:"minmax(0, 1fr)",gap:"0.75rem",width:"100%"}}>
+              <button style={{width:"100%",minWidth:0,whiteSpace:"normal",overflowWrap:"normal",wordBreak:"normal"}} disabled={pending || ((authMode === "recover"||authMode==='link') && sent)}>
                 {pending
                   ? "Please wait…"
                   : authMode === "recover"
                     ? sent ? "Reset email sent" : "Send password reset"
                   : authMode==='link'?sent?"Sign-in email sent":"Send sign-in link":"Sign in with password"}
               </button>
-              {authMode !== "password" && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("password");setSent(false);setMessage("");setError("");}}>Back to sign in</button>}
-              {authMode==='password'&&<button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode('link');setSent(false);setPassword('');setError('');setMessage('');}}>Use an email sign-in link</button>}
-              {authMode === "password" && !sent && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("recover");setPassword("");setError("");}}>Forgot password</button>}
+              {authMode !== "password" && <button type="button" className="secondary" style={{width:"100%",minWidth:0,whiteSpace:"normal",overflowWrap:"normal",wordBreak:"normal"}} disabled={pending} onClick={()=>{setAuthMode("password");setSent(false);setMessage("");setError("");}}>Back to sign in</button>}
+              {authMode==='password'&&<button type="button" className="secondary" style={{width:"100%",minWidth:0,whiteSpace:"normal",overflowWrap:"normal",wordBreak:"normal"}} disabled={pending} onClick={()=>{setAuthMode('link');setSent(false);setPassword('');setError('');setMessage('');}}>Use an email sign-in link</button>}
+              {authMode === "password" && !sent && <button type="button" className="secondary" style={{width:"100%",minWidth:0,whiteSpace:"normal",overflowWrap:"normal",wordBreak:"normal"}} disabled={pending} onClick={()=>{setAuthMode("recover");setPassword("");setError("");}}>Forgot password</button>}
             </div>
           </form>
         ) : (
