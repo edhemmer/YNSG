@@ -1,4 +1,5 @@
--- Run only against an authorized isolated restored database, with workers off.
+-- Read-only catalog for an explicitly authorized source snapshot or isolated restore.
+-- Restored application workers must remain off.
 -- No mutation, object download, credentials or customer contact fields.
 -- One statement gives counts and rows from the same database snapshot.
 -- The 10001st row deliberately makes over-limit catalogs fail validation.
