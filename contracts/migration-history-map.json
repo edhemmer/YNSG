@@ -2,7 +2,7 @@
   "observedOn": "2026-10-19",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
   "sourceBranch": "codex/crm-workflow",
-  "sourceCommit": "d6559aa56cf143a62886f0f4cc8d8ad1dfc380bf",
+  "sourceCommit": "5fab55380a6029e80a3ee23a209f6ec1919ca8cb",
   "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
   "repositoryMigrations": [
     {
@@ -364,6 +364,11 @@
       "file": "20261019000310_financial_reconciliation.sql",
       "historyVersion": "20261019005351",
       "name": "financial_reconciliation"
+    },
+    {
+      "file": "20261019015607_city_postal_code_intake.sql",
+      "historyVersion": "20261019020939",
+      "name": "city_postal_code_intake"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -396,11 +401,5 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": [
-    {
-      "file": "20261019015607_city_postal_code_intake.sql",
-      "name": "city_postal_code_intake",
-      "status": "not_applied_to_connected_supabase"
-    }
-  ]
+  "pendingUnappliedMigrations": []
 }
