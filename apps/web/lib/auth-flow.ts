@@ -9,3 +9,9 @@ export function authProviderFailure(error: {status?: number; code?: string}, rec
       : 'Account email was not sent because the email provider has reached its sending limit. Please wait before trying again.'
     : 'Account email could not be sent. Please try again later.'};
 }
+export function passwordSignInFailure(error?:{status?:number;code?:string}|null){
+ if(error?.status===429||['over_request_rate_limit','over_email_send_rate_limit'].includes(error?.code||''))return {status:429,message:'Too many sign-in attempts. Please wait before trying again.'};
+ if(error?.code==='invalid_credentials')return {status:400,message:'Your email or password wasn’t accepted. Try again or use an email sign-in link.'};
+ if(error?.code==='email_not_confirmed')return {status:400,message:'Sign-in could not be completed. Use an email sign-in link to verify your email.'};
+ return {status:503,message:'Password sign-in is temporarily unavailable. Try again shortly or use an email sign-in link.'};
+}
