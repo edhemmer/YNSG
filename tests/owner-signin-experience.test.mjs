@@ -11,3 +11,10 @@ test('owner can deliberately select email-link sign-in, preserve destination, an
  await click('Back to sign in');assert.ok(node.querySelector('input[type=password]'));assert.equal(node.querySelector('#email').value,'test@example.invalid');assert.equal(calls.filter(c=>c.body&&JSON.parse(c.body).action==='send').length,1);
  }finally{await act(async()=>root.unmount());}
 });
+test('canceling sign-out preserves the session and explicit confirmation sends one logout',async()=>{
+ let logout=0;globalThis.fetch=async(path,init)=>{if(init?.body&&JSON.parse(init.body).action==='logout'){logout++;return Response.json({ok:true});}return Response.json({email:'test@example.invalid',memberships:[]});};window.confirm=()=>false;const root=createRoot(node);try{
+ await act(async()=>{root.render(React.createElement(Workspace,{configured:true}));for(let n=0;n<5;n++)await tick();});
+ const out=node.querySelector('button[aria-label="Sign out"]');assert.ok(out);await act(async()=>{out.click();await tick();});assert.equal(logout,0);assert.ok(node.querySelector('button[aria-label="Sign out"]'));
+ window.confirm=()=>true;await act(async()=>{out.click();for(let n=0;n<3;n++)await tick();});assert.equal(logout,1);assert.ok(node.querySelector('input[type=password]'));
+ }finally{await act(async()=>root.unmount());}
+});
