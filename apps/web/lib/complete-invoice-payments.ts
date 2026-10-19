@@ -1,3 +1,4 @@
+import {readInvoiceCredits} from './read-invoice-credits.ts';
 import {z} from 'zod';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {verifiedPaymentContext} from './invoice-payment-context.ts';
@@ -35,5 +36,6 @@ export async function completeInvoicePayments<T extends {id:string;total_cents:n
   const rows=z.array(invoiceIdentity).max(100).parse(current.data);
   if(current.error||current.count!==rows.length||rows.length!==batch.length||new Set(rows.map(i=>i.id)).size!==rows.length||rows.some(i=>!batch.some(b=>b.id===i.id&&b.total_cents===i.total_cents)))throw Error('UNVERIFIED_INVOICE_PAYMENTS');
  }
- return invoices.map(i=>({...i,payments:byInvoice.get(i.id)!}));
+ const creditContexts=await readInvoiceCredits(db,organization,identities.map(i=>i.id));
+ return invoices.map(i=>{const c=creditContexts.get(i.id)!;if(c.totalCents!==i.total_cents||c.paidCents!==byInvoice.get(i.id)!.reduce((n,p)=>n+p.cents,0))throw Error('UNVERIFIED_CREDIT');return {...i,payments:byInvoice.get(i.id)!,credits:c.credits};});
 }

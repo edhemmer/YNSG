@@ -2,7 +2,7 @@
   "observedOn": "2026-10-19",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
   "sourceBranch": "codex/crm-workflow",
-  "sourceCommit": "5fab55380a6029e80a3ee23a209f6ec1919ca8cb",
+  "sourceCommit": "21cca66242748d502e8878863e2df94bf03a2ece",
   "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
   "repositoryMigrations": [
     {
@@ -374,6 +374,11 @@
       "file": "20261019112727_invoice_billing_read_permission.sql",
       "name": "invoice_billing_read_permission",
       "historyVersion": "20261019113348"
+    },
+    {
+      "file": "20261019115646_invoice_credits.sql",
+      "historyVersion": "20261019122223",
+      "name": "invoice_credits"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [

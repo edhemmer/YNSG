@@ -1,3 +1,4 @@
+import {invoiceCreditContext,verifiedCreditContext} from './invoice-credit-contract.ts';
 import {z} from 'zod';
 import {invoiceRecordState} from './invoice-record-contract.ts';
 const cents=z.number().int().min(-2147483647).max(2147483647),positive=cents.positive();
@@ -6,7 +7,7 @@ const checkout=z.string().url().refine(s=>{try{return new URL(s).origin==='https
 const order=z.object({id:z.uuid(),cents:positive,status:z.enum(['prepared','open','paid','expired','failed']),url:checkout.nullable()}).strict().refine(o=>o.status==='open'||o.url===null);
 const transaction=z.object({id:z.string().min(1).max(500),kind:z.enum(['payment','refund','alert']),amountCents:cents,feeCents:cents,netCents:cents,date:z.iso.datetime({offset:true}),details:z.object({status:z.string().max(200).optional(),eventType:z.string().max(200).optional()}).strip()}).strict();
 export const invoicePaymentContext=z.object({admin:invoiceRecordState,orders:z.array(order).max(10000),payments:z.array(payment).max(10000),canManage:z.boolean(),cardTransactions:z.array(transaction).max(10000)}).strict();
-export const invoicePaymentResponse=invoicePaymentContext.extend({organization:z.uuid(),invoice:z.uuid(),cardConfigured:z.boolean()}).strict();
+export const invoicePaymentResponse=invoicePaymentContext.extend({organization:z.uuid(),invoice:z.uuid(),cardConfigured:z.boolean(),creditContext:invoiceCreditContext}).strict();
 export const invoicePaymentQuery=z.object({organization:z.uuid(),invoice:z.uuid()}).strict();
 export type InvoicePaymentData=z.infer<typeof invoicePaymentResponse>;
 export function verifiedPaymentContext(raw:unknown){
@@ -24,6 +25,6 @@ export function verifiedPaymentContext(raw:unknown){
 }
 export function verifiedInvoicePayments(raw:unknown,organization:string,invoice:string,totalCents:number){
  const response=invoicePaymentResponse.parse(raw);if(response.organization!==organization||response.invoice!==invoice||!Number.isSafeInteger(totalCents)||totalCents<0)throw Error('UNVERIFIED');
- const {organization:_org,invoice:_invoice,cardConfigured:_card,...context}=response;verifiedPaymentContext(context);
- const paid=response.payments.reduce((sum,p)=>sum+p.cents,0);if(paid>totalCents)throw Error('UNVERIFIED');return response;
+ const {organization:_org,invoice:_invoice,cardConfigured:_card,creditContext:credit,...context}=response;verifiedPaymentContext(context);
+ const credits=verifiedCreditContext(credit),paid=response.payments.reduce((sum,p)=>sum+p.cents,0);if(credits.invoiceId!==invoice||credits.totalCents!==totalCents||credits.paidCents!==paid||paid>totalCents)throw Error('UNVERIFIED');return response;
 }

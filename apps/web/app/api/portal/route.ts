@@ -1,3 +1,4 @@
+import {readInvoiceCredits} from '../../../lib/read-invoice-credits';
 import { NextResponse } from "next/server";
 import { authenticated, failure } from "../../../lib/session";
 import { z } from "zod";
@@ -75,6 +76,8 @@ export async function GET(request: Request) {
     const payments=invoiceIds.length?await db.from("payments").select("id,invoice_id,cents",{count:"exact"}).eq("organization_id",org).in("invoice_id",invoiceIds).range(0,9999):{data:[],count:0,error:null};
     const paymentRows=z.array(z.object({id:z.uuid(),invoice_id:z.uuid(),cents:z.number().int().min(-999999999).max(999999999)}).strict()).max(10000).parse(payments.data);
     if(payments.error||payments.count!==paymentRows.length||new Set(paymentRows.map(p=>p.id)).size!==paymentRows.length||paymentRows.some(p=>!invoiceIds.includes(p.invoice_id)))throw Error("UNVERIFIED");
+    const creditContexts=await readInvoiceCredits(db,org,invoiceIds);
+    if(invoices.some(i=>creditContexts.get(i.id)!.totalCents!==i.total_cents||creditContexts.get(i.id)!.paidCents!==paymentRows.filter(p=>p.invoice_id===i.id).reduce((n,p)=>n+p.cents,0)))throw Error('UNVERIFIED');
     // Staff using their customer account must not inherit the whole business calendar.
     // Empty embedded scopes restrict parent rows through either linked customer relation.
     const appts = await db
@@ -101,7 +104,7 @@ export async function GET(request: Request) {
         properties: results[1].data,
         requests: results[2].data?.slice(0, 20),
         jobs: results[3].data?.slice(0, 20),
-        invoices: invoices.map(i=>({...i,payments:paymentRows.filter(p=>p.invoice_id===i.id).map(p=>({cents:p.cents}))})),
+        invoices: invoices.map(i=>({...i,credits:creditContexts.get(i.id)!.credits,payments:paymentRows.filter(p=>p.invoice_id===i.id).map(p=>({cents:p.cents}))})),
         appointments: appts.data?.slice(0, 20),
         page,
         hasMore,

@@ -9,7 +9,7 @@ export const expenseReversed=z.object({id:z.uuid(),reversed:z.literal(true)}).st
 const integer=z.number().int().min(Number.MIN_SAFE_INTEGER).max(Number.MAX_SAFE_INTEGER),nonnegative=integer.min(0);
 const reversed=z.object({reason:z.string().min(5).max(500),reversed_at:z.iso.datetime({offset:true})}).strict();
 export const financeExpense=z.object({id:z.uuid(),expense_date:z.iso.date(),vendor:z.string().min(2).max(160),category:z.string().min(1).max(80),description:z.string().min(3).max(500),amount_cents:z.number().int().positive().max(999999999),payment_method:z.string().min(1).max(80),reference:z.string().min(1).max(160),business_expense_reversals:z.union([reversed,z.array(reversed).max(1),z.null()])}).strict();
-export const financeReport=z.object({from:z.iso.date(),to:z.iso.date(),timezone:z.string().min(1).max(80),cashReceivedCents:integer,cardFeeCents:integer,netRecordedReceiptsCents:integer,expenseCents:integer,cashAfterExpensesCents:integer,issuedInvoicesCents:nonnegative,outstandingAsOfEndCents:integer,expenseCount:nonnegative,paymentCount:nonnegative}).strict();
+export const financeReport=z.object({from:z.iso.date(),to:z.iso.date(),timezone:z.string().min(1).max(80),cashReceivedCents:integer,cardFeeCents:integer,netRecordedReceiptsCents:integer,expenseCents:integer,cashAfterExpensesCents:integer,issuedInvoicesCents:integer,outstandingAsOfEndCents:integer,expenseCount:nonnegative,paymentCount:nonnegative}).strict();
 export const financeResult=z.object({report:financeReport,expenses:z.array(financeExpense).max(50),expenseRows:nonnegative,page:z.number().int().min(0).max(100000),hasMore:z.boolean()}).strict();
 export type Expense=z.infer<typeof financeExpense>;
 export type FinanceResult=z.infer<typeof financeResult>;

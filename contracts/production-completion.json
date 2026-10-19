@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-18",
+  "updatedAt": "2026-10-19",
   "baselineCommit": "56b0a9fec3f7c9e4664c2192c91564b9340b9584",
   "milestones": [
     "web",
@@ -107,7 +107,7 @@
       "dependsOn": [
         "WEB-04"
       ],
-      "nextAction": "Complete scoped receipt checks now cover owner workspace/inbox balances, invoice JSON/PDF and email preparation; billing-only customer access is separated from proposal approval by invoice_billing_read_permission. See docs/production/invoice-read-integrity.md. Native PostgreSQL CI passed; migration applied as Supabase history 20261019113348, predicate/search paths/grants verified read-only. Require final exact-head CI and live deployment checks. Invoice credits and actual invoice/PDF/delivery/funds acceptance remain open.",
+      "nextAction": "Invoice credits and exact retained corrections now connect canonical commands, receipts caps, owner/customer histories, original invoice JSON/PDF/email and balanced journals under #35; see docs/production/invoice-credits.md. Native PostgreSQL races/restore passed; migration invoice_credits applied as history 20261019122223 and privileges/search paths verified read-only. Require final exact-head CI and production deployment verification. Actual invoice/PDF/delivery/funds acceptance remains open.",
       "acceptance": "Issued snapshots fixed; YYYYMM-#### unique numbering; actual receipts only; balanced journal; no duplicate issue/receipt/mail milestone; unknown save locks and replays exact attempt; drafts survive refresh.",
       "requiredEvidence": "PR #28 plus current lifecycle/PDF tests and separately recorded recipient/inbox/funds acceptance.",
       "evidence": []
@@ -164,7 +164,7 @@
         "WEB-01",
         "WEB-05"
       ],
-      "nextAction": "Complete journal export now has a guarded effective-date invoice/receipt bridge, opening/closing receivables, all transaction detail and exact-cent CSV under #35 (docs/production/financial-reconciliation-2026-10-19.md). Verify split/corrected receipts, later expense corrections, complete bounds and current tenant/session failure paths. Invoice credits, full tax-basis reconciliation/accountant acceptance and QBO sandbox mapping remain open; gross activity is not taxable profit.",
+      "nextAction": "Invoice credits and corrections now retain original tax evidence, post balanced journals, adjust dated invoice activity and reconcile receivables/CSV; see docs/production/invoice-credits.md. Native PostgreSQL races/restore passed; credit migration applied as 20261019122223. Require final exact-head CI/deployment evidence, accountant acceptance, full tax-basis reconciliation and QBO sandbox mapping. Gross activity is not taxable profit.",
       "acceptance": "Reports drill into real canonical entries; no revenue-as-personal-income assumption; unsupported tax state/year/scope fails closed; sources checked at acceptance; reviewed actual owner inputs and sales-tax treatment required.",
       "requiredEvidence": "Reconciled fixture exports/calculations and dated owner/accountant review; QBO only advertised connected after sandbox proof.",
       "evidence": []

@@ -1,3 +1,4 @@
+import {readInvoiceCredits} from '../../../lib/read-invoice-credits';
 import {NextResponse} from 'next/server';
 import {invoicePaymentQuery,verifiedPaymentContext} from '../../../lib/invoice-payment-context';
 import {authenticated,sameOrigin} from '../../../lib/session';
@@ -5,7 +6,7 @@ import {invoiceRecordCommand,invoiceRecordSaved,MAX_INVOICE_RECORD_BYTES} from '
 import {stripeConfigured} from '../../../lib/stripe-server';
 export async function GET(request:Request){
  const parsed=invoicePaymentQuery.safeParse(Object.fromEntries(new URL(request.url).searchParams));if(!parsed.success)return NextResponse.json({error:'Choose a valid invoice.'},{status:400,headers:{'Cache-Control':'private, no-store'}});
- try{const {organization,invoice}=parsed.data,{db}=await authenticated();const r=await db.rpc('invoice_payment_context',{p_org:organization,p_invoice:invoice});if(r.error)throw Error(r.error.code==='42501'?'FORBIDDEN':r.error.message);const data=verifiedPaymentContext(r.data);return NextResponse.json({...data,organization,invoice,cardConfigured:stripeConfigured(organization)},{headers:{'Cache-Control':'private, no-store'}});}
+ try{const {organization,invoice}=parsed.data,{db}=await authenticated();const r=await db.rpc('invoice_payment_context',{p_org:organization,p_invoice:invoice});if(r.error)throw Error(r.error.code==='42501'?'FORBIDDEN':r.error.message);const data=verifiedPaymentContext(r.data);const contexts=await readInvoiceCredits(db,organization,[invoice]),creditContext=contexts.get(invoice)!;if(creditContext.paidCents!==data.payments.reduce((n,p)=>n+p.cents,0))throw Error('UNVERIFIED');return NextResponse.json({...data,creditContext,organization,invoice,cardConfigured:stripeConfigured(organization)},{headers:{'Cache-Control':'private, no-store'}});}
  catch(e){const code=e instanceof Error?e.message:'';return NextResponse.json({error:code==='UNAUTHORIZED'?'Sign in to continue.':code==='FORBIDDEN'?'Your account cannot open this payment history.':'The complete payment history could not be verified. Refresh before recording another change.'},{status:code==='UNAUTHORIZED'?401:code==='FORBIDDEN'?403:503,headers:{'Cache-Control':'private, no-store'}});}
 }
 const headers={'Cache-Control':'private, no-store'};
