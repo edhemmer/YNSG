@@ -9427,7 +9427,7 @@
             }
           },
           "requests": {
-            "maxItems": 20,
+            "maxItems": 5020,
             "type": "array",
             "items": {
               "type": "object",
@@ -9461,7 +9461,7 @@
             }
           },
           "history": {
-            "maxItems": 20,
+            "maxItems": 5020,
             "type": "array",
             "items": {
               "type": "object",

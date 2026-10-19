@@ -4,7 +4,7 @@ export const customerExportScope='Customer CRM profile, addresses, contacts, lin
 export const customerExportQuery=z.object({organization:z.uuid(),customer:z.uuid()}).strict();
 export const customerExport=customerDetail.omit({requestsMore:true,historyMore:true}).extend({
  format:z.literal('ynsg-customer-record-v1'),exportedAt:z.iso.datetime(),organization:z.uuid(),scope:z.literal(customerExportScope),
- requests:customerDetail.shape.requests.max(5020),history:customerDetail.shape.history.max(5020),
+ requests:z.array(customerDetail.shape.requests.element).max(5020),history:z.array(customerDetail.shape.history.element).max(5020),
 }).strict();
 export function verifiedCustomerExport(raw:unknown,query:z.infer<typeof customerExportQuery>){
  const data=customerExport.parse(raw);
