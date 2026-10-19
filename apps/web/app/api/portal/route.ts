@@ -75,10 +75,14 @@ export async function GET(request: Request) {
     const payments=invoiceIds.length?await db.from("payments").select("id,invoice_id,cents",{count:"exact"}).eq("organization_id",org).in("invoice_id",invoiceIds).range(0,9999):{data:[],count:0,error:null};
     const paymentRows=z.array(z.object({id:z.uuid(),invoice_id:z.uuid(),cents:z.number().int().min(-999999999).max(999999999)}).strict()).max(10000).parse(payments.data);
     if(payments.error||payments.count!==paymentRows.length||new Set(paymentRows.map(p=>p.id)).size!==paymentRows.length||paymentRows.some(p=>!invoiceIds.includes(p.invoice_id)))throw Error("UNVERIFIED");
-    // RLS checks live customer relationships through request/job, including appointments before a job exists.
+    // Staff using their customer account must not inherit the whole business calendar.
+    // Empty embedded scopes restrict parent rows through either linked customer relation.
     const appts = await db
       .from("appointments")
-      .select("id,start_at,end_at,arrival_at,status,timezone,customer_response")
+      .select("id,start_at,end_at,arrival_at,status,timezone,customer_response,job_scope:jobs(),request_scope:service_requests()")
+      .in("job_scope.customer_id",ids)
+      .in("request_scope.customer_id",ids)
+      .or("job_scope.not.is.null,request_scope.not.is.null")
       .eq("organization_id", org)
       .order("start_at", { ascending: false })
       .order("id")
