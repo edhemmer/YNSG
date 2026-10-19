@@ -13,6 +13,10 @@ const messages:Record<string,string>={
  RECONNECT_REQUIRED:'Google access expired or was revoked. Reconnect in Settings.',
 };
 const approved=new Set([
+ 'Too many sign-in attempts. Please wait before trying again.',
+ 'Your email or password wasn’t accepted. Try again or use an email sign-in link.',
+ 'Sign-in could not be completed. Use an email sign-in link to verify your email.',
+ 'Password sign-in is temporarily unavailable. Try again shortly or use an email sign-in link.',
  'A recent sample set is available. Open it instead of creating another.',
  'This sample does not match the approved owner address.',
  'Email sending is paused. Check your Google connection in Settings.',

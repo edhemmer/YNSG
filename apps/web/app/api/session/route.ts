@@ -11,7 +11,7 @@ import {
 } from "../../../lib/session";
 import { emailClient, saveEmailVerifier } from "../../../lib/email-auth";
 import { recordOwnerSessionIp } from "../../../lib/owner-security";
-import { authProviderFailure } from "../../../lib/auth-flow";
+import { authProviderFailure, passwordSignInFailure } from "../../../lib/auth-flow";
 const emailAddress = z.string().trim().toLowerCase().pipe(z.email().max(254));
 const input = z.discriminatedUnion("action", [
   z.object({ action: z.literal("send"), email: emailAddress, destination: z.enum(["owner", "account"]).optional(), requestContext:z.object({request:z.uuid(),organization:z.uuid()}).strict().optional() }),
@@ -52,18 +52,11 @@ export async function POST(request: Request) {
     const value = input.parse(await request.json());
     const db = authClient();
     if (value.action === "password") {
-      const { data, error } = await db.auth.signInWithPassword({
-        email: value.email,
-        password: value.password,
-      });
-      if (error || !data.session)
-        return NextResponse.json(
-          {
-            error: "Check your email and password, or use Forgot password.",
-          },
-          { status: 400, headers: { "Cache-Control": "no-store" } },
-        );
-      return saveSession(NextResponse.json({ ok: true }), data.session);
+      try {
+        const { data, error } = await db.auth.signInWithPassword({email:value.email,password:value.password});
+        if(error||!data?.session){const failed=passwordSignInFailure(error);return NextResponse.json({error:failed.message},{status:failed.status,headers:{"Cache-Control":"no-store"}});}
+        return saveSession(NextResponse.json({ok:true}),data.session);
+      }catch{const failed=passwordSignInFailure();return NextResponse.json({error:failed.message},{status:failed.status,headers:{"Cache-Control":"no-store"}});}
     }
     if (value.action === "signup" || value.action === "recover") {
       const emailAuth = await emailClient();
