@@ -13,7 +13,7 @@ export async function POST(request:Request){
  try{
   if(p.action==='status'||p.action==='resume'){
    if(!process.env.SUPABASE_SERVICE_ROLE_KEY)throw Error('SETUP_REQUIRED');
-   const admin=createClient(process.env.SUPABASE_URL!,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+   const admin=createClient(process.env.SUPABASE_URL!,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},global:{fetch:(input,init)=>fetch(input,{...init,signal:AbortSignal.timeout(15000)})}});
    const lease=p.action==='resume'?randomUUID():null;
    const state=await processDeletion(admin,p,lease);
    const response=NextResponse.json({status:state.status,busy:Boolean(state.busy)},{headers});

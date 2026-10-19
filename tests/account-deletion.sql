@@ -1,4 +1,5 @@
 -- Synthetic-only privacy lifecycle. Auth deletion completion is simulated in this rolled-back fixture.
+insert into public.customer_access(organization_id,customer_id,user_id) values('20000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000003','00000000-0000-4000-8000-000000000003');
 create function pg_temp.actor(n integer) returns void language sql as $$select set_config('request.jwt.claims',jsonb_build_object('role','authenticated','sub','00000000-0000-4000-8000-'||lpad(n::text,12,'0'),'session_id','10000000-0000-4000-8000-'||lpad(n::text,12,'0'),'aal','aal1')::text,true)::text::void$$;
 create function pg_temp.privacy(p jsonb) returns jsonb language sql as $$select public.privacy_command(jsonb_build_object('key',gen_random_uuid())||p)$$;
 create function pg_temp.reject_privacy(p jsonb,expected text) returns void language plpgsql as $$begin
@@ -29,6 +30,12 @@ select pg_temp.actor(3);
 select pg_temp.reject_privacy('{"action":"prepare","request":"98000000-0000-4000-8000-000000000001","revision":1,"confirmation":"DELETE MY ACCOUNT","secret":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}','REVIEW_REQUIRED');
 select pg_temp.actor(1);
 select pg_temp.privacy('{"action":"approve","organization":"20000000-0000-4000-8000-000000000001","request":"98000000-0000-4000-8000-000000000001","revision":1,"policyVersion":2}');
+select pg_temp.actor(3);
+select pg_temp.reject_privacy('{"action":"prepare","request":"98000000-0000-4000-8000-000000000001","revision":1,"confirmation":"DELETE MY ACCOUNT","secret":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}','REVIEW_REQUIRED');
+select pg_temp.actor(2);
+select pg_temp.privacy('{"action":"policy","organization":"20000000-0000-4000-8000-000000000002","revision":0,"recordDays":40,"auditDays":80,"basis":"Synthetic second company basis","notice":"Synthetic second company notice","reviewed":true}');
+select pg_temp.privacy('{"action":"approve","organization":"20000000-0000-4000-8000-000000000002","request":"98000000-0000-4000-8000-000000000001","revision":1,"policyVersion":1}');
+select pg_temp.actor(1);
 -- Sole owner may request, but cannot confirm deletion.
 select pg_temp.privacy(jsonb_build_object('action','request','request','98000000-0000-4000-8000-000000000002','secret',repeat('b',64)));
 select pg_temp.reject_privacy('{"action":"prepare","request":"98000000-0000-4000-8000-000000000002","revision":1,"confirmation":"DELETE MY ACCOUNT","secret":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}','SOLE_OWNER');
@@ -71,8 +78,34 @@ select pg_temp.reject_privacy(jsonb_build_object('action','retain','organization
 select pg_temp.assert_true((public.privacy_command('{"action":"read","organization":"20000000-0000-4000-8000-000000000001"}')->'queue'->0->>'retentionRevision')='1','retention review is versioned');
 reset role;
 select pg_temp.assert_true((select count(*) from private.retention_events where action='identity_deleted')=1,'completion audit appended once');
-select pg_temp.assert_true((select count(*) from private.deletion_reviews)=2,'policy review history retained');
+select pg_temp.assert_true((select count(*) from private.deletion_reviews)=3,'policy review history retained');
 select pg_temp.assert_true(not has_function_privilege('anon','public.privacy_command(jsonb)','execute'),'anon cannot call privacy command');
 select pg_temp.assert_true(not has_function_privilege('authenticated','public.deletion_recovery(uuid,text,boolean,uuid)','execute'),'browser cannot get deletion target or complete provider result');
 select pg_temp.assert_true(not has_table_privilege('authenticated','private.account_deletions','select'),'no direct request table access');
+-- Bounded owner pages neither truncate silently nor expose another company's queue.
+insert into private.retention_holds(id,organization_id,reason,review_on,actor_id,released_at)
+select gen_random_uuid(),'20000000-0000-4000-8000-000000000001','Synthetic pagination hold',current_date+30,'00000000-0000-4000-8000-000000000001',now() from generate_series(1,51);
+create temporary table privacy_page_users as select gen_random_uuid() id from generate_series(1,51);
+insert into auth.users(id,email_confirmed_at) select id,now() from privacy_page_users;
+insert into public.customer_access(organization_id,customer_id,user_id) select '20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',id from privacy_page_users;
+insert into private.account_deletions(id,user_id,secret_hash,status,processing_at,completed_at) select id,id,repeat('c',64),'completed',now(),now() from privacy_page_users;
+set local role authenticated;
+select pg_temp.actor(1);
+do $$declare page jsonb;next_page jsonb;begin
+ page:=public.privacy_command('{"action":"read","organization":"20000000-0000-4000-8000-000000000001"}');
+ perform pg_temp.assert_true(jsonb_array_length(page->'queue')=50 and page->>'queueNext' is not null,'bounded deletion page has cursor');
+ perform pg_temp.assert_true(jsonb_array_length(page->'holds')=50 and page->>'holdsNext' is not null,'bounded hold page has cursor');
+ next_page:=public.privacy_command(jsonb_build_object('action','read','organization','20000000-0000-4000-8000-000000000001','after',page->>'queueNext','holdsAfter',page->>'holdsNext'));
+ perform pg_temp.assert_true(jsonb_array_length(next_page->'queue')=2 and jsonb_array_length(next_page->'holds')=2,'next pages preserve every remaining row');
+ perform pg_temp.assert_true(not(public.privacy_command('{"action":"read","organization":"20000000-0000-4000-8000-000000000002"}')?'queue'),'no foreign owner queue');
+end$$;
+reset role;
+set local role authenticated;
+select pg_temp.actor(1);
+select pg_temp.privacy('{"action":"hold","key":"99000000-0000-4000-8000-000000000099","organization":"20000000-0000-4000-8000-000000000001","hold":"97000000-0000-4000-8000-000000000099","reason":"Synthetic revoked owner replay","reviewOn":"2030-01-01"}');
+reset role;
+update public.memberships set role='bookkeeper' where user_id='00000000-0000-4000-8000-000000000001';
+set local role authenticated;
+select pg_temp.reject_privacy('{"action":"hold","key":"99000000-0000-4000-8000-000000000099","organization":"20000000-0000-4000-8000-000000000001","hold":"97000000-0000-4000-8000-000000000099","reason":"Synthetic revoked owner replay","reviewOn":"2030-01-01"}','FORBIDDEN');
+reset role;
 rollback;

@@ -66,6 +66,12 @@ begin
  if not private.privacy_identity(false) then raise exception 'UNAUTHORIZED' using errcode='42501';end if;
  -- Serialize commands for one identity, and owner changes against deletion processing per company.
  perform pg_advisory_xact_lock(hashtextextended(auth.uid()::text,831));
+ if a in ('policy','hold','release','approve','retain') then
+  perform 1 from public.organizations where id=org for update;
+  perform 1 from public.memberships where organization_id=org and user_id=auth.uid() for share;
+  if not private.staff(org,array['owner']) then raise exception 'FORBIDDEN' using errcode='42501';end if;
+  if not private.privacy_identity(true) then raise exception 'REAUTHENTICATION_REQUIRED';end if;
+ end if;
  if a not in ('read','fresh') then
   if p->>'key' is null then raise exception 'INVALID_COMMAND';end if;
   select * into receipt from private.privacy_receipts where actor_id=auth.uid() and key=(p->>'key')::uuid;
@@ -74,11 +80,7 @@ begin
    return receipt.result;
   end if;
  end if;
- if a in ('policy','hold','release','approve','retain') then
-  if not private.staff(org,array['owner']) then raise exception 'FORBIDDEN' using errcode='42501';end if;
-  if not private.privacy_identity(true) then raise exception 'REAUTHENTICATION_REQUIRED';end if;
-  perform 1 from public.organizations where id=org for update;
- end if;
+ if (select count(*) from private.deletion_scopes(auth.uid()))>100 then raise exception 'PRIVACY_SCOPE_REVIEW_REQUIRED';end if;
  if a='policy' then
   select coalesce(max(version),0) into v from private.retention_policies where organization_id=org;
   if v is distinct from (p->>'revision')::integer then raise exception 'STALE_REVISION';end if;
@@ -155,10 +157,12 @@ begin
  if org is not null and private.staff(org,array['owner']) then
   select * into pol from private.retention_policies where organization_id=org order by version desc limit 1;
   result:=result||jsonb_build_object('policy',case when pol.version is null then null else to_jsonb(pol)-'actor_id'-'organization_id' end,
-   'holds',(select coalesce(jsonb_agg(to_jsonb(h)-'actor_id'-'released_by'-'organization_id'),'[]') from private.retention_holds h where organization_id=org),
+   'holds',(select coalesce(jsonb_agg(to_jsonb(h)-'actor_id'-'released_by'-'organization_id'),'[]') from (select * from private.retention_holds where organization_id=org and ((p->>'holdsAfter') is null or id>(p->>'holdsAfter')::uuid) order by id limit 50) h),
    'queue',(select coalesce(jsonb_agg(jsonb_build_object('id',d.id,'status',d.status,'revision',d.revision,'createdAt',d.created_at,'account',case when d.status in ('processing','completed') then 'Deleted sign-in identity' else (select email from auth.users where id=d.user_id) end,'retentionRevision',(select count(*) from private.retention_events e where e.request_id=d.id and e.organization_id=org and e.action='retain'),'nextReviewOn',(select e.details->>'reviewOn' from private.retention_events e where e.request_id=d.id and e.organization_id=org and e.action='retain' order by (e.details->>'revision')::integer desc limit 1),
     'approved',exists(select 1 from private.deletion_reviews dr where dr.request_id=d.id and dr.organization_id=org and dr.policy_version=pol.version),
-    'recordReviewOn',d.processing_at+(select pp.record_days from private.retention_policies pp where pp.organization_id=org and pp.version=(select max(dr.policy_version) from private.deletion_reviews dr where dr.request_id=d.id and dr.organization_id=org))*interval '1 day','auditReviewOn',d.processing_at+(select pp.audit_days from private.retention_policies pp where pp.organization_id=org and pp.version=(select max(dr.policy_version) from private.deletion_reviews dr where dr.request_id=d.id and dr.organization_id=org))*interval '1 day')),'[]') from private.account_deletions d where org in(select private.deletion_scopes(d.user_id)) and d.status<>'canceled'));
+    'recordReviewOn',d.processing_at+(select pp.record_days from private.retention_policies pp where pp.organization_id=org and pp.version=(select max(dr.policy_version) from private.deletion_reviews dr where dr.request_id=d.id and dr.organization_id=org))*interval '1 day','auditReviewOn',d.processing_at+(select pp.audit_days from private.retention_policies pp where pp.organization_id=org and pp.version=(select max(dr.policy_version) from private.deletion_reviews dr where dr.request_id=d.id and dr.organization_id=org))*interval '1 day')),'[]') from (select * from private.account_deletions dd where org in(select private.deletion_scopes(dd.user_id)) and dd.status<>'canceled' and ((p->>'after') is null or dd.id>(p->>'after')::uuid) order by dd.id limit 50) d),
+   'queueNext',(select case when count(*)=50 then max(q.id::text) end from (select id from private.account_deletions dd where org in(select private.deletion_scopes(dd.user_id)) and dd.status<>'canceled' and ((p->>'after') is null or dd.id>(p->>'after')::uuid) order by dd.id limit 50) q),
+   'holdsNext',(select case when count(*)=50 then max(q.id::text) end from (select id from private.retention_holds where organization_id=org and ((p->>'holdsAfter') is null or id>(p->>'holdsAfter')::uuid) order by id limit 50) q));
  end if;
  if a not in ('read','fresh') then insert into private.privacy_receipts values(auth.uid(),(p->>'key')::uuid,encode(sha256(convert_to(p::text,'UTF8')),'hex'),result);end if;
  return result;
@@ -192,6 +196,7 @@ grant execute on function private.deletion_recovery(uuid,text,boolean,uuid),publ
 -- No new authority can be attached to an identity after irreversible processing starts.
 create function private.block_deleted_account_grant() returns trigger language plpgsql security definer set search_path='' as $$
 begin
+ perform pg_advisory_xact_lock(hashtextextended(new.user_id::text,831));
  perform 1 from public.organizations where id=new.organization_id for update;
  if new.revoked_at is null and exists(select 1 from private.account_deletions where user_id=new.user_id and status in ('processing','completed')) then raise exception 'ACCOUNT_DELETING';end if;
  return new;
@@ -209,3 +214,5 @@ create index deletion_reviews_actor on private.deletion_reviews(actor_id);
 create index retention_holds_actor on private.retention_holds(actor_id);
 create index retention_holds_released_by on private.retention_holds(released_by) where released_by is not null;
 create index retention_events_actor on private.retention_events(actor_id) where actor_id is not null;
+create index memberships_privacy_scope on public.memberships(user_id,organization_id);
+create index customer_access_privacy_scope on public.customer_access(user_id,organization_id);
