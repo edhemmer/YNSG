@@ -17,7 +17,7 @@ export function shouldIgnoreBuild({env=process.env,cwd=process.cwd(),git=(args)=
   if(!paths.length||!paths.every(nonRuntimePath))return false;
   // A formerly operator-only module can become a runtime dependency later.
   // Any reference (including a conservative comment match) forces a build.
-  const patterns=[...new Set(paths.flatMap(path=>[path,basename(path)]))].flatMap(value=>['-e',value]);
+  const patterns=[...new Set(paths.flatMap(path=>{const names=[path,basename(path)];return /\.(?:mjs|cjs|js|jsx|ts|tsx)$/.test(path)?[...names,...names.map(name=>name.replace(/\.[^.]+$/,''))]:names;}))].flatMap(value=>['-e',value]);
   try{if(git(['grep','-I','-F','-l',...patterns,'--','apps/web/app','apps/web/lib','api','lib','packages','site','scripts/build.mjs','scripts/seo.mjs']).trim())return false;}
   catch(error){if(error.status!==1)return false;}
   return true;
