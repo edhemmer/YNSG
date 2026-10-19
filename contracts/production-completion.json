@@ -107,7 +107,7 @@
       "dependsOn": [
         "WEB-04"
       ],
-      "nextAction": "Invoice credits and exact retained corrections now connect canonical commands, receipts caps, owner/customer histories, original invoice JSON/PDF/email and balanced journals under #35; see docs/production/invoice-credits.md. Require final exact-head native PostgreSQL CI, migration and production deployment verification. Actual invoice/PDF/delivery/funds acceptance remains open.",
+      "nextAction": "Invoice credits and exact retained corrections now connect canonical commands, receipts caps, owner/customer histories, original invoice JSON/PDF/email and balanced journals under #35; see docs/production/invoice-credits.md. Native PostgreSQL races/restore passed; migration invoice_credits applied as history 20261019122223 and privileges/search paths verified read-only. Require final exact-head CI and production deployment verification. Actual invoice/PDF/delivery/funds acceptance remains open.",
       "acceptance": "Issued snapshots fixed; YYYYMM-#### unique numbering; actual receipts only; balanced journal; no duplicate issue/receipt/mail milestone; unknown save locks and replays exact attempt; drafts survive refresh.",
       "requiredEvidence": "PR #28 plus current lifecycle/PDF tests and separately recorded recipient/inbox/funds acceptance.",
       "evidence": []
@@ -164,7 +164,7 @@
         "WEB-01",
         "WEB-05"
       ],
-      "nextAction": "Invoice credits and corrections now retain original tax evidence, post balanced journals, adjust dated invoice activity and reconcile receivables/CSV; see docs/production/invoice-credits.md. Require final CI/migration/deploy evidence, accountant acceptance, full tax-basis reconciliation and QBO sandbox mapping. Gross activity is not taxable profit.",
+      "nextAction": "Invoice credits and corrections now retain original tax evidence, post balanced journals, adjust dated invoice activity and reconcile receivables/CSV; see docs/production/invoice-credits.md. Native PostgreSQL races/restore passed; credit migration applied as 20261019122223. Require final exact-head CI/deployment evidence, accountant acceptance, full tax-basis reconciliation and QBO sandbox mapping. Gross activity is not taxable profit.",
       "acceptance": "Reports drill into real canonical entries; no revenue-as-personal-income assumption; unsupported tax state/year/scope fails closed; sources checked at acceptance; reviewed actual owner inputs and sales-tax treatment required.",
       "requiredEvidence": "Reconciled fixture exports/calculations and dated owner/accountant review; QBO only advertised connected after sandbox proof.",
       "evidence": []
