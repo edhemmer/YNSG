@@ -24,3 +24,28 @@ test('customer booking keeps service, time and required details in ordered stage
  assert.ok(html.includes('id="appointment-quick-dates"'));assert.ok(html.includes('Arrange a time with me instead'));
  for(const id of ['name','phone','email','street','city'])assert.match(html,new RegExp('<(?:input|select)[^>]*id="'+id+'"[^>]*required'));
 });
+
+test('search service URLs resolve to visible public sections and breadcrumb references resolve',async()=>{
+ const services=await readFile(new URL('../site/pages/services.html',import.meta.url),'utf8');
+ for(const slug of ['','services','service-area']){
+  const graph=JSON.parse(seo(slug,'Page','Description').schema)['@graph'];
+  const nodes=graph.filter(v=>v['@type']==='Service');assert.equal(nodes.length,5);
+  for(const service of nodes){
+   const destination=new URL(service.url);
+   assert.equal(destination.origin,'https://www.yourneighborhoodserviceguy.com');assert.equal(destination.pathname,'/services');
+   assert.ok(services.includes(`id="${destination.hash.slice(1)}"`));
+   assert.equal(service['@id'],service.url);
+  }
+  if(slug){
+   const page=graph.find(v=>v['@type']==='WebPage'),crumb=graph.find(v=>v['@type']==='BreadcrumbList');
+   assert.equal(page.breadcrumb['@id'],crumb['@id']);assert.equal(crumb.itemListElement.at(-1).item,page.url);
+  }
+ }
+});
+
+test('public city ZIP guidance agrees with the intake choices and local titles cover all served cities',async()=>{
+ const {postalCodesForCity}=await import('../site/city-postal-codes.js');
+ const html=await readFile(new URL('../site/pages/service-area.html',import.meta.url),'utf8');
+ for(const city of serviceCities){for(const zip of postalCodesForCity(city))assert.ok(html.includes(`${city}, Illinois ${zip}`));for(const slug of ['','services'])assert.ok(seo(slug,'Page','Description').title.includes(city));}
+ assert.ok(html.includes('a ZIP code alone does not confirm service availability'));
+});
