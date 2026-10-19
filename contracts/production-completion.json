@@ -164,7 +164,7 @@
         "WEB-01",
         "WEB-05"
       ],
-      "nextAction": "Transaction-level complete balanced accounting journal CSV includes original/correcting entries for company-local dates; verify bounded single-snapshot export and failure/tenant-switch tests. Cash/accrual tax reconciliation, QBO sandbox mapping and actual owner tax review remain under #35/WEB-14.",
+      "nextAction": "Complete journal export now has a guarded effective-date invoice/receipt bridge, opening/closing receivables, all transaction detail and exact-cent CSV under #35 (docs/production/financial-reconciliation-2026-10-19.md). Verify split/corrected receipts, later expense corrections, complete bounds and current tenant/session failure paths. Invoice credits, full tax-basis reconciliation/accountant acceptance and QBO sandbox mapping remain open; gross activity is not taxable profit.",
       "acceptance": "Reports drill into real canonical entries; no revenue-as-personal-income assumption; unsupported tax state/year/scope fails closed; sources checked at acceptance; reviewed actual owner inputs and sales-tax treatment required.",
       "requiredEvidence": "Reconciled fixture exports/calculations and dated owner/accountant review; QBO only advertised connected after sandbox proof.",
       "evidence": []
