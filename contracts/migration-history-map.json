@@ -369,6 +369,11 @@
       "file": "20261019015607_city_postal_code_intake.sql",
       "historyVersion": "20261019020939",
       "name": "city_postal_code_intake"
+    },
+    {
+      "file": "20261019112727_invoice_billing_read_permission.sql",
+      "name": "invoice_billing_read_permission",
+      "historyVersion": "20261019113348"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [

@@ -1,3 +1,4 @@
+import {completeInvoicePayments} from '../../../lib/complete-invoice-payments';
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {companyBrand} from "../../../lib/company-brand";
@@ -44,7 +45,7 @@ export async function GET(request: Request) {
         .range(from,to),
       db
         .from("invoices")
-        .select("id,customer_id,job_id,number,total_cents,issued_at,snapshot,payments(cents)")
+        .select("id,customer_id,job_id,number,total_cents,issued_at,snapshot")
         .eq("organization_id", org)
         .order("id")
         .range(from,to),
@@ -58,7 +59,7 @@ export async function GET(request: Request) {
       db.from('customer_schedule_preferences').select('id,request_id,appointment_id,appointment_revision,response_version,preferred_local_start,timezone,note,status,created_at').eq('organization_id',org).eq('status','pending').order('created_at',{ascending:false}).order('id').range(from,to),
       db.from('configuration_versions').select('settings').eq('organization_id',org).order('version',{ascending:false}).limit(1).maybeSingle(),
     ]);
-    if (results.some((r) => r.error)) throw new Error("FAILED");
+    if (results.some((r) => r.error)||results.slice(1,9).some(r=>!Array.isArray(r.data))) throw new Error("FAILED");
     if (!results[0]!.data)
       return NextResponse.json(
         {
@@ -76,7 +77,7 @@ export async function GET(request: Request) {
       const jobs=quoteIds.length?await db.from('jobs').select('id,customer_id,quote_id,approved_version,status,revision').eq('organization_id',org).in('quote_id',quoteIds).order('id').limit(1001):{data:[],error:null};
       if(jobs.error||jobs.data!.length>1000)throw Error('FAILED');
       const jobIds=jobs.data!.map(j=>j.id);
-      const invoices=jobIds.length?await db.from('invoices').select('id,customer_id,job_id,number,total_cents,issued_at,snapshot,payments(cents)').eq('organization_id',org).in('job_id',jobIds).order('id').limit(1001):{data:[],error:null};
+      const invoices=jobIds.length?await db.from('invoices').select('id,customer_id,job_id,number,total_cents,issued_at,snapshot').eq('organization_id',org).in('job_id',jobIds).order('id').limit(1001):{data:[],error:null};
       if(invoices.error||invoices.data!.length>1000)throw Error('FAILED');
       results[3]!.data=quotes.data;results[4]!.data=jobs.data!;results[5]!.data=invoices.data!;
       if(results[7]!.data!.length>1000)throw Error('FAILED');
@@ -87,6 +88,7 @@ export async function GET(request: Request) {
     const ready=await db.rpc('production_workflows_ready',{p_org:org});
     const hasMore=!selectedRequest&&results.slice(1).some(r=>Array.isArray(r.data)&&r.data.length>50);
     for(const result of (selectedRequest?[]:results.slice(1)))if(Array.isArray(result.data))result.data=result.data.slice(0,50);
+    results[5]!.data=await completeInvoicePayments(db,org,results[5]!.data||[]);
     const invoiceAdmin=await db.rpc("invoice_admin_summary",{p_org:org,p_invoices:(results[5]!.data||[]).map(i=>i.id)});if(invoiceAdmin.error)throw Error("FAILED");
     return NextResponse.json(
       {

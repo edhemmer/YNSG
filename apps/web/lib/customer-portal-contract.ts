@@ -23,6 +23,6 @@ export const portalPage=z.object({
  if(v.company.id!==v.organization)ctx.addIssue({code:'custom',message:'Company mismatch'});
  for(const rows of [v.customers,v.properties,v.requests,v.jobs,v.invoices,v.appointments])if(new Set(rows.map(r=>r.id)).size!==rows.length)ctx.addIssue({code:'custom',message:'Duplicate records'});
  for(const a of v.appointments)if(Date.parse(a.end_at)<=Date.parse(a.start_at)||(a.arrival_at!==null&&(Date.parse(a.arrival_at)<Date.parse(a.start_at)||Date.parse(a.arrival_at)>=Date.parse(a.end_at))))ctx.addIssue({code:"custom",message:"Unverified appointment window"});
- for(const invoice of v.invoices)if(!Number.isSafeInteger(invoice.payments.reduce((n,p)=>n+p.cents,0)))ctx.addIssue({code:'custom',message:'Unverified payment amount'});
+ for(const invoice of v.invoices){const paid=invoice.payments.reduce((n,p)=>n+p.cents,0);if(!Number.isSafeInteger(paid)||paid<0||paid>invoice.total_cents)ctx.addIssue({code:'custom',message:'Unverified payment amount'});}
 });
 export function verifiedPortalPage(raw:unknown,organization:string,page:number){const data=portalPage.parse(raw);if(data.organization!==organization||data.page!==page)throw Error('Account history did not match the selected business and page.');return data;}
