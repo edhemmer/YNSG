@@ -2,7 +2,7 @@
   "observedOn": "2026-10-19",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
   "sourceBranch": "codex/crm-workflow",
-  "sourceCommit": "0a598aba80694d30e8f728bfe16f6a98efc02139",
+  "sourceCommit": "9e367ca84dcfa30dfa79ba99abcbc291ea166d6e",
   "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
   "repositoryMigrations": [
     {
@@ -384,6 +384,11 @@
       "file": "20261019123841_export_reauthentication.sql",
       "historyVersion": "20261019124521",
       "name": "export_reauthentication"
+    },
+    {
+      "file": "20261019130546_account_deletion_retention.sql",
+      "name": "account_deletion_retention",
+      "historyVersion": "20261019132909"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
