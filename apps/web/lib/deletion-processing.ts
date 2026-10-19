@@ -4,7 +4,7 @@ const recovery=z.object({status:z.enum(['requested','canceled','processing','com
 export async function processDeletion(admin:SupabaseClient,input:{request:string;secret:string},lease:string|null){
  const args={p_id:input.request,p_secret:input.secret,p_lease:lease};
  const initial=await admin.rpc('deletion_recovery',{...args,p_finish:false});
- if(initial.error)throw Error('FORBIDDEN');
+ if(initial.error)throw Error(initial.error.code==='42501'?'FORBIDDEN':'RECOVERY_UNAVAILABLE');
  let state=recovery.parse(initial.data);
  if(lease&&state.status==='processing'&&!state.busy){
   if(!state.user||typeof state.identityDeleted!=='boolean')throw Error('PROCESSING_UNCERTAIN');

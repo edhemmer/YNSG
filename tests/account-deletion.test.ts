@@ -15,3 +15,5 @@ test('receipt status and active processing lease cannot call the identity provid
 test('unknown provider result or unconfirmed completion never claims successful deletion',async()=>{
  for(const failAt of ['provider','finish','missing-target']){const db={rpc:async(_n:string,p:Record<string,unknown>)=>p.p_finish?{error:{message:'unknown'},data:null}:{data:failAt==='missing-target'?{status:'processing'}:{status:'processing',user,identityDeleted:false},error:null},auth:{admin:{deleteUser:async()=>({error:failAt==='provider'?{message:'unknown'}:null})}}};await assert.rejects(processDeletion(db as never,{request,secret},lease),/PROCESSING_UNCERTAIN/);}
 });
+
+test('unavailable recovery database is uncertain rather than a fabricated permission rejection',async()=>{for(const [code,message] of [['08006','RECOVERY_UNAVAILABLE'],['42501','FORBIDDEN']]){let deletes=0;const db={rpc:async()=>({data:null,error:{code,message:'Synthetic failure'}}),auth:{admin:{deleteUser:async()=>{deletes++;return {error:null};}}}};await assert.rejects(processDeletion(db as never,{request,secret},lease),new RegExp(message));assert.equal(deletes,0);}});
