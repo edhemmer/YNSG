@@ -1,16 +1,18 @@
 'use client';
+import ExportReauthentication from './export-reauthentication';
 import {useEffect,useRef,useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 export default function CustomerExport({organization,customer}:{organization:string;customer:string}){
  const current=useRef(organization+':'+customer),generation=useRef(0),sending=useRef(false);current.current=organization+':'+customer;
- useEffect(()=>{generation.current++;setBusy(false);setError('');},[organization,customer]);
- const [busy,setBusy]=useState(false),[error,setError]=useState('');
+ useEffect(()=>{generation.current++;setBusy(false);setError('');setReauth(false);},[organization,customer]);
+ const [busy,setBusy]=useState(false),[error,setError]=useState(''),[reauth,setReauth]=useState(false);
  async function download(){
   if(sending.current||busy)return;const target=organization+':'+customer,attemptGeneration=generation.current;sending.current=true;setBusy(true);setError('');
   try{
    const r=await sessionFetch('/api/customer-export?'+new URLSearchParams({organization,customer}),{cache:'no-store'});
+   if(r.status===428){if(current.current===target&&generation.current===attemptGeneration){setReauth(true);setError('Confirm your sign-in, then retry this download.');}return;}
    if(!r.ok)throw Error('The complete customer record could not be exported. Refresh customer details and try again.');
-   const bytes=await r.blob(),json=JSON.parse(await bytes.text());
+   setReauth(false);const bytes=await r.blob(),json=JSON.parse(await bytes.text());
    if(json.format!=='ynsg-customer-record-v1'||json.organization!==organization||json.customer?.id!==customer||!Array.isArray(json.requests)||!Array.isArray(json.history))throw Error('The customer export did not match the selected customer.');
    if(current.current!==target||generation.current!==attemptGeneration)return;
    const url=URL.createObjectURL(new Blob([JSON.stringify(json,null,2)],{type:'application/json'}));
@@ -21,7 +23,7 @@ export default function CustomerExport({organization,customer}:{organization:str
  return <section aria-label="Download customer records">
   <h4>Customer record export</h4>
   <p>Download the profile, saved contacts, addresses, linked request summaries and recorded changes. Private file contents, payments and account credentials are not included.</p>
-  {error&&<p role="alert">{error}</p>}
+  {error&&<p role="alert">{error}</p>}{reauth&&<ExportReauthentication organization={organization} onConfirmed={()=>{setReauth(false);setError('Sign-in confirmed. Retry the customer record download.');}}/>}
   <button className="secondary" type="button" disabled={busy} onClick={()=>void download()}>{busy?'Preparing complete record…':'Download customer record'}</button>
  </section>;
 }

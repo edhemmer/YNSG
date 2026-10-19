@@ -1,0 +1,7 @@
+# Record export reauthentication — WEB-06 / WEB-11
+
+Before-edit scope checklist: require a current, live, verified identity and company role; require the current database session to have started within fifteen minutes; refreshed tokens and a different device signing in must not satisfy this check. Apply before customer export reads, again at its audit boundary, and to canonical accounting journal exports. Guard the built-in summary/reconciliation downloads and the server tax CSV route; normal report viewing stays available. Keep regular workspace reads and sessions unchanged. No MFA, paid service, retention-period decision or deletion of issued evidence.
+
+Provide an explicit same-account password confirmation using the existing Supabase sign-in API, bounded body, same-origin check and private responses. Derive email/identity from the authenticated server session, never client metadata. Do not return or log credentials/tokens. Email-link users can sign out and sign in using their normal link, then retry. Unknown authentication results must be checked through the database freshness gate before asking for a second password attempt. Preserve export selection and unsaved records.
+
+Verify old/current/different/expired/revoked sessions, role/tenant rejection, fail-closed malformed proofs and provider errors, fresh same-account login, UI retry and complete-file boundaries. Full release checks and native PostgreSQL CI precede migration/deployment. This closes export protection engineering, not account deletion or retention approval.

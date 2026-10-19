@@ -411,5 +411,11 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": []
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261019123841_export_reauthentication.sql",
+      "name": "export_reauthentication",
+      "status": "not_applied_to_connected_supabase"
+    }
+  ]
 }
