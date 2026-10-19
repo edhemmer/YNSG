@@ -16,7 +16,8 @@
     "contracts:check": "node --import tsx scripts/generate-owner-contracts.mjs --check",
     "completion:check": "node scripts/check-production-completion.mjs",
     "completion:report": "node scripts/check-production-completion.mjs --report",
-    "completion:gate": "node scripts/check-production-completion.mjs"
+    "completion:gate": "node scripts/check-production-completion.mjs",
+    "certify:production": "node scripts/certify-production.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.2",

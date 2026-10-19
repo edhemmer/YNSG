@@ -3500,7 +3500,8 @@
         "security": [
           {
             "WorkspaceCookie": []
-          }
+          },
+          {}
         ],
         "description": "Own-account deletion; current owner retention policies, holds and scoped reviews. Irreversible processing requires fresh sign-in, exact revisions, actor-bound command receipt and every linked company review. Receipt recovery exposes only status and resumes an already confirmed identity deletion. Company evidence is retained for policy review.",
         "requestBody": {
@@ -4222,12 +4223,23 @@
                       "type": "object",
                       "properties": {
                         "status": {
-                          "type": "string"
+                          "type": "string",
+                          "enum": [
+                            "requested",
+                            "canceled",
+                            "processing",
+                            "completed"
+                          ]
                         },
                         "busy": {
                           "type": "boolean"
                         }
-                      }
+                      },
+                      "required": [
+                        "status",
+                        "busy"
+                      ],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
@@ -4246,19 +4258,242 @@
             }
           },
           "400": {
-            "description": "Invalid input; do not change data."
+            "description": "Definitive rejection or unknown outcome. Only rejected permits an alternate command; unknown retains the exact attempt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 700
+                    },
+                    "code": {
+                      "type": "string",
+                      "maxLength": 80
+                    },
+                    "certainty": {
+                      "type": "string",
+                      "enum": [
+                        "rejected",
+                        "unknown"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "code",
+                    "certainty"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "401": {
-            "description": "Sign in; validate the saved result before retrying a mutation."
+            "description": "Definitive rejection or unknown outcome. Only rejected permits an alternate command; unknown retains the exact attempt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 700
+                    },
+                    "code": {
+                      "type": "string",
+                      "maxLength": 80
+                    },
+                    "certainty": {
+                      "type": "string",
+                      "enum": [
+                        "rejected",
+                        "unknown"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "code",
+                    "certainty"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "403": {
-            "description": "Wrong origin or insufficient live organization permission."
+            "description": "Definitive rejection or unknown outcome. Only rejected permits an alternate command; unknown retains the exact attempt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 700
+                    },
+                    "code": {
+                      "type": "string",
+                      "maxLength": 80
+                    },
+                    "certainty": {
+                      "type": "string",
+                      "enum": [
+                        "rejected",
+                        "unknown"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "code",
+                    "certainty"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "409": {
-            "description": "Stale revision, changed retry or business gate; refresh/review."
+            "description": "Definitive rejection or unknown outcome. Only rejected permits an alternate command; unknown retains the exact attempt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 700
+                    },
+                    "code": {
+                      "type": "string",
+                      "maxLength": 80
+                    },
+                    "certainty": {
+                      "type": "string",
+                      "enum": [
+                        "rejected",
+                        "unknown"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "code",
+                    "certainty"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Definitive rejection or unknown outcome. Only rejected permits an alternate command; unknown retains the exact attempt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 700
+                    },
+                    "code": {
+                      "type": "string",
+                      "maxLength": 80
+                    },
+                    "certainty": {
+                      "type": "string",
+                      "enum": [
+                        "rejected",
+                        "unknown"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "code",
+                    "certainty"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Definitive rejection or unknown outcome. Only rejected permits an alternate command; unknown retains the exact attempt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 700
+                    },
+                    "code": {
+                      "type": "string",
+                      "maxLength": 80
+                    },
+                    "certainty": {
+                      "type": "string",
+                      "enum": [
+                        "rejected",
+                        "unknown"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "code",
+                    "certainty"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "503": {
-            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+            "description": "Definitive rejection or unknown outcome. Only rejected permits an alternate command; unknown retains the exact attempt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 700
+                    },
+                    "code": {
+                      "type": "string",
+                      "maxLength": 80
+                    },
+                    "certainty": {
+                      "type": "string",
+                      "enum": [
+                        "rejected",
+                        "unknown"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "code",
+                    "certainty"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -8540,6 +8775,33 @@
           "organization",
           "device",
           "revision"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyFailure": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 700
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "certainty": {
+            "type": "string",
+            "enum": [
+              "rejected",
+              "unknown"
+            ]
+          }
+        },
+        "required": [
+          "error",
+          "code",
+          "certainty"
         ],
         "additionalProperties": false
       },

@@ -126,7 +126,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Account deletion and owner retention workflow implemented in PR #136: fresh-session request/cancel/confirmation; versioned reviewed periods/notices; all-company review; legal holds; sole-owner protection; immediate access revocation/device credential removal; leased, recoverable Auth identity deletion; paginated queues and append-only retention reviews. Migration account_deletion_retention applied as 20261019132909 with public invoker wrappers and private-table/client-grant verification. Runtime candidate 9e367ca84dcfa30dfa79ba99abcbc291ea166d6e passed native PostgreSQL lifecycle/race/restore CI. See docs/production/account-deletion-retention.md. Verify final exact-head CI and both deployments, then configure actual owner/legal periods and complete customer/device/independent acceptance; company evidence and backups are retained for reviewed disposition.",
+      "nextAction": "PR #136 deployed at 418ae57043d87f5f756ee09f0efd23e0093f4342 with 768 tests, exact-head CI, migration 20261019132909, both READY projects and all aliases verified. Production hardening now protects unknown privacy attempts across refresh/navigation, retains policy revisions/drafts, isolates receipt recovery from unrelated sessions, validates completion and clears same-account cached history. See docs/production/production-certification-2026-10-19.md and the linked release evidence. Publish actual owner/legal retention policies and perform remaining customer/device/independent acceptance; company evidence/backups remain retained for reviewed disposition.",
       "acceptance": "No email-string auto-claim; revoked access fails; supported edits remain discoverable on phone; immutable originals; private files authorized; gaps found in WEB-01 implemented before passing.",
       "requiredEvidence": "Two-tenant/customer tests, upload/deletion/retention cases and accepted owner/customer walkthrough.",
       "evidence": []
@@ -360,7 +360,7 @@
         "WEB-15",
         "WEB-16"
       ],
-      "nextAction": "PR #131 candidate 2ca5bba0b0a5b20635e942b497bf4302e7b8e41f: exact-head CI passed both jobs (726 application tests); merge tree matches accepted head; both production projects READY and all four custom-domain aliases verified. Read-only public request, owner entry and fresh worker/mail health passed. No migration required. See docs/production/release-customer-portal-2026-10-19.md. Actual linked-customer/device/provider, recovery and owner acceptance remain open; do not fetch customer exports or private mileage as smoke tests. This is engineering release evidence, not full-gate acceptance.",
+      "nextAction": "Run npm run certify:production for an exact clean committed tree; retain every actual build/audit/milestone-gate result, required exact-head CI, reviewed merge-tree mapping and both deployment/alias proofs in the release PR. PR #136 is the prior verified engineering release at 418ae57043d87f5f756ee09f0efd23e0093f4342. Native advisories and missing owner/device/provider/independent evidence are real certification failures, not bypasses. Complete prerequisite WEB gates before full production certification.",
       "acceptance": "Zero unresolved blocker/high defect in included scope; all required gates verified and still applicable; intended production team/project/branch verified; accepted operations handover.",
       "requiredEvidence": "Exact-head CI, tested merge/deployed SHA mapping, migration checks and signed candidate decision.",
       "evidence": []
