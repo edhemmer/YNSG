@@ -123,7 +123,6 @@ begin
   if a='prepare' then perform 1 from public.organizations where id in(select private.deletion_scopes(auth.uid())) order by id for update;end if;
   select * into r from private.account_deletions where id=rid and user_id=auth.uid() for update;
   if not found then raise exception 'FORBIDDEN' using errcode='42501';end if;
-  if a='cancel' and r.status='canceled' then return jsonb_build_object('status','canceled','revision',r.revision);end if;
   if r.status<>'requested' or r.revision is distinct from (p->>'revision')::integer then raise exception 'STALE_REVISION';end if;
   if not private.privacy_identity(true) then raise exception 'REAUTHENTICATION_REQUIRED';end if;
   if a='prepare' then
