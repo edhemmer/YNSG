@@ -3,7 +3,7 @@
 Scope: WEB-05 / WEB-08, issue #35. Before-edit checklist:
 
 - Require complete scoped receipt reads before publishing a remaining balance in owner lists, invoice JSON/PDF or invoice email.
-- Reject truncated, duplicate, malformed, foreign, negative-net or overpaid receipt evidence. Preserve original/opposite cash and Zelle corrections.
+- Reject truncated, duplicate, malformed, foreign, negative-net or overpaid receipt evidence. Apply the same net balance bounds to customer account history on server and client. Preserve original/opposite cash and Zelle corrections.
 - Recheck invoice visibility after gathering receipts; never turn access revocation into a successful zero-payment balance.
 - Correct the invoice-history capability check to require billing permission, independently of proposal approval. Test billing-only, approval-only, expired/revoked access and sessions, another household and another tenant.
 - Validate document query, payment administration and due date; use private no-store responses and retryable errors with no partial financial output.
