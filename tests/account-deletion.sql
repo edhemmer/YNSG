@@ -1,5 +1,7 @@
 -- Synthetic-only privacy lifecycle. Auth deletion completion is simulated in this rolled-back fixture.
 insert into public.customer_access(organization_id,customer_id,user_id) values('20000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000003','00000000-0000-4000-8000-000000000003');
+insert into private.owner_mobile_devices(organization_id,id,user_id,session_id,token_hash,encrypted_token,environment,new_requests,appointments,sound,quiet_start,quiet_end)
+values('20000000-0000-4000-8000-000000000001','97000000-0000-4000-8000-000000000088','00000000-0000-4000-8000-000000000003','10000000-0000-4000-8000-000000000003',repeat('d',64),repeat('e',50),'sandbox',true,true,false,0,0);
 create function pg_temp.actor(n integer) returns void language sql as $$select set_config('request.jwt.claims',jsonb_build_object('role','authenticated','sub','00000000-0000-4000-8000-'||lpad(n::text,12,'0'),'session_id','10000000-0000-4000-8000-'||lpad(n::text,12,'0'),'aal','aal1')::text,true)::text::void$$;
 create function pg_temp.privacy(p jsonb) returns jsonb language sql as $$select public.privacy_command(jsonb_build_object('key',gen_random_uuid())||p)$$;
 create function pg_temp.reject_privacy(p jsonb,expected text) returns void language plpgsql as $$begin
@@ -55,6 +57,7 @@ select pg_temp.assert_true((public.privacy_command('{"action":"prepare","key":"9
 reset role;
 select pg_temp.assert_true(not private.live_identity(false),'old JWT cannot retain business access before provider deletion');
 select pg_temp.assert_true(exists(select 1 from public.customer_access where user_id='00000000-0000-4000-8000-000000000003' and revoked_at is not null),'customer access revoked');
+select pg_temp.assert_true(exists(select 1 from private.owner_mobile_devices where user_id='00000000-0000-4000-8000-000000000003' and not enabled and encrypted_token=repeat('0',50) and token_hash=repeat('0',64)),'device notification credentials removed before identity deletion');
 select pg_temp.assert_true((select count(*) from public.customers)=3,'company records preserved');
 do $$begin begin update public.customer_access set revoked_at=null where user_id='00000000-0000-4000-8000-000000000003';raise exception 'TEST FAILED regrant';exception when others then if sqlerrm<>'ACCOUNT_DELETING' then raise;end if;end;end$$;
 set local role service_role;

@@ -138,6 +138,8 @@ begin
    if exists(select 1 from private.deletion_scopes(auth.uid()) s where not exists(select 1 from private.retention_policies pp join private.deletion_reviews dr on dr.organization_id=pp.organization_id and dr.policy_version=pp.version and dr.request_id=rid
      where pp.organization_id=s and pp.version=(select max(version) from private.retention_policies where organization_id=s))) then raise exception 'REVIEW_REQUIRED';end if;
    update private.account_deletions set status='processing',processing_at=now(),revision=revision+1 where id=rid;
+   update private.owner_mobile_devices set enabled=false,encrypted_token=repeat('0',50),token_hash=repeat('0',64),revision=revision+1,updated_at=now() where user_id=auth.uid();
+   update private.owner_mobile_push p set state='skipped',finished_at=now(),outcome='account_deleting' where p.state='pending' and exists(select 1 from private.owner_mobile_devices d where d.organization_id=p.organization_id and d.id=p.device_id and d.user_id=auth.uid());
    update public.memberships set revoked_at=now() where user_id=auth.uid() and revoked_at is null;
    update public.customer_access set revoked_at=now() where user_id=auth.uid() and revoked_at is null;
   else update private.account_deletions set status='canceled',revision=revision+1 where id=rid;end if;
@@ -216,3 +218,5 @@ create index retention_holds_released_by on private.retention_holds(released_by)
 create index retention_events_actor on private.retention_events(actor_id) where actor_id is not null;
 create index memberships_privacy_scope on public.memberships(user_id,organization_id);
 create index customer_access_privacy_scope on public.customer_access(user_id,organization_id);
+create index retention_holds_company_page on private.retention_holds(organization_id,id);
+create index deletion_reviews_policy on private.deletion_reviews(organization_id,policy_version);
