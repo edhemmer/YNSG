@@ -251,7 +251,7 @@
       "milestone": "web",
       "title": "Prove alert delivery, unattended worker failure/recovery, runbooks, safe rollback and commercial hosting eligibility.",
       "owner": "Engineering lead",
-      "status": "open",
+      "status": "working",
       "requirements": [
         "R18",
         "R21"
@@ -260,7 +260,7 @@
         "WEB-07",
         "WEB-12"
       ],
-      "nextAction": "Prove alert delivery, unattended worker failure/recovery, runbooks, safe rollback and commercial hosting eligibility.",
+      "nextAction": "A conservative Vercel build guard compares the full change set since the last successful project/branch deployment, skips only verified non-runtime changes and preserves CI/manual rebuilds; see docs/production/production-build-selection.md. Verify configured build behavior and aliases. Actual alert receipt, unattended recovery, operator handover and commercial hosting eligibility remain separate.",
       "acceptance": "Responsible operator receives controlled failure and recovery alert; no duplicate mail on recovery; rollback preserves evidence/queues; no credential disclosure; commercial plan confirmed without unauthorized purchase.",
       "requiredEvidence": "Received alert evidence, rollback rehearsal, plan confirmation and dated operational handover.",
       "evidence": []
