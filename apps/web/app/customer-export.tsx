@@ -11,6 +11,8 @@ export default function CustomerExport({organization,customer}:{organization:str
   try{
    const r=await sessionFetch('/api/customer-export?'+new URLSearchParams({organization,customer}),{cache:'no-store'});
    if(r.status===428){if(current.current===target&&generation.current===attemptGeneration){setReauth(true);setError('Confirm your sign-in, then retry this download.');}return;}
+   if(r.status===401)throw Error('Sign in to your workspace, then retry this download.');
+   if(r.status===403)throw Error('Your current account cannot export this customer.');
    if(!r.ok)throw Error('The complete customer record could not be exported. Refresh customer details and try again.');
    setReauth(false);const bytes=await r.blob(),json=JSON.parse(await bytes.text());
    if(json.format!=='ynsg-customer-record-v1'||json.organization!==organization||json.customer?.id!==customer||!Array.isArray(json.requests)||!Array.isArray(json.history))throw Error('The customer export did not match the selected customer.');
