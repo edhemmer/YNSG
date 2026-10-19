@@ -416,5 +416,11 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": []
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261019130546_account_deletion_retention.sql",
+      "name": "account_deletion_retention",
+      "status": "not_applied_to_connected_supabase"
+    }
+  ]
 }

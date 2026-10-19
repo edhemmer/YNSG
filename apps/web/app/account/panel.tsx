@@ -1,4 +1,5 @@
 "use client";
+import {AccountPrivacy} from '../privacy-controls';
 import {creditTotal} from '../../lib/invoice-credit-contract';
 
 import {invoiceNumber} from "../../lib/invoice-number";
@@ -332,6 +333,7 @@ export default function Account() {
           </button>
         </section>
       )}
+      <AccountPrivacy key={signed?'signed':'signed-out'}/>
       {signed && mode !== "set-password" && companies.length === 0 && (
         <section className="account-card">
           <h2>No connected service records yet</h2>

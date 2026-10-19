@@ -126,7 +126,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Recent current-session export protection now covers customer portability, canonical accounting journal, tax CSV and built-in summary/reconciliation downloads, with same-account password confirmation, explicit retry and preserved selection. See docs/production/export-reauthentication.md and PR #135. Native PostgreSQL session-boundary tests passed; migration applied as 20261019124521. Require final exact-head CI/deployment verification. Full retention/account-deletion implementation still requires owner/legal retention and legal-hold decisions; actual customer/provider/device acceptance remains open.",
+      "nextAction": "Account deletion and owner retention implementation is being built in docs/production/account-deletion-retention.md: guarded requests, reviewed versioned periods/notices, legal holds, owner reviews, fresh-session confirmation, recoverable Auth identity deletion, immediate application revocation and retained-record review queue. Require synthetic lifecycle/race checks, exact-head CI and deployment before recording release evidence. Actual owner/legal periods, device/customer and independent acceptance remain separate.",
       "acceptance": "No email-string auto-claim; revoked access fails; supported edits remain discoverable on phone; immutable originals; private files authorized; gaps found in WEB-01 implemented before passing.",
       "requiredEvidence": "Two-tenant/customer tests, upload/deletion/retention cases and accepted owner/customer walkthrough.",
       "evidence": []
