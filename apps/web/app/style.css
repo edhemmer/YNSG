@@ -220,3 +220,5 @@ input:is([type=date],[type=datetime-local],[type=time])::-webkit-date-and-time-v
 
 /* Privacy forms retain readable controls on narrow screens and at large text sizes. */
 .privacy-controls{min-width:0;overflow-wrap:anywhere}.privacy-controls form,.privacy-controls details{margin-block:1rem}.privacy-controls label{display:block;margin-block:.75rem}.privacy-controls input:not([type=checkbox]),.privacy-controls textarea{display:block;width:100%;min-width:0;max-width:100%}.privacy-controls button{max-width:100%;white-space:normal;margin:.25rem .4rem .25rem 0}.privacy-controls summary{cursor:pointer;min-height:44px}.privacy-controls h3{overflow-wrap:anywhere}
+
+.privacy-controls .privacy-editor{min-width:0;margin:1rem 0;border:1px solid var(--line);border-radius:10px;padding:1rem}.privacy-controls .privacy-editor legend{max-width:100%;overflow-wrap:anywhere;padding:0 .35rem}

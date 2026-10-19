@@ -1,4 +1,5 @@
 "use client";
+import {useEntrySafety} from '../entry-safety';
 import {AccountPrivacy} from '../privacy-controls';
 import {creditTotal} from '../../lib/invoice-credit-contract';
 
@@ -11,6 +12,7 @@ import {portalAccess,portalPage,verifiedPortalPage} from '../../lib/customer-por
 import type {z} from 'zod';
 type Portal=z.infer<typeof portalPage>;
 export default function Account() {
+  const {canLeave}=useEntrySafety();
   const [invitation, setInvitation] = useState("");
   const [mode, setMode] = useState<
     "password" | "signup" | "recover" | "set-password"
@@ -147,6 +149,7 @@ export default function Account() {
           <button
             disabled={busy}
             onClick={async () => {
+              if(!canLeave())return;
               setBusy(true);
               try {
                 const r = await sessionFetch("/api/session", {
@@ -307,6 +310,7 @@ export default function Account() {
           <button
             disabled={busy}
             onClick={async () => {
+              if(!canLeave())return;
               setBusy(true);
               try {
                 const r = await sessionFetch("/api/account-link", {
@@ -333,7 +337,7 @@ export default function Account() {
           </button>
         </section>
       )}
-      <AccountPrivacy key={signed?'signed':'signed-out'}/>
+      <AccountPrivacy key={signed?'signed':'signed-out'} onDeleted={()=>{setSigned(false);setWorkspaceAccess(false);setData(null);setOrg('');setCompanies([]);setInvitation('');setPassword('');setConfirmation('');setMode('password');setMessage('Your sign-in identity has been deleted. Company records remain subject to the disclosed retention policies.');}}/>
       {signed && mode !== "set-password" && companies.length === 0 && (
         <section className="account-card">
           <h2>No connected service records yet</h2>

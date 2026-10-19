@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   referrer: "no-referrer",
 };
 import Account from "./panel";
+import {EntrySafety} from "../entry-safety";
 export default function Page() {
-  return <Account />;
+  return <EntrySafety><Account /></EntrySafety>;
 }
