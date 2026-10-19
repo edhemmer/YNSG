@@ -1,4 +1,4 @@
-export type Submission={name:string;phone:string;email:string;street:string;city:string;description?:string;preferredTime?:string;communityRate?:string;service?:string;task?:string;services?:{service:string;task:string}[]};
+export type Submission={name:string;phone:string;email:string;street:string;city:string;postalCode?:string;state?:string;region?:string;description?:string;preferredTime?:string;communityRate?:string;service?:string;task?:string;services?:{service:string;task:string}[]};
 export type Visit={id:string;request_id:string;job_id?:string|null;status:string;revision:number;start_at:string;end_at:string;arrival_at:string;expires_at:string|null;replaces_id:string|null;customer_response:string};
 export type InboxRequest={id:string;customer_id?:string|null;status:string;revision:number;created_at:string;original_submission:Submission;appointments:Visit[]};
 export type LinkedQuote={id:string;request_id:string;status:string;current_version:number;quote_versions:{version:number;scope:string;labor_cents:number;duration_minutes:number}[]};
@@ -36,3 +36,5 @@ export function requestStage(r:InboxRequest,now=Date.now()){
 // PostgREST OR clauses use a small literal-only search alphabet. No filter syntax
 // or wildcard characters from the search input can become query operators.
 export function inboxSearch(value:string){return value.normalize('NFKC').replace(/[^\p{L}\p{N} @+.'’\-]/gu,' ').replace(/\s+/g,' ').trim().slice(0,100);}
+
+export function submissionAddress(s:Submission){return [s.street,s.city,s.state||s.region,s.postalCode].filter(Boolean).join(', ');}

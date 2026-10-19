@@ -396,5 +396,11 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": []
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261019015607_city_postal_code_intake.sql",
+      "name": "city_postal_code_intake",
+      "status": "not_applied_to_connected_supabase"
+    }
+  ]
 }

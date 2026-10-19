@@ -11,16 +11,38 @@ export type MapsApi={
  Geocoder:new()=>{geocode(options:{address:string}):Promise<{results:{geometry:{location:Position};partial_match?:boolean}[]}>};
  SymbolPath:{CIRCLE:number};
 };
-type MapsWindow=Window&{google?:{maps:MapsApi};ynsgMapsReady?:()=>void};
+type MapsWindow=Window&{google?:{maps:MapsApi};ynsgMapsReady?:()=>void;gm_authFailure?:()=>void};
 let loading:Promise<MapsApi>|null=null;
+let authFailed=false,authInstalled=false;
+const authListeners=new Set<()=>void>();
+export function onMapAuthorizationFailure(listener:()=>void):()=>void{
+ const win=window as MapsWindow;
+ if(!authInstalled){
+  const previous=win.gm_authFailure;
+  win.gm_authFailure=()=>{authFailed=true;loading=null;for(const notify of authListeners)notify();previous?.();};
+  authInstalled=true;
+ }
+ authListeners.add(listener);
+ if(authFailed)listener();
+ return()=>{authListeners.delete(listener);};
+}
+export function boundedMapRequest<T>(request:Promise<T>,milliseconds=12000):Promise<T>{
+ return new Promise((resolve,reject)=>{
+  const timer=setTimeout(()=>reject(Error('MAP_REQUEST_TIMEOUT')),milliseconds);
+  request.then(value=>{clearTimeout(timer);resolve(value);},error=>{clearTimeout(timer);reject(error);});
+ });
+}
 export function loadGoogleMap(key:string):Promise<MapsApi>{
  if(!key)return Promise.reject(Error('MAP_KEY_REQUIRED'));
+ if(authFailed)return Promise.reject(Error('MAP_AUTH_FAILED'));
  const win=window as MapsWindow;if(win.google?.maps)return Promise.resolve(win.google.maps);
  if(loading)return loading;
  loading=new Promise((resolve,reject)=>{
-  const script=document.createElement('script'),timeout=setTimeout(()=>{script.remove();loading=null;reject(Error('MAP_LOAD_FAILED'));},15000);
-  win.ynsgMapsReady=()=>{clearTimeout(timeout);if(win.google?.maps)resolve(win.google.maps);else{loading=null;reject(Error('MAP_LOAD_FAILED'));}};
-  script.onerror=()=>{clearTimeout(timeout);script.remove();loading=null;reject(Error('MAP_LOAD_FAILED'));};
+  let unsubscribe=()=>{};
+  const script=document.createElement('script'),timeout=setTimeout(()=>{script.remove();unsubscribe();loading=null;reject(Error('MAP_LOAD_FAILED'));},15000);
+  unsubscribe=onMapAuthorizationFailure(()=>{clearTimeout(timeout);script.remove();unsubscribe();loading=null;reject(Error('MAP_AUTH_FAILED'));});
+  win.ynsgMapsReady=()=>{clearTimeout(timeout);unsubscribe();if(win.google?.maps)resolve(win.google.maps);else{loading=null;reject(Error('MAP_LOAD_FAILED'));}};
+  script.onerror=()=>{clearTimeout(timeout);script.remove();unsubscribe();loading=null;reject(Error('MAP_LOAD_FAILED'));};
   script.async=true;script.src='https://maps.googleapis.com/maps/api/js?'+new URLSearchParams({key,loading:'async',callback:'ynsgMapsReady',v:'quarterly'});document.head.append(script);
  });return loading;
 }

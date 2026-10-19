@@ -15,6 +15,7 @@ await cp(join(source,'franchise.css'), join(output,'franchise.css'));
 await cp(join(source,'main.js'), join(output,'main.js'));
 await cp(join(source,'booking-journey.js'),join(output,'booking-journey.js'));
 await cp(join(source,'address-check.js'),join(output,'address-check.js'));
+await cp(join(source,'city-postal-codes.js'),join(output,'city-postal-codes.js'));
 await cp(join(source,'neighbor-carousel.js'),join(output,'neighbor-carousel.js'));
 await cp(join(source,'public-ui.js'),join(output,'public-ui.js'));
 await cp(join(source,'request-delivery.js'),join(output,'request-delivery.js'));

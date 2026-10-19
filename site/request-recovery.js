@@ -5,6 +5,7 @@ const fields={description:3000,name:120,phone:35,email:254,street:200,city:80,co
 function validData(data,kind){
  if(!data||typeof data!=='object'||Array.isArray(data)||!Array.isArray(data.services)||data.services.length>15||data.services.some(item=>!item||typeof item.service!=='string'||typeof item.task!=='string'||item.service.length>80||item.task.length>120))return false;
  for(const [name,max] of Object.entries(fields))if(typeof data[name]!=='string'||data[name].length>max)return false;
+ if(data.postalCode!==undefined&&(typeof data.postalCode!=='string'||!/^([0-9]{5})?$/.test(data.postalCode)))return false;
  return kind!=='pending'||uuid.test(data.requestKey||'');
 }
 export function requestRecovery(storage,clock=Date.now){

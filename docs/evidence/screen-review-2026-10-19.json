@@ -1,0 +1,3271 @@
+{
+  "scope": "Synthetic local browser review; not provider, physical-device or production release acceptance",
+  "baseline": "de80310 plus changes committed with this evidence",
+  "browser": "Chromium 133 with Playwright 1.51.1",
+  "entryCases": [
+    {
+      "width": 320,
+      "theme": "light",
+      "route": "/owner/practice",
+      "scroll": 320,
+      "heading": "Try the owner workflow",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "route": "/account",
+      "scroll": 320,
+      "heading": "Sign in",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "route": "/owner",
+      "scroll": 320,
+      "heading": "Sign in to your workspace",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "route": "/platform",
+      "scroll": 320,
+      "heading": "Owner accounts",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "route": "/invoice",
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "route": "/request/manage",
+      "scroll": 320,
+      "heading": "Your appointment",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "route": "/sample/request",
+      "scroll": 320,
+      "heading": "Your service request",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "route": "/owner/taxes",
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "route": "/owner/production-check",
+      "scroll": 320,
+      "heading": "Invoice & email previews",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "route": "/owner/practice",
+      "scroll": 320,
+      "heading": "Try the owner workflow",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "route": "/account",
+      "scroll": 320,
+      "heading": "Sign in",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "route": "/owner",
+      "scroll": 320,
+      "heading": "Sign in to your workspace",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "route": "/platform",
+      "scroll": 320,
+      "heading": "Owner accounts",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "route": "/invoice",
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "route": "/request/manage",
+      "scroll": 320,
+      "heading": "Your appointment",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "route": "/sample/request",
+      "scroll": 320,
+      "heading": "Your service request",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "route": "/owner/taxes",
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "route": "/owner/production-check",
+      "scroll": 320,
+      "heading": "Invoice & email previews",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "light",
+      "route": "/owner/practice",
+      "scroll": 393,
+      "heading": "Try the owner workflow",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "light",
+      "route": "/account",
+      "scroll": 393,
+      "heading": "Sign in",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "light",
+      "route": "/owner",
+      "scroll": 393,
+      "heading": "Sign in to your workspace",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "light",
+      "route": "/platform",
+      "scroll": 393,
+      "heading": "Owner accounts",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "light",
+      "route": "/invoice",
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "light",
+      "route": "/request/manage",
+      "scroll": 393,
+      "heading": "Your appointment",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "light",
+      "route": "/sample/request",
+      "scroll": 393,
+      "heading": "Your service request",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "light",
+      "route": "/owner/taxes",
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "light",
+      "route": "/owner/production-check",
+      "scroll": 393,
+      "heading": "Invoice & email previews",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "dark",
+      "route": "/owner/practice",
+      "scroll": 393,
+      "heading": "Try the owner workflow",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "dark",
+      "route": "/account",
+      "scroll": 393,
+      "heading": "Sign in",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "dark",
+      "route": "/owner",
+      "scroll": 393,
+      "heading": "Sign in to your workspace",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "dark",
+      "route": "/platform",
+      "scroll": 393,
+      "heading": "Owner accounts",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "dark",
+      "route": "/invoice",
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "dark",
+      "route": "/request/manage",
+      "scroll": 393,
+      "heading": "Your appointment",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "dark",
+      "route": "/sample/request",
+      "scroll": 393,
+      "heading": "Your service request",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "dark",
+      "route": "/owner/taxes",
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 393,
+      "theme": "dark",
+      "route": "/owner/production-check",
+      "scroll": 393,
+      "heading": "Invoice & email previews",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "route": "/owner/practice",
+      "scroll": 768,
+      "heading": "Try the owner workflow",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "route": "/account",
+      "scroll": 768,
+      "heading": "Sign in",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "route": "/owner",
+      "scroll": 768,
+      "heading": "Sign in to your workspace",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "route": "/platform",
+      "scroll": 768,
+      "heading": "Owner accounts",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "route": "/invoice",
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "route": "/request/manage",
+      "scroll": 768,
+      "heading": "Your appointment",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "route": "/sample/request",
+      "scroll": 768,
+      "heading": "Your service request",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "route": "/owner/taxes",
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "route": "/owner/production-check",
+      "scroll": 768,
+      "heading": "Invoice & email previews",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "route": "/owner/practice",
+      "scroll": 768,
+      "heading": "Try the owner workflow",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "route": "/account",
+      "scroll": 768,
+      "heading": "Sign in",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "route": "/owner",
+      "scroll": 768,
+      "heading": "Sign in to your workspace",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "route": "/platform",
+      "scroll": 768,
+      "heading": "Owner accounts",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "route": "/invoice",
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "route": "/request/manage",
+      "scroll": 768,
+      "heading": "Your appointment",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "route": "/sample/request",
+      "scroll": 768,
+      "heading": "Your service request",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "route": "/owner/taxes",
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "route": "/owner/production-check",
+      "scroll": 768,
+      "heading": "Invoice & email previews",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "light",
+      "route": "/owner/practice",
+      "scroll": 1366,
+      "heading": "Try the owner workflow",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "light",
+      "route": "/account",
+      "scroll": 1366,
+      "heading": "Sign in",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "light",
+      "route": "/owner",
+      "scroll": 1366,
+      "heading": "Sign in to your workspace",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "light",
+      "route": "/platform",
+      "scroll": 1366,
+      "heading": "Owner accounts",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "light",
+      "route": "/invoice",
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "light",
+      "route": "/request/manage",
+      "scroll": 1366,
+      "heading": "Your appointment",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "light",
+      "route": "/sample/request",
+      "scroll": 1366,
+      "heading": "Your service request",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "light",
+      "route": "/owner/taxes",
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "light",
+      "route": "/owner/production-check",
+      "scroll": 1366,
+      "heading": "Invoice & email previews",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "dark",
+      "route": "/owner/practice",
+      "scroll": 1366,
+      "heading": "Try the owner workflow",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "dark",
+      "route": "/account",
+      "scroll": 1366,
+      "heading": "Sign in",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "dark",
+      "route": "/owner",
+      "scroll": 1366,
+      "heading": "Sign in to your workspace",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "dark",
+      "route": "/platform",
+      "scroll": 1366,
+      "heading": "Owner accounts",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "dark",
+      "route": "/invoice",
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "dark",
+      "route": "/request/manage",
+      "scroll": 1366,
+      "heading": "Your appointment",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "dark",
+      "route": "/sample/request",
+      "scroll": 1366,
+      "heading": "Your service request",
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "dark",
+      "route": "/owner/taxes",
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "width": 1366,
+      "theme": "dark",
+      "route": "/owner/production-check",
+      "scroll": 1366,
+      "heading": "Invoice & email previews",
+      "overflow": [],
+      "errors": []
+    }
+  ],
+  "expandedCases": [
+    {
+      "group": "owner-error-state",
+      "screen": "Dashboard",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Requests",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Calendar",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Today",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Work",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Money",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Customers",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Snapshot",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Learning",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Activity",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Settings",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "New request",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Scheduled visit",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Work in progress",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Ready to invoice",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Partial payment",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Paid visit",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-records",
+      "screen": "Customers",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-records",
+      "screen": "Mileage",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "home",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "services",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "service-area",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "pricing",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "about",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "request",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "franchise",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "privacy",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "terms",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "accessibility",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "service-agreement",
+      "width": 320,
+      "theme": "light",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Dashboard",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Requests",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Calendar",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Today",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Work",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Money",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Customers",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Snapshot",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Learning",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Activity",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Settings",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "New request",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Scheduled visit",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Work in progress",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Ready to invoice",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Partial payment",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Paid visit",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-records",
+      "screen": "Customers",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-records",
+      "screen": "Mileage",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "home",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "services",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "service-area",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "pricing",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "about",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "request",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "franchise",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "privacy",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "terms",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "accessibility",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "service-agreement",
+      "width": 320,
+      "theme": "dark",
+      "large": false,
+      "scroll": 320,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Dashboard",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Dashboard",
+      "width": 393,
+      "theme": "light",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Requests",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Requests",
+      "width": 393,
+      "theme": "light",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Calendar",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Calendar",
+      "width": 393,
+      "theme": "light",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Today",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Today",
+      "width": 393,
+      "theme": "light",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Work",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Work",
+      "width": 393,
+      "theme": "light",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Money",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Money",
+      "width": 393,
+      "theme": "light",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Customers",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Customers",
+      "width": 393,
+      "theme": "light",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Snapshot",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Snapshot",
+      "width": 393,
+      "theme": "light",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Learning",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Learning",
+      "width": 393,
+      "theme": "light",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Activity",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Activity",
+      "width": 393,
+      "theme": "light",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Settings",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Settings",
+      "width": 393,
+      "theme": "light",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "New request",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Scheduled visit",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Work in progress",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Ready to invoice",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Partial payment",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Paid visit",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-records",
+      "screen": "Customers",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-records",
+      "screen": "Mileage",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "home",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "services",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "service-area",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "pricing",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "about",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "request",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "franchise",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "privacy",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "terms",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "accessibility",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "service-agreement",
+      "width": 393,
+      "theme": "light",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Dashboard",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Dashboard",
+      "width": 393,
+      "theme": "dark",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Requests",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Requests",
+      "width": 393,
+      "theme": "dark",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Calendar",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Calendar",
+      "width": 393,
+      "theme": "dark",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Today",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Today",
+      "width": 393,
+      "theme": "dark",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Work",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Work",
+      "width": 393,
+      "theme": "dark",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Money",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Money",
+      "width": 393,
+      "theme": "dark",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Customers",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Customers",
+      "width": 393,
+      "theme": "dark",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Snapshot",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Snapshot",
+      "width": 393,
+      "theme": "dark",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Learning",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Learning",
+      "width": 393,
+      "theme": "dark",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Activity",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Activity",
+      "width": 393,
+      "theme": "dark",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Settings",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Settings",
+      "width": 393,
+      "theme": "dark",
+      "large": true,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "New request",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Scheduled visit",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Work in progress",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Ready to invoice",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Partial payment",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Paid visit",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-records",
+      "screen": "Customers",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-records",
+      "screen": "Mileage",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "home",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "services",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "service-area",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "pricing",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "about",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "request",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "franchise",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "privacy",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "terms",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "accessibility",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "service-agreement",
+      "width": 393,
+      "theme": "dark",
+      "large": false,
+      "scroll": 393,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Dashboard",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Requests",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Calendar",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Today",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Work",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Money",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Customers",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Snapshot",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Learning",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Activity",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Settings",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "New request",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Scheduled visit",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Work in progress",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Ready to invoice",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Partial payment",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Paid visit",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-records",
+      "screen": "Customers",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-records",
+      "screen": "Mileage",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "home",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "services",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "service-area",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "pricing",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "about",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "request",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "franchise",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "privacy",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "terms",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "accessibility",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "service-agreement",
+      "width": 768,
+      "theme": "light",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Dashboard",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Requests",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Calendar",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Today",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Work",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Money",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Customers",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Snapshot",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Learning",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Activity",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Settings",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "New request",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Scheduled visit",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Work in progress",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Ready to invoice",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Partial payment",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Paid visit",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-records",
+      "screen": "Customers",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-records",
+      "screen": "Mileage",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "home",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "services",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "service-area",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "pricing",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "about",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "request",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "franchise",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "privacy",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "terms",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "accessibility",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "service-agreement",
+      "width": 768,
+      "theme": "dark",
+      "large": false,
+      "scroll": 768,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Dashboard",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Requests",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Calendar",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Today",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Work",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Money",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Customers",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Snapshot",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Learning",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Activity",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Settings",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "New request",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Scheduled visit",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Work in progress",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Ready to invoice",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Partial payment",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Paid visit",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-records",
+      "screen": "Customers",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-records",
+      "screen": "Mileage",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "home",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "services",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "service-area",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "pricing",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "about",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "request",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "franchise",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "privacy",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "terms",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "accessibility",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "service-agreement",
+      "width": 1366,
+      "theme": "light",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Dashboard",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Requests",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Calendar",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Today",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Work",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Money",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Customers",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Snapshot",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Learning",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Activity",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "owner-error-state",
+      "screen": "Settings",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "New request",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Scheduled visit",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Work in progress",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Ready to invoice",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Partial payment",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-workflow",
+      "screen": "Paid visit",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-records",
+      "screen": "Customers",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "practice-records",
+      "screen": "Mileage",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "home",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "services",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "service-area",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "pricing",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "about",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "request",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "franchise",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "privacy",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "terms",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "accessibility",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "group": "public",
+      "screen": "service-agreement",
+      "width": 1366,
+      "theme": "dark",
+      "large": false,
+      "scroll": 1366,
+      "overflow": [],
+      "errors": []
+    }
+  ],
+  "entryCaseCount": 72,
+  "expandedCaseCount": 262,
+  "notes": [
+    "Owner sections use synthetic session/workspace and unavailable child-provider responses.",
+    "Practice uses the existing six synthetic workflow states. No live customer data copied.",
+    "200% means body-font stress only; actual browser zoom and Safari dynamic text remain unverified.",
+    "Public themes repeat the same public layout; public dark mode is not claimed.",
+    "After the final franchise-only font adjustment, eight franchise viewport/theme cases were rerun; other 254 expanded cases carried forward because their styles were unaffected.",
+    "After the final workflow icon/text spacing adjustment, all 48 populated workflow viewport/theme cases were rerun with no measured overflow. Optimized Next.js build passed after that stylesheet adjustment."
+  ]
+}

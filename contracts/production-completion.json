@@ -50,7 +50,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "PR #77 merged (booking field focus; exact-head CI passed). Execute A01\u2013A03 full guest journey, failure/retry, controlled delivery, and physical mobile accessibility evidence before verification.",
+      "nextAction": "City \u2192 required ZIP selection added to new public intake, with owner address editing and saved-customer ZIP handling; see docs/production/city-postal-codes.md. Apply and verify the pending city_postal_code_intake migration before client publication. PR #77 merged (booking field focus; exact-head CI passed). Execute A01\u2013A03 full guest journey, failure/retry, controlled delivery, and physical mobile accessibility evidence before verification.",
       "acceptance": "Required name/email/phone/address; multiple services; honest arrange-time path; free address check is advisory; retry saves one request and one milestone notification; no abandoned hold leaks.",
       "requiredEvidence": "Synthetic full-journey tests plus approved controlled delivery and physical-device evidence.",
       "evidence": []
@@ -204,7 +204,7 @@
         "WEB-05",
         "WEB-06"
       ],
-      "nextAction": "Use the resettable /owner/practice sample workspace for phone/iPad large-text, dark/light, keyboard and task review without production QA records. Interaction tests enforce zero network calls; actual device/performance/accessibility evidence remains required.",
+      "nextAction": "Cross-screen layout/error audit and local fixes recorded in docs/production/screen-review-2026-10-19.md, including public narrow-phone and owner tablet overflow. Publish only with authorization and exact-head CI, then verify physical Safari/VoiceOver, real Maps configuration and full acceptance. Validate screenshot-driven mobile route/month, date-field and money pagination fixes in docs/production/mobile-routes-money-2026-10-19.md. Publication is blocked by automatic push approval review; actual iPhone/Safari and Google Maps configuration acceptance remain required. Use the resettable /owner/practice sample workspace for phone/iPad large-text, dark/light, keyboard and task review without production QA records. Interaction tests enforce zero network calls; actual device/performance/accessibility evidence remains required.",
       "acceptance": "Approved brand; restrained visible navigation; clear primary action/status; light/dark; no clipped financial amounts; labels, focus, large text, screen readers, keyboard and reduced motion. Meet measured task/performance targets or fix scope.",
       "requiredEvidence": "Device/browser matrix, sanitized captures, task measurements and elderly/disabled participant findings.",
       "evidence": []

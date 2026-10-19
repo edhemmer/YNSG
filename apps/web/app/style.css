@@ -179,3 +179,41 @@ html[data-theme=dark] .visit-summary{background:#203b2d;color:#def2e3;border-col
 .calendar-block-editor fieldset{min-width:0;max-width:100%;margin:0;padding:0;border:0}
 .calendar-block-editor input{max-width:100%;box-sizing:border-box}
 .calendar-block-editor time{overflow-wrap:anywhere}
+
+/* Route and money controls must fit narrow screens and enlarged system text. */
+.company-workspace .route-month-heading{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:8px}
+.company-workspace .route-month-heading button{width:44px;min-width:44px;height:44px;padding:0}
+.company-workspace .route-month-heading h3{text-align:center;overflow-wrap:normal;font-size:clamp(16px,4vw,20px);line-height:1.4}
+.company-workspace .route-month-grid .route-date{width:100%;min-width:0;padding:6px 2px;flex-direction:column;gap:2px;font-size:16px}
+.company-workspace .route-month-grid>.tiny{font-size:12px}
+.company-workspace .mileage-activity fieldset{min-width:0;max-width:100%;margin:0;padding:12px 0;border:0}
+.company-workspace .mileage-activity legend{font-weight:700;padding:0}
+.company-workspace :is(.mileage-activity,.finance-activity,.daily-call-sheet) input{min-width:0;max-width:100%;box-sizing:border-box}
+.company-workspace :is(.mileage-activity,.finance-activity,.daily-call-sheet) input[type=date]{display:block;appearance:none;-webkit-appearance:none;width:100%;min-height:48px}
+.company-workspace input[type=date]::-webkit-date-and-time-value{text-align:left;min-width:0}
+.company-workspace :is(.mileage-activity,.finance-activity) .actions{align-items:center}
+.company-workspace :is(.mileage-activity,.finance-activity) .actions>label{flex:1 1 140px;min-width:0}
+.company-workspace .expense-pagination{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px}
+.company-workspace .expense-pagination button{min-width:0;padding:10px 8px}
+.company-workspace .expense-pagination span{white-space:nowrap}
+@media(max-width:600px){.company-workspace .daily-call-sheet{padding:18px 14px}.company-workspace .route-month-grid{gap:4px}.company-workspace .route-map-canvas{height:300px}.company-workspace .expense-pagination{gap:8px;font-size:14px}}
+
+/* Shared form containment applies to signed-out, customer, owner and sample screens. */
+:where(.shell,.account-shell,.workspace-main) fieldset{min-inline-size:0;max-inline-size:100%}
+:where(.shell,.account-shell,.workspace-main) :is(input,select,textarea){min-inline-size:0;max-inline-size:100%;box-sizing:border-box}
+:where(.shell,.account-shell,.workspace-main) :is(input[type=date],input[type=datetime-local],input[type=time]){display:block;appearance:none;-webkit-appearance:none;inline-size:100%;min-block-size:48px}
+input:is([type=date],[type=datetime-local],[type=time])::-webkit-date-and-time-value{text-align:left;min-width:0}
+:where(.shell,.account-shell,.workspace-main) :is(legend,label){overflow-wrap:anywhere}
+:where(.shell,.account-shell,.workspace-main) .actions>label{min-inline-size:0;max-inline-size:100%}
+:where(.shell,.account-shell,.workspace-main) :is(pre,code){white-space:pre-wrap;overflow-wrap:anywhere}
+:where(.shell,.account-shell,.workspace-main) :is(.card,.account-card){min-inline-size:0;overflow-wrap:anywhere}
+.company-workspace .route-month-grid .route-date.is-selected{background:#315842;color:#fff;outline:2px solid var(--gold);outline-offset:1px}
+/* Tablet headers and narrow work cards must shrink before their labels wrap. */
+.crm-topbar .topbar-context{flex:1;min-width:0}
+.crm-topbar .topbar-context strong{min-width:0;max-width:100%}
+.crm-topbar .topbar-actions{flex:none}
+.service-workflow .status-pill{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+@media(min-width:761px) and (max-width:1100px){.crm-topbar{padding-inline:16px;gap:10px}.company-workspace .topbar-actions>button:has(>span):not(.theme-toggle){display:none}.company-workspace .topbar-actions>.theme-toggle{width:44px;min-width:44px;padding:10px}.topbar-actions .theme-toggle span{display:none}}
+@media(max-width:600px){.mobile-workflow-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.mobile-workflow-steps button,.company-workspace .mobile-workflow-steps button{min-width:0;white-space:normal;overflow-wrap:normal;word-break:normal;font-size:14px;padding:8px 4px;line-height:1.4}}
+.mobile-workflow-steps button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.mobile-workflow-steps button .crm-icon{flex:none}

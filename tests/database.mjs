@@ -47,6 +47,7 @@ try {
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/request-decisions.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/packing-rules.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/customer-repeat-requests.sql','utf8'));
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/city-postal-intake.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/finance-activity.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/financial-reconciliation.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/owner-security.sql','utf8'));
