@@ -107,7 +107,7 @@
       "dependsOn": [
         "WEB-04"
       ],
-      "nextAction": "Complete scoped receipt checks now cover owner workspace/inbox balances, invoice JSON/PDF and email preparation; billing-only customer access is separated from proposal approval by invoice_billing_read_permission. See docs/production/invoice-read-integrity.md. Require exact-head CI, migration verification and live read-only checks. Invoice credits and actual invoice/PDF/delivery/funds acceptance remain open.",
+      "nextAction": "Complete scoped receipt checks now cover owner workspace/inbox balances, invoice JSON/PDF and email preparation; billing-only customer access is separated from proposal approval by invoice_billing_read_permission. See docs/production/invoice-read-integrity.md. Native PostgreSQL CI passed; migration applied as Supabase history 20261019113348, predicate/search paths/grants verified read-only. Require final exact-head CI and live deployment checks. Invoice credits and actual invoice/PDF/delivery/funds acceptance remain open.",
       "acceptance": "Issued snapshots fixed; YYYYMM-#### unique numbering; actual receipts only; balanced journal; no duplicate issue/receipt/mail milestone; unknown save locks and replays exact attempt; drafts survive refresh.",
       "requiredEvidence": "PR #28 plus current lifecycle/PDF tests and separately recorded recipient/inbox/funds acceptance.",
       "evidence": []
