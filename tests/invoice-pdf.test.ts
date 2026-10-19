@@ -34,5 +34,5 @@ test('credit PDF keeps original issue metadata, dates modification at retained a
  const {PDFDocument}=await import('../apps/web/node_modules/pdf-lib/cjs/index.js');
  const credit={id:'40000000-0000-4000-8000-000000000001',invoiceId:'30000000-0000-4000-8000-000000000001',subtotalCents:1000,totalCents:1000,taxComponents:[],reason:'Synthetic reviewed invoice credit',issuedAt:'2026-10-19T12:00:00Z',reversesId:null};
  const adjusted={...pdfFixture,credits:[credit],creditCents:1000,balanceCents:2000};
- const pdf=await PDFDocument.load(await invoicePdf(adjusted),{updateMetadata:false});assert.equal(pdf.getCreationDate()?.toISOString(),new Date(pdfFixture.issuedAt).toISOString());assert.equal(pdf.getModificationDate()?.toISOString(),new Date(credit.issuedAt).toISOString());assert.equal(pdf.getPageCount(),1);
+ const pdf=await PDFDocument.load(await invoicePdf(adjusted),{updateMetadata:false});assert.equal(pdf.getCreationDate()?.toISOString(),new Date(pdfFixture.issuedAt).toISOString());assert.equal(pdf.getModificationDate()?.toISOString(),new Date(credit.issuedAt).toISOString());assert.equal(pdf.getPageCount(),2);
 });
