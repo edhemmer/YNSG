@@ -1,5 +1,6 @@
-import {creditTotal} from '../lib/invoice-credit-contract';
 'use client';
+import {creditTotal} from '../lib/invoice-credit-contract';
+
 import {submissionAddress} from '../lib/request-inbox';
 import {useState,useRef,useEffect} from 'react';
 import type {InboxRequest,LinkedQuote,LinkedJob,LinkedInvoice} from '../lib/request-inbox';

@@ -1,6 +1,7 @@
+"use client";
 import InvoiceCredits from './invoice-credits';
 import {creditTotal} from '../lib/invoice-credit-contract';
-"use client";
+
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 import {verifiedInvoicePayments,type InvoicePaymentData} from '../lib/invoice-payment-context';

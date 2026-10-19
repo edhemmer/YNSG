@@ -1,6 +1,7 @@
+"use client";
 import type {InvoiceCredit} from '../lib/invoice-credit-contract';
 import {creditTotal} from '../lib/invoice-credit-contract';
-"use client";
+
 import {invoiceNumber} from "../lib/invoice-number";
 import {ownerRequestContext} from '../lib/email-links';
 import { publicError } from "../lib/public-errors";

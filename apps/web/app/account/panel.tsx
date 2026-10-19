@@ -1,5 +1,6 @@
-import {creditTotal} from '../../lib/invoice-credit-contract';
 "use client";
+import {creditTotal} from '../../lib/invoice-credit-contract';
+
 import {invoiceNumber} from "../../lib/invoice-number";
 import { publicError } from "../../lib/public-errors";
 import { useEffect, useState } from "react";

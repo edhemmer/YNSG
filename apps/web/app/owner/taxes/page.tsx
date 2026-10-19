@@ -1,5 +1,6 @@
-import type {InvoiceCredit} from '../../../lib/invoice-credit-contract';
 "use client";
+import type {InvoiceCredit} from '../../../lib/invoice-credit-contract';
+
 import IncomeEstimator, {type EstimateDraft} from './income-estimator';
 import {useEffect,useRef,useState} from 'react';
 import {sessionFetch} from '../../../lib/session-fetch';
