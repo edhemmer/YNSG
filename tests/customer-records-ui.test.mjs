@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {JSDOM} from 'jsdom';
 const dom=new JSDOM('<!doctype html><div id="root"></div>',{url:'https://example.invalid/owner'});
-for(const key of ['window','document','HTMLElement','HTMLInputElement','HTMLTextAreaElement','HTMLFormElement','Event','MouseEvent','FormData'])globalThis[key]=dom.window[key];
+for(const key of ['window','document','HTMLElement','HTMLInputElement','HTMLTextAreaElement','HTMLSelectElement','HTMLFormElement','Event','MouseEvent','FormData'])globalThis[key]=dom.window[key];
 Object.defineProperty(globalThis,'navigator',{value:dom.window.navigator,configurable:true});globalThis.IS_REACT_ACT_ENVIRONMENT=true;
 const require=createRequire(new URL('../apps/web/package.json',import.meta.url)),React=require('react');globalThis.React=React;
 const {act}=React,{createRoot}=require('react-dom/client');
@@ -14,7 +14,7 @@ const base=()=>({customer:{id,displayName:'Synthetic customer',revision:1,archiv
 const response=(data,status=200)=>new Response(JSON.stringify(data),{status}),tick=()=>new Promise(resolve=>setImmediate(resolve));
 const node=document.querySelector('#root'),button=text=>[...node.querySelectorAll('button')].find(b=>b.textContent===text);
 async function click(text){await act(async()=>{button(text).click();await tick();await tick();});}
-async function fill(label,value){const field=[...node.querySelectorAll('label')].find(l=>l.firstChild.textContent.trim()===label);const input=field?.querySelector('input,textarea')||(field?.htmlFor?document.getElementById(field.htmlFor):null);assert.ok(input,label+' field exists');await act(async()=>{Object.getOwnPropertyDescriptor(input instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(input,value);input.dispatchEvent(new window.Event('input',{bubbles:true}));});}
+async function fill(label,value){const field=[...node.querySelectorAll('label')].find(l=>l.firstChild.textContent.trim()===label);const input=field?.querySelector('input,textarea,select')||(field?.htmlFor?document.getElementById(field.htmlFor):null);assert.ok(input,label+' field exists');await act(async()=>{Object.getOwnPropertyDescriptor(input.tagName==='SELECT'?HTMLSelectElement.prototype:input instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(input,value);input.dispatchEvent(new window.Event(input.tagName==='SELECT'?'change':'input',{bubbles:true}));});}
 function read(path,detail){if(String(path).startsWith('/api/notes?'))return {notes:[],hasMore:false};const p=new URL(path,'https://example.invalid');return p.searchParams.has('customer')?detail:{items:[{...detail.customer,contactCount:detail.contacts.length,addressCount:detail.properties.length}],hasMore:false,page:0};}
 async function mount(fetcher,onChanged=()=>{}){globalThis.fetch=fetcher;window.confirm=()=>false;let canLeave;function Probe(){canLeave=useEntrySafety().canLeave;return null;}const root=createRoot(node);await act(async()=>{root.render(React.createElement(EntrySafety,null,React.createElement(Probe),React.createElement(CustomerRecords,{organization:org,timezone:'America/Chicago',onOpenRequest:()=>{},onChanged})));await tick();await tick();});return {root,canLeave:()=>canLeave(),open:async()=>{await act(async()=>{node.querySelector('.customer-directory-card').click();await tick();await tick();});},close:async()=>act(async()=>root.unmount())};}
 test('owner adds a customer without creating account access, protects unsaved fields and opens the saved record',async()=>{
@@ -44,4 +44,9 @@ test('returning-customer selection is explicit, requires verification and can be
  try{await act(async()=>{root.render(React.createElement('form',{onSubmit:e=>{e.preventDefault();submits.push(new FormData(e.currentTarget).get('customerId'));}},React.createElement(CustomerPicker,{organization:org,onChanged:()=>changes++})));});
  assert.equal(node.querySelector('input[name=customerId]').value,'');await act(async()=>{node.querySelector('summary').click();await tick();await tick();});await click('Use Synthetic customer');assert.equal(node.querySelector('form').checkValidity(),false);assert.equal(node.querySelector('input[name=customerId]').value,id);await act(async()=>{node.querySelector('input[type=checkbox]').click();node.querySelector('form').requestSubmit();});assert.deepEqual(submits,[id]);await click('Use a new customer record instead');assert.equal(node.querySelector('input[name=customerId]').value,'');assert.equal(changes,2);
  }finally{await act(async()=>root.unmount());}
+});
+test('owner city change clears ZIP and other states retain manual address entry',async()=>{
+ const detail=base();const h=await mount(async path=>response(read(path,detail)));
+ try{await h.open();await click('Add address');await fill('Street address','100 Synthetic Rd');await fill('City','DeKalb');await fill('ZIP code','60115');await fill('City','Sycamore');const label=[...node.querySelectorAll('label')].find(l=>l.firstChild.textContent.trim()==='ZIP code');assert.equal(label.querySelector('select').value,'');assert.deepEqual([...label.querySelector('select').options].filter(o=>o.value).map(o=>o.value),['60178']);await fill('State','WI');assert.ok([...node.querySelectorAll('label')].find(l=>l.firstChild.textContent.trim()==='City name'));assert.ok(label.querySelector('input'));
+ }finally{await h.close();}
 });

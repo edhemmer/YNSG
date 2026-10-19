@@ -6,11 +6,11 @@ import {runInNewContext} from 'node:vm';
 import {z} from 'zod';
 
 const org='20000000-0000-4000-8000-000000000001';
-function make({data={contacts:[],properties:[],services:[]},error=null}={}){
+function make({data={contacts:[],properties:[],services:[]},error=null,rows=[],readError=null}={}){
  const calls=[];
  const source=readFileSync('apps/web/app/api/account-request/route.ts','utf8').replace(/^import .*;\n/gm,'');
  const code=stripTypeScriptTypes(source).replace(/^export /gm,'')+'\nexports.GET=GET;';
- const db={rpc:async(name,args)=>{calls.push({name,args});return {data,error};}};
+ const db={from:table=>({select:columns=>({eq:(column,value)=>({in:async(key,ids)=>{calls.push({table,columns,column,value,key,ids});return {data:rows,error:readError};}})})}),rpc:async(name,args)=>{calls.push({name,args});return {data,error};}};
  const scope={exports:{},z,URL,Buffer,Error,NextResponse:{json:(value,options)=>new Response(JSON.stringify(value),options)},authenticated:async()=>({db}),failure:()=>new Response('{}',{status:503}),repeatRequestContext:{safeParse:value=>value&&Array.isArray(value.contacts)&&Array.isArray(value.properties)&&Array.isArray(value.services)?{success:true,data:value}:{success:false}}};
  runInNewContext(code,scope);
  return {get:scope.exports.GET,calls};
@@ -28,4 +28,13 @@ test('account intake GET accepts only UUID and returns private validated context
 test('account intake GET separates permission denial from transient outage',async()=>{
  assert.equal((await make({error:{code:'42501',message:'FORBIDDEN'}}).get(request(org))).status,403);
  assert.equal((await make({error:{code:'08006',message:'connection lost'}}).get(request(org))).status,503);
+});
+
+const property='40000000-0000-4000-8000-000000000002';
+test('account context reads ZIP only for authorized properties in the selected organization',async()=>{
+ const data={contacts:[],properties:[{id:property}],services:[]};
+ const x=make({data,rows:[{id:property,postal_code:'60115'}]});
+ const r=await x.get(request(org));assert.equal(r.status,200);assert.equal((await r.json()).properties[0].postalCode,'60115');
+ assert.equal(x.calls[1].column,'organization_id');assert.equal(x.calls[1].value,org);assert.deepEqual(Array.from(x.calls[1].ids),[property]);
+ for(const opts of [{rows:[]},{rows:[{id:org,postal_code:'60115'}]},{rows:[{id:property,postal_code:'60115'},{id:property,postal_code:'60115'}]},{readError:{code:'42501'}}])assert.equal((await make({data,...opts}).get(request(org))).status,503);
 });

@@ -22,3 +22,5 @@ test('scheduling compares historical regions before treating similar street/city
  h.db.from=((table:string)=>table==='outbox'?harness({notices:[]}).db.from(table):table in data?{select(){return this;},eq(){return this;},in(){return this;},overlaps(){return this;},range(){return this;},single:async()=>data[table],then:(resolve:any)=>Promise.resolve(data[table]).then(resolve)}:from(table)) as any;
  await assert.rejects(schedulingTravel(h.db,'tenant','a',null,['operator'],['operator'],start,start+7200000,'America/Chicago',15,async()=>{throw Error('must not call provider');}),/ROUTE_ADDRESS_REQUIRED/);
 });
+
+test('explicit postal evidence is included in route matching and navigation input',async()=>{const h=harness();const result=await requestRouteAddresses(h.db,'tenant',[{key:'postal',requestId:'postal',submission:{...original,state:'IL',postalCode:'60115'}}]);assert.equal(result.get('postal'),'100 Synthetic Rd, Exampleville, IL, 60115');assert.equal(h.queries.length,0);});

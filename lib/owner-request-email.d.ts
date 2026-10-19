@@ -1,6 +1,6 @@
 import type {EmailIdentity} from './email-layout.js';
 export type OwnerSubmission = {
- name?: string; phone?: string; email?: string; street?: string; city?: string;
+ name?: string; phone?: string; email?: string; street?: string; city?: string; postalCode?: string;
  description?: string; preferredTime?: string; communityRate?: string;
  service?: string; task?: string; services?: {service: string; task?: string}[];
 };

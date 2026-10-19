@@ -1,0 +1,12 @@
+set local role service_role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+select public.submit_service_request('20000000-0000-4000-8000-000000000001','postal-request-key-001',repeat('a',64),'{"service":"Lawn care","name":"Synthetic ZIP Test","phone":"5550000000","email":"zip@example.invalid","street":"100 Test Street","city":"DeKalb","postalCode":"60115","description":"Synthetic postal request","communityRate":"No"}');
+select public.submit_service_request('20000000-0000-4000-8000-000000000001','postal-request-key-001',repeat('a',64),'{"service":"Lawn care","name":"Synthetic ZIP Test","phone":"5550000000","email":"zip@example.invalid","street":"100 Test Street","city":"DeKalb","postalCode":"60115","description":"Synthetic postal request","communityRate":"No"}');
+reset role;
+select pg_temp.assert_true((select count(*)=1 from public.service_requests),'postal request exact replay saves once');
+select pg_temp.assert_true((select original_submission->>'postalCode'='60115' from public.service_requests),'selected ZIP survives immutable submission');
+set local role service_role;
+do $$begin begin perform public.submit_service_request('20000000-0000-4000-8000-000000000001','postal-invalid-key-001',repeat('a',64),'{"service":"Lawn care","name":"Synthetic ZIP Test","phone":"5550000000","email":"zip@example.invalid","street":"100 Test Street","city":"DeKalb","postalCode":"bad","communityRate":"No"}');raise exception 'TEST FAILED bad ZIP';exception when raise_exception then if sqlerrm<>'VALIDATION' then raise;end if;end;end$$;
+do $$begin begin perform public.submit_service_request('20000000-0000-4000-8000-000000000001','postal-request-key-001',repeat('a',64),'{"service":"Lawn care","name":"Synthetic ZIP Test","phone":"5550000000","email":"zip@example.invalid","street":"100 Test Street","city":"DeKalb","postalCode":"60178","description":"Synthetic postal request","communityRate":"No"}');raise exception 'TEST FAILED changed ZIP retry';exception when raise_exception then if sqlerrm<>'IDEMPOTENCY_CONFLICT' then raise;end if;end;end$$;
+reset role;
+rollback;

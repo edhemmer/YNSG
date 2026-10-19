@@ -9,6 +9,7 @@ export const requestInput = z.object({
   description: z.string().trim().max(3000).default(''), name: z.string().trim().min(2).max(120),
   phone: z.string().trim().min(7).max(35), email: z.email().max(254),
   street: z.string().trim().min(5).max(200), city: z.string().trim().min(2).max(80),
+  postalCode:z.string().regex(/^[0-9]{5}$/).optional(),
   preferredTime: z.string().trim().max(180).default(''), communityRate: z.enum(['Yes','No']),
   website: z.string().max(200).default(''),
 }).strict().superRefine((v,ctx)=>{

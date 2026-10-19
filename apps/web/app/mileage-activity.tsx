@@ -65,7 +65,7 @@ export default function MileageActivity({organization,timezone}:{organization:st
   const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='mileage-'+from+'-to-'+to+'-page-'+page+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  }
  const change=(key:keyof Draft,value:string)=>setDraft(current=>({...current,[key]:value}));
- return <section className="card" aria-label="Business trip mileage"><h2>Recorded vehicle mileage</h2>
+ return <section className="card mileage-activity" aria-label="Business trip mileage"><h2>Recorded vehicle mileage</h2>
   <p>Enter actual odometer readings, not map estimates. Business classification is not a tax deduction or customer bill. Mixed trips require review.</p>
   {error&&<p role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
   <div className="actions"><label>From<input type="date" disabled={busy||unknown||dirty} value={from} onChange={e=>{setPage(0);setFrom(e.target.value);}}/></label><label>Through<input type="date" disabled={busy||unknown||dirty} value={to} onChange={e=>{setPage(0);setTo(e.target.value);}}/></label><button type="button" className="secondary" disabled={loading||busy} onClick={()=>void reload()}>{loading?'Checking…':'Refresh trips'}</button></div>

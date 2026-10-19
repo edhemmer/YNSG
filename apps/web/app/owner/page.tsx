@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Business workspace",
   robots: { index: false, follow: false },
-  referrer: "no-referrer",
+  referrer: "strict-origin-when-cross-origin",
 };
 // Dedicated YNSG entry point. Prefill never grants membership or changes authorization.
 export default async function OwnerPage() {

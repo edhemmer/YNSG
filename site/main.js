@@ -1,3 +1,4 @@
+import {cityPostalPicker} from './city-postal-codes.js';
 import {deliverRequest} from './request-delivery.js';
 import {requestRecovery} from './request-recovery.js';
 import {bookingJourney} from './booking-journey.js';
@@ -125,7 +126,8 @@ if(form){
   let tabStorage;try{tabStorage=sessionStorage;}catch{}
   const recovery=requestRecovery(tabStorage),recovered=recovery.read();
   const draftNote=form.querySelector('#draft-note'),clearDraft=form.querySelector('#clear-draft');
-  const contactFields=['description','name','phone','email','street','city'];
+  cityPostalPicker(form);
+  const contactFields=['description','name','phone','email','street','city','postalCode'];
   function saveDraft(){
     if(pendingSubmission||form.hidden)return;
     const data=Object.fromEntries(new FormData(form));
@@ -137,7 +139,7 @@ if(form){
   function lockControls(editable){for(const {element} of editable){if('disabled' in element)element.disabled=true;else element.tabIndex=-1;}}
   if(recovered){
     const data=recovered.data;
-    for(const name of contactFields){if(typeof data[name]==='string')form.elements.namedItem(name).value=data[name];}
+    for(const name of contactFields){if(typeof data[name]==='string'&&form.elements.namedItem(name)){form.elements.namedItem(name).value=data[name];if(name==='city')form.elements.namedItem(name).dispatchEvent(new Event('change',{bubbles:true}));}}
     const community=form.querySelector(`input[name=communityRate][value="${data.communityRate==='Yes'?'Yes':'No'}"]`);community.checked=true;
     selected.clear();
     for(const item of data.services){if(item&&Object.hasOwn(tasks,item.service)&&tasks[item.service].includes(item.task)&&selected.size<15){selected.set(key(item.service,item.task),{service:item.service,task:item.task});categoryGroups.get(item.service).open=true;}}
@@ -208,7 +210,7 @@ if(form){
       const fallback=form.querySelector('#email-fallback');
       const subject='Your Neighborhood Service Guy New Request';
       const jobs=data.services.map(x=>`${x.service}: ${x.task}`).join('\n');
-      const body=[`Name: ${data.name}`,`Phone: ${data.phone}`,`Email: ${data.email}`,`Address: ${data.street}, ${data.city}, IL`,`Preferred time: ${data.preferredTime || 'Not specified'}`,`Community Rate inquiry: ${data.communityRate}`,`Jobs requested:\n${jobs}`,`Details: ${data.description || 'Not specified'}`].join('\n\n');
+      const body=[`Name: ${data.name}`,`Phone: ${data.phone}`,`Email: ${data.email}`,`Address: ${data.street}, ${data.city}, IL ${data.postalCode||''}`,`Preferred time: ${data.preferredTime || 'Not specified'}`,`Community Rate inquiry: ${data.communityRate}`,`Jobs requested:\n${jobs}`,`Details: ${data.description || 'Not specified'}`].join('\n\n');
       fallback.querySelector('a').href=`mailto:edhemmer@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.slice(0,2500))}`;
       fallback.hidden=false;
       message.focus();

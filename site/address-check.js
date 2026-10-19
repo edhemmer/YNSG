@@ -1,16 +1,16 @@
 export function addressCheck(form,transport=fetch){
  const document=form.ownerDocument,Event=document.defaultView.Event;
  const check=form.querySelector('#address-check'),result=form.querySelector('#address-check-result');if(!check||!result)return;
- const street=form.querySelector('#street'),city=form.querySelector('#city');
+ const street=form.querySelector('#street'),city=form.querySelector('#city'),postal=form.querySelector('[name=postalCode]');
  let generation=0,controller=null;
- const snapshot=()=>JSON.stringify({street:street.value.trim(),city:city.value,state:'IL'});
+ const snapshot=()=>JSON.stringify({street:street.value.trim(),city:city.value,state:'IL',...(postal?{postalCode:postal.value}:{})});
  const locked=()=>form.hidden||form.dataset.deliveryUnknown==='true'||form.getAttribute('aria-busy')==='true';
  const changed=()=>{generation++;controller?.abort();controller=null;result.replaceChildren();check.disabled=locked();check.textContent='Check address';};
- street.addEventListener('input',changed);street.addEventListener('change',changed);city.addEventListener('change',changed);form.addEventListener('reset',changed);
+ street.addEventListener('input',changed);street.addEventListener('change',changed);city.addEventListener('change',changed);postal?.addEventListener('change',changed);form.addEventListener('reset',changed);
  form.addEventListener('request-delivery-state-changed',()=>{check.disabled=locked()||controller!==null;});
  check.addEventListener('click',async()=>{
   if(locked())return;
-  if(!street.checkValidity()||street.value.trim().length<5||!city.value){result.textContent='Enter your street address and choose a city first.';street.focus();return;}
+  if(!street.checkValidity()||street.value.trim().length<5||!city.value||(postal&&!postal.value)){result.textContent='Enter your street address and choose a city and ZIP code first.';street.focus();return;}
   controller?.abort();controller=new AbortController();const own=controller,current=++generation,original=snapshot();
   check.disabled=true;check.textContent='Checking address…';result.textContent='Checking the street details…';
   const timeout=setTimeout(()=>own.abort(),25000);
@@ -28,7 +28,7 @@ export function addressCheck(form,transport=fetch){
     const line=document.createElement('p');line.textContent=[candidate.street,candidate.city,candidate.state,candidate.postalCode].filter(Boolean).join(', ');result.append(line);
     if(!supported)continue;
     const use=document.createElement('button');use.type='button';use.className='booking-text-button';use.textContent='Use this street address';
-    use.addEventListener('click',()=>{if(locked()||snapshot()!==original)return;street.value=candidate.street;city.value=supported.value;street.dispatchEvent(new Event('input',{bubbles:true}));city.dispatchEvent(new Event('change',{bubbles:true}));result.textContent='Street address updated. Please verify your apartment or unit, if any.';});result.append(use);
+    use.addEventListener('click',()=>{if(locked()||snapshot()!==original)return;street.value=candidate.street;city.value=supported.value;street.dispatchEvent(new Event('input',{bubbles:true}));city.dispatchEvent(new Event('change',{bubbles:true}));if(postal&&[...postal.options].some(o=>o.value===candidate.postalCode)){postal.value=candidate.postalCode;postal.dispatchEvent(new Event('change',{bubbles:true}));}result.textContent='Street address updated. Please verify your apartment or unit, if any.';});result.append(use);
    }
   }catch{if(current===generation&&snapshot()===original&&!locked())result.textContent='The address check is unavailable. You can keep your entry and continue.';}
   finally{clearTimeout(timeout);if(current===generation){check.disabled=locked();check.textContent='Check address';controller=null;}}

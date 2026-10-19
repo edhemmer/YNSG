@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
 import {addressInput,checkAddress} from '../lib/address-check.js';
+import {cityPostalPicker} from '../site/city-postal-codes.js';
 import {addressCheck} from '../site/address-check.js';
 import handler from '../api/address-check.js';
 const input={street:'100 Synthetic Rd Apt 2',city:'DeKalb',state:'IL'};
@@ -22,9 +23,9 @@ test('malformed inputs never call the provider; outages, bad JSON, no match and 
  assert.deepEqual(addressInput({...input,postalCode:'60115-1234'}),{...input,postalCode:'60115-1234'});
 });
 const html=readFileSync(new URL('../site/pages/form.html',import.meta.url),'utf8'),tick=()=>new Promise(resolve=>setImmediate(resolve));
-function harness(transport){const dom=new JSDOM(html,{url:'https://example.invalid/request'}),form=dom.window.document.querySelector('form');form.querySelector('#street').value=input.street;form.querySelector('#city').value=input.city;addressCheck(form,transport);return {dom,form,click:()=>form.querySelector('#address-check').click(),result:()=>form.querySelector('#address-check-result')};}
+function harness(transport){const dom=new JSDOM(html,{url:'https://example.invalid/request'}),form=dom.window.document.querySelector('form');form.querySelector('#street').value=input.street;form.querySelector('#city').value=input.city;cityPostalPicker(form);form.querySelector('[name=postalCode]').value='60115';addressCheck(form,transport);return {dom,form,click:()=>form.querySelector('#address-check').click(),result:()=>form.querySelector('#address-check-result')};}
 test('address check is explicit, applies only a deliberate choice and keeps the supported city and unit',async()=>{
- let calls=0;const h=harness(async(path,options)=>{calls++;assert.equal(path,'/api/address-check');assert.deepEqual(JSON.parse(options.body),input);return response({status:'match',candidates:[{street:'100 SYNTHETIC RD Apt 2',city:'DEKALB',state:'IL',postalCode:'60115'}]});});assert.equal(calls,0);h.click();await tick();assert.equal(h.form.querySelector('#street').value,input.street);assert.match(h.result().textContent,/Street match found/);h.result().querySelector('button').click();assert.equal(h.form.querySelector('#street').value,'100 SYNTHETIC RD Apt 2');assert.equal(h.form.querySelector('#city').value,'DeKalb');h.dom.window.close();
+ let calls=0;const h=harness(async(path,options)=>{calls++;assert.equal(path,'/api/address-check');assert.deepEqual(JSON.parse(options.body),{...input,postalCode:'60115'});return response({status:'match',candidates:[{street:'100 SYNTHETIC RD Apt 2',city:'DEKALB',state:'IL',postalCode:'60115'}]});});assert.equal(calls,0);h.click();await tick();assert.equal(h.form.querySelector('#street').value,input.street);assert.match(h.result().textContent,/Street match found/);h.result().querySelector('button').click();assert.equal(h.form.querySelector('#street').value,'100 SYNTHETIC RD Apt 2');assert.equal(h.form.querySelector('#city').value,'DeKalb');h.dom.window.close();
 });
 test('changed addresses discard delayed results and uncertain submission prevents applying an earlier result',async()=>{
  let resolve;const h=harness(()=>new Promise(r=>resolve=r));h.click();h.form.querySelector('#street').value='200 Changed Street';h.form.querySelector('#street').dispatchEvent(new h.dom.window.Event('input',{bubbles:true}));resolve(response({status:'match',candidates:[{street:'100 OLD RD',city:'DEKALB',state:'IL'}]}));await tick();assert.equal(h.result().textContent,'');assert.equal(h.form.querySelector('#address-check').disabled,false);h.dom.window.close();

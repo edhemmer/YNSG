@@ -10,6 +10,14 @@ export async function GET(request:Request){try{
  if(r.error){const denied=r.error.code==='42501'||r.error.message==='FORBIDDEN';return NextResponse.json({error:denied?'Your saved details are not available for this business. Contact the business to check your account connection.':'Your saved details could not be loaded. Please try again.'},{status:denied?403:503,headers});}
  const context=repeatRequestContext.safeParse(r.data);
  if(!context.success)return NextResponse.json({error:'Your saved details could not be loaded. Please try again.'},{status:503,headers});
+ if(context.data.properties.length){
+  const ids=context.data.properties.map(p=>p.id);
+  const saved=await db.from('properties').select('id,postal_code').eq('organization_id',org.data).in('id',ids);
+  const rows=z.array(z.object({id:z.uuid(),postal_code:z.string().nullable()})).safeParse(saved.data);
+  if(saved.error||!rows.success||rows.data.length!==ids.length||new Set(rows.data.map(p=>p.id)).size!==ids.length||rows.data.some(p=>!ids.includes(p.id)))return NextResponse.json({error:'Your saved details could not be loaded. Please try again.'},{status:503,headers});
+  const postal=new Map(rows.data.map(p=>[p.id,p.postal_code||'']));
+  context.data.properties=context.data.properties.map(p=>({...p,postalCode:postal.get(p.id)||''}));
+ }
  return NextResponse.json(context.data,{headers});
 }catch(e){return failure(e)}}
 export async function POST(request:Request){
