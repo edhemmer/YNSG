@@ -107,7 +107,7 @@
       "dependsOn": [
         "WEB-04"
       ],
-      "nextAction": "Invoice credits and exact retained corrections now connect canonical commands, receipts caps, owner/customer histories, original invoice JSON/PDF/email and balanced journals under #35; see docs/production/invoice-credits.md. Native PostgreSQL races/restore passed; migration invoice_credits applied as history 20261019122223 and privileges/search paths verified read-only. Require final exact-head CI and production deployment verification. Actual invoice/PDF/delivery/funds acceptance remains open.",
+      "nextAction": "Invoice credits and exact retained corrections now connect canonical commands, receipts caps, owner/customer histories, original invoice JSON/PDF/email and balanced journals under #35; see docs/production/invoice-credits.md. Native PostgreSQL races/restore passed; migration invoice_credits applied as history 20261019122223 and privileges/search paths verified read-only. PR #134 exact-head CI passed; both production deployments and all aliases verified at 4466326c4a15ca9687bdb1cb184ecbfb1fc185e1. See PR #134 for release evidence. Actual invoice/PDF/delivery/funds acceptance remains open.",
       "acceptance": "Issued snapshots fixed; YYYYMM-#### unique numbering; actual receipts only; balanced journal; no duplicate issue/receipt/mail milestone; unknown save locks and replays exact attempt; drafts survive refresh.",
       "requiredEvidence": "PR #28 plus current lifecycle/PDF tests and separately recorded recipient/inbox/funds acceptance.",
       "evidence": []
@@ -126,7 +126,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Customer portal now validates business/page/record contracts, checks exact metadata and receipt completeness, rechecks current relationships and recovers malformed history through retry; see docs/production/customer-portal-integrity.md. PR #131 exact-head CI passed with 726 application tests; both production deployments READY at 2ca5bba0b0a5b20635e942b497bf4302e7b8e41f. Existing account entry read checked; linked-customer acceptance remains open. See docs/production/release-customer-portal-2026-10-19.md. Private-file paging remains guarded; retention/deletion, capture consent/device and actual access acceptance remain separate.",
+      "nextAction": "Recent current-session export protection now covers customer portability, canonical accounting journal, tax CSV and built-in summary/reconciliation downloads, with same-account password confirmation, explicit retry and preserved selection. See docs/production/export-reauthentication.md and PR #135. Native PostgreSQL session-boundary tests passed; migration applied as 20261019124521. Require final exact-head CI/deployment verification. Full retention/account-deletion implementation still requires owner/legal retention and legal-hold decisions; actual customer/provider/device acceptance remains open.",
       "acceptance": "No email-string auto-claim; revoked access fails; supported edits remain discoverable on phone; immutable originals; private files authorized; gaps found in WEB-01 implemented before passing.",
       "requiredEvidence": "Two-tenant/customer tests, upload/deletion/retention cases and accepted owner/customer walkthrough.",
       "evidence": []
@@ -164,7 +164,7 @@
         "WEB-01",
         "WEB-05"
       ],
-      "nextAction": "Invoice credits and corrections now retain original tax evidence, post balanced journals, adjust dated invoice activity and reconcile receivables/CSV; see docs/production/invoice-credits.md. Native PostgreSQL races/restore passed; credit migration applied as 20261019122223. Require final exact-head CI/deployment evidence, accountant acceptance, full tax-basis reconciliation and QBO sandbox mapping. Gross activity is not taxable profit.",
+      "nextAction": "Invoice credits and corrections now retain original tax evidence, post balanced journals, adjust dated invoice activity and reconcile receivables/CSV; see docs/production/invoice-credits.md. Native PostgreSQL races/restore passed; credit migration applied as 20261019122223. PR #134 exact-head CI/deployment passed at 4466326c4a15ca9687bdb1cb184ecbfb1fc185e1. Require accountant acceptance, full tax-basis reconciliation and QBO sandbox mapping. Gross activity is not taxable profit.",
       "acceptance": "Reports drill into real canonical entries; no revenue-as-personal-income assumption; unsupported tax state/year/scope fails closed; sources checked at acceptance; reviewed actual owner inputs and sales-tax treatment required.",
       "requiredEvidence": "Reconciled fixture exports/calculations and dated owner/accountant review; QBO only advertised connected after sandbox proof.",
       "evidence": []
