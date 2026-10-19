@@ -92,7 +92,9 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       const request = await db.from("service_requests").select("original_submission")
         .eq("organization_id", org).eq("id", item.object_id).single();
       if (request.error || request.data.original_submission.email !== item.payload.recipient) continue;
-      ({ to, subject, body, html } = requestDeclinedMessage(config.data.settings.displayName, request.data.original_submission,identity));
+      const declineReason=item.payload.reason;
+      if(declineReason!==undefined&&(typeof declineReason!=='string'||declineReason.trim().length<2||declineReason.length>1000))continue;
+      ({ to, subject, body, html } = requestDeclinedMessage(config.data.settings.displayName, request.data.original_submission,identity,declineReason as string|undefined,org));
     } else if(item.kind==='appointment.delay_notice'){
       const appointment=await db.from('appointments').select('request_id,timezone,status,revision').eq('organization_id',org).eq('id',item.object_id).single();
       if(appointment.error||appointment.data.status!=='reserved'||appointment.data.revision!==item.payload.appointmentRevision)continue;
@@ -184,6 +186,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
       const ownerUrl = ownerRequestUrl(process.env.APP_ORIGIN!,appointment.data.request_id,org);
       const rendered = appointmentMessage({
         kind: item.kind as AppointmentMessageInput["kind"],
+        organization:org,
         company: config.data.settings.displayName,
         identity,
         recipient,

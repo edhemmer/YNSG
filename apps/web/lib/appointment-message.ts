@@ -1,3 +1,4 @@
+import {futureProjectInvitation} from './decline-message.ts';
 import {requestTiming} from '../../../lib/request-timing.js';
 import {emailLayout,emailParagraph,emailButton,emailSignedText,type EmailIdentity} from '../../../lib/email-layout.js';
 type Submission = {
@@ -22,6 +23,7 @@ export type AppointmentMessageInput = {
     | "appointment.reschedule_requested"
     | "appointment.canceled";
   company: string;
+  organization?:string;
   identity?: EmailIdentity;
   recipient: string;
   notificationRecipient: string;
@@ -89,7 +91,7 @@ function appointmentText(v: AppointmentMessageInput) {
     subject: declinedTime
       ? "Please choose another appointment time"
       : "Update on your service request",
-    body: `Hi ${v.request.name || "there"},\n\n${declinedTime ? "We’re not available at the time you requested, but we’d still be happy to help. You can choose another available time below. Your service details are saved." : "Thanks for reaching out. Unfortunately, we won't be able to take on this job."}${v.reason ? "\n" + v.reason : ""}\n\n${work}\n\n${declinedTime ? "Choose another time on the same request:" : "Review this appointment update:"}\n${v.manageUrl}\n\n${declinedTime ? "We'll confirm the new time once we've reviewed your request.\n\n" : ""}Reply to this email with any questions.`,
+    body: `Hi ${v.request.name || "there"},\n\n${declinedTime ? "We’re not available at the time you requested, but we’d still be happy to help. You can choose another available time below. Your service details are saved." : v.reason ? "Thank you for reaching out." : "Thank you for reaching out. I won’t be able to take on this particular project, but I appreciate you considering me."}${v.reason ? "\n" + v.reason : ""}\n\n${work}\n\n${declinedTime ? "Choose another time on the same request:" : "Review this appointment update:"}\n${v.manageUrl}\n\n${declinedTime ? "We'll confirm the new time once we've reviewed your request.\n\n" : ""}${!declinedTime&&futureProjectInvitation(v.organization)?futureProjectInvitation(v.organization)+"\n\n":""}Reply to this email with any questions.`,
   };
 }
 
@@ -114,6 +116,7 @@ export function appointmentMessage(v: AppointmentMessageInput) {
   if(v.rescheduleUrl)actions.set(v.rescheduleUrl,'Request another time');
   if(v.manageUrl&&!['appointment.confirmation','appointment.reminder'].includes(v.kind)&&!actions.has(v.manageUrl))actions.set(v.manageUrl,v.kind==='appointment.declined_time'?'Choose another time':'View appointment update');
  }
+ if(v.kind==='appointment.declined_service'&&futureProjectInvitation(v.organization))actions.set('https://www.yourneighborhoodserviceguy.com/services','Explore home & yard services');
  const content=message.body.split('\n\n').map(block=>{
   const parts:string[]=[];let lines:string[]=[];
   const flush=()=>{if(lines.length){const text=lines.join('\n');parts.push(/^(Arrival:|Requested work:|Preferred time:)/.test(text)?'<div class="mail-detail">'+emailParagraph(text)+'</div>':emailParagraph(text));lines=[];}};

@@ -6,7 +6,7 @@ test('request decline addresses the customer without inventing a booking or retr
  const message=requestDeclinedMessage('Synthetic Company',{name:'Pat',email:'customer@example.invalid'});
  assert.equal(message.to,'customer@example.invalid');
  assert.equal(message.subject,'Update on your service request');
- assert.match(message.body,/won.t be able to take on this job/);
+ assert.match(message.body,/won.t be able to take on this particular project/);
  assert.match(message.body,/haven.t booked an appointment/);
  assert.doesNotMatch(message.body,/confirmed|choose another|https:/i);
 });
