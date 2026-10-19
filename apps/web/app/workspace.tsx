@@ -159,7 +159,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
   const [email, setEmail] = useState(initialEmail),
     [password, setPassword] = useState(""),
     [showPassword, setShowPassword] = useState(false),
-    [authMode, setAuthMode] = useState<"password" | "recover" | "link">("password"),
+    [authMode, setAuthMode] = useState<"password" | "recover">("password"),
     [sent, setSent] = useState(false),
     [pending, setPending] = useState(false);
   const [org, setOrg] = useState(""),
@@ -212,7 +212,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
   }
   useEffect(() => {
     if(new URLSearchParams(window.location.search).get("setup")==="google")setSection("Settings");
-    if(new URLSearchParams(window.location.search).get('auth')==='failed')setError('This sign-in link is expired, already used, or was opened in a different browser. Request a new email here and open its newest link in this browser.');
+    if(new URLSearchParams(window.location.search).get('auth')==='failed')setError('Sign-in could not be completed. Use your password or choose Forgot password.');
     if (configured) void loadSession();
   }, [configured]);
   useEffect(()=>{
@@ -244,13 +244,6 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
   async function login(event: FormEvent) {
     event.preventDefault();
     if(pending)return;
-    if(authMode==='link'){
-      if(pending||sent)return;
-      setPending(true);setError('');setMessage('');
-      try{const r=await api('/api/session',{action:'send',email,destination:'owner',requestContext:ownerRequestContext(Object.fromEntries(new URLSearchParams(window.location.search)))||undefined});setSent(true);setMessage(r.message||'Open the newest email link in this browser.');}
-      catch(e){setError(publicError(e));}finally{setPending(false);}
-      return;
-    }
     if (authMode === "recover") {
       if (sent) return;
       setPending(true); setError("");
@@ -406,7 +399,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
             <p className="eyebrow">{loginBrand}</p>
             <h1>Sign in to your workspace</h1>
             <p><a href="/owner/practice">Try the workflow with sample data</a> · no sign-in or real customer activity</p>
-            <p>{authMode === "recover" ? "Enter your email to reset your password." : authMode==='link'?"We’ll email you a secure sign-in link. No password change is needed.":"Sign in with your email and password."}</p>
+            <p>{authMode === "recover" ? "Enter your email to reset your password." :"Sign in with your email and password."}</p>
             {ownerGoogle?.enabled && <div>
               <button type="button" disabled={pending} onClick={async()=>{
                 setPending(true);setError("");
@@ -431,18 +424,16 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
               <input id="workspace-password" type={showPassword ? "text" : "password"} autoComplete="current-password" autoCapitalize="none" autoCorrect="off" spellCheck={false} required disabled={pending} value={password} onChange={(e)=>setPassword(e.target.value)} />
               <button type="button" className="secondary" aria-pressed={showPassword} disabled={pending} onClick={()=>setShowPassword(v=>!v)}>{showPassword ? "Hide password" : "Show password"}</button>
             </>}
-            {authMode==='link'&&sent&&<div><h2>Check your email</h2><p>Open the newest sign-in link in this browser. Return here to request another link only if it has expired.</p></div>}
             {authMode === "recover" && sent && <div><h2>Check your email</h2><p>Open the newest password reset link in this browser. The link will take you to a screen where you can choose a new password.</p></div>}
             <div className="actions" style={{display:"grid",gridTemplateColumns:"minmax(0, 1fr)",gap:"0.75rem",width:"100%"}}>
-              <button style={{width:"100%",minWidth:0,whiteSpace:"normal",overflowWrap:"normal",wordBreak:"normal"}} disabled={pending || ((authMode === "recover"||authMode==='link') && sent)}>
+              <button style={{width:"100%",minWidth:0,whiteSpace:"normal",overflowWrap:"normal",wordBreak:"normal"}} disabled={pending || (authMode === "recover" && sent)}>
                 {pending
                   ? "Please wait…"
                   : authMode === "recover"
                     ? sent ? "Reset email sent" : "Send password reset"
-                  : authMode==='link'?sent?"Sign-in email sent":"Send sign-in link":"Sign in with password"}
+                  : "Sign in with password"}
               </button>
               {authMode !== "password" && <button type="button" className="secondary" style={{width:"100%",minWidth:0,whiteSpace:"normal",overflowWrap:"normal",wordBreak:"normal"}} disabled={pending} onClick={()=>{setAuthMode("password");setSent(false);setMessage("");setError("");}}>Back to sign in</button>}
-              {authMode==='password'&&<button type="button" className="secondary" style={{width:"100%",minWidth:0,whiteSpace:"normal",overflowWrap:"normal",wordBreak:"normal"}} disabled={pending} onClick={()=>{setAuthMode('link');setSent(false);setPassword('');setError('');setMessage('');}}>Use an email sign-in link</button>}
               {authMode === "password" && !sent && <button type="button" className="secondary" style={{width:"100%",minWidth:0,whiteSpace:"normal",overflowWrap:"normal",wordBreak:"normal"}} disabled={pending} onClick={()=>{setAuthMode("recover");setPassword("");setError("");}}>Forgot password</button>}
             </div>
           </form>
