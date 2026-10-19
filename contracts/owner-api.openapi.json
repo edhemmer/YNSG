@@ -5602,6 +5602,92 @@
           }
         }
       }
+    },
+    "/api/export-reauthentication": {
+      "post": {
+        "operationId": "confirmExportSignIn",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "same live actor; same origin; 2048-byte body; current company role; server-derived email",
+        "x-ynsg-origin-required": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportReauthentication"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Current sign-in confirmed. Retry the selected export; no record is automatically downloaded."
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    },
+    "/api/export-authorization": {
+      "get": {
+        "operationId": "authorizeRecordDownload",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current company membership and current database session freshness verified."
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "428": {
+            "description": "Recent current-session sign-in required; no export produced."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
     }
   },
   "components": {
@@ -8102,6 +8188,26 @@
             "additionalProperties": false
           }
         ]
+      },
+      "ExportReauthentication": {
+        "type": "object",
+        "properties": {
+          "organization": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "organization",
+          "password"
+        ],
+        "additionalProperties": false
       }
     }
   },

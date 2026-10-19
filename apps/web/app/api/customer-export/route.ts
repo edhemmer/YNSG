@@ -1,3 +1,4 @@
+import {authorizeRecordExport} from '../../../lib/export-reauthentication';
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
 import {authenticated} from '../../../lib/session';
@@ -12,6 +13,7 @@ export async function GET(request:Request){
  if(!parsed.success)return NextResponse.json({error:'Select a valid customer.'},{status:400,headers});
  try{
   const {db}=await authenticated(),{organization,customer}=parsed.data;
+  await authorizeRecordExport(db,organization);
   const pages=async(requestsPage:number,historyPage:number)=>{
    const r=await db.rpc('owner_customer_records',{p_org:organization,p_customer:customer,p_query:'',p_filter:'all',p_page:0,p_requests_page:requestsPage,p_history_page:historyPage});
    if(r.error)throw Error(r.error.code==='42501'?'FORBIDDEN':'UNAVAILABLE');
@@ -47,11 +49,12 @@ export async function GET(request:Request){
   const key=crypto.randomUUID();
   const audit=await db.rpc('audit_customer_export',{p_org:organization,p_customer:customer,p_key:key});
   const proof=z.object({logged:z.literal(true),customer:z.uuid(),key:z.uuid()}).strict().safeParse(audit.data);
+  if(audit.error?.message==='REAUTHENTICATION_REQUIRED')throw Error('REAUTHENTICATION_REQUIRED');
   if(audit.error||!proof.success||proof.data.customer!==customer||proof.data.key!==key)throw Error('UNVERIFIED');
   // No private file URLs, access invitations, credentials, or third-party records.
   return new Response(JSON.stringify({format:'ynsg-customer-record-v1',exportedAt:new Date().toISOString(),organization,customer:initial.customer,contacts:initial.contacts,properties:initial.properties,requests,history,scope:'Customer CRM profile, addresses, contacts, linked request summaries and change history. Excludes uploaded document bytes, financial ledgers and third-party messages.'},null,2),{status:200,headers});
  }catch(e){
   const code=e instanceof Error?e.message:'UNAVAILABLE';
-  return NextResponse.json({error:code==='FORBIDDEN'?'This account cannot export this customer.':code==='CHANGED'?'Customer data changed during export. Refresh the record before trying again.':'A complete customer export could not be verified. No partial file was returned.'},{status:code==='FORBIDDEN'?403:503,headers:{'Cache-Control':'private, no-store'}});
+  return NextResponse.json({code:code==='REAUTHENTICATION_REQUIRED'?code:undefined,error:code==='REAUTHENTICATION_REQUIRED'?'Confirm your sign-in before downloading customer records.':code==='FORBIDDEN'?'This account cannot export this customer.':code==='CHANGED'?'Customer data changed during export. Refresh the record before trying again.':'A complete customer export could not be verified. No partial file was returned.'},{status:code==='REAUTHENTICATION_REQUIRED'?428:code==='UNAUTHORIZED'?401:code==='FORBIDDEN'?403:503,headers:{'Cache-Control':'private, no-store'}});
  }
 }

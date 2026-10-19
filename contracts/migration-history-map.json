@@ -2,7 +2,7 @@
   "observedOn": "2026-10-19",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
   "sourceBranch": "codex/crm-workflow",
-  "sourceCommit": "21cca66242748d502e8878863e2df94bf03a2ece",
+  "sourceCommit": "0a598aba80694d30e8f728bfe16f6a98efc02139",
   "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
   "repositoryMigrations": [
     {
@@ -379,6 +379,11 @@
       "file": "20261019115646_invoice_credits.sql",
       "historyVersion": "20261019122223",
       "name": "invoice_credits"
+    },
+    {
+      "file": "20261019123841_export_reauthentication.sql",
+      "historyVersion": "20261019124521",
+      "name": "export_reauthentication"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [

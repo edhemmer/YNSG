@@ -6,7 +6,7 @@ try {
  await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
  create schema auth;
  create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz,deleted_at timestamptz,is_anonymous boolean default false,banned_until timestamptz);
- create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id),aal text,not_after timestamptz);
+ create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id),aal text,not_after timestamptz,created_at timestamptz not null default now());
  create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb $$;
  create function auth.uid() returns uuid language sql stable as $$ select (auth.jwt()->>'sub')::uuid $$;
  create function auth.role() returns text language sql stable as $$ select auth.jwt()->>'role' $$;
@@ -20,6 +20,7 @@ try {
  for(const f of (await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')).sort())await db.exec(await readFile(`supabase/migrations/${f}`,'utf8'));
  const foundation=await readFile('tests/foundation.sql','utf8');
  await db.exec(foundation);
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/export-reauthentication.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/operations-health.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/private-owner-api.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/security-command-surface.sql','utf8'));

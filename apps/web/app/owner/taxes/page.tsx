@@ -1,4 +1,5 @@
 "use client";
+import ProtectedDownload from '../../protected-download';
 import type {InvoiceCredit} from '../../../lib/invoice-credit-contract';
 
 import IncomeEstimator, {type EstimateDraft} from './income-estimator';
@@ -93,7 +94,7 @@ function TaxPage({organization:org}:{organization:string}){
  {!profile&&<p className="note">Add reviewed tax setup before applying new sales-tax rules. Existing invoices keep their issued amounts.</p>}
  {profile&&<p>Setup version {data.profile?.version} · {profile.state} · reviewed {profile.reviewedOn} · {profile.year}. {profile.entity==='individual_calendar'?'Individual, calendar-year worksheet.':'Entity-specific dates and amounts require reviewed entries.'}</p>}
  {profile?.year!==year&&profile&&<p className="note">The current setup is for {profile.year}. Review and save setup for {year}; prior tax years are never carried forward automatically.</p>}
- {!stale&&!busy&&!loading?<a href={'/api/taxes?'+new URLSearchParams({organization:org,year:String(year),format:'csv'})}>Export tax records (.csv)</a>:<p>Refresh saved tax records before exporting.</p>}<p>Accountant export with exact cents, jurisdiction components, sources, payments and reversals. Match these columns to the receiving software. QuickBooks invoice CSV import has restrictions when sales tax is enabled; this file does not claim universal direct import.</p></section>
+ {!stale&&!busy&&!loading?<ProtectedDownload organization={org} filename={`tax-records-${year}.csv`} label="Export tax records (.csv)" url={'/api/taxes?'+new URLSearchParams({organization:org,year:String(year),format:'csv'})}/>:<p>Refresh saved tax records before exporting.</p>}<p>Accountant export with exact cents, jurisdiction components, sources, payments and reversals. Match these columns to the receiving software. QuickBooks invoice CSV import has restrictions when sales tax is enabled; this file does not claim universal direct import.</p></section>
  <fieldset className="tax-estimator" disabled={disabled('estimate')} onChangeCapture={()=>claim('estimate')}><legend>Income worksheet</legend><IncomeEstimator key={`${org}:${year}:${estimateEpoch}`} year={year} state={estimateState??profile?.state??operatingState} canEdit={data.canEdit} onUse={copyEstimate}/></fieldset>
  <section className="card"><h2>Payment calendar</h2><p>2026 federal individual and Illinois individual dates are verified. State sales-tax frequency, local taxes, other entities and 2027 dates need the authority’s assigned deadlines. Illinois individual installments use the form’s whole-dollar rounding; their total can differ slightly from the net annual estimate. A payment link opens the authority; nothing is paid automatically.</p>
  {!due.length&&<p>No reviewed payment deadlines for this year.</p>}
