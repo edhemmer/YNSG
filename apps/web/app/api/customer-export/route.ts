@@ -1,11 +1,12 @@
 import {authorizeRecordExport} from '../../../lib/export-reauthentication';
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
+import {customerExportQuery,customerExportScope,verifiedCustomerExport} from '../../../lib/customer-export-contract';
 import {authenticated} from '../../../lib/session';
 import {customerDetail} from '../../../lib/customer-record-contract';
 export const dynamic='force-dynamic';
 const headers={'Cache-Control':'private, no-store','Content-Type':'application/json; charset=utf-8','X-Content-Type-Options':'nosniff','Content-Disposition':'attachment; filename="customer-record.json"'};
-const query=z.object({organization:z.uuid(),customer:z.uuid()}).strict();
+const query=customerExportQuery;
 /** Owner-initiated portability snapshot. Bounded and revision-stable; incomplete
  * pages or a mid-export edit make the entire export fail, never silently truncate. */
 export async function GET(request:Request){
@@ -52,7 +53,7 @@ export async function GET(request:Request){
   if(audit.error?.message==='REAUTHENTICATION_REQUIRED')throw Error('REAUTHENTICATION_REQUIRED');
   if(audit.error||!proof.success||proof.data.customer!==customer||proof.data.key!==key)throw Error('UNVERIFIED');
   // No private file URLs, access invitations, credentials, or third-party records.
-  return new Response(JSON.stringify({format:'ynsg-customer-record-v1',exportedAt:new Date().toISOString(),organization,customer:initial.customer,contacts:initial.contacts,properties:initial.properties,requests,history,scope:'Customer CRM profile, addresses, contacts, linked request summaries and change history. Excludes uploaded document bytes, financial ledgers and third-party messages.'},null,2),{status:200,headers});
+  return new Response(JSON.stringify(verifiedCustomerExport({format:'ynsg-customer-record-v1',exportedAt:new Date().toISOString(),organization,customer:initial.customer,contacts:initial.contacts,properties:initial.properties,requests,history,scope:customerExportScope},{organization,customer}),null,2),{status:200,headers});
  }catch(e){
   const code=e instanceof Error?e.message:'UNAVAILABLE';
   return NextResponse.json({code:code==='REAUTHENTICATION_REQUIRED'?code:undefined,error:code==='REAUTHENTICATION_REQUIRED'?'Confirm your sign-in before downloading customer records.':code==='FORBIDDEN'?'This account cannot export this customer.':code==='CHANGED'?'Customer data changed during export. Refresh the record before trying again.':'A complete customer export could not be verified. No partial file was returned.'},{status:code==='REAUTHENTICATION_REQUIRED'?428:code==='UNAUTHORIZED'?401:code==='FORBIDDEN'?403:503,headers:{'Cache-Control':'private, no-store'}});

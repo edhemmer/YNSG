@@ -1,26 +1,27 @@
 'use client';
+import {verifiedCustomerExport} from '../lib/customer-export-contract';
 import ExportReauthentication from './export-reauthentication';
 import {useEffect,useRef,useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 export default function CustomerExport({organization,customer}:{organization:string;customer:string}){
- const current=useRef(organization+':'+customer),generation=useRef(0),sending=useRef(false);current.current=organization+':'+customer;
- useEffect(()=>{generation.current++;setBusy(false);setError('');setReauth(false);},[organization,customer]);
+ const current=useRef(organization+':'+customer),generation=useRef(0),sending=useRef(false),inFlight=useRef<AbortController|null>(null);current.current=organization+':'+customer;
+ useEffect(()=>{generation.current++;setBusy(false);setError('');setReauth(false);return()=>{generation.current++;inFlight.current?.abort();inFlight.current=null;sending.current=false;};},[organization,customer]);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[reauth,setReauth]=useState(false);
  async function download(){
-  if(sending.current||busy)return;const target=organization+':'+customer,attemptGeneration=generation.current;sending.current=true;setBusy(true);setError('');
+  if(sending.current||busy)return;const target=organization+':'+customer,attemptGeneration=generation.current,controller=new AbortController();inFlight.current=controller;sending.current=true;setBusy(true);setError('');
   try{
-   const r=await sessionFetch('/api/customer-export?'+new URLSearchParams({organization,customer}),{cache:'no-store'});
+   const r=await sessionFetch('/api/customer-export?'+new URLSearchParams({organization,customer}),{cache:'no-store',signal:controller.signal});
    if(r.status===428){if(current.current===target&&generation.current===attemptGeneration){setReauth(true);setError('Confirm your sign-in, then retry this download.');}return;}
    if(r.status===401)throw Error('Sign in to your workspace, then retry this download.');
    if(r.status===403)throw Error('Your current account cannot export this customer.');
    if(!r.ok)throw Error('The complete customer record could not be exported. Refresh customer details and try again.');
-   setReauth(false);const bytes=await r.blob(),json=JSON.parse(await bytes.text());
-   if(json.format!=='ynsg-customer-record-v1'||json.organization!==organization||json.customer?.id!==customer||!Array.isArray(json.requests)||!Array.isArray(json.history))throw Error('The customer export did not match the selected customer.');
+   const bytes=await r.blob();if(current.current!==target||generation.current!==attemptGeneration)return;
+   const json=verifiedCustomerExport(JSON.parse(await bytes.text()),{organization,customer});
    if(current.current!==target||generation.current!==attemptGeneration)return;
-   const url=URL.createObjectURL(new Blob([JSON.stringify(json,null,2)],{type:'application/json'}));
+   setReauth(false);const url=URL.createObjectURL(new Blob([JSON.stringify(json,null,2)],{type:'application/json'}));
    const link=document.createElement('a');link.href=url;link.download='customer-record-'+customer+'.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
-  }catch(e){if(current.current!==target||generation.current!==attemptGeneration)return;setError(e instanceof Error?e.message:'The export could not be confirmed.');}
-  finally{sending.current=false;if(current.current===target&&generation.current===attemptGeneration)setBusy(false);}
+  }catch(e){if(current.current!==target||generation.current!==attemptGeneration)return;setError(e instanceof Error&&['Sign in to your workspace, then retry this download.','Your current account cannot export this customer.','The complete customer record could not be exported. Refresh customer details and try again.'].includes(e.message)?e.message:'The complete customer record could not be verified. No file was downloaded.');}
+  finally{if(inFlight.current===controller){inFlight.current=null;sending.current=false;if(current.current===target&&generation.current===attemptGeneration)setBusy(false);}}
  }
  return <section aria-label="Download customer records">
   <h4>Customer record export</h4>
