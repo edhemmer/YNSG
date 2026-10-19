@@ -50,7 +50,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "City \u2192 required ZIP selection added to new public intake, with owner address editing and saved-customer ZIP handling; see docs/production/city-postal-codes.md. Apply and verify the pending city_postal_code_intake migration before client publication. PR #77 merged (booking field focus; exact-head CI passed). Execute A01\u2013A03 full guest journey, failure/retry, controlled delivery, and physical mobile accessibility evidence before verification.",
+      "nextAction": "City \u2192 required ZIP selection added to new public intake, with owner address editing and saved-customer ZIP handling; see docs/production/city-postal-codes.md. ZIP migration applied as Supabase history 20261019020939; function guards, permissions and legacy context verified read-only. Complete PR #129 CI and both production deployment checks. PR #77 merged (booking field focus; exact-head CI passed). Execute A01\u2013A03 full guest journey, failure/retry, controlled delivery, and physical mobile accessibility evidence before verification.",
       "acceptance": "Required name/email/phone/address; multiple services; honest arrange-time path; free address check is advisory; retry saves one request and one milestone notification; no abandoned hold leaks.",
       "requiredEvidence": "Synthetic full-journey tests plus approved controlled delivery and physical-device evidence.",
       "evidence": []
