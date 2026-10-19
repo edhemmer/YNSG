@@ -14,13 +14,13 @@ export async function POST(request:Request){
   if(p.action==='status'||p.action==='resume'){
    if(!process.env.SUPABASE_SERVICE_ROLE_KEY)throw Error('SETUP_REQUIRED');
    const admin=createClient(process.env.SUPABASE_URL!,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},global:{fetch:(input,init)=>fetch(input,{...init,signal:AbortSignal.timeout(15000)})}});
-   // Session proof only controls cleanup, never receipt recovery authority.
-   let ownsReceipt=false;try{const current=await authenticated();const own=await current.db.rpc('privacy_command',{p:{action:'read'}});const proof=privacyState.safeParse(own.data);ownsReceipt=!own.error&&proof.success&&proof.data.request?.id===p.request;}catch{}
+   // Receipt recovery must not mutate browser cookies: another tab may have
+   // changed accounts while this response was in flight. Provider deletion
+   // revokes application access; protected reads and commands still require
+   // live identity and company permissions, never possession of a cookie alone.
    const lease=p.action==='resume'?randomUUID():null;
    const state=await processDeletion(admin,p,lease);
-   const response=NextResponse.json({status:state.status,busy:Boolean(state.busy)},{headers});
-   if(state.status==='completed'&&ownsReceipt){response.cookies.delete('ynsg-access');response.cookies.delete('ynsg-refresh');}
-   return response;
+   return NextResponse.json({status:state.status,busy:Boolean(state.busy)},{headers});
   }
   const current=await authenticated();
   if(p.action==='reauthenticate'){
