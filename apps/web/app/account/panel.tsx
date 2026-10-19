@@ -1,3 +1,4 @@
+import {creditTotal} from '../../lib/invoice-credit-contract';
 "use client";
 import {invoiceNumber} from "../../lib/invoice-number";
 import { publicError } from "../../lib/public-errors";
@@ -414,6 +415,7 @@ export default function Account() {
                 <div key={i.id}>
                   <strong>Invoice {invoiceNumber(i.number)}</strong>
                   <p><a href={"/invoice?"+new URLSearchParams({organization:org,invoice:i.id,return:"account"})}>Open invoice and download PDF</a></p>
+                  <p>Credits after corrections: {(creditTotal(i.credits)/100).toLocaleString('en-US',{style:'currency',currency:'USD'})}</p>
                   <p>
                     Total{" "}
                     {(i.total_cents / 100).toLocaleString("en-US", {
@@ -422,7 +424,7 @@ export default function Account() {
                     })}{" "}
                     · Balance{" "}
                     {(
-                      (i.total_cents -
+                      (i.total_cents - creditTotal(i.credits) -
                         i.payments.reduce((sum, p) => sum + p.cents, 0)) /
                       100
                     ).toLocaleString("en-US", {

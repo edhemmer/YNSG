@@ -20,7 +20,7 @@ test('owner calculates current-state tax, reviews the copied plan and explicitly
  globalThis.fetch=async(path,init)=>{
   if(String(path).startsWith('/api/configuration'))return Response.json({configuration:{settings:{region:'IL'}}});
   if(init?.method==='POST'){const body=JSON.parse(init.body);saves.push(body);profile={version:1,data:body.data};return Response.json({result:{version:1}});}
-  return Response.json({profile,records:[],invoices:[],timezone:'America/Chicago',today:'2026-10-13',canEdit:true});
+  return Response.json({profile,records:[],credits:[],invoices:[],timezone:'America/Chicago',today:'2026-10-13',canEdit:true});
  };
  const root=createRoot(node);
  try{

@@ -10,7 +10,7 @@ const require=createRequire(new URL('../apps/web/package.json',import.meta.url))
 const {act}=React,{createRoot}=require('react-dom/client'),{default:Taxes}=await import('../apps/web/app/owner/taxes/page.tsx');
 const profile={year:2026,state:'IL',entity:'other',federalAnnualPaymentCents:null,stateAnnualPaymentCents:0,federalSource:'https://www.irs.gov/pub/irs-pdf/f1040es.pdf',stateSource:'https://tax.illinois.gov/forms.html',reviewedOn:'2026-10-15',reviewNote:'Synthetic saved review',rules:[]};
 const payment={id,recordType:'payment',recordedAt:'2026-10-15T12:00:00Z',data:{year:2026,kind:'federal_estimated',label:'Synthetic IRS',period:'Synthetic installment',date:'2026-10-15',amountCents:1299,sourceUrl:profile.federalSource,paymentUrl:'https://www.irs.gov/payments',reference:'Synthetic receipt',reviewed:true}};
-const report=(version=1,records=[payment])=>({profile:{version,data:profile},records,invoices:[],timezone:'America/Chicago',today:'2026-10-15',canEdit:true});
+const report=(version=1,records=[payment])=>({profile:{version,data:profile},records,credits:[],invoices:[],timezone:'America/Chicago',today:'2026-10-15',canEdit:true});
 const node=document.querySelector('#root'),tick=()=>new Promise(resolve=>setImmediate(resolve)),response=(d,status=200)=>new Response(JSON.stringify(d),{status});
 const button=text=>[...node.querySelectorAll('button')].find(b=>b.textContent===text),form=label=>node.querySelector(`form[aria-label="${label}"]`),field=(label,name)=>form(label).querySelector(`[name="${name}"]`);
 async function click(text){await act(async()=>{assert.ok(button(text),text);button(text).click();await tick();await tick();});}

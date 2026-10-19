@@ -1,3 +1,5 @@
+import type {InvoiceCredit} from '../lib/invoice-credit-contract';
+import {creditTotal} from '../lib/invoice-credit-contract';
 "use client";
 import {invoiceNumber} from "../lib/invoice-number";
 import {ownerRequestContext} from '../lib/email-links';
@@ -75,6 +77,7 @@ type Invoice = {
   total_cents: number;
   issued_at: string;
   snapshot:{recipient?:{name?:string;street?:string;city?:string};scope?:string;taxCents?:number;recordedWork?:{description:string;chargedCents:number}[]};
+  credits?: InvoiceCredit[];
   payments: { cents: number }[];
 };
 type Appointment = {
@@ -529,7 +532,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
                         )}
                         {data.invoices.map((i) => {
                           const balance =
-                            i.total_cents -
+                            i.total_cents - creditTotal(i.credits) -
                             i.payments.reduce((n, p) => n + p.cents, 0);
                           return (
                             <article className="card" key={i.id}>
@@ -537,9 +540,9 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
                                 {i.total_cents === 0
                                   ? "No charge"
                                   : balance === 0
-                                  ? "Paid"
+                                  ? creditTotal(i.credits)>0?"Settled with credit":"Paid"
                                   : balance < i.total_cents
-                                    ? "Partially paid"
+                                    ? creditTotal(i.credits)>0?"Balance due after credits":"Partially paid"
                                     : "Unpaid"}
                               </span>
                               {data.invoiceAdmin?.[i.id]?.archived&&<span className="badge">Archived</span>}{data.invoiceAdmin?.[i.id]?.cardPending&&<span className="badge">Card payment pending</span>}
@@ -550,7 +553,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
                               <p className="amount">
                                 {usd(balance)} outstanding
                               </p>
-                              <p>Subtotal {usd(i.total_cents-(i.snapshot?.taxCents||0))} · sales tax {usd(i.snapshot?.taxCents||0)} · issued total {usd(i.total_cents)}</p><p>Confirmed paid {usd(i.total_cents-balance)}. Record each cash or Zelle amount when received. Open the invoice for its PDF, due date and history.</p>
+                              <p>Subtotal {usd(i.total_cents-(i.snapshot?.taxCents||0))} · sales tax {usd(i.snapshot?.taxCents||0)} · issued total {usd(i.total_cents)}</p><p>Confirmed paid {usd(i.payments.reduce((n,p)=>n+p.cents,0))} · net credits {usd(creditTotal(i.credits))}. Record each cash or Zelle amount when received. Open the invoice for its PDF, due date and history.</p>
                               {["owner","admin"].includes(role||"")&&<InvoiceDelivery organization={org} invoice={i.id}/>}
                               {['owner','admin'].includes(role||'')&&(i.customer_id||data.jobs.find(j=>j.id===i.job_id)?.customer_id)&&<RelatedCustomerFiles organization={org} customer={i.customer_id||data.jobs.find(j=>j.id===i.job_id)!.customer_id} targets={[{kind:'invoice',id:i.id},{kind:'job',id:i.job_id}]} disabled={pending||invoiceBusy} onManage={()=>openCustomer(i.customer_id||data.jobs.find(j=>j.id===i.job_id)!.customer_id)}/>}
                               {finance&&<InvoicePayments organization={org} invoice={i.id} totalCents={i.total_cents} timezone={data.company.timezone} onChanged={()=>void refresh()}/>}

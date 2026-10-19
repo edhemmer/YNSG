@@ -85,7 +85,7 @@ test('owner can save reviewed draft and issue it at the saved revision without l
 test('an ambiguous partial cash payment locks edits and checks the exact command instead of duplicating it',async()=>{
  const payments=[],bodies=[];let first=true;
  globalThis.fetch=async(path,init)=>{
-  if(String(path).startsWith('/api/invoice-admin'))return response({organization:org,invoice:id,admin:{revision:0,dueDate:null,archived:false},orders:[],payments,canManage:true,cardConfigured:false,cardTransactions:[]});
+  if(String(path).startsWith('/api/invoice-admin'))return response({organization:org,invoice:id,admin:{revision:0,dueDate:null,archived:false},orders:[],payments,canManage:true,creditContext:{invoiceId:id,totalCents:12000,subtotalCents:12000,taxComponents:[],paidCents:typeof paid!=='undefined'?paid:typeof payments!=='undefined'?payments.reduce((n,p)=>n+p.cents,0):0,revision:0,canIssue:true,credits:[]},cardConfigured:false,cardTransactions:[]});
   if(path==='/api/commands'){
    const body=JSON.parse(init.body);bodies.push(body);
    if(first){first=false;payments.push({id,cents:body.cents,method:body.method,receivedAt:body.receivedAt,reference:body.reference});return new Response(JSON.stringify({error:'Response unavailable after save'}),{status:503,headers:{'Content-Type':'application/json'}});}

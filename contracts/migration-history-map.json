@@ -406,5 +406,11 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": []
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261019115646_invoice_credits.sql",
+      "name": "invoice_credits",
+      "status": "not_applied_to_connected_supabase"
+    }
+  ]
 }

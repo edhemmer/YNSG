@@ -21,7 +21,7 @@ export async function invoicePdf(invoice:InvoiceDocument){
  const clean=(value:string)=>{const normalized=value.replace(/\r\n?/g,'\n').replace(/\t/g,'    ');for(const char of normalized){if(char!=='\n'&&!supported.has(char.codePointAt(0)!))throw Error('INVOICE_PDF_UNSUPPORTED_CHARACTER');}return normalized;};
  const ink=rgb(.063,.157,.235),green=rgb(.192,.345,.259),gold=rgb(.776,.639,.357),cream=rgb(.973,.969,.945),muted=rgb(.36,.42,.46),lineColor=rgb(.86,.89,.86),white=rgb(1,1,1);
  const money=(c:number)=>(c/100).toLocaleString('en-US',{style:'currency',currency:'USD'});
- pdf.setTitle(`${invoice.sample?'SAMPLE - NOT A BILL - ':''}${invoice.businessName} - Invoice ${invoice.number}`);pdf.setAuthor(invoice.businessName);pdf.setCreator('Service invoice');pdf.setProducer('Service invoice');pdf.setCreationDate(new Date(invoice.issuedAt));pdf.setModificationDate(new Date(invoice.issuedAt));
+ pdf.setTitle(`${invoice.sample?'SAMPLE - NOT A BILL - ':''}${invoice.businessName} - Invoice ${invoice.number}`);pdf.setAuthor(invoice.businessName);pdf.setCreator('Service invoice');pdf.setProducer('Service invoice');pdf.setCreationDate(new Date(invoice.issuedAt));pdf.setModificationDate(new Date(Math.max(Date.parse(invoice.issuedAt),...(invoice.credits||[]).map(c=>Date.parse(c.issuedAt)))));
  let page!:PDFPage,y=0,work=false;
  const wrap=(value:string,width=516,size=11,face:PDFFont=font)=>{const lines:string[]=[];for(const paragraph of clean(value).split('\n')){let line='';for(const char of paragraph){if(line&&face.widthOfTextAtSize(line+char,size)>width){const split=line.lastIndexOf(' ');if(split>0){lines.push(line.slice(0,split));line=line.slice(split+1)+char;}else{lines.push(line);line=char;}}else line+=char;}lines.push(line);}return lines;};
  const draw=(value:string,x:number,at:number,size=11,face:PDFFont=font,color=ink)=>page.drawText(clean(value),{x,y:at,size,font:face,color});
@@ -31,7 +31,7 @@ export async function invoicePdf(invoice:InvoiceDocument){
   page.drawImage(logo,{x:48,y:650,width:180,height:120});
   draw('SERVICE INVOICE',370,741,9,bold,green);
   draw("Invoice",370,710,20,bold);const identifier=`#${invoice.number}`;const identifierSize=Math.min(24,194/bold.widthOfTextAtSize(identifier,1));draw(identifier,370,678,identifierSize,bold);const identityY=654;
-  const status=invoice.sample?'SAMPLE INVOICE':invoice.balanceCents===0?(invoice.paidCents>0?'PAID':'NO BALANCE DUE'):invoice.paidCents>0?'PARTIALLY PAID':'PAYMENT DUE';
+  const status=invoice.sample?'SAMPLE INVOICE':invoice.balanceCents===0?((invoice.creditCents||0)>0?'SETTLED WITH CREDIT':invoice.paidCents>0?'PAID':'NO BALANCE DUE'):invoice.paidCents>0?'PARTIALLY PAID':'PAYMENT DUE';
   draw(status,370,identityY-3,9,bold,green);
   y=Math.min(650,identityY-14);page.drawRectangle({x:48,y,width:516,height:3,color:gold});y-=26;
   if(invoice.sample){draw('SAMPLE - NOT A BILL. No work or payment has been recorded.',48,y,10,bold,green);y-=25;}
@@ -58,7 +58,8 @@ export async function invoicePdf(invoice:InvoiceDocument){
   y-=4;ensure(8);page.drawLine({start:{x:48,y},end:{x:564,y},thickness:.6,color:lineColor});y-=10;
  }
  work=false;
- const amounts=[['Subtotal',invoice.subtotalCents??invoice.totalCents],...(invoice.taxComponents?.length?invoice.taxComponents.map(c=>[`${c.label} (${c.ratePpm/10000}%)`,c.taxCents] as const):[['Sales tax',invoice.taxCents??0] as const]),['Invoice total',invoice.totalCents],['Confirmed payments',invoice.paidCents]] as const;
+ if(invoice.credits?.length){text('Retained invoice adjustments',14,5,bold);for(const c of invoice.credits){text(`${c.reversesId?'Credit correction':'Credit'} ${money(c.totalCents)} · ${new Date(c.issuedAt).toLocaleDateString('en-US',{timeZone:invoice.timezone})} · ${c.reason}`,10,4);text(`Charge ${money(c.subtotalCents)}`+c.taxComponents.map(t=>` · ${t.label} ${money(t.taxCents)}`).join(''),9,6,font,muted);}}
+ const amounts=[['Subtotal',invoice.subtotalCents??invoice.totalCents],...(invoice.taxComponents?.length?invoice.taxComponents.map(c=>[`${c.label} (${c.ratePpm/10000}%)`,c.taxCents] as const):[['Sales tax',invoice.taxCents??0] as const]),['Invoice total',invoice.totalCents],['Credits after corrections',invoice.creditCents||0],['Confirmed payments',invoice.paidCents]] as const;
  const amountHeight=amounts.reduce((h,[label])=>h+Math.max(1,wrap(label,150,10).length)*15+12,0)+86;
  ensure(Math.min(amountHeight,430));
  const termsLines=wrap(invoice.terms.trimEnd(),230,10);

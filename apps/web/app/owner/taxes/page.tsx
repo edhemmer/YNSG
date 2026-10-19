@@ -1,3 +1,4 @@
+import type {InvoiceCredit} from '../../../lib/invoice-credit-contract';
 "use client";
 import IncomeEstimator, {type EstimateDraft} from './income-estimator';
 import {useEffect,useRef,useState} from 'react';
@@ -8,7 +9,7 @@ import {taxEntryCommand,taxWorkspaceData,validateTaxReceipt,type TaxEntryCommand
 import {invoiceChargeCents} from '../../../lib/invoice-charge';
 const money=(c:number)=>(c/100).toLocaleString('en-US',{style:'currency',currency:'USD'});
 type RecordRow={id:string;recordType:'deadline'|'payment'|'reversal';recordedAt:string;data:{year:number;kind:string;label:string;period:string;date:string;amountCents:number;reference?:string;sourceUrl:string;paymentUrl:string;recordId?:string;reason?:string;deadlineId?:string}};
-type Data={profile:{version:number;data:TaxProfile}|null;records:RecordRow[];invoices:{id:string;number:number;subtotalCents:number;taxCents:number;totalCents:number;paidCents:number}[];today:string;canEdit:boolean};
+type Data={credits:InvoiceCredit[];profile:{version:number;data:TaxProfile}|null;records:RecordRow[];invoices:{id:string;number:number;subtotalCents:number;taxCents:number;totalCents:number;paidCents:number;creditedCents:number}[];today:string;canEdit:boolean};
 type Due={id:string;kind:string;label:string;period:string;dueDate:string;amountCents:number;sourceUrl:string;paymentUrl:string};
 type DraftOwner='entry'|'setup'|'reversal'|'estimate';
 export default function Taxes(){
@@ -87,7 +88,7 @@ function TaxPage({organization:org}:{organization:string}){
  <div style={{display:accessDenied?'none':undefined}}>
  {data&&<>
  {stale&&<p role="status">These totals are from the last saved view. Refresh before using or exporting them.</p>}
- <section className="card"><h2>{year} overview</h2><div className="metric-grid"><p>Sales tax invoiced<br/><strong>{money(data.invoices.reduce((s,i)=>s+i.taxCents,0))}</strong></p><p>Sales / use tax payments recorded<br/><strong>{money(active.filter(r=>r.recordType==='payment'&&['sales_tax','use_tax'].includes(r.data.kind)).reduce((s,r)=>s+r.data.amountCents,0))}</strong></p><p>Owner estimated tax payments recorded<br/><strong>{money(active.filter(r=>r.recordType==='payment'&&['federal_estimated','state_income'].includes(r.data.kind)).reduce((s,r)=>s+r.data.amountCents,0))}</strong></p></div><p className="note">Sales tax invoiced is an accrual total, not a filed return or proof of collection. Tax-payment totals use the selected tax year. Income tax and sales tax are separate obligations.</p>
+ <section className="card"><h2>{year} overview</h2><div className="metric-grid"><p>Sales tax after credits<br/><strong>{money(data.invoices.reduce((s,i)=>s+i.taxCents,0)-data.credits.reduce((n,c)=>n+c.taxComponents.reduce((s,t)=>s+t.taxCents,0),0))}</strong></p><p>Sales / use tax payments recorded<br/><strong>{money(active.filter(r=>r.recordType==='payment'&&['sales_tax','use_tax'].includes(r.data.kind)).reduce((s,r)=>s+r.data.amountCents,0))}</strong></p><p>Owner estimated tax payments recorded<br/><strong>{money(active.filter(r=>r.recordType==='payment'&&['federal_estimated','state_income'].includes(r.data.kind)).reduce((s,r)=>s+r.data.amountCents,0))}</strong></p></div><p className="note">Sales tax after credits uses invoice issue dates and credit correction dates in the selected year. This is an accrual total, not a filed return or proof of collection. Tax-payment totals use the selected tax year. Income tax and sales tax are separate obligations.</p>
  {!profile&&<p className="note">Add reviewed tax setup before applying new sales-tax rules. Existing invoices keep their issued amounts.</p>}
  {profile&&<p>Setup version {data.profile?.version} · {profile.state} · reviewed {profile.reviewedOn} · {profile.year}. {profile.entity==='individual_calendar'?'Individual, calendar-year worksheet.':'Entity-specific dates and amounts require reviewed entries.'}</p>}
  {profile?.year!==year&&profile&&<p className="note">The current setup is for {profile.year}. Review and save setup for {year}; prior tax years are never carried forward automatically.</p>}
