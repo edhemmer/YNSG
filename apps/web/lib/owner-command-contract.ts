@@ -9,6 +9,7 @@ export const ownerCommandSchema = z.discriminatedUnion("command", [
     id: z.uuid(),
     revision: z.number().int().positive(),
     status: z.enum(["reviewing", "declined", "canceled"]),
+    reason: z.string().trim().min(2).max(1000).optional(),
   }).strict(),
   z.object({
     ...base,

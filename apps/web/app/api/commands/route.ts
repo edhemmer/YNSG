@@ -54,12 +54,12 @@ export async function POST(request: Request) {
     let args: Record<string, unknown>;
     switch (c.command) {
       case "ReviewRequest":
-        name = "review_service_request";
+        name = c.status==='declined'&&c.reason ? "decline_service_request_with_message" : "review_service_request";
         args = {
           p_org: c.organizationId,
           p_id: c.id,
           p_revision: c.revision,
-          p_status: c.status,
+          ...(c.status==='declined'&&c.reason ? {p_reason:c.reason} : {p_status:c.status}),
           p_key: c.key,
         };
         break;
