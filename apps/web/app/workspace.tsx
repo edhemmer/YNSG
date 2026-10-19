@@ -159,7 +159,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
   const [email, setEmail] = useState(initialEmail),
     [password, setPassword] = useState(""),
     [showPassword, setShowPassword] = useState(false),
-    [authMode, setAuthMode] = useState<"password" | "recover">("password"),
+    [authMode, setAuthMode] = useState<"password" | "recover" | "email-link">("password"),
     [sent, setSent] = useState(false),
     [pending, setPending] = useState(false);
   const [org, setOrg] = useState(""),
@@ -250,6 +250,17 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
         const r = await api("/api/session", { action: "recover", email });
         setSent(true);
         setMessage(r.message || "Check your email for a password reset link.");
+      } catch (e) { setError(publicError(e)); }
+      finally { setPending(false); }
+      return;
+    }
+    if (authMode === "email-link") {
+      if (sent) return;
+      setPending(true); setError(""); setMessage("");
+      try {
+        const response = await api("/api/session", { action: "send", email, destination: "owner" });
+        setSent(true);
+        setMessage(response.message || "Open the newest secure sign-in link sent to your email in this browser.");
       } catch (e) { setError(publicError(e)); }
       finally { setPending(false); }
       return;
@@ -364,12 +375,12 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
         <nav aria-label="Workspace"><p className="nav-group-label">Workflow</p>{primarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span>{s.key==='Requests'&&data.requests.some(r=>r.status==='submitted')&&<i className="nav-attention" aria-label="New requests"/>}</button>)}<details className="sidebar-more" open={secondarySections.some(s=>s.key===section)}><summary><Icon name="settings"/><span>More workspace</span></summary>{secondarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span></button>)}</details></nav>
         <div className="sidebar-footer"><span className="sidebar-profile">{session.email.slice(0,2).toUpperCase()}</span><div><strong>{role==='owner'?'Business owner':'Team workspace'}</strong><small>{session.email}</small></div></div>
       </aside>}
-      {session&&<header className="crm-topbar"><div className="topbar-context"><button className="icon-button secondary mobile-menu" aria-expanded={mobileNav} aria-label="Toggle workspace menu" onClick={()=>setMobileNav(v=>!v)}><Icon name={mobileNav?'close':'menu'}/></button><span className="context-dot"/><strong>{data?.company.display_name||'Service workspace'}</strong></div><div className="topbar-actions"><ThemeToggle/>{operational&&<button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/><span>Requests</span></button>}{['owner','admin'].includes(role||'')&&<button className="icon-button secondary" aria-label="Activity and messages" onClick={()=>navigate('Activity')}><Icon name="bell"/></button>}<button className="icon-button secondary" aria-label="Sign out" onClick={async()=>{if(pending||invoiceBusy||!canLeave())return;try{sessionSequence.current++;await api('/api/session',{action:'logout'});sessionSequence.current++;initialWorkspaceChosen.current=false;handledRequestLink.current=false;setSession(null);setSessionUnavailable(false);reloadSequence.current++;retryKeys.current.clear();setData(null);setOrg('');setEmail('');setPassword('');setShowPassword(false);setSent(false);setActiveRequest(null);}catch(e){setError(publicError(e));}}}><Icon name="logout"/></button></div></header>}
+      {session&&<header className="crm-topbar"><div className="topbar-context"><button className="icon-button secondary mobile-menu" aria-expanded={mobileNav} aria-label="Toggle workspace menu" onClick={()=>setMobileNav(v=>!v)}><Icon name={mobileNav?'close':'menu'}/></button><span className="context-dot"/><strong>{data?.company.display_name||'Service workspace'}</strong></div><div className="topbar-actions"><ThemeToggle/>{operational&&<button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/><span>Requests</span></button>}{['owner','admin'].includes(role||'')&&<button className="icon-button secondary" aria-label="Activity and messages" onClick={()=>navigate('Activity')}><Icon name="bell"/></button>}<button className="icon-button secondary" aria-label="Sign out" onClick={async()=>{if(pending||invoiceBusy||!canLeave())return;if(!window.confirm('Sign out of your YNSG workspace?'))return;try{sessionSequence.current++;await api('/api/session',{action:'logout'});sessionSequence.current++;initialWorkspaceChosen.current=false;handledRequestLink.current=false;setSession(null);setSessionUnavailable(false);reloadSequence.current++;retryKeys.current.clear();setData(null);setOrg('');setEmail('');setPassword('');setShowPassword(false);setSent(false);setActiveRequest(null);}catch(e){setError(publicError(e));}}}><Icon name="logout"/></button></div></header>}
       {session&&data&&<nav className="crm-mobile-dock" aria-label="Quick workspace navigation">{primarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} type="button" aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span>{s.key==='Requests'&&data.requests.some(r=>r.status==='submitted')&&<i className="dock-attention" aria-label="New requests"/>}</button>)}</nav>}
       <main className={`shell${session?' workspace-main':''}`} id="main">
 
         <div className="workspace-feedback">
-          {error && <div role="alert" className="error card" style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:"1rem"}}><p style={{margin:0}}>{error}</p><button type="button" className="secondary" aria-label="Dismiss message" onClick={()=>setError("")}>Dismiss</button></div>}
+          {error && <div role="alert" className="error card" style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:"1rem",flexWrap:"wrap",minWidth:0}}><p style={{margin:0,flex:"1 1 14rem",minWidth:0,overflowWrap:"anywhere"}}>{error}</p><button type="button" style={{whiteSpace:"nowrap",flexShrink:0}} className="secondary" aria-label="Dismiss message" onClick={()=>setError("")}>Dismiss</button></div>}
           {message && <p role="status" className="note">{message}</p>}
         </div>
         {!configured ? (
@@ -398,7 +409,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
             <p className="eyebrow">{loginBrand}</p>
             <h1>Sign in to your workspace</h1>
             <p><a href="/owner/practice">Try the workflow with sample data</a> · no sign-in or real customer activity</p>
-            <p>{authMode === "recover" ? "Enter your email to reset your password." : "Sign in with your email and password."}</p>
+            <p>{authMode === "recover" ? "Enter your email to reset your password." : authMode === "email-link" ? "Get a secure sign-in link sent to your email. No password needed." : "Sign in with your email and password."}</p>
             {ownerGoogle?.enabled && <div>
               <button type="button" disabled={pending} onClick={async()=>{
                 setPending(true);setError("");
@@ -424,15 +435,18 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
               <button type="button" className="secondary" aria-pressed={showPassword} disabled={pending} onClick={()=>setShowPassword(v=>!v)}>{showPassword ? "Hide password" : "Show password"}</button>
             </>}
             {authMode === "recover" && sent && <div><h2>Check your email</h2><p>Open the newest password reset link in this browser. The link will take you to a screen where you can choose a new password.</p></div>}
+            {authMode === "email-link" && sent && <div role="status"><h2>Check your email</h2><p>Open the newest YNSG sign-in link in the same browser. Check spam if it does not arrive.</p></div>}
             <div className="actions">
-              <button disabled={pending || (authMode === "recover" && sent)}>
+              <button disabled={pending || (sent && authMode !== "password")}>
                 {pending
                   ? "Please wait…"
                   : authMode === "recover"
                     ? sent ? "Reset email sent" : "Send password reset"
+                  : authMode === "email-link" ? sent ? "Sign-in link sent" : "Email me a secure sign-in link"
                   : "Sign in with password"}
               </button>
-              {authMode === "recover" && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("password");setSent(false);setMessage("");setError("");}}>Back to sign in</button>}
+              {authMode !== "password" && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("password");setSent(false);setMessage("");setError("");}}>Back to password sign in</button>}
+              {authMode === "password" && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("email-link");setPassword("");setSent(false);setMessage("");setError("");}}>Email me a sign-in link instead</button>}
               {authMode !== "recover" && !sent && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("recover");setPassword("");setError("");}}>Forgot password</button>}
             </div>
           </form>
