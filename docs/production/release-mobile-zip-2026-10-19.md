@@ -1,0 +1,12 @@
+# Mobile screen and ZIP release observation
+
+Observed 2026-10-19 UTC / October 18 Eastern. PR #129 merged into `codex/crm-workflow` at `97e919e624f5401dc4a1b8ffc5b0a27f977cc773`. GitHub comparison confirms the merge tree has no changed files relative to accepted PR head `b2d6a75ba36af46dcb5d01d9dcbf7e7241b615f2`.
+
+- Exact-head release CI run 39188899995 passed both jobs: PostgreSQL lifecycle/concurrency/recovery and application/contracts/build/native foundation. Application suite: 709 tests.
+- Supabase `city_postal_code_intake` applied with history version `20261019020939`. Read-only checks confirm ZIP whitelist/validation, restricted function grants, locked search paths and the unchanged legacy customer-context response shape.
+- Vercel `ynsg` deployment `dpl_Gr5YQdADc3yCVbbi5twKk3focFtq` and `ynsg-repo` deployment `dpl_FsqyVQFtDaqWgSoVhu3ScERmms17` are READY, target production, SHA `97e919e624f5401dc4a1b8ffc5b0a27f977cc773`. `.com` and `.app`, including their www aliases, are assigned to their respective deployments.
+- Public live browser: Services → Time → arrange-time → Details succeeds. ZIP is a required select in the served HTML. DeKalb offers 60115; choosing it and changing to Sycamore resets to the placeholder and offers 60178. No request, calendar hold, message or production record was submitted.
+- Authenticated owner reload succeeds. Route month/visit counts load; selecting the next day's existing route loads its appointment details and directions. Current public health returns `status:ok`. No error/fatal runtime entries were returned for the new CRM deployment during the scoped observation window.
+- Google browser console still reports `RefererNotAllowedMapError`, explicitly naming `https://yourneighborhoodserviceguy.app/owner`, after the new deployment. The repaired interface exits loading and shows the usable directions fallback. This is not acceptance of the embedded map or the Google key configuration. The required origin/referrer configuration must be corrected in Google Cloud; no key restrictions were weakened or secrets disclosed.
+
+Physical iPhone/Safari, VoiceOver, provider delivery, actual work/funds and full product acceptance remain separately tracked. These release observations do not close those gates or establish whole-product completion. Local responsive evidence remains in the screen audit and city/ZIP browser evidence files; no production customer screenshots or records are included here.

@@ -1,3 +1,4 @@
+import {captureRecovery,snapshotDatabase} from './capture-recovery.mjs';
 import {verifyCustomerFileRestore} from './verify-customer-file-restore.mjs';
 import {createHash} from 'node:crypto';
 import {generateRecoveryKey,packRecoveryBundle,unpackRecoveryBundle} from './recovery-bundle.mjs';
@@ -103,3 +104,23 @@ assert.throws(()=>reconcileRecoveryCatalog(restoredCatalog,changed),'Same counts
 console.log('PASS: restored database catalog reconciles every ready object and pending count; missing or changed manifest entries fail');
 assert.equal((await sql('select sum(debit_cents::bigint-credit_cents) from public.journal_lines;','ynsg_restore')).trim(),'0');
 console.log('PASS: encrypted bundle recovered real synthetic pg_dump and exact image bytes; isolated pg_restore matches invoices, receipts, journal, appointments and reservations');
+
+// The source catalog and custom dump must share the exported PostgreSQL snapshot.
+// Mutate a synthetic row after snapshot export, before pg_dump starts.
+await sql('create table qa_fixture.capture_marker(value integer);insert into qa_fixture.capture_marker values(1);');
+const capturedOutput=join(temp,'captured.ynsg'),capturedDirectory=join(temp,'captured-restore');
+const sourceDatabase=snapshotDatabase({psql:['docker','exec','-i',container,'psql','-U','postgres','-d','ynsg_test'],dump:['docker','exec','-i',container,'pg_dump','-U','postgres','--dbname=ynsg_test']});
+const originalDump=sourceDatabase.dump;
+sourceDatabase.dump=async(snapshot,path)=>{await sql('insert into qa_fixture.capture_marker values(2);');await originalDump(snapshot,path);};
+const capture=await captureRecovery({keyPath,output:capturedOutput,candidate:'b'.repeat(40),source:{origin:'https://'+'a'.repeat(20)+'.supabase.co',token:'synthetic-only'},database:sourceDatabase,fetcher:async()=>new Response(bytes)});
+assert.equal(capture.files,files.length);assert.ok(capture.pendingExcluded>0);
+await unpackRecoveryBundle({keyPath,bundlePath:capturedOutput,outputDirectory:capturedDirectory});
+await sql('create database ynsg_capture;');
+await run(['pg_restore','-U','postgres','--exit-on-error','--dbname=ynsg_capture'],await readFile(join(capturedDirectory,'verified/database.dump')));
+assert.equal((await sql('select count(*) from qa_fixture.capture_marker;')).trim(),'2');
+assert.equal((await sql('select count(*) from qa_fixture.capture_marker;','ynsg_capture')).trim(),'1');
+const capturedCatalog=JSON.parse((await sql(catalogQuery,'ynsg_capture')).trim());
+const capturedManifest=JSON.parse(await readFile(join(capturedDirectory,'verified/manifest.json'),'utf8'));
+assert.equal(reconcileRecoveryCatalog(capturedCatalog,capturedManifest).verified,files.length);
+assert.deepEqual(JSON.parse((await sql(snapshotSql,'ynsg_capture')).trim()),before);
+console.log('PASS: source capture exports one live read-only snapshot; concurrent later write excluded from dump, all original files and financial records restored');

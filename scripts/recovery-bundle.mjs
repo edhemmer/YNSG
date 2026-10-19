@@ -25,24 +25,25 @@ async function privateParent(path){const p=resolve(dirname(path));if(await realp
 async function syncDirectory(path){const h=await open(path,constants.O_RDONLY|constants.O_DIRECTORY);try{await h.sync();}finally{await h.close();}}
 async function keyBytes(path){const {h,size,mode}=await regular(path,32);try{if(size!==32||(mode&0o077)!==0)fail('PRIVATE_KEY_REQUIRED');const b=await exact(h,32,0);if((await h.stat()).size!==size)fail('SOURCE_CHANGED');return b;}finally{await h.close();}}
 async function* chunks(h,size,start=0){let pos=start;while(pos<size){const b=Buffer.alloc(Math.min(65536,size-pos)),r=await h.read(b,0,b.length,pos);if(!r.bytesRead)fail('SOURCE_CHANGED');pos+=r.bytesRead;yield b.subarray(0,r.bytesRead);}if((await h.stat()).size!==size)fail('SOURCE_CHANGED');}
-async function digest(h,size){const hash=createHash('sha256');for await(const b of chunks(h,size))hash.update(b);return hash.digest('hex');}
+async function digest(h,size,signal){const hash=createHash('sha256');for await(const b of chunks(h,size)){signal?.throwIfAborted();hash.update(b);}return hash.digest('hex');}
 async function exact(h,length,position){const b=Buffer.alloc(length);let got=0;while(got<length){const r=await h.read(b,got,length-got,position+got);if(!r.bytesRead)fail('TRUNCATED_BUNDLE');got+=r.bytesRead;}return b;}
 async function image(root,e){const path=resolve(root,e.path);if(!path.startsWith(resolve(root)+'/'))fail('INVALID_SOURCE');const {h,size}=await regular(path,8388608);try{const b=await exact(h,size,0);if((await h.stat()).size!==size)fail('SOURCE_CHANGED');if(size!==e.bytes||b.length!==e.bytes||createHash('sha256').update(b).digest('hex')!==e.sha256||!verifyImageBytes(b,e.mime))fail('FILE_INTEGRITY_FAILED');return b;}finally{await h.close();}}
 export async function generateRecoveryKey(path){await privateParent(path);const h=await open(path,'wx',0o600);try{await h.writeFile(randomBytes(32));await h.sync();}finally{await h.close();}await syncDirectory(dirname(resolve(path)));return {created:true};}
-export async function packRecoveryBundle({keyPath,dumpPath,manifestPath,filesRoot,output,candidate}){
+export async function packRecoveryBundle({keyPath,dumpPath,manifestPath,filesRoot,output,candidate,signal}){
+ signal?.throwIfAborted();
  const parent=await privateParent(output),{h:mh,size:manifestBytes}=await regular(manifestPath,HEADER_MAX);let manifest;
  try{manifest=manifestParse(JSON.parse((await exact(mh,manifestBytes,0)).toString('utf8')));}finally{await mh.close();}
  const {h:db,size}=await regular(dumpPath);let stage,key;
  try{
   key=await keyBytes(keyPath);
   if((await exact(db,5,0)).toString()!=='PGDMP')fail('CUSTOM_DUMP_REQUIRED');
-  const header=headerParse({format:'ynsg-recovery-payload-v1',candidate,createdAt:new Date().toISOString(),database:{bytes:size,sha256:await digest(db,size)},manifest});
+  const header=headerParse({format:'ynsg-recovery-payload-v1',candidate,createdAt:new Date().toISOString(),database:{bytes:size,sha256:await digest(db,size,signal)},manifest});
   const encoded=Buffer.from(JSON.stringify(header));if(encoded.length>HEADER_MAX)fail('HEADER_TOO_LARGE');
   const length=Buffer.alloc(4);length.writeUInt32BE(encoded.length);const nonce=randomBytes(12),prefix=Buffer.concat([MAGIC,nonce]),cipher=createCipheriv('aes-256-gcm',key,nonce,{authTagLength:16});cipher.setAAD(prefix);
   stage=await mkdtemp(join(parent,'.ynsg-pack-'));const temp=join(stage,'bundle'),out=await open(temp,'wx',0o600);
-  async function* payload(){yield length;yield encoded;const hash=createHash('sha256');for await(const b of chunks(db,size)){hash.update(b);yield b;}if(hash.digest('hex')!==header.database.sha256)fail('SOURCE_CHANGED');for(const e of manifest.files)yield await image(filesRoot,e);}
-  try{await out.writeFile(prefix);await pipeline(Readable.from(payload()),cipher,sink(out));await out.writeFile(cipher.getAuthTag());await out.sync();}finally{await out.close();}
-  await link(temp,resolve(output));await unlink(temp);await syncDirectory(parent);return {files:manifest.files.length,databaseBytes:size,candidate};
+  async function* payload(){yield length;yield encoded;const hash=createHash('sha256');for await(const b of chunks(db,size)){hash.update(b);yield b;}if(hash.digest('hex')!==header.database.sha256)fail('SOURCE_CHANGED');for(const e of manifest.files){signal?.throwIfAborted();yield await image(filesRoot,e);}}
+  try{await out.writeFile(prefix);await pipeline(Readable.from(payload()),cipher,sink(out),{signal});await out.writeFile(cipher.getAuthTag());await out.sync();}finally{await out.close();}
+  signal?.throwIfAborted();await link(temp,resolve(output));await unlink(temp);await syncDirectory(parent);return {files:manifest.files.length,databaseBytes:size,candidate};
  }finally{await db.close();key?.fill(0);if(stage)await rm(stage,{recursive:true,force:true});}
 }
 export async function unpackRecoveryBundle({keyPath,bundlePath,outputDirectory}){

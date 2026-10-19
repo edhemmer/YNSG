@@ -50,7 +50,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "City \u2192 required ZIP selection added to new public intake, with owner address editing and saved-customer ZIP handling; see docs/production/city-postal-codes.md. ZIP migration applied as Supabase history 20261019020939; function guards, permissions and legacy context verified read-only. Complete PR #129 CI and both production deployment checks. PR #77 merged (booking field focus; exact-head CI passed). Execute A01\u2013A03 full guest journey, failure/retry, controlled delivery, and physical mobile accessibility evidence before verification.",
+      "nextAction": "City \u2192 required ZIP selection added to new public intake, with owner address editing and saved-customer ZIP handling; see docs/production/city-postal-codes.md. ZIP migration applied as Supabase history 20261019020939; function guards, permissions and legacy context verified read-only. PR #129 exact-head CI and both live deployments passed; see docs/production/release-mobile-zip-2026-10-19.md. PR #77 merged (booking field focus; exact-head CI passed). Execute A01\u2013A03 full guest journey, failure/retry, controlled delivery, and physical mobile accessibility evidence before verification.",
       "acceptance": "Required name/email/phone/address; multiple services; honest arrange-time path; free address check is advisory; retry saves one request and one milestone notification; no abandoned hold leaks.",
       "requiredEvidence": "Synthetic full-journey tests plus approved controlled delivery and physical-device evidence.",
       "evidence": []
@@ -69,7 +69,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Historical intake region now scopes daily routes and scheduling travel checks; validate the actual October 19 neighboring route and controlled cancellation/recurrence/calendar outage evidence under #36/#37. Missing address history requires review rather than an ambiguous provider estimate.",
+      "nextAction": "PR #129 is live on both domains; owner day calendar and next-day existing route read passed. Embedded Maps still returns RefererNotAllowedMapError for .app/owner; directions fallback and complete stop details work. Correct Google website restrictions, then complete controlled cancellation/recurrence/calendar outage and neighboring-route acceptance under #36/#37. Historical address state/ZIP evidence remains authoritative.",
       "acceptance": "No double booking or stale approval; preserved original visit until replacement; correct local time/DST, minimum duration, travel and per-visit reminders; clear configured/offline states.",
       "requiredEvidence": "Native PostgreSQL races/replay tests, isolated provider tests and controlled connected-calendar acceptance.",
       "evidence": []
@@ -204,7 +204,7 @@
         "WEB-05",
         "WEB-06"
       ],
-      "nextAction": "Cross-screen layout/error audit and local fixes recorded in docs/production/screen-review-2026-10-19.md, including public narrow-phone and owner tablet overflow. Publish only with authorization and exact-head CI, then verify physical Safari/VoiceOver, real Maps configuration and full acceptance. Validate screenshot-driven mobile route/month, date-field and money pagination fixes in docs/production/mobile-routes-money-2026-10-19.md. Publication is blocked by automatic push approval review; actual iPhone/Safari and Google Maps configuration acceptance remain required. Use the resettable /owner/practice sample workspace for phone/iPad large-text, dark/light, keyboard and task review without production QA records. Interaction tests enforce zero network calls; actual device/performance/accessibility evidence remains required.",
+      "nextAction": "Cross-screen layout/error audit and local fixes recorded in docs/production/screen-review-2026-10-19.md, including public narrow-phone and owner tablet overflow. PR #129 merged at 97e919e624f5401dc4a1b8ffc5b0a27f977cc773 with both CI jobs passing; verify both live deployments and physical Safari/VoiceOver, real Maps and full acceptance. Validate screenshot-driven mobile route/month, date-field and money pagination fixes in docs/production/mobile-routes-money-2026-10-19.md. Owner authorized publication on October 18 Eastern; actual iPhone/Safari and Google Maps configuration acceptance remain required. Use the resettable /owner/practice sample workspace for phone/iPad large-text, dark/light, keyboard and task review without production QA records. Interaction tests enforce zero network calls; actual device/performance/accessibility evidence remains required.",
       "acceptance": "Approved brand; restrained visible navigation; clear primary action/status; light/dark; no clipped financial amounts; labels, focus, large text, screen readers, keyboard and reduced motion. Meet measured task/performance targets or fix scope.",
       "requiredEvidence": "Device/browser matrix, sanitized captures, task measurements and elderly/disabled participant findings.",
       "evidence": []
@@ -241,7 +241,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Offline encrypted database-plus-file bundle and isolated unpack verification are engineered under #37, including actual synthetic pg_dump/pg_restore CI, exact object-byte/hash checks and independent restored-database catalog reconciliation for every ready file (docs/production/recovery-catalog-2026-10-18.md). Choose custodian/destination/retention/key custody/RPO/RTO, implement authorized consistent source extraction and scheduling/failure alerts, then perform a restricted actual backup/restore; no operational acceptance inferred.",
+      "nextAction": "Consistent read-only source capture now shares one exported PostgreSQL snapshot between catalog and dump, verifies every ready object and encrypts before publication; see docs/production/consistent-source-capture.md. Require exact-head synthetic/native snapshot-restore CI. Choose custodian/destination/retention/key custody/RPO/RTO and authorized schedule/alerts, then perform a restricted actual backup/restore. No production extraction or operational acceptance inferred.",
       "acceptance": "Usable off-provider backups; no customer messages from restored environment; counts/hash/ledger/permissions reconciled; timed recovery meets approved RPO/RTO. Synthetic dump alone insufficient.",
       "requiredEvidence": "Restricted dated export/restore record, retention check, measured recovery and operator acceptance.",
       "evidence": []
