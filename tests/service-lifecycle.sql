@@ -30,6 +30,14 @@ select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='inv
 select public.record_payment('20000000-0000-4000-8000-000000000001',(select id from public.invoices),5000,'cash','Synthetic partial cash receipt',now(),true,'lifecycle-cash-key-01');
 select public.record_payment('20000000-0000-4000-8000-000000000001',(select id from public.invoices),5000,'cash','Synthetic partial cash receipt',now(),true,'lifecycle-cash-key-01');
 select pg_temp.assert_true((select total_cents-(select sum(cents) from public.payments)=7000 from public.invoices),'partial cash retry leaves exactly seventy dollars due');
+do $$declare r jsonb;today date:=(now() at time zone 'America/Chicago')::date;begin
+ r:=public.financial_reconciliation('20000000-0000-4000-8000-000000000001',today,today);
+ perform pg_temp.assert_true((r->>'openingReceivableCents')::bigint=0 and (r->>'closingReceivableCents')::bigint=7000,'invoice/cash bridge retains exact partial amount owed');
+ perform pg_temp.assert_true(jsonb_array_length(r->'rows')=2,'invoice and one idempotent partial receipt appear once');
+ r:=public.financial_reconciliation('20000000-0000-4000-8000-000000000001',today+1,today+1);
+ perform pg_temp.assert_true((r->>'openingReceivableCents')::bigint=7000 and (r->>'closingReceivableCents')::bigint=7000 and jsonb_array_length(r->'rows')=0,'empty later period carries prior outstanding invoice');
+end$$;
+
 select pg_temp.assert_true((select count(*)=0 from public.outbox where kind='invoice.paid'),'partial receipt does not send fully-paid message');
 select public.record_payment('20000000-0000-4000-8000-000000000001',(select id from public.invoices),7000,'zelle','Synthetic actual Zelle receipt',now(),true,'lifecycle-zelle-key-01');
 select public.record_payment('20000000-0000-4000-8000-000000000001',(select id from public.invoices),7000,'zelle','Synthetic actual Zelle receipt',now(),true,'lifecycle-zelle-key-01');
@@ -64,6 +72,12 @@ select public.record_payment('20000000-0000-4000-8000-000000000001',(select id f
 reset role;
 select pg_temp.assert_true((select count(*)=1 and bool_and(status='accepted') from public.outbox where kind='invoice.paid'),'already accepted paid milestone never resent');
 select pg_temp.assert_true((select sum(cents)=12000 from public.payments),'corrected receipts settle exact invoice amount');
+do $$declare r jsonb;today date:=(now() at time zone 'America/Chicago')::date;begin
+ r:=public.financial_reconciliation('20000000-0000-4000-8000-000000000001',today,today);
+ perform pg_temp.assert_true((r->>'closingReceivableCents')::bigint=0,'original and opposite receipts reconcile to settled invoice');
+ perform pg_temp.assert_true((select sum((v->>'receiptCents')::bigint)=12000 from jsonb_array_elements(r->'rows') v),'all original/replacement/correcting receipts retained');
+end$$;
+
 select pg_temp.assert_true((select sum(debit_cents::bigint-credit_cents)=0 from public.journal_lines),'all correction journals remain balanced');
 set local role authenticated;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
@@ -101,7 +115,7 @@ select pg_temp.assert_true(jsonb_array_length(public.customer_file_pages('200000
 select pg_temp.assert_true(jsonb_array_length(public.customer_file_pages('20000000-0000-4000-8000-000000000001',(select customer_id from public.jobs),null,null,'{}'::uuid[],array[(select id from public.invoices)])->'files')=1,'invoice filter uses latest link without scanning a client page');
 do $$begin begin perform public.customer_file_pages('20000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000003',null,null,array[(select id from public.jobs)],'{}'::uuid[]);raise exception 'TEST FAILED cross-customer page target';exception when insufficient_privilege then null;end;end$$;
 select pg_temp.assert_true(jsonb_array_length(public.customer_file_targets('20000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000003','job')->'rows')=0,'unrelated customer has no job targets');
-select public.record_business_expense('20000000-0000-4000-8000-000000000001',current_date,'Synthetic Vendor','supplies','Synthetic receipt association',600,'cash','synthetic-receipt',true,'file-link-synthetic-expense');
+select public.record_business_expense('20000000-0000-4000-8000-000000000001',(now() at time zone 'America/Chicago')::date,'Synthetic Vendor','supplies','Synthetic receipt association',600,'cash','synthetic-receipt',true,'file-link-synthetic-expense');
 select public.link_customer_file('20000000-0000-4000-8000-000000000001',(select customer_id from public.jobs),'83000000-0000-4000-8000-000000000001',2,'expense',(select id from public.business_expenses limit 1),'Synthetic reviewed company receipt association',true,'83000000-0000-4000-8000-000000000008');
 select pg_temp.assert_true(jsonb_array_length(public.customer_file_targets('20000000-0000-4000-8000-000000000001',(select customer_id from public.jobs),'expense','Synthetic Vendor')->'rows')=1,'bounded expense search returns recorded expense');
 select public.link_customer_file('20000000-0000-4000-8000-000000000001',(select customer_id from public.jobs),'83000000-0000-4000-8000-000000000001',3,'customer',(select customer_id from public.jobs),'Synthetic correction to customer record only',true,'83000000-0000-4000-8000-000000000009');

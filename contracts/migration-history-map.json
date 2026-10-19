@@ -391,5 +391,11 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": []
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261019000310_financial_reconciliation.sql",
+      "name": "financial_reconciliation",
+      "status": "not_applied_to_connected_supabase"
+    }
+  ]
 }
