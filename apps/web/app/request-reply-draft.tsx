@@ -1,11 +1,11 @@
 'use client';
 import {useState} from 'react';
-import {declineReasons,declineExplanation,futureProjectInvitation,emailDraftUrl,serviceNotOfferedDraft,type DeclineReason} from '../lib/decline-message';
+import {declineReasons,declineExplanation,futureProjectInvitation,declineSignature,emailDraftUrl,serviceNotOfferedDraft,type DeclineReason} from '../lib/decline-message';
 export default function RequestReplyDraft({name,email,organization}:{name:string;email:string;organization:string}){
  const initial=serviceNotOfferedDraft(name,organization);
  const [subject,setSubject]=useState(initial.subject),[body,setBody]=useState(initial.body),[reason,setReason]=useState<DeclineReason>('service'),[notice,setNotice]=useState('');
  const href=emailDraftUrl(email,subject,body);
- function choose(value:DeclineReason){setReason(value);setBody(`Hi ${name.trim().split(/\s+/)[0]||'there'},\n\nThank you for reaching out to Your Neighborhood Service Guy.\n\n${declineExplanation(value)}\n\n${futureProjectInvitation(organization)}`);setNotice('');}
+ function choose(value:DeclineReason){setReason(value);setBody(`Hi ${name.trim().split(/\s+/)[0]||'there'},\n\nThank you for reaching out to Your Neighborhood Service Guy.\n\n${declineExplanation(value)}\n\n${futureProjectInvitation(organization)}\n\n${declineSignature(organization)}`);setNotice('');}
  async function copy(){try{await navigator.clipboard.writeText(`To: ${email}\nSubject: ${subject}\n\n${body}`);setNotice('Reply copied. Paste it into your email and review before sending.');}catch{setNotice('Could not copy. Select the message below and copy it manually.');}}
  return <details className="decision-form"><summary>Draft a reply to this lead</summary><p>Use this for a personal follow-up, including a request already declined. It does not change the request or queue another CRM email. Check Activity before sending a second message.</p><p>To: {email}</p><label>Reply reason<select value={reason} onChange={e=>choose(e.target.value as DeclineReason)}>{declineReasons.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label><label>Subject<input value={subject} maxLength={160} onChange={e=>setSubject(e.target.value)}/></label><label>Reply message<textarea rows={15} maxLength={5000} value={body} onChange={e=>setBody(e.target.value)}/></label><div className="actions">{href&&body.trim()&&<a className="button secondary" href={href}>Open email draft</a>}<button type="button" className="secondary" onClick={()=>void copy()}>Copy reply</button></div><p className="tiny">Review and press Send in your email app. Delivery outside the CRM is not tracked here.</p>{notice&&<p role="status">{notice}</p>}</details>;
 }
