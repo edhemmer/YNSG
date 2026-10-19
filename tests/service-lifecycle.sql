@@ -138,4 +138,42 @@ do $$begin begin perform public.customer_file_pages('20000000-0000-4000-8000-000
 update auth.sessions set not_after=null where id='10000000-0000-4000-8000-000000000001';
 select pg_temp.assert_true(not has_function_privilege('anon','public.link_customer_file(uuid,uuid,uuid,integer,text,uuid,text,boolean,uuid)','execute') and not has_function_privilege('service_role','public.link_customer_file(uuid,uuid,uuid,integer,text,uuid,text,boolean,uuid)','execute'),'no anonymous or service link mutation');
 set constraints all immediate;
+-- Permission matrix for the canonical invoice history RPC. All fixture changes
+-- are isolated; no production grant or access record is created by this test.
+reset role;
+select set_config('test.invoice_probe',(select id::text from public.invoices limit 1),true);
+delete from public.customer_access where user_id='00000000-0000-4000-8000-000000000003';
+insert into public.customer_access(organization_id,customer_id,user_id,can_view_billing,can_approve)
+select organization_id,customer_id,'00000000-0000-4000-8000-000000000003',true,false from public.invoices limit 1;
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000003","session_id":"10000000-0000-4000-8000-000000000003","aal":"aal1"}',true);
+select pg_temp.assert_true(public.invoice_payment_context('20000000-0000-4000-8000-000000000001',current_setting('test.invoice_probe')::uuid)->>'canManage'='false','billing-only customer can read without approval authority');
+reset role;
+update public.customer_access set can_view_billing=false,can_approve=true where user_id='00000000-0000-4000-8000-000000000003';
+set local role authenticated;
+do $$begin begin perform public.invoice_payment_context('20000000-0000-4000-8000-000000000001',current_setting('test.invoice_probe')::uuid);raise exception 'TEST FAILED approval-only billing read';exception when insufficient_privilege then null;end;end$$;
+reset role;
+update public.customer_access set can_view_billing=true,can_approve=false,expires_at=now()-interval '1 second' where user_id='00000000-0000-4000-8000-000000000003';
+set local role authenticated;
+do $$begin begin perform public.invoice_payment_context('20000000-0000-4000-8000-000000000001',current_setting('test.invoice_probe')::uuid);raise exception 'TEST FAILED expired billing read';exception when insufficient_privilege then null;end;end$$;
+reset role;
+update public.customer_access set expires_at=null,revoked_at=now() where user_id='00000000-0000-4000-8000-000000000003';
+set local role authenticated;
+do $$begin begin perform public.invoice_payment_context('20000000-0000-4000-8000-000000000001',current_setting('test.invoice_probe')::uuid);raise exception 'TEST FAILED revoked billing read';exception when insufficient_privilege then null;end;end$$;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000004","session_id":"10000000-0000-4000-8000-000000000004","aal":"aal1"}',true);
+do $$begin begin perform public.invoice_payment_context('20000000-0000-4000-8000-000000000001',current_setting('test.invoice_probe')::uuid);raise exception 'TEST FAILED other household billing read';exception when insufficient_privilege then null;end;end$$;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
+do $$begin begin perform public.invoice_payment_context('20000000-0000-4000-8000-000000000001',current_setting('test.invoice_probe')::uuid);raise exception 'TEST FAILED other tenant billing read';exception when insufficient_privilege then null;end;end$$;
+reset role;
+update public.customer_access set revoked_at=null where user_id='00000000-0000-4000-8000-000000000003';
+update auth.sessions set not_after=now()-interval '1 second' where id='10000000-0000-4000-8000-000000000003';
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000003","session_id":"10000000-0000-4000-8000-000000000003","aal":"aal1"}',true);
+do $$begin begin perform public.invoice_payment_context('20000000-0000-4000-8000-000000000001',current_setting('test.invoice_probe')::uuid);raise exception 'TEST FAILED expired session billing read';exception when insufficient_privilege then null;end;end$$;
+reset role;
+update auth.sessions set not_after=null where id='10000000-0000-4000-8000-000000000003';
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select pg_temp.assert_true(public.invoice_payment_context('20000000-0000-4000-8000-000000000001',current_setting('test.invoice_probe')::uuid)->>'canManage'='true','current owner retains financial management');
+
 rollback;

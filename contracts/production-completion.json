@@ -107,7 +107,7 @@
       "dependsOn": [
         "WEB-04"
       ],
-      "nextAction": "Append-only cash/Zelle receipt corrections and complete invoice/receipt reconciliation are implemented under #35. Verify strict scoped payment-history reads, matching original/opposite receipt entries, safe balance arithmetic, failed-refresh action locks and retained drafts/exact unknown-save retries. Invoice credits and actual invoice/PDF/delivery/funds acceptance remain open.",
+      "nextAction": "Complete scoped receipt checks now cover owner workspace/inbox balances, invoice JSON/PDF and email preparation; billing-only customer access is separated from proposal approval by invoice_billing_read_permission. See docs/production/invoice-read-integrity.md. Require exact-head CI, migration verification and live read-only checks. Invoice credits and actual invoice/PDF/delivery/funds acceptance remain open.",
       "acceptance": "Issued snapshots fixed; YYYYMM-#### unique numbering; actual receipts only; balanced journal; no duplicate issue/receipt/mail milestone; unknown save locks and replays exact attempt; drafts survive refresh.",
       "requiredEvidence": "PR #28 plus current lifecycle/PDF tests and separately recorded recipient/inbox/funds acceptance.",
       "evidence": []
@@ -224,7 +224,7 @@
         "WEB-01",
         "WEB-06"
       ],
-      "nextAction": "Review server-only file verification RPC, 12 live-owner RPC surfaces and append-only receipt corrections. Verify migration privileges and revocation tests. Independent human review and existing advisor findings remain separate; no warning suppression.",
+      "nextAction": "Review corrected invoice-history billing capability guard and complete receipt reads across documents/email/owner lists, alongside server-only file verification and append-only receipt corrections. Verify invoice_billing_read_permission privileges and billing-only/approval-only/household/tenant/expiry/revocation fixtures. Independent human review and existing advisor findings remain separate; no warning suppression.",
       "acceptance": "No unresolved exploitable critical/high finding; other findings have documented impact/remediation. Required MFA is not reintroduced; leaked-password setting/eligibility is confirmed. AI review cannot sign this gate.",
       "requiredEvidence": "Named independent human review, candidate SHA, findings/resolutions and scoped retest.",
       "evidence": []
@@ -260,7 +260,7 @@
         "WEB-07",
         "WEB-12"
       ],
-      "nextAction": "A conservative Vercel build guard compares the full change set since the last successful project/branch deployment, skips only verified non-runtime changes and preserves CI/manual rebuilds; see docs/production/production-build-selection.md. PR #131 installed the guard and both runtime builds completed at 2ca5bba0b0a5b20635e942b497bf4302e7b8e41f with correct aliases. Verify the positive non-runtime skip on this evidence-only follow-up; no CI bypass. Actual alert receipt, unattended recovery, operator handover and commercial hosting eligibility remain separate.",
+      "nextAction": "A conservative Vercel build guard compares the full change set since the last successful project/branch deployment, skips only verified non-runtime changes and preserves CI/manual rebuilds; see docs/production/production-build-selection.md. PR #131 installed the guard and both runtime builds completed at 2ca5bba0b0a5b20635e942b497bf4302e7b8e41f with correct aliases. PR #132 verified both live ignore commands skipped its evidence-only commit and aliases stayed on the READY runtime release; full exact-head CI passed. No CI bypass. Actual alert receipt, unattended recovery, operator handover and commercial hosting eligibility remain separate.",
       "acceptance": "Responsible operator receives controlled failure and recovery alert; no duplicate mail on recovery; rollback preserves evidence/queues; no credential disclosure; commercial plan confirmed without unauthorized purchase.",
       "requiredEvidence": "Received alert evidence, rollback rehearsal, plan confirmation and dated operational handover.",
       "evidence": []

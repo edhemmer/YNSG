@@ -401,5 +401,11 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": []
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261019112727_invoice_billing_read_permission.sql",
+      "name": "invoice_billing_read_permission",
+      "status": "not_applied_to_connected_supabase"
+    }
+  ]
 }

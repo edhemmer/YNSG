@@ -1,3 +1,4 @@
+import {completeInvoicePayments} from '../../../lib/complete-invoice-payments';
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
 import {authenticated,failure} from '../../../lib/session';
@@ -33,8 +34,8 @@ export async function GET(request:Request){
   const jobs=quoteIds.length?await db.from('jobs').select('id,quote_id,approved_version,status,revision').eq('organization_id',org).in('quote_id',quoteIds).limit(1001):{data:[],error:null};
   if(jobs.error||jobs.data!.length>1000)throw Error('FAILED');
   const jobIds=jobs.data!.map(v=>v.id);
-  const invoices=jobIds.length?await db.from('invoices').select('id,job_id,number,total_cents,payments(cents)').eq('organization_id',org).in('job_id',jobIds).limit(1001):{data:[],error:null};
+  const invoices=jobIds.length?await db.from('invoices').select('id,job_id,number,total_cents').eq('organization_id',org).in('job_id',jobIds).limit(1001):{data:[],error:null};
   if(invoices.error||invoices.data!.length>1000)throw Error('FAILED');
-  return NextResponse.json({requests:rows.data,total:rows.count,needsReview:count.count,page,hasMore:(page+1)*20<rows.count,checkedAt:new Date().toISOString(),quotes:quotes.data,jobs:jobs.data,invoices:invoices.data,preferences:preferences.data},{headers});
+  return NextResponse.json({requests:rows.data,total:rows.count,needsReview:count.count,page,hasMore:(page+1)*20<rows.count,checkedAt:new Date().toISOString(),quotes:quotes.data,jobs:jobs.data,invoices:await completeInvoicePayments(db,org,invoices.data||[]),preferences:preferences.data},{headers});
  }catch(e){return failure(e);}
 }
