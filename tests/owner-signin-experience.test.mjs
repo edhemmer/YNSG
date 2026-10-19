@@ -2,13 +2,15 @@ import test from 'node:test';import assert from 'node:assert/strict';import {cre
 const dom=new JSDOM('<!doctype html><div id="root"></div>',{url:'https://example.invalid/owner'});for(const key of ['window','document','HTMLElement','HTMLInputElement','Event','MouseEvent','FormData','sessionStorage','localStorage'])globalThis[key]=dom.window[key];Object.defineProperty(globalThis,'navigator',{value:dom.window.navigator,configurable:true});window.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){}});window.scrollTo=()=>{};globalThis.IS_REACT_ACT_ENVIRONMENT=true;
 const require=createRequire(new URL('../apps/web/package.json',import.meta.url)),React=require('react');globalThis.React=React;const {act}=React,{createRoot}=require('react-dom/client');const {default:Workspace}=await import('../apps/web/app/workspace.tsx');const node=document.querySelector('#root');const tick=()=>new Promise(r=>setImmediate(r));
 async function click(label){await act(async()=>{const b=[...node.querySelectorAll('button')].find(b=>b.textContent===label);assert.ok(b,label);b.click();await tick();});}
-test('owner can deliberately select email-link sign-in, preserve destination, and return to password without automatic email',async()=>{
- const calls=[];globalThis.fetch=async(path,init)=>{calls.push({path,body:init?.body});return init?.method==='POST'&&JSON.parse(init.body).action==='send'?Response.json({ok:true,message:'Open the newest email link in this same browser.'}):Response.json({error:'Sign in to continue.'},{status:401});};const root=createRoot(node);try{
- await act(async()=>{root.render(React.createElement(Workspace,{configured:true,initialEmail:'test@example.invalid'}));for(let n=0;n<5;n++)await tick();});assert.equal(calls.filter(c=>c.body&&JSON.parse(c.body).action==='send').length,0);
- await click('Use an email sign-in link');assert.ok(!node.querySelector('input[type=password]'));assert.equal(calls.filter(c=>c.body&&JSON.parse(c.body).action==='send').length,0);
+test('owner sign-in offers password and recovery but no email-link option',async()=>{
+ const calls=[];globalThis.fetch=async(path,init)=>{calls.push({path,body:init?.body});return init?.method==='POST'&&JSON.parse(init.body).action==='recover'?Response.json({ok:true,message:'Password reset email requested.'}):Response.json({error:'Sign in to continue.'},{status:401});};const root=createRoot(node);try{
+ await act(async()=>{root.render(React.createElement(Workspace,{configured:true,initialEmail:'test@example.invalid'}));for(let n=0;n<5;n++)await tick();});
+ assert.ok(node.querySelector('input[type=password]'));assert.equal(node.textContent.includes('Use an email sign-in link'),false);assert.equal(calls.some(c=>c.body&&JSON.parse(c.body).action==='send'),false);
+ await click('Forgot password');assert.equal(node.querySelector('input[type=password]'),null);
  await act(async()=>{node.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));for(let n=0;n<3;n++)await tick();});
- const sent=JSON.parse(calls.find(c=>c.body&&JSON.parse(c.body).action==='send').body);assert.equal(sent.action,'send');assert.equal(sent.email,'test@example.invalid');assert.equal(sent.destination,'owner');assert.equal(calls.filter(c=>c.body&&JSON.parse(c.body).action==='send').length,1);assert.match(node.textContent,/Sign-in email sent/);
- await click('Back to sign in');assert.ok(node.querySelector('input[type=password]'));assert.equal(node.querySelector('#email').value,'test@example.invalid');assert.equal(calls.filter(c=>c.body&&JSON.parse(c.body).action==='send').length,1);
+ assert.equal(calls.filter(c=>c.body&&JSON.parse(c.body).action==='recover').length,1);assert.equal(calls.some(c=>c.body&&JSON.parse(c.body).action==='send'),false);
+ await click('Back to sign in');assert.ok(node.querySelector('input[type=password]'));assert.equal(node.querySelector('#email').value,'test@example.invalid');
+ const actions=node.querySelector('form .actions');assert.ok(actions);assert.match(actions.getAttribute('style'),/grid-template-columns: minmax\\(0, 1fr\\)/);
  }finally{await act(async()=>root.unmount());}
 });
 test('canceling sign-out preserves the session and explicit confirmation sends one logout',async()=>{
