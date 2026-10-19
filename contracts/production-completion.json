@@ -126,7 +126,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Guarded keyset file pages and same-customer current-link filtering remove the former 250-record screen ceiling under #34. Verify complete paging, retry and draft/unknown-save recovery with current session/tenant denial. Retention/deletion, capture consent/device acceptance and object-byte restore remain separate.",
+      "nextAction": "Customer portal now validates business/page/record contracts, checks exact metadata and receipt completeness, rechecks current relationships and recovers malformed history through retry; see docs/production/customer-portal-integrity.md. Complete exact-head CI and live read-only account checks. Private-file paging remains guarded; retention/deletion, capture consent/device and actual access acceptance remain separate.",
       "acceptance": "No email-string auto-claim; revoked access fails; supported edits remain discoverable on phone; immutable originals; private files authorized; gaps found in WEB-01 implemented before passing.",
       "requiredEvidence": "Two-tenant/customer tests, upload/deletion/retention cases and accepted owner/customer walkthrough.",
       "evidence": []
@@ -251,7 +251,7 @@
       "milestone": "web",
       "title": "Prove alert delivery, unattended worker failure/recovery, runbooks, safe rollback and commercial hosting eligibility.",
       "owner": "Engineering lead",
-      "status": "open",
+      "status": "working",
       "requirements": [
         "R18",
         "R21"
@@ -260,7 +260,7 @@
         "WEB-07",
         "WEB-12"
       ],
-      "nextAction": "Prove alert delivery, unattended worker failure/recovery, runbooks, safe rollback and commercial hosting eligibility.",
+      "nextAction": "A conservative Vercel build guard compares the full change set since the last successful project/branch deployment, skips only verified non-runtime changes and preserves CI/manual rebuilds; see docs/production/production-build-selection.md. Verify configured build behavior and aliases. Actual alert receipt, unattended recovery, operator handover and commercial hosting eligibility remain separate.",
       "acceptance": "Responsible operator receives controlled failure and recovery alert; no duplicate mail on recovery; rollback preserves evidence/queues; no credential disclosure; commercial plan confirmed without unauthorized purchase.",
       "requiredEvidence": "Received alert evidence, rollback rehearsal, plan confirmation and dated operational handover.",
       "evidence": []
@@ -397,7 +397,7 @@
       "dependsOn": [
         "WEB-17"
       ],
-      "nextAction": "Upstream patched supported dependency versions are required for node-forge GHSA-86w9-cpqp-85rv and braces GHSA-vfj7-8cjw-p6xm. Current native typecheck/lint/SDK/bundle pass; audit still reports two high advisories. Do not suppress advisories or distribute.",
+      "nextAction": "Upstream patched supported dependency versions remain required for node-forge GHSA-86w9-cpqp-85rv and braces GHSA-vfj7-8cjw-p6xm (no published patches in fresh audit). Audit also reports uuid GHSA-w5hq-g745-h8pq through Expo/xcode; review a supported parent upgrade rather than forcing an incompatible major. Existing native typecheck/lint/SDK/bundle pass. Do not suppress advisories or distribute.",
       "acceptance": "No suppressed high/critical advisories; current audit and native checks pass.",
       "requiredEvidence": "Native register: native-security-audit.",
       "evidence": []

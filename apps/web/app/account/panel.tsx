@@ -4,28 +4,9 @@ import { publicError } from "../../lib/public-errors";
 import { useEffect, useState } from "react";
 import { sessionFetch } from "../../lib/session-fetch";
 import RepeatRequest from "./repeat-request";
-type RecordRow = { id: string; status: string; created_at?: string };
-type Portal = {
-  company: { display_name: string };
-  customers: { id: string; display_name: string }[];
-  properties: { id: string; street: string; city: string; region: string }[];
-  requests: RecordRow[];
-  appointments: {
-    id: string;
-    arrival_at: string;
-    start_at: string;
-    status: string;
-    timezone: string;
-  }[];
-  invoices: {
-    id: string;
-    number: string;
-    total_cents: number;
-    payments: { cents: number }[];
-  }[];
-  page: number;
-  hasMore: boolean;
-};
+import {portalAccess,portalPage,verifiedPortalPage} from '../../lib/customer-portal-contract';
+import type {z} from 'zod';
+type Portal=z.infer<typeof portalPage>;
 export default function Account() {
   const [invitation, setInvitation] = useState("");
   const [mode, setMode] = useState<
@@ -58,7 +39,7 @@ export default function Account() {
       const r = await sessionFetch("/api/portal");
       if (r.status === 401) { setMode(m => m === "set-password" ? "recover" : m); setSigned(false); setData(null); setOrg(""); setCompanies([]); return; }
       if (!r.ok) throw Error('Account unavailable');
-      const d = await r.json();
+      const d = portalAccess.parse(await r.json());
       const pending = await sessionFetch("/api/account-link");
       if (pending.ok && (await pending.json()).pending)
         setInvitation((i) => i || "pending");
@@ -103,8 +84,8 @@ export default function Account() {
     sessionFetch("/api/portal?organization=" + org + "&page=" + page)
       .then(async (r) => {
         const d = await r.json();
-        if (!r.ok) throw Error(d.error);
-        if (current) setData(d);
+        if (!r.ok) {if(current&&r.status===401){setSigned(false);setCompanies([]);setOrg("");setWorkspaceAccess(false);}throw Error(d.error);}
+        if (current) setData(verifiedPortalPage(d,org,page));
       })
       .catch((e) => {
         if (current) {setHistoryFailed(true);setMessage(publicError(e));}
