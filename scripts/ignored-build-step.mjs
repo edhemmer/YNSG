@@ -11,14 +11,14 @@ export function shouldIgnoreBuild({env=process.env,cwd=process.cwd(),git=(args)=
   if(env.YNSG_FORCE_BUILD==='1'||!['production','preview'].includes(env.VERCEL_ENV)||!/^[a-f0-9]{40}$/.test(previous||'')||!/^[a-f0-9]{40}$/.test(current||'')||previous===current)return false;
   if(git(['rev-parse','HEAD']).trim()!==current)return false;
   git(['merge-base','--is-ancestor',previous,current]);
-  const raw=git(['diff','--name-only','--no-renames','-z',previous,current,'--']);
+  const raw=git(['diff','--name-only','--no-renames','--no-relative','-z',previous,current,'--']);
   if(!raw||!raw.endsWith('\0'))return false;
   const paths=raw.slice(0,-1).split('\0');
   if(!paths.length||!paths.every(nonRuntimePath))return false;
   // A formerly operator-only module can become a runtime dependency later.
   // Any reference (including a conservative comment match) forces a build.
   const patterns=[...new Set(paths.flatMap(path=>{const names=[path,basename(path)];return /\.(?:mjs|cjs|js|jsx|ts|tsx)$/.test(path)?[...names,...names.map(name=>name.replace(/\.[^.]+$/,''))]:names;}))].flatMap(value=>['-e',value]);
-  try{if(git(['grep','-I','-F','-l',...patterns,'--','apps/web/app','apps/web/lib','api','lib','packages','site','scripts/build.mjs','scripts/seo.mjs']).trim())return false;}
+  try{if(git(['grep','-I','-F','-l',...patterns,'--',':(top)apps/web/app',':(top)apps/web/lib',':(top)api',':(top)lib',':(top)packages',':(top)site',':(top)scripts/build.mjs',':(top)scripts/seo.mjs']).trim())return false;}
   catch(error){if(error.status!==1)return false;}
   return true;
  }catch{return false;}
