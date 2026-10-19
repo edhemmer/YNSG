@@ -126,7 +126,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Customer portal now validates business/page/record contracts, checks exact metadata and receipt completeness, rechecks current relationships and recovers malformed history through retry; see docs/production/customer-portal-integrity.md. Complete exact-head CI and live read-only account checks. Private-file paging remains guarded; retention/deletion, capture consent/device and actual access acceptance remain separate.",
+      "nextAction": "Customer portal now validates business/page/record contracts, checks exact metadata and receipt completeness, rechecks current relationships and recovers malformed history through retry; see docs/production/customer-portal-integrity.md. PR #131 exact-head CI passed with 726 application tests; both production deployments READY at 2ca5bba0b0a5b20635e942b497bf4302e7b8e41f. Existing account entry read checked; linked-customer acceptance remains open. See docs/production/release-customer-portal-2026-10-19.md. Private-file paging remains guarded; retention/deletion, capture consent/device and actual access acceptance remain separate.",
       "acceptance": "No email-string auto-claim; revoked access fails; supported edits remain discoverable on phone; immutable originals; private files authorized; gaps found in WEB-01 implemented before passing.",
       "requiredEvidence": "Two-tenant/customer tests, upload/deletion/retention cases and accepted owner/customer walkthrough.",
       "evidence": []
@@ -241,7 +241,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Consistent read-only source capture now shares one exported PostgreSQL snapshot between catalog and dump, verifies every ready object and encrypts before publication; see docs/production/consistent-source-capture.md. Require exact-head synthetic/native snapshot-restore CI. Choose custodian/destination/retention/key custody/RPO/RTO and authorized schedule/alerts, then perform a restricted actual backup/restore. No production extraction or operational acceptance inferred.",
+      "nextAction": "Consistent read-only source capture now shares one exported PostgreSQL snapshot between catalog and dump, verifies every ready object and encrypts before publication; see docs/production/consistent-source-capture.md. PR #130 exact-head CI passed the synthetic exported-snapshot capture/restore check: a post-snapshot marker remained outside the restored bundle; catalog/file hashes and financial fixtures matched. Choose custodian/destination/retention/key custody/RPO/RTO and authorized schedule/alerts, then perform a restricted actual backup/restore. No production extraction or operational acceptance inferred.",
       "acceptance": "Usable off-provider backups; no customer messages from restored environment; counts/hash/ledger/permissions reconciled; timed recovery meets approved RPO/RTO. Synthetic dump alone insufficient.",
       "requiredEvidence": "Restricted dated export/restore record, retention check, measured recovery and operator acceptance.",
       "evidence": []
@@ -260,7 +260,7 @@
         "WEB-07",
         "WEB-12"
       ],
-      "nextAction": "A conservative Vercel build guard compares the full change set since the last successful project/branch deployment, skips only verified non-runtime changes and preserves CI/manual rebuilds; see docs/production/production-build-selection.md. Verify configured build behavior and aliases. Actual alert receipt, unattended recovery, operator handover and commercial hosting eligibility remain separate.",
+      "nextAction": "A conservative Vercel build guard compares the full change set since the last successful project/branch deployment, skips only verified non-runtime changes and preserves CI/manual rebuilds; see docs/production/production-build-selection.md. PR #131 installed the guard and both runtime builds completed at 2ca5bba0b0a5b20635e942b497bf4302e7b8e41f with correct aliases. Verify the positive non-runtime skip on this evidence-only follow-up; no CI bypass. Actual alert receipt, unattended recovery, operator handover and commercial hosting eligibility remain separate.",
       "acceptance": "Responsible operator receives controlled failure and recovery alert; no duplicate mail on recovery; rollback preserves evidence/queues; no credential disclosure; commercial plan confirmed without unauthorized purchase.",
       "requiredEvidence": "Received alert evidence, rollback rehearsal, plan confirmation and dated operational handover.",
       "evidence": []
@@ -360,7 +360,7 @@
         "WEB-15",
         "WEB-16"
       ],
-      "nextAction": "Release b514b0c: post-merge CI passed; both public and CRM Vercel production deployments READY at identical SHA with custom domains. Read-only HTTP 200 verified for public home/request/services, CRM owner/account and API health. Complete actual authenticated workflows, delivery, rollback and owner-supervised acceptance before marking verified. Do not fetch customer exports or private mileage records as a smoke test. Release links and manual checks: docs/production/manual-review-2026-10-18.md; technical smoke is not full-gate acceptance.",
+      "nextAction": "PR #131 candidate 2ca5bba0b0a5b20635e942b497bf4302e7b8e41f: exact-head CI passed both jobs (726 application tests); merge tree matches accepted head; both production projects READY and all four custom-domain aliases verified. Read-only public request, owner entry and fresh worker/mail health passed. No migration required. See docs/production/release-customer-portal-2026-10-19.md. Actual linked-customer/device/provider, recovery and owner acceptance remain open; do not fetch customer exports or private mileage as smoke tests. This is engineering release evidence, not full-gate acceptance.",
       "acceptance": "Zero unresolved blocker/high defect in included scope; all required gates verified and still applicable; intended production team/project/branch verified; accepted operations handover.",
       "requiredEvidence": "Exact-head CI, tested merge/deployed SHA mapping, migration checks and signed candidate decision.",
       "evidence": []
