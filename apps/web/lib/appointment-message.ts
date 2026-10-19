@@ -1,4 +1,4 @@
-import {futureProjectInvitation} from './decline-message.ts';
+import {futureProjectInvitation,declineSignature} from './decline-message.ts';
 import {requestTiming} from '../../../lib/request-timing.js';
 import {emailLayout,emailParagraph,emailButton,emailSignedText,type EmailIdentity} from '../../../lib/email-layout.js';
 type Submission = {
@@ -128,5 +128,8 @@ export function appointmentMessage(v: AppointmentMessageInput) {
   flush();
   return parts.join('');
  }).join('');
- return {...message,body:emailSignedText(message.body,v.identity),html:emailLayout(v.company,titles[v.kind],message.subject,content,v.identity)};
+ const signature=v.kind.startsWith('appointment.declined_')?declineSignature(v.organization):'';
+ const signedIdentity=signature?{...v.identity,ownerName:''}:v.identity;
+ const signedBody=signature?message.body+'\n\n'+signature:message.body;
+ return {...message,body:emailSignedText(signedBody,signedIdentity),html:emailLayout(v.company,titles[v.kind],message.subject,content+(signature?emailParagraph(signature):''),signedIdentity)};
 }
