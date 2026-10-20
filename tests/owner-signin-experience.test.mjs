@@ -3,7 +3,7 @@ const dom=new JSDOM('<!doctype html><div id="root"></div>',{url:'https://example
 const require=createRequire(new URL('../apps/web/package.json',import.meta.url)),React=require('react');globalThis.React=React;const {act}=React,{createRoot}=require('react-dom/client');const {default:Workspace}=await import('../apps/web/app/workspace.tsx');const node=document.querySelector('#root');const tick=()=>new Promise(r=>setImmediate(r));
 async function click(label){await act(async()=>{const b=[...node.querySelectorAll('button')].find(b=>b.textContent===label);assert.ok(b,label);b.click();await tick();});}
 test('owner login is password-first with email-code recovery explicitly optional',async()=>{
- const calls=[];globalThis.fetch=async(path,init)=>{calls.push({path,body:init?.body});return Response.json({error:'Invalid login credentials'},{status:400});};
+ const calls=[];globalThis.fetch=async(path,init)=>{calls.push({path,body:init?.body});return Response.json({error:'Sign in to continue.'},{status:401});};
  const root=createRoot(node);try{
  await act(async()=>{root.render(React.createElement(Workspace,{configured:true,initialEmail:'test@example.invalid',ownerGoogle:{enabled:false}}));for(let n=0;n<5;n++)await tick();});
  assert.ok(node.textContent.includes('Owner sign in'));
