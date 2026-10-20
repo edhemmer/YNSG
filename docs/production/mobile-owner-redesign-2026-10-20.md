@@ -34,3 +34,13 @@ Verification and release evidence will be recorded below after execution. This c
 Required before merge: exact-head release and native PostgreSQL CI, including the new Chromium/WebKit browser step. Apply the two reviewed function-only migrations to the verified YNSG project, verify their names/definitions, merge the tested head into `codex/crm-workflow`, and verify the merge SHA on both Vercel production aliases. Rollback reference is baseline `59c2f2f6b2f0da12c08b3b13c379d5675e5a3608`; retain schema additions on an app rollback to preserve records and receipts.
 
 Physical checks for Ed after deployment: use `/owner/practice` for portrait/landscape, iPhone keyboard open during a sample note, largest Dynamic Type and VoiceOver. Check a live request read-only for familiar contact/services/timing. Actual customer decisions and message delivery require Ed's real approved action and are never manufactured as QA. Broader product/provider/operations gates remain open; this is a scoped engineering release.
+
+## Verified release evidence
+
+[PR #160](https://github.com/edhemmer/YNSG/pull/160) merged the tested head `21c81115d3c520b27286768d932ea9b70aa0a1d9` as production commit `06a049418f4e7a912a67e2a358d6d4ea02bb40a1`. Both have tree `4ab78198532a07c1eab808523ee5e6f1094dbab0`, matching the reviewed local candidate.
+
+[Exact-head CI run 39427334366](https://github.com/edhemmer/YNSG/actions/runs/39427334366) passed both required jobs. In addition to all 826 application tests and builds/audits, it passed **300** mobile layout/interaction cases across Chromium and WebKit, native HTTP/browser authentication checks with JavaScript enabled and disabled, native PostgreSQL lifecycle/concurrency/recovery, and native types/lint/SDK/bundle checks. No production customer mutation was used for those tests.
+
+The verified YNSG project `jvigtwjlkmeyavzbxjzl` applied `decline_unconfirmed_quote` as history version `20261020131947` and `submitted_scheduling_review` as `20261020131958`. Read-only catalog verification found every reviewed change in its intended private function, with the existing definer/search-path properties retained. The migration-history map now records both observed names/versions as applied rather than leaving a prepared pending entry.
+
+Production runtime deployments for merge `06a0494`: CRM `dpl_5mv1yB1yb4ousfuNjauqWfu17oag`; public site `dpl_Cd8XZ57CPSWm7GrbEGVzfUvwpsQe`. Final READY/alias and read-only live owner verification are recorded in the release-evidence PR. The follow-up evidence changes are non-runtime and must not trigger another application rebuild. Physical iPhone acceptance remains open as described above.
