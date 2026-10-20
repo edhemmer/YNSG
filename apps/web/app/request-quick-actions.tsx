@@ -17,6 +17,7 @@ export default function RequestQuickActions({request,organization,canManage,onRe
  const proposal=request.appointments.find(v=>visitState(v)==='proposal');
  const confirmed=request.appointments.some(v=>visitState(v)==='reserved');
  const manageable=canManage&&['submitted','reviewing','quoted'].includes(request.status);
+ const decisionRequired=manageable&&(Boolean(proposal)||!confirmed);
  async function command(path:string,input:Record<string,unknown>) {
   const fingerprint=JSON.stringify(input);if(!keys.current.has(fingerprint))keys.current.set(fingerprint,crypto.randomUUID());
   const response=await sessionFetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({organizationId:organization,key:keys.current.get(fingerprint),...input})});
@@ -35,8 +36,8 @@ export default function RequestQuickActions({request,organization,canManage,onRe
  return <div className="request-quick-actions">
   {confirmOpen&&<RequestDetail organization={organization} requestId={request.id} timezone={timezone} canManage={canManage} initialPanel="schedule" onClose={()=>setConfirmOpen(false)} onChanged={onChanged} onWork={()=>{setConfirmOpen(false);onReview();}}/>}
   <div className="request-action-buttons" role="group" aria-label={'Actions for '+request.original_submission.name}>
-   {manageable&&(Boolean(proposal)||!confirmed)&&<><button type="button" disabled={pending||declineUnknown} onClick={()=>setConfirmOpen(true)}><Icon name="check"/>Confirm appointment</button><button type="button" className="danger-ghost" disabled={pending||declineUnknown} onClick={()=>{setError('');setMessage('');setAction('decline');}}><Icon name="close"/>Decline request</button></>}
-   <button type="button" className="secondary" disabled={pending||declineUnknown} onClick={onReview}><Icon name="search"/>{reviewLabel}<span className="sr-only"> request for {request.original_submission.name}</span></button>
+   {decisionRequired&&<><button type="button" disabled={pending||declineUnknown} onClick={()=>setConfirmOpen(true)}><Icon name="check"/>Confirm appointment</button><button type="button" className="danger-ghost" disabled={pending||declineUnknown} onClick={()=>{setError('');setMessage('');setAction('decline');}}><Icon name="close"/>Decline request</button></>}
+   {!decisionRequired&&<button type="button" className="secondary" disabled={pending||declineUnknown} onClick={onReview}><Icon name="search"/>{reviewLabel}<span className="sr-only"> request for {request.original_submission.name}</span></button>}
   </div>
 
 
