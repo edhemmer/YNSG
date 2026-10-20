@@ -1,8 +1,8 @@
 {
-  "observedOn": "2026-10-19",
+  "observedOn": "2026-10-20",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
   "sourceBranch": "codex/crm-workflow",
-  "sourceCommit": "63661c03f6f81f16dc3bc9651f482356711ec0f7",
+  "sourceCommit": "06a049418f4e7a912a67e2a358d6d4ea02bb40a1",
   "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
   "repositoryMigrations": [
     {
@@ -394,6 +394,16 @@
       "file": "20261019215904_decline_message_selection.sql",
       "name": "decline_message_selection",
       "historyVersion": "20261019220412"
+    },
+    {
+      "file": "20261020124641_decline_unconfirmed_quote.sql",
+      "name": "decline_unconfirmed_quote",
+      "historyVersion": "20261020131947"
+    },
+    {
+      "file": "20261020124942_submitted_scheduling_review.sql",
+      "name": "submitted_scheduling_review",
+      "historyVersion": "20261020131958"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -426,16 +436,5 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": [
-    {
-      "file": "20261020124641_decline_unconfirmed_quote.sql",
-      "name": "decline_unconfirmed_quote",
-      "status": "not_applied_to_connected_supabase"
-    },
-    {
-      "file": "20261020124942_submitted_scheduling_review.sql",
-      "name": "submitted_scheduling_review",
-      "status": "not_applied_to_connected_supabase"
-    }
-  ]
+  "pendingUnappliedMigrations": []
 }
