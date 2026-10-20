@@ -21,13 +21,13 @@ export async function GET(request: Request) {
   let destination = (await cookies()).get("ynsg-auth-destination")?.value;
   let context:unknown=null;try{context=JSON.parse((await cookies()).get('ynsg-owner-request')?.value||'null');}catch{/* Invalid navigation hints never affect authentication. */}
   let target = ownerReturnTarget(signInTarget(destination, []),context);
-  const redirect = (failed: boolean) =>
+  const redirect = (failed: boolean, code="expired") =>
     NextResponse.redirect(
       origin +
         (failed
-          ? ["account", "password"].includes(destination || "")
+          ? destination === "account"
             ? "/account?auth=failed#"
-            : "/owner?auth=failed#"
+            : "/sign-in?"+new URLSearchParams({...((destination === "password" || tokenType === "recovery")?{mode:"reset"}:{}),error:code})
           : target + "#"),
       {
         headers: {
@@ -51,7 +51,12 @@ export async function GET(request: Request) {
         type: tokenType === "recovery" ? "recovery" : "email",
       });
     const { data, error } = result;
-    if (error || !data.session) return saveEmailVerifier(redirect(true), null);
+    if (error || !data.session) {
+      // A stale link or temporary provider failure must not destroy the newer
+      // browser verifier. Only successful exchange clears it; it expires itself.
+      const status=error && 'status' in error ? Number(error.status) : 0;
+      return redirect(true,status===429?'limited':status&&![400,401,403,404,422].includes(status)?'unavailable':'expired');
+    }
     destination = recoveryDestination(destination, code ? ('redirectType' in data ? data.redirectType as string | null : null) : tokenType);
     target = ownerReturnTarget(signInTarget(destination, []),context);
     if (!destination) {
@@ -67,6 +72,6 @@ export async function GET(request: Request) {
     response.cookies.delete("ynsg-owner-request");
     return response;
   } catch {
-    return saveEmailVerifier(redirect(true), null);
+    return redirect(true,"unavailable");
   }
 }

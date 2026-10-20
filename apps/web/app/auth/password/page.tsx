@@ -5,7 +5,7 @@ import {nativeAuthMessages,nativeAuthError} from '../../../lib/native-auth-contr
 import NativeAuthForm from '../../native-auth-form';
 import PasswordInput from '../../password-input';
 export const dynamic='force-dynamic';
-export const metadata:Metadata={title:'Set your password',robots:{index:false,follow:false},referrer:'no-referrer'};
+export const metadata:Metadata={title:'Set your password',robots:{index:false,follow:false},referrer:'same-origin'};
 export default async function PasswordPage({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}){
  const params=await searchParams,jar=await cookies();
  let userId='',userEmail='',target='/account',unavailable=false;

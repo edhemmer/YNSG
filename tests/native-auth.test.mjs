@@ -12,7 +12,7 @@ function harness(options={}){
   setSession:async value=>{calls.push(['bind',value]);return options.bindFailure?{data:{session:null},error:options.bindFailure}:{data:{session},error:null};},
   refreshSession:async value=>{calls.push(['refresh',value]);return options.bindFailure?{data:{session:null},error:options.bindFailure}:{data:{session},error:null};},
   getUser:async token=>{calls.push(['identity']);return token?{data:{user},error:null}:{data:{user:null},error:{status:401}};},
-  updateUser:async value=>{calls.push(['update',value]);return options.updateFailure?{data:{user:null},error:options.updateFailure}:{data:{user},error:null};},
+  updateUser:async value=>{calls.push(['update',value]);if(options.updateThrows)throw new Error('Synthetic interrupted response');return options.updateFailure?{data:{user:null},error:options.updateFailure}:{data:{user},error:null};},
   getSession:async()=>({data:{session:options.uncertain?null:session},error:null}),
  },from:()=>{const chain={select:()=>chain,eq:()=>chain,is:async()=>({data:options.revoked?[]:[{organization_id:actor,role:'owner'}],error:null})};return chain;}};
  const base={exports:{},z,Buffer,NextResponse,Error,Request,URL,URLSearchParams,process:{env:{SUPABASE_URL:'https://provider.example.invalid',SUPABASE_PUBLISHABLE_KEY:'synthetic-key',APP_ORIGIN:origin,NODE_ENV:'production'}},cookies:async()=>({get:key=>jar.has(key)?{value:jar.get(key)}:undefined}),createClient:()=>db};
@@ -36,7 +36,7 @@ test('native password POST uses shared provider action, returns host-only cookie
  const read=await h.api.GET(new Request(origin+'/api/session'));assert.equal(read.status,200);assert.equal((await read.json()).memberships[0].role,'owner');
 });
 test('native contract rejects cross-origin, unknown/duplicate/oversized input and mismatch before provider work',async()=>{
- const h=harness();assert.equal((await h.POST(request({action:'password'},{sentOrigin:'https://evil.example.invalid'}))).status,403);
+ const h=harness();for(const sentOrigin of ['https://evil.example.invalid','null','']){const denied=await h.POST(request({action:'password'},{sentOrigin}));assert.equal(denied.status,403);assert.match(denied.headers.get('content-type'),/text\/html/);assert.match(await denied.text(),/Open password recovery/);assert.equal(h.calls.length,0);}
  for(const req of [request({action:'password',email:'synthetic@example.invalid',password:'x',returnTo:'https://evil.example.invalid'}),request({}, {body:'action=password&action=recover'}),request({}, {body:'x'.repeat(16001)}),request({}, {type:'application/json',body:'{}'}),request({action:'set-password',password:'synthetic-password',confirmation:'different-password',expectedUser:actor})]){
   const response=await h.POST(req);assert.equal(response.status,303);assert.match(path(response),/error=(invalid_form|mismatch)/);assert.equal(h.calls.length,0);
  }
@@ -64,7 +64,7 @@ test('password update renews missing access, validates the expected confirmed ac
 });
 test('failed or uncertain password update retains safe session behavior and is never retried automatically',async()=>{
  const form={action:'set-password',password:'synthetic-new-password',confirmation:'synthetic-new-password',expectedUser:actor};
- for(const [opts,code] of [[{updateFailure:{status:400,code:'weak_password'}},'weak_password'],[{updateFailure:{status:400,code:'same_password'}},'same_password'],[{updateFailure:{status:400,code:'reauthentication_needed'}},'reauthenticate'],[{uncertain:true},'password_uncertain']]){
+ for(const [opts,code] of [[{updateFailure:{status:400,code:'weak_password'}},'weak_password'],[{updateFailure:{status:400,code:'same_password'}},'same_password'],[{updateFailure:{status:400,code:'reauthentication_needed'}},'reauthenticate'],[{updateFailure:{status:503}},'password_uncertain'],[{updateThrows:true},'password_uncertain'],[{uncertain:true},'password_uncertain']]){
   const h=harness({...opts,initialCookies:{'ynsg-refresh':'synthetic-old-refresh'}}),r=await h.POST(request(form));assert.equal(path(r),'/auth/password?error='+code);assert.equal(h.calls.filter(c=>c[0]==='update').length,1);if(!opts.uncertain)assert.ok(r.cookies.get('ynsg-refresh'));
  }
 });

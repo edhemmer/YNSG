@@ -4,7 +4,7 @@ import {redirect} from 'next/navigation';
 import OwnerLogin from '../owner-login';
 import {ownerRequestContext,ownerReturnTarget} from '../../lib/email-links';
 export const dynamic='force-dynamic';
-export const metadata:Metadata={title:'Owner sign in',robots:{index:false,follow:false},referrer:'no-referrer'};
+export const metadata:Metadata={title:'Owner sign in',robots:{index:false,follow:false},referrer:'same-origin'};
 export default async function SignIn({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}){
  const params=await searchParams,mode=params.mode==='reset'?'reset':params.mode==='sent'?'sent':'password';
  const context=ownerRequestContext(params),jar=await cookies();
