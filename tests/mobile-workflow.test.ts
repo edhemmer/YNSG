@@ -24,6 +24,8 @@ test('owner request progression unlocks actions only after actual saved mileston
  const visit={id:'p',request_id:'r',revision:1,status:'proposal',start_at:'2030-10-21T12:00:00Z',end_at:'2030-10-21T14:00:00Z',arrival_at:'2030-10-21T12:00:00Z',expires_at:null,replaces_id:null,customer_response:'pending'};
  const withProposal:InboxRequest={...request,appointments:[visit]};
  assert.deepEqual(availableMobilePhases(withProposal,[],[]),['visit']);
+ assert.deepEqual(availableMobilePhases(withProposal,[job],[invoice]),['visit'],'Unconfirmed requests never expose billing or closeout, even with linked records');
+ assert.deepEqual(availableMobilePhases(request,[job],[invoice]),['visit'],'No appointment means confirmation first');
  const withConfirmed:InboxRequest={...request,appointments:[{...visit,status:'reserved'}]};
  assert.deepEqual(availableMobilePhases(withConfirmed,[],[]),['visit','work']);
  assert.deepEqual(availableMobilePhases(withConfirmed,[job],[]),['visit','work','invoice']);
