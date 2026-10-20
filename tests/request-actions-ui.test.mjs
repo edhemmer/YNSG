@@ -10,8 +10,8 @@ const id='40000000-0000-4000-8000-000000000001';
 const proposal={id,request_id:id,status:'proposal',revision:1,start_at:'2099-10-15T13:00Z',arrival_at:'2099-10-15T13:00Z',end_at:'2099-10-15T15:00Z',expires_at:'2099-10-14T13:00Z',replaces_id:null,customer_response:'pending'};
 const request={id,status:'reviewing',revision:1,created_at:'2026-10-09T12:00Z',original_submission:{name:'Synthetic Neighbor'},appointments:[proposal]};
 const render=(r=request,canManage=true)=>renderToStaticMarkup(React.createElement(Actions,{request:r,canManage,organization:id,onReview(){},onChanged(){}}));
-test('owner sees separate confirm, decline and review actions; dispatcher gets review only',()=>{
- const owner=render();assert.match(owner,/>Confirm appointment<\/button>/);assert.match(owner,/>Decline request<\/button>/);assert.match(owner,/>Review<span/);
+test('owner sees only confirm and decline when unconfirmed; dispatcher gets review only',()=>{
+ const owner=render();assert.match(owner,/>Confirm appointment<\/button>/);assert.match(owner,/>Decline request<\/button>/);assert.doesNotMatch(owner,/>Review<span/);
  const dispatcher=render(request,false);assert.doesNotMatch(dispatcher,/>Confirm appointment<|>Decline request</);assert.match(dispatcher,/>Review<span/);
 });
 test('missing or expired slots cannot be approved and confirmed visits cannot be reapproved',()=>{
