@@ -15,13 +15,8 @@ export function mobileWorkflow(request:InboxRequest,quotes:LinkedQuote[],jobs:Li
 /** Navigation offers only actions supported by saved workflow evidence. */
 export function availableMobilePhases(request:InboxRequest,jobs:LinkedJob[],invoices:LinkedInvoice[]):MobilePhase[]{
  const confirmed=request.appointments.some(a=>a.status==='reserved');
- const activeWork=jobs.some(j=>j.status!=='canceled');
+ if(!confirmed)return ['visit'];
  const completed=jobs.some(j=>j.status==='completed');
  const billed=invoices.length>0;
- return [
-  'visit',
-  ...(confirmed||activeWork||billed?['work' as const]:[]),
-  ...(completed||billed?['invoice' as const]:[]),
-  ...(billed?['closeout' as const]:[]),
- ];
+ return ['visit','work',...(completed||billed?['invoice' as const]:[]),...(billed?['closeout' as const]:[])];
 }
