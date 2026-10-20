@@ -23,3 +23,13 @@ test('cookie lifetime renews without exposing credentials; origin boundaries rem
  for(const origin of ['https://evil.example.invalid','https://crm.example.invalid.evil.invalid',null])assert.equal(h.sameOrigin(new Request('https://crm.example.invalid/api/session',{headers:origin?{origin}:{}})),false);
  assert.equal(h.sameOrigin(new Request('https://crm.example.invalid/api/session',{headers:{origin:'https://crm.example.invalid'}})),true);
 });
+
+test('both production domains accept only their own browser origin, and reject cross-domain posts',()=>{
+ const h=harness(null);
+ for(const host of ['https://yourneighborhoodserviceguy.app','https://yourneighborhoodserviceguy.com']){
+  assert.equal(h.sameOrigin(new Request(host+'/api/session',{headers:{origin:host}})),true);
+  assert.equal(h.sameOrigin(new Request(host+'/api/session',{headers:{origin:'https://crm.example.invalid'}})),false);
+  assert.equal(h.sameOrigin(new Request(host+'/api/session',{headers:{origin:'https://evil.example.invalid'}})),false);
+ }
+ assert.equal(h.sameOrigin(new Request('https://evil.example.invalid/api/session',{headers:{origin:'https://evil.example.invalid'}})),false);
+});
