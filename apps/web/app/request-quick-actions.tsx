@@ -36,7 +36,7 @@ export default function RequestQuickActions({request,organization,canManage,onRe
   {confirmOpen&&<RequestDetail organization={organization} requestId={request.id} timezone={timezone} canManage={canManage} initialPanel="schedule" onClose={()=>setConfirmOpen(false)} onChanged={onChanged} onWork={()=>{setConfirmOpen(false);onReview();}}/>}
   <div className="request-action-buttons" role="group" aria-label={'Actions for '+request.original_submission.name}>
    {manageable&&(Boolean(proposal)||!confirmed)&&<><button type="button" disabled={pending||declineUnknown} onClick={()=>setConfirmOpen(true)}><Icon name="check"/>Confirm appointment</button><button type="button" className="danger-ghost" disabled={pending||declineUnknown} onClick={()=>{setError('');setMessage('');setAction('decline');}}><Icon name="close"/>Decline request</button></>}
-   <button type="button" className="secondary" disabled={pending||declineUnknown} onClick={onReview}><Icon name="search"/>{reviewLabel}<span className="sr-only"> request for {request.original_submission.name}</span></button>
+   {(!manageable||confirmed)&&<button type="button" className="secondary" disabled={pending||declineUnknown} onClick={onReview}><Icon name="search"/>{reviewLabel}<span className="sr-only"> request for {request.original_submission.name}</span></button>}
   </div>
 
 
