@@ -38,7 +38,7 @@ test('returning owner reaches inbox, full request and branded decline without re
   assert.match(node.querySelector('.request-summary-card').textContent,/Synthetic Neighbor/);
   await click('Decline request');const reason=node.querySelector('.quick-decision select');await act(async()=>{reason.value='service';reason.dispatchEvent(new Event('change',{bubbles:true}));await tick();});
   assert.match(node.querySelector('.quick-decision textarea').value,/outside the services/);assert.match(node.querySelector('.quick-decision').textContent,/future project/);assert.match(node.querySelector('.quick-decision').textContent,/Approve decline & send message/);
-  await click('Cancel');await act(async()=>{node.querySelector('.request-summary-card .secondary').click();for(let n=0;n<6;n++)await tick();});
+  await click('Cancel');await act(async()=>{[...node.querySelectorAll('.request-summary-card button')].find(b=>b.textContent.includes('Confirm appointment')).click();for(let n=0;n<6;n++)await tick();});
   assert.match(node.textContent,/Synthetic full note for incident recovery verification/);
   assert.ok(writes.every(w=>w.path==='/api/session'));assert.deepEqual(writes,[]);
  }finally{await act(async()=>root.unmount());window.history.replaceState(null,'','/owner');}
