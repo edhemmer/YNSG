@@ -2,10 +2,10 @@ import test from 'node:test';import assert from 'node:assert/strict';import {cre
 const dom=new JSDOM('<!doctype html><div id="root"></div>',{url:'https://example.invalid/owner'});for(const key of ['window','document','HTMLElement','HTMLInputElement','Event','MouseEvent','FormData','sessionStorage','localStorage'])globalThis[key]=dom.window[key];Object.defineProperty(globalThis,'navigator',{value:dom.window.navigator,configurable:true});window.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){}});window.scrollTo=()=>{};globalThis.IS_REACT_ACT_ENVIRONMENT=true;
 const require=createRequire(new URL('../apps/web/package.json',import.meta.url)),React=require('react');globalThis.React=React;const {act}=React,{createRoot}=require('react-dom/client');const {default:Workspace}=await import('../apps/web/app/workspace.tsx');const node=document.querySelector('#root');const tick=()=>new Promise(r=>setImmediate(r));
 async function click(label){await act(async()=>{const b=[...node.querySelectorAll('button')].find(b=>b.textContent===label);assert.ok(b,label);b.click();await tick();});}
-test('owner login stays email and password only with optional recovery',async()=>{
+test('owner offers enabled Google passwordless sign-in plus password recovery',async()=>{
  const calls=[];globalThis.fetch=async(path,init)=>{calls.push({path,body:init?.body});return Response.json({error:'Sign in to continue.'},{status:401});};const root=createRoot(node);try{
- await act(async()=>{root.render(React.createElement(Workspace,{configured:true,initialEmail:'test@example.invalid'}));for(let n=0;n<5;n++)await tick();});
- assert.ok(node.querySelector('input[type=password]'));assert.ok(node.textContent.includes('Sign In'));assert.ok(node.textContent.includes('Forgot password'));assert.ok(!node.textContent.includes('email sign-in link'));assert.ok(!node.textContent.includes('Continue with Google'));
+ await act(async()=>{root.render(React.createElement(Workspace,{configured:true,initialEmail:'test@example.invalid',ownerGoogle:{enabled:true}}));for(let n=0;n<5;n++)await tick();});
+ assert.ok(node.querySelector('input[type=password]'));assert.ok(node.textContent.includes('Sign In'));assert.ok(node.textContent.includes('Forgot password'));assert.ok(!node.textContent.includes('email sign-in link'));assert.ok(node.textContent.includes('Continue with Google'));
  assert.equal(calls.filter(c=>c.body&&JSON.parse(c.body).action==='send').length,0);
  await click('Forgot password');assert.ok(!node.querySelector('input[type=password]'));
  await click('Back to sign in');assert.ok(node.querySelector('input[type=password]'));
