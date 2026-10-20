@@ -17,16 +17,19 @@ export default function CommandCenter({organization,timezone,revision,onOpen,onN
   void read();const timer=setInterval(()=>{if(document.visibilityState==='visible')void read();},60000);return()=>{live=false;controller.abort();clearInterval(timer);};
  },[organization,today,revision,retry]);
  return <>
-  <header className="owner-today-heading"><div><p className="eyebrow">Your business day</p><h2>What needs doing today?</h2><p>Open a job to confirm, complete the work, review its invoice and close it out.</p></div><button className="secondary" onClick={()=>onNavigate('Today')}><Icon name="pin"/>Day routes</button></header>
+  <header className="owner-today-heading"><div><h2>Your next jobs</h2></div><button className="secondary" onClick={()=>onNavigate('Today')}><Icon name="pin"/>Routes</button></header>
   <OwnerDay organization={organization} revision={revision} onOpen={onOpen} onNavigate={onNavigate}/>
   {error&&<p role="alert" className="error note">Business totals could not load. {error}</p>}
+  <RequestInbox organization={organization} timezone={timezone} revision={revision} onOpen={onOpen} canManage compact/>
+  <details className="owner-today-admin"><summary>Business overview and reports</summary>
   <section className="metric-grid" aria-label="Current business totals">{[
    {label:'Needs review',value:data?.counts.requestsToReview,icon:'inbox',section:'Requests',note:'New and under-review requests',tone:'amber'},
    {label:'Upcoming visits',value:data?.counts.upcomingVisits,icon:'calendar',section:'Calendar',note:'Confirmed appointments ahead',tone:'green'},
    {label:'Work to finish',value:data?data.counts.working+data.counts.paused+(data.counts.jobsNeedingInvoice||0):undefined,icon:'work',section:'Work',note:'Working, paused or awaiting an invoice',tone:'blue'},
    {label:'Unpaid balance',value:data?(data.finance.outstandingAsOfEndCents/100).toLocaleString('en-US',{style:'currency',currency:'USD'}):undefined,icon:'money',section:'Money',note:'Recorded balance through today',tone:'violet'}
   ].map(m=><button className="metric-card" key={m.label} onClick={()=>onNavigate(m.section)}><span className={'metric-icon tone-'+m.tone}><Icon name={m.icon}/></span><span className="metric-label">{m.label}</span><strong>{m.value===undefined?'—':m.value}</strong><span className="metric-note">{m.note}</span><Icon name="arrow" className="metric-arrow"/></button>)}</section>
-  <div className="command-grid"><RequestInbox organization={organization} timezone={timezone} revision={revision} onOpen={onOpen} canManage compact/><aside className="command-aside"><BusinessBrief data={data} error={error} onNavigate={onNavigate} onRetry={()=>setRetry(n=>n+1)}/></aside></div>
+  <BusinessBrief data={data} error={error} onNavigate={onNavigate} onRetry={()=>setRetry(n=>n+1)}/>
+  </details>
   <details className="card"><summary>Marketing drafts · optional business tools</summary><MarketingDrafts key={organization} organization={organization}/></details>
  </>;
 }
