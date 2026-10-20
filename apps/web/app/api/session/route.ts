@@ -237,7 +237,8 @@ export async function GET(request:Request) {
     const { data, error } = await db
       .from("memberships")
       .select("organization_id,role")
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .is("revoked_at", null);
     if (error) throw error;
     for(const m of data||[])
       if(['owner','admin'].includes(m.role))
