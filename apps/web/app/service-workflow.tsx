@@ -5,7 +5,7 @@ import {submissionAddress} from '../lib/request-inbox';
 import {useState,useRef,useEffect} from 'react';
 import type {InboxRequest,LinkedQuote,LinkedJob,LinkedInvoice} from '../lib/request-inbox';
 import {requestTasks,requestTiming,visitState} from '../lib/request-inbox';
-import {mobileWorkflow,mobilePhases,type MobilePhase} from '../lib/mobile-workflow';
+import {mobileWorkflow,mobilePhases,availableMobilePhases,type MobilePhase} from '../lib/mobile-workflow';
 import SchedulingReviewPanel from './scheduling-review-panel';
 import Icon from './crm-icons';
 import {navigationUrl} from '../lib/day-plan';
@@ -35,11 +35,8 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
  // canonical appointment/work/invoice prerequisites exist.
  const confirmedVisit=request.appointments.some(a=>visitState(a)==='reserved');
  const hasWork=jobs.some(j=>j.status!=='canceled');
- const hasCompletedWork=jobs.some(j=>j.status==='completed');
  const hasInvoice=invoices.length>0;
- const allowedPhases:MobilePhase[]=confirmedVisit||hasWork||hasInvoice
-  ? ['visit',...(confirmedVisit||hasWork?['work' as const]:[]),...(hasCompletedWork||hasInvoice?['invoice' as const]:[]),...(hasInvoice?['closeout' as const]:[])]
-  : ['visit'];
+ const allowedPhases=availableMobilePhases(request,jobs,invoices);
  const requestedPhase=selection?.state===stateKey?selection.phase:plan.phase;
  const phase=allowedPhases.includes(requestedPhase)?requestedPhase:allowedPhases[allowedPhases.length-1];
  const proposal=request.appointments.find(a=>visitState(a)==='proposal');
