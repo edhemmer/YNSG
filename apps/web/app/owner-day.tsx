@@ -4,7 +4,7 @@ import {sessionFetch} from '../lib/session-fetch';
 import {publicError} from '../lib/public-errors';
 import {ownerDayResponse,ownerDayLabel,type OwnerDay} from '../lib/owner-day';
 import Icon from './crm-icons';
-export default function OwnerDay({organization,revision,onOpen,onNavigate}:{organization:string;revision:number;onOpen:(id:string)=>void;onNavigate:(section:string)=>void}){
+export default function OwnerDay({organization,revision,onNavigate}:{organization:string;revision:number;onNavigate:(section:string)=>void}){
  const [data,setData]=useState<OwnerDay|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
  useEffect(()=>{let live=true,inFlight=false;const controller=new AbortController();setData(null);setError('');
   async function read(){if(inFlight)return;inFlight=true;try{const r=await sessionFetch('/api/owner-day?'+new URLSearchParams({organization}),{cache:'no-store',signal:controller.signal});const d=await r.json();if(!r.ok)throw Error(d.error);if(live){setData(ownerDayResponse.parse(d));setError('');}}catch(e){if(live&&!controller.signal.aborted){setData(null);setError(publicError(e));}}finally{inFlight=false;}}

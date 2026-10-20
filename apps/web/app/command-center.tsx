@@ -18,7 +18,7 @@ export default function CommandCenter({organization,timezone,revision,onOpen,onN
  },[organization,today,revision,retry]);
  return <>
   <header className="owner-today-heading"><div><h2>Your next jobs</h2></div><button className="secondary" onClick={()=>onNavigate('Today')}><Icon name="pin"/>Routes</button></header>
-  <OwnerDay organization={organization} revision={revision} onOpen={onOpen} onNavigate={onNavigate}/>
+  <OwnerDay organization={organization} revision={revision} onNavigate={onNavigate}/>
   {error&&<p role="alert" className="error note">Business totals could not load. {error}</p>}
   <RequestInbox organization={organization} timezone={timezone} revision={revision} onOpen={onOpen} canManage compact/>
   <details className="owner-today-admin"><summary>Business overview and reports</summary>
