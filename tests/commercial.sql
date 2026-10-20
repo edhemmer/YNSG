@@ -20,6 +20,7 @@ do $$begin begin
 select public.approve_quote('20000000-0000-4000-8000-000000000001',(select id from public.quotes limit 1),2,'Synthetic recorded approval for test only');
 select public.approve_quote('20000000-0000-4000-8000-000000000001',(select id from public.quotes limit 1),2,'Synthetic recorded approval for test only');
 select pg_temp.assert_true((select count(*)=1 from public.jobs),'approval retry creates one job');
+do $$begin begin perform public.decline_service_request_with_message('20000000-0000-4000-8000-000000000001',(select id from public.service_requests limit 1),4,'Synthetic decline with agreed job','decline-agreed-job-block');raise exception 'TEST FAILED agreed job declined';exception when raise_exception then if sqlerrm<>'TRANSITION' then raise;end if;end;end$$;
 do $$begin begin
  perform public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),1,0,true,'premature-invoice-key');raise exception 'TEST FAILED premature completion';
  exception when raise_exception then if sqlerrm<>'TRANSITION' then raise;end if;end;end$$;

@@ -53,6 +53,8 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium webkit
       - name: Verify authentication through HTTP routes and real browser forms
         run: node scripts/verify-native-auth.mjs --browsers
+      - name: Verify mobile owner workflow and responsive drawer
+        run: node scripts/verify-owner-mobile.mjs
       - name: Install isolated locked native dependencies
         run: pnpm --dir apps/mobile install --frozen-lockfile
       - name: Verify native types, lint, SDK and iOS JavaScript bundle

@@ -13,5 +13,5 @@ test('request detail freezes unknown owner actions instead of silently minting r
 test('unknown owner decisions do not claim unconfirmed customer message delivery',()=>{
  assert.match(source,/Check Activity for the actual customer-message and calendar-delivery status/);
  assert.match(source,/if\(value\?\.ok!==true\|\|value\.result===null\|\|value\.result===undefined\)/);
- assert.match(source,/if\(busy\|\|unknown\)return;onClose/);
+ assert.match(source,/if\(!busy&&!unknown&&canLeave\(\)\)onClose/);
 });

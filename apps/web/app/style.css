@@ -239,3 +239,38 @@ input:is([type=date],[type=datetime-local],[type=time])::-webkit-date-and-time-v
 .company-workspace .mobile-workflow-steps button.is-current{border-width:2px;box-shadow:inset 0 0 0 1px rgba(40,98,68,.18)}
 .service-workflow .workflow-next{border-radius:16px;padding:20px;border-left-width:4px}
 @media(max-width:620px){.mobile-workflow-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.mobile-workflow-steps:has(>button:only-child){grid-template-columns:minmax(0,1fr)}.company-workspace .mobile-workflow-steps button{min-height:60px;flex-direction:row;justify-content:center;gap:10px;font-size:16px}.service-workflow .workflow-header .actions{grid-template-columns:repeat(2,minmax(0,1fr))}.service-workflow .workflow-header .actions a.button{min-width:0;justify-content:center}}
+/* Owner request drawer: one decision area, with native-dialog keyboard scrolling. */
+.request-dialog{--request-surface:#f7f9f8;font-size:1rem;line-height:1.55;overflow-y:auto;overscroll-behavior:contain;scroll-padding-block:7rem 2rem}
+.request-dialog .detail-top{padding:calc(16px + env(safe-area-inset-top)) 24px 16px;gap:12px;background:var(--request-surface)}
+.request-dialog .detail-top>div{min-width:0;overflow-wrap:anywhere}.request-dialog .detail-top h2{font-size:1.5rem;line-height:1.2;margin-bottom:8px}.request-dialog .detail-top .eyebrow{font-size:.75rem}
+.request-dialog .detail-top button{min-height:44px;min-width:44px;width:44px;flex:none}
+.request-dialog .detail-body{padding:16px 24px calc(24px + env(safe-area-inset-bottom))}
+.request-dialog :is(h3,h4){font-size:1.125rem;line-height:1.35;margin-bottom:12px}
+.request-dialog :is(label,.schedule-review p,.note,.customer-note,.appointment-focus p,.request-facts dd,.linked-records>div,.request-service-chips li){font-size:1rem}
+.request-dialog :is(.tiny,.request-facts dt,.detail-contact>span,.schedule-review legend,.visit-field-label,.visit-zone){font-size:.875rem}
+.request-dialog :is(button,a.button,.schedule-review>.secondary){font-size:1rem;min-height:44px;white-space:normal;overflow-wrap:anywhere}
+.request-dialog :is(input,select,textarea){font-size:1rem;max-width:100%;scroll-margin-block:8rem 3rem}
+.request-dialog :is(fieldset,.detail-section,.decision-form,.schedule-review,.detail-contact,.request-next-step>div){min-width:0}
+.request-dialog .decline-fields{border:0;padding:0;margin:0}
+.request-dialog .request-next-step{margin:0 0 14px;padding:12px 14px;border-left:3px solid #ad8034;align-items:center;background:#f8f6ef;color:#10283c;border-color:#d9c49e}
+.request-dialog .request-next-step>div{display:grid;gap:2px}.request-dialog .request-next-step .eyebrow{font-size:.6875rem;letter-spacing:.1em;margin:0;color:#58675c}.request-dialog .request-next-step strong{font-size:1.0625rem}
+.request-dialog .detail-tabs{display:flex;gap:8px;background:none;padding:0;margin-bottom:20px}.request-dialog .detail-tabs button{background:transparent;color:#526b60;border-radius:0;border-bottom:2px solid transparent;min-height:44px;font-size:.9375rem;padding:8px}.request-dialog .detail-tabs button[aria-pressed=true]{border-color:#315842;color:#254c38;background:transparent}
+.request-dialog .decision-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;margin:16px 0 0}.request-dialog .decision-actions>button{margin:0}.request-dialog .decision-actions>button:nth-child(3){grid-column:1/-1}
+.request-dialog .detail-section{padding-bottom:20px;margin-bottom:20px}.request-dialog .visit-summary{padding:14px;margin:8px 0 12px;border-left-width:3px;border-radius:12px}.request-dialog .visit-summary>header{margin-bottom:12px}.request-dialog .visit-state{font-size:.9375rem}.request-dialog .visit-date-label{font-size:1rem}.request-dialog .visit-arrival{font-size:1.5rem}.request-dialog .visit-date-tile strong{font-size:1.75rem}.request-dialog .visit-window{margin-top:12px;padding-top:10px}.request-dialog .visit-window :is(dt,dd){font-size:.9375rem}
+.request-dialog .request-service-chips{gap:8px}.request-dialog .request-service-chips li{min-height:44px;padding:10px;border-left-width:3px}.request-dialog .customer-note{padding:12px;background:var(--request-surface)}
+.request-dialog .request-preferred{font-size:.9375rem;overflow-wrap:anywhere}.request-dialog .request-supporting>summary{font-size:.9375rem;min-height:44px;padding-block:10px}.request-dialog .scheduled-invoice-compact>p{font-size:1rem}
+.request-dialog .decision-form{background:var(--request-surface);border-color:var(--border)}.request-dialog .decision-form .actions{display:flex;flex-wrap:wrap}.request-dialog .decision-form .actions>button{flex:1 1 170px}
+.request-dialog :is(.status-pill,.visit-state,.visit-zone){white-space:normal}.request-dialog .visit-summary>header{flex-wrap:wrap}.request-dialog .detail-contact .actions{display:flex;flex-wrap:wrap;gap:8px}.request-dialog .detail-contact .actions a{flex:1 1 110px}
+.request-dialog .detail-contact>span{overflow-wrap:anywhere}.request-dialog .detail-contact>span svg{flex:none}
+.request-dialog :is(button,a,input,select,textarea,summary):focus-visible{outline:3px solid #ad8034;outline-offset:3px}
+.workflow-appointment-actions>button{margin:8px 8px 0 0}
+@media(max-width:560px){.request-dialog .detail-top{padding-inline:16px}.request-dialog .detail-body{padding-inline:16px}.request-dialog .decision-actions{grid-template-columns:minmax(0,1fr)}.request-dialog .decision-actions>button:nth-child(3){grid-column:auto}.request-dialog .request-facts>div{grid-template-columns:1fr;gap:2px}.request-dialog .visit-summary-main{gap:10px}.request-dialog .visit-date-tile{min-width:56px;padding:8px}.request-dialog .schedule-review>.card{padding:12px}.request-dialog .visit-arrival{font-size:1.375rem}}
+@media(max-height:500px){.request-dialog .detail-top{position:static}.request-dialog{scroll-padding-top:1rem}.request-dialog .detail-top{padding-top:12px}}
+html[data-theme=dark] .request-dialog{--request-surface:#21313d;--border:#405460}
+html[data-theme=dark] .request-dialog .request-next-step{background:#2e332c;color:#f4ecd9;border-color:#a88a53}
+html[data-theme=dark] .request-dialog .request-next-step .eyebrow{color:#ded5bb}
+html[data-theme=dark] .request-dialog .detail-tabs button{color:#b3c2cd}html[data-theme=dark] .request-dialog .detail-tabs button[aria-pressed=true]{background:transparent;color:#dcf5e5;border-color:#99d5a8}
+@media(prefers-reduced-motion:no-preference){.request-dialog[open]{animation:request-drawer-in .16s ease-out}@keyframes request-drawer-in{from{opacity:.6;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}}
+.request-dialog :is(p,summary,dd,li){overflow-wrap:anywhere}
+.service-workflow label:has(input[type=checkbox]){min-height:44px;align-items:center}
+.request-dialog .empty-inline p{font-size:1rem;color:var(--ink)}.request-dialog .empty-inline small{font-size:.875rem}

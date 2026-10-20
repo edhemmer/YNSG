@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mobileWorkflow,availableMobilePhases} from '../apps/web/lib/mobile-workflow.ts';
 import {mobileNavigation,ownerStart} from '../apps/mobile/src/navigation-policy.ts';
 import type {InboxRequest,LinkedJob,LinkedQuote,LinkedInvoice} from '../apps/web/lib/request-inbox.ts';
-const request:InboxRequest={id:'r',status:'quoted',revision:1,created_at:'2030-10-16T12:00:00Z',original_submission:{name:'Synthetic',email:'test@example.invalid',phone:'5550100',street:'Test',city:'DeKalb'},appointments:[]};
+const request:InboxRequest={id:'r',status:'quoted',revision:1,created_at:'2030-10-16T12:00:00Z',original_submission:{name:'Synthetic',email:'test@example.invalid',phone:'5550100',street:'Test',city:'DeKalb'},appointments:[{id:'visit',request_id:'r',status:'reserved',revision:1,start_at:'2030-10-21T12:00:00Z',end_at:'2030-10-21T14:00:00Z',arrival_at:'2030-10-21T12:00:00Z',expires_at:null,replaces_id:null,customer_response:'confirmed'}]};
 const quote:LinkedQuote={id:'q',request_id:'r',status:'accepted',current_version:1,quote_versions:[{version:1,scope:'Agreed assembly',labor_cents:12000,duration_minutes:120}]};
 const job:LinkedJob={id:'j',quote_id:'q',status:'completed',revision:4};
 const invoice:LinkedInvoice={id:'i',job_id:'j',number:1,total_cents:12000,payments:[{cents:12000}]};
@@ -20,12 +20,12 @@ test('native navigation never embeds foreign or non-HTTPS pages in the credentia
 });
 
 test('owner request progression unlocks actions only after actual saved milestones',()=>{
- assert.deepEqual(availableMobilePhases(request,[],[]),['visit']);
+ assert.deepEqual(availableMobilePhases({...request,appointments:[]},[],[]),['visit']);
  const visit={id:'p',request_id:'r',revision:1,status:'proposal',start_at:'2030-10-21T12:00:00Z',end_at:'2030-10-21T14:00:00Z',arrival_at:'2030-10-21T12:00:00Z',expires_at:null,replaces_id:null,customer_response:'pending'};
  const withProposal:InboxRequest={...request,appointments:[visit]};
  assert.deepEqual(availableMobilePhases(withProposal,[],[]),['visit']);
  assert.deepEqual(availableMobilePhases(withProposal,[job],[invoice]),['visit'],'Unconfirmed requests never expose billing or closeout, even with linked records');
- assert.deepEqual(availableMobilePhases(request,[job],[invoice]),['visit'],'No appointment means confirmation first');
+ assert.deepEqual(availableMobilePhases({...request,appointments:[]},[job],[invoice]),['visit'],'No appointment means confirmation first');
  const withConfirmed:InboxRequest={...request,appointments:[{...visit,status:'reserved'}]};
  assert.deepEqual(availableMobilePhases(withConfirmed,[],[]),['visit','work']);
  assert.deepEqual(availableMobilePhases(withConfirmed,[job],[]),['visit','work','invoice']);
