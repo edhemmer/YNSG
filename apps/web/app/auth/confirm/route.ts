@@ -1,4 +1,4 @@
-import {ownerReturnTarget} from '../../../lib/email-links';
+import {ownerReturnTarget,ownerRequestContext} from '../../../lib/email-links';
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { emailClient, saveEmailVerifier } from "../../../lib/email-auth";
@@ -64,8 +64,10 @@ export async function GET(request: Request) {
         .select('role,revoked_at').eq('user_id', data.session.user.id);
       target = ownerReturnTarget(signInTarget(undefined, membership.error ? [] : membership.data || []),context);
     }
+    const continuation=new URLSearchParams({destination:target.startsWith('/auth/password')?'password':target.startsWith('/account')?'account':target.startsWith('/owner?setup=google')?'google':target.startsWith('/owner')?'owner':'team'});
+    const ownerContext=ownerRequestContext(context);if(target.startsWith('/owner')&&ownerContext)for(const [key,value] of Object.entries(ownerContext))continuation.set(key,value);
     const response = saveEmailVerifier(
-      saveSession(redirect(false), data.session),
+      saveSession(NextResponse.redirect(origin+'/auth/continue?'+continuation,{status:303,headers:{'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}}), data.session),
       null,
     );
     response.cookies.delete("ynsg-auth-destination");

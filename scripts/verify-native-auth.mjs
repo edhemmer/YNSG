@@ -65,7 +65,7 @@ try{
  const membership=await(await request('/api/session')).json();assert.equal(membership.memberships[0].role,'owner');
  const rejected=await request('/auth/access',{form:credentials,sentOrigin:'https://evil.example.invalid'});assert.equal(rejected.status,403);
  jar.clear();const reset=await request('/auth/access',{form:{action:'recover',email:user.email}});assert.equal(location(reset),'/sign-in?mode=sent');assert.equal(recoveries,1);assert.ok(jar.get('ynsg-email-pkce'));
- const callback=await request('/auth/confirm?code=synthetic-code');assert.equal(location(callback),'/auth/password');
+ const callback=await request('/auth/confirm?code=synthetic-code');assert.equal(location(callback),'/auth/continue?destination=password');const continuation=await(await request(location(callback))).text();assert.ok(continuation.includes('window.location.replace("/auth/password")'));
  const passwordPage=await(await request('/auth/password')).text();assert.ok(passwordPage.includes('aria-label="Set password"'));assert.ok(passwordPage.includes('name="expectedUser"'));assert.ok(!passwordPage.includes('Privacy and account deletion'));assert.ok(!passwordPage.includes('service history'));
  const fabricated=await(await request('/auth/password?status=saved')).text();assert.ok(!fabricated.includes('<h1>Password saved</h1>'));
  const change={action:'set-password',password:'synthetic-new-password',confirmation:'synthetic-new-password',expectedUser:actor};jar.delete('ynsg-access');
