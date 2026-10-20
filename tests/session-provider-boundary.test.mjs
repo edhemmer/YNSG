@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {stripTypeScriptTypes} from 'node:module';import {runInNewContext} from 'node:vm';
 const raw=readFileSync('apps/web/lib/session.ts','utf8').replace(/^import .*;\n/gm,'');
 function harness(result,{token='synthetic-access',origin='https://crm.example.invalid'}={}){
- let reads=0;const written=[];const context={exports:{},Error,process:{env:{SUPABASE_URL:'https://provider.example.invalid',SUPABASE_PUBLISHABLE_KEY:'synthetic-key',APP_ORIGIN:origin,NODE_ENV:'production'}},createClient:()=>({auth:{getUser:async()=>{reads++;return typeof result==='function'?result():result;}}}),cookies:async()=>({get:()=>token?{value:token}:undefined}),NextResponse:{json:(data,options)=>Response.json(data,options)}};
+ let reads=0;const written=[];const context={exports:{},Error,URL,process:{env:{SUPABASE_URL:'https://provider.example.invalid',SUPABASE_PUBLISHABLE_KEY:'synthetic-key',APP_ORIGIN:origin,NODE_ENV:'production'}},createClient:()=>({auth:{getUser:async()=>{reads++;return typeof result==='function'?result():result;}}}),cookies:async()=>({get:()=>token?{value:token}:undefined}),NextResponse:{json:(data,options)=>Response.json(data,options)}};
  runInNewContext(stripTypeScriptTypes(raw).replace(/^export /gm,'')+'\nObject.assign(exports,{authenticated,failure,saveSession,sameOrigin});',context);
  return {...context.exports,reads:()=>reads,written};
 }
