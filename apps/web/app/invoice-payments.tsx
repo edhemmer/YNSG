@@ -60,7 +60,7 @@ export default function InvoicePayments({organization,invoice,totalCents,timezon
    if(d.ok!==true||typeof d.result?.id!=='string')throw Error('The saved payment response could not be verified.');
    if(currentIdentity.current!==target)return;
    receiptRetry.current=null;receiptAttempt.current=null;receiptDirtyRef.current=false;setReceiptDirty(false);form?.reset();setPaymentOpen(false);setReceiptSyncNeeded(true);setReceiptUncertain(false);
-   setMessage('Payment received and recorded.');
+   setMessage('Received payment saved to this invoice. The remaining balance has been recalculated.');
    try{await load();setReceiptSyncNeeded(false);onChanged?.();}
    catch{setError('The payment was recorded. Refresh payment details to see the updated balance.');}
   }catch(err){
