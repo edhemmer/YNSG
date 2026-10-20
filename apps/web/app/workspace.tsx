@@ -10,6 +10,7 @@ import {companyTheme} from "../lib/company-brand";
 import Icon from './crm-icons';
 import CommandCenter from './command-center';
 import RequestInbox from './request-inbox';
+import OwnerLogin from './owner-login';
 import ThemeToggle from './theme-toggle';
 import MobileNotifications from './mobile-notifications';
 import RequestDetail from './request-detail';
@@ -397,33 +398,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
         ) : sessionUnavailable && !session ? (
           <div className="auth card"><h1>Reconnect to your workspace</h1><p>Your saved sign-in could not be checked. You do not need to request another email.</p><button onClick={()=>{setChecking(true);void loadSession();}}>Try saved sign-in again</button></div>
         ) : !session ? (
-          <form className="auth card" onSubmit={login}><ThemeToggle/>
-            <p className="eyebrow">{loginBrand}</p>
-            <h1>Sign in to your workspace</h1>
-            
-            <p>Sign in without a password.</p>
-            {ownerGoogle?.enabled && <div>
-              <button type="button" disabled={pending} onClick={async()=>{
-                setPending(true);setError("");
-                try{const result=await api("/api/owner-google",{requestContext:ownerRequestContext(Object.fromEntries(new URLSearchParams(window.location.search)))||undefined});window.location.assign(result.url);}
-                catch(e){setError(publicError(e));setPending(false);}
-              }}>Continue with Google</button>
-            </div>}
-            <label htmlFor="email">Email address</label>
-            <input id="email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} required disabled={pending||authMode==="code"} value={email} onChange={e=>setEmail(e.target.value)}/>
-            {authMode==="code" && <>
-              <label htmlFor="owner-email-code">One-time email code</label>
-              <input id="owner-email-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6,10}" minLength={6} maxLength={10} required disabled={pending} value={emailCode} onChange={e=>setEmailCode(e.target.value.replace(/[^0-9]/g,""))}/>
-              <p>Enter the code from your latest sign-in email. If it only contains a link, open that link in the same browser instead.</p>
-            </>}
-            <label htmlFor="owner-existing-password">Existing account password</label>
-            <input id="owner-existing-password" type="password" autoComplete="current-password" disabled={pending} value={ownerPassword} onChange={e=>setOwnerPassword(e.target.value)}/>
-            <button type="button" className="secondary" disabled={pending||!ownerPassword} onClick={()=>void passwordLogin()}>Sign in with password</button>
-            <div className="actions">
-              <button disabled={pending}>{pending?"Please wait…":authMode==="email"?"Email me a sign-in code":"Verify code and sign in"}</button>
-              {authMode==="code" && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("email");setSent(false);setEmailCode("");setError("");setMessage("");}}>Send a new code</button>}
-            </div>
-          </form>
+          <OwnerLogin initialEmail={initialEmail} brand={loginBrand} onSignedIn={loadSession}/>
         ) : (
           <>
 
