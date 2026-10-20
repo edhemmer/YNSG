@@ -26,7 +26,7 @@ test('Today next stops retry safely and open the exact request without mutations
   assert.match(node.textContent,/Appointments could not load/);
   await act(async()=>{[...node.querySelectorAll('button')].find(b=>b.textContent==='Try again').click();await tick();});
   assert.match(node.textContent,/Synthetic stop/);assert.match(node.textContent,/Work \/ pickup starts/);assert.doesNotMatch(node.textContent,/Appointments could not load/);
-  await act(async()=>[...node.querySelectorAll('button')].find(b=>b.textContent.includes('Open job')).click());assert.equal(opened,requestId);
+  const link=[...node.querySelectorAll('a')].find(a=>a.textContent.includes('Open job'));assert.ok(link);assert.equal(link.getAttribute('href'),'/owner?section=Work&request='+requestId);assert.equal(opened,'');
   assert.ok(calls.every(c=>!c.init.method));assert.equal(calls.length,2);
  }finally{await act(async()=>root.unmount());}
 });

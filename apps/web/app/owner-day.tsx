@@ -18,10 +18,10 @@ export default function OwnerDay({organization,revision,onOpen,onNavigate}:{orga
     <p className="eyebrow">{i===0?'Next stop · ':''}{ownerDayLabel(c,data.timezone)}</p><h3>{c.name}</h3>
     <p className="owner-stop-time"><Icon name="calendar"/>{format(c.arrivalAt,{weekday:'short',month:'short',day:'numeric'})}<strong>{format(c.arrivalAt,{hour:'numeric',minute:'2-digit',timeZoneName:'short'})}</strong></p>
     {c.startAt!==c.arrivalAt&&<p className="tiny">Work / pickup starts {format(c.startAt,{hour:'numeric',minute:'2-digit',timeZoneName:'short'})}</p>}
-    <p><Icon name="pin"/>{c.address}</p><p>{c.tasks.join(' · ')}</p><button onClick={()=>onOpen(c.requestId)}>Open job<Icon name="arrow"/></button>
+    <p><Icon name="pin"/>{c.address}</p><p>{c.tasks.join(' · ')}</p><a className="button" href={'/owner?'+new URLSearchParams({section:'Work',request:c.requestId})}>Open job<Icon name="arrow"/></a>
    </article>;})}</div>
    {(data.calls.length>3||data.hasMore)&&<p className="tiny">Showing your next 3 stops. Calendar contains the rest of your schedule.</p>}
-   <p className="tiny">Confirmed schedule · refreshed {new Intl.DateTimeFormat('en-US',{timeZone:data.timezone,hour:'numeric',minute:'2-digit'}).format(new Date(data.checkedAt))}. Open the job to check its current work and billing status.</p>
+
   </>}
  </section>;
 }
