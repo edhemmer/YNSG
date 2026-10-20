@@ -8,6 +8,7 @@ type Props={initialEmail:string;onSignedIn:()=>Promise<void>;brand:string};
 export default function OwnerLogin({initialEmail,onSignedIn,brand}:Props){
  const [email,setEmail]=useState(initialEmail);
  const [password,setPassword]=useState("");
+ const [showPassword,setShowPassword]=useState(false);
  const [mode,setMode]=useState<"password"|"recovery"|"code">("password");
  const [code,setCode]=useState("");
  const [busy,setBusy]=useState(false);
@@ -36,7 +37,8 @@ export default function OwnerLogin({initialEmail,onSignedIn,brand}:Props){
   <input id="new-owner-email" type="email" required autoComplete="username" autoCapitalize="none" spellCheck={false} disabled={busy||mode==="code"} value={email} onChange={e=>setEmail(e.target.value)}/>
   {mode==="password"?<>
    <label htmlFor="new-owner-password">Password</label>
-   <input id="new-owner-password" type="password" required autoComplete="current-password" disabled={busy} value={password} onChange={e=>setPassword(e.target.value)}/>
+   <input id="new-owner-password" type={showPassword?"text":"password"} required autoComplete="current-password" disabled={busy} value={password} onChange={e=>setPassword(e.target.value)}/>
+   <button type="button" className="secondary" aria-controls="new-owner-password" aria-pressed={showPassword} disabled={busy} onClick={()=>setShowPassword(value=>!value)}>{showPassword?"Hide password":"Show password"}</button>
   </>:mode==="code"?<>
    <label htmlFor="new-owner-code">Email sign-in code</label>
    <input id="new-owner-code" inputMode="numeric" autoComplete="one-time-code" required minLength={6} maxLength={10} pattern="[0-9]{6,10}" disabled={busy} value={code} onChange={e=>setCode(e.target.value.replace(/[^0-9]/g,""))}/>
