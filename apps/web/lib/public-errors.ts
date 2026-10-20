@@ -13,6 +13,11 @@ const messages:Record<string,string>={
  RECONNECT_REQUIRED:'Google access expired or was revoked. Reconnect in Settings.',
 };
 const approved=new Set([
+ 'Choose a password different from your current password.',
+ 'Choose a stronger password with at least 10 characters.',
+ 'Open a new password reset email to verify your account before changing the password.',
+ 'Your password could not be saved right now. Your existing sign-in is kept. Please try again shortly.',
+ 'The password change could not be confirmed. Try signing in with the new password before requesting another reset.',
  'Too many sign-in attempts. Please wait before trying again.',
  'Your email or password wasn’t accepted. Check the email and use Show password to check your entry. If needed, choose Forgot password.',
  'Your email needs verification. Choose Forgot password and open the newest reset email.',
