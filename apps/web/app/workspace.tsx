@@ -400,7 +400,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
             <h1>Sign in to your workspace</h1>
             
             <p>{authMode === "recover" ? "Enter your email to reset your password." : "Sign in with your email and password."}</p>
-            {false && ownerGoogle?.enabled && <div>
+            {ownerGoogle?.enabled && <div>
               <button type="button" disabled={pending} onClick={async()=>{
                 setPending(true);setError("");
                 try{const result=await api("/api/owner-google",{requestContext:ownerRequestContext(Object.fromEntries(new URLSearchParams(window.location.search)))||undefined});window.location.assign(result.url);}
