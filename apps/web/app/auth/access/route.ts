@@ -23,7 +23,11 @@ export async function POST(request:Request){
   const value=parsed.data;action=value.action;if(value.action==='password')context=ownerRequestContext(value);
   if(value.action==='set-password'&&value.password!==value.confirmation)return back('mismatch');
   const payload=value.action==='set-password'?{action:value.action,password:value.password,expectedUser:value.expectedUser}:value.action==='password'?{action:value.action,email:value.email,password:value.password}:value;
-  const result=await handleSessionPost(new Request(origin+'/api/session',{method:'POST',headers:{origin,'Content-Type':'application/json'},body:JSON.stringify(payload)}));
+  // The public native POST passed sameOrigin above. The in-process session
+  // dispatch uses the configured canonical origin for its own guard, not the
+  // TLS proxy transport host or a second untrusted browser-supplied origin.
+  const canonical=process.env.APP_ORIGIN!;
+  const result=await handleSessionPost(new Request(canonical+'/api/session',{method:'POST',headers:{origin:canonical,'Content-Type':'application/json'},body:JSON.stringify(payload)}));
   const data=await result.json();
   let response:NextResponse;
   if(result.ok&&data.ok!==true)response=back(value.action==='set-password'?'password_uncertain':'unavailable');
