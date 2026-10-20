@@ -159,7 +159,8 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
   const [email, setEmail] = useState(initialEmail),
     [password, setPassword] = useState(""),
     [showPassword, setShowPassword] = useState(false),
-    [authMode, setAuthMode] = useState<"password" | "recover">("password"),
+    [authMode, setAuthMode] = useState<"email" | "code">("email"),
+    [emailCode,setEmailCode]=useState(""),
     [sent, setSent] = useState(false),
     [pending, setPending] = useState(false);
   const [org, setOrg] = useState(""),
@@ -212,7 +213,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
   }
   useEffect(() => {
     if(new URLSearchParams(window.location.search).get("setup")==="google")setSection("Settings");
-    if(new URLSearchParams(window.location.search).get('auth')==='failed')setError('This sign-in link is expired, already used, or was opened in a different browser. Request a new email here and open its newest link in this browser.');
+    if(new URLSearchParams(window.location.search).get('auth')==='failed')setError('That email link could not be verified. Use a new one-time code or Continue with Google instead.');
     if (configured) void loadSession();
   }, [configured]);
   useEffect(()=>{
@@ -244,28 +245,18 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
   async function login(event: FormEvent) {
     event.preventDefault();
     if(pending)return;
-    if (authMode === "recover") {
-      if (sent) return;
-      setPending(true); setError("");
-      try {
-        const r = await api("/api/session", { action: "recover", email });
-        setSent(true);
-        setMessage(r.message || "Check your email for a password reset link.");
-      } catch (e) { setError(publicError(e)); }
-      finally { setPending(false); }
-      return;
-    }
-    if (authMode === "password") {
-      if (!password) { setError("Enter your workspace password."); return; }
-      setPending(true); setError("");
-      try {
-        await api("/api/session", { action: "password", email, password });
-        setPassword("");
-        await loadSession();
-      } catch (e) { setError(publicError(e)); }
-      finally { setPending(false); }
-      return;
-    }
+    setPending(true);setError("");
+    try {
+      if(authMode==="email") {
+        await api("/api/session",{action:"send",email,destination:"owner",requestContext:ownerRequestContext(Object.fromEntries(new URLSearchParams(window.location.search)))||undefined});
+        setSent(true);setAuthMode("code");
+        setMessage("Check your email for the newest sign-in code.");
+      } else {
+        await api("/api/session",{action:"verify",email,code:emailCode.trim()});
+        setEmailCode("");await loadSession();
+      }
+    } catch(e){setError(publicError(e));}
+    finally{setPending(false);}
   }
 
   async function act(value: Record<string, unknown>) {
@@ -399,7 +390,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
             <p className="eyebrow">{loginBrand}</p>
             <h1>Sign in to your workspace</h1>
             
-            <p>{authMode === "recover" ? "Enter your email to reset your password." : "Sign in with your email and password."}</p>
+            <p>Sign in without a password.</p>
             {ownerGoogle?.enabled && <div>
               <button type="button" disabled={pending} onClick={async()=>{
                 setPending(true);setError("");
@@ -408,33 +399,15 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
               }}>Continue with Google</button>
             </div>}
             <label htmlFor="email">Email address</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              autoCapitalize="none"
-              spellCheck={false}
-              required
-              disabled={pending || sent}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            {authMode === "password" && <>
-              <label htmlFor="workspace-password">Password</label>
-              <input id="workspace-password" type={showPassword ? "text" : "password"} autoComplete="current-password" autoCapitalize="none" autoCorrect="off" spellCheck={false} required disabled={pending} value={password} onChange={(e)=>setPassword(e.target.value)} />
-              <button type="button" className="secondary" aria-pressed={showPassword} disabled={pending} onClick={()=>setShowPassword(v=>!v)}>{showPassword ? "Hide password" : "Show password"}</button>
+            <input id="email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} required disabled={pending||authMode==="code"} value={email} onChange={e=>setEmail(e.target.value)}/>
+            {authMode==="code" && <>
+              <label htmlFor="owner-email-code">One-time email code</label>
+              <input id="owner-email-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6,10}" minLength={6} maxLength={10} required disabled={pending} value={emailCode} onChange={e=>setEmailCode(e.target.value.replace(/[^0-9]/g,""))}/>
+              <p>Enter the code from your latest sign-in email. If it only contains a link, open that link in the same browser instead.</p>
             </>}
-            {authMode === "recover" && sent && <div><h2>Check your email</h2><p>Open the newest password reset link in this browser. The link will take you to a screen where you can choose a new password.</p></div>}
             <div className="actions">
-              <button disabled={pending || (authMode === "recover" && sent)}>
-                {pending
-                  ? "Please wait…"
-                  : authMode === "recover"
-                    ? sent ? "Reset email sent" : "Send password reset"
-                  : "Sign In"}
-              </button>
-              {authMode !== "password" && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("password");setSent(false);setMessage("");setError("");}}>Back to sign in</button>}
-              {authMode === "password" && !sent && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("recover");setPassword("");setError("");}}>Forgot password</button>}
+              <button disabled={pending}>{pending?"Please wait…":authMode==="email"?"Email me a sign-in code":"Verify code and sign in"}</button>
+              {authMode==="code" && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("email");setSent(false);setEmailCode("");setError("");setMessage("");}}>Send a new code</button>}
             </div>
           </form>
         ) : (
