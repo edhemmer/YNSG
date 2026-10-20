@@ -161,6 +161,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
     [showPassword, setShowPassword] = useState(false),
     [authMode, setAuthMode] = useState<"email" | "code">("email"),
     [emailCode,setEmailCode]=useState(""),
+    [ownerPassword,setOwnerPassword]=useState(""),
     [sent, setSent] = useState(false),
     [pending, setPending] = useState(false);
   const [org, setOrg] = useState(""),
@@ -259,6 +260,16 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
     finally{setPending(false);}
   }
 
+  async function passwordLogin() {
+    if(pending||!ownerPassword)return;
+    setPending(true);setError("");
+    try {
+      await api("/api/session",{action:"password",email,password:ownerPassword});
+      setOwnerPassword("");
+      await loadSession();
+    }catch(e){setError(publicError(e));}
+    finally{setPending(false);}
+  }
   async function act(value: Record<string, unknown>) {
     if (ownerCommandFlight.current) return;
     const fingerprint = JSON.stringify([org, value]);
@@ -405,6 +416,9 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
               <input id="owner-email-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6,10}" minLength={6} maxLength={10} required disabled={pending} value={emailCode} onChange={e=>setEmailCode(e.target.value.replace(/[^0-9]/g,""))}/>
               <p>Enter the code from your latest sign-in email. If it only contains a link, open that link in the same browser instead.</p>
             </>}
+            <label htmlFor="owner-existing-password">Existing account password</label>
+            <input id="owner-existing-password" type="password" autoComplete="current-password" disabled={pending} value={ownerPassword} onChange={e=>setOwnerPassword(e.target.value)}/>
+            <button type="button" className="secondary" disabled={pending||!ownerPassword} onClick={()=>void passwordLogin()}>Sign in with password</button>
             <div className="actions">
               <button disabled={pending}>{pending?"Please wait…":authMode==="email"?"Email me a sign-in code":"Verify code and sign in"}</button>
               {authMode==="code" && <button type="button" className="secondary" disabled={pending} onClick={()=>{setAuthMode("email");setSent(false);setEmailCode("");setError("");setMessage("");}}>Send a new code</button>}
