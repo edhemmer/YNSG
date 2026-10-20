@@ -14,9 +14,9 @@ const messages:Record<string,string>={
 };
 const approved=new Set([
  'Too many sign-in attempts. Please wait before trying again.',
- 'Your email or password wasn’t accepted. Try again or use an email sign-in link.',
- 'Sign-in could not be completed. Use an email sign-in link to verify your email.',
- 'Password sign-in is temporarily unavailable. Try again shortly or use an email sign-in link.',
+ 'Your email or password wasn’t accepted. Check the email and use Show password to check your entry. If needed, choose Forgot password.',
+ 'Your email needs verification. Choose Forgot password and open the newest reset email.',
+ 'Password sign-in is temporarily unavailable. Try again shortly; requesting email will not fix a connection problem.',
  'A recent sample set is available. Open it instead of creating another.',
  'This sample does not match the approved owner address.',
  'Email sending is paused. Check your Google connection in Settings.',
@@ -65,6 +65,7 @@ const approved=new Set([
  'Sign in to continue.','Owner access is required.','Please try again.',
  'The email provider has temporarily limited sign-in emails. Check your inbox for the newest message already sent and open its link in the browser where you requested it. If it has expired, wait before requesting another email.',
  'Email sign-in is unavailable. Check workspace email setup or try again later.',
+ 'Your saved sign-in could not be checked right now. Try again shortly; no new email is needed.',
  'Your saved sign-in has expired. Sign in once to continue.',
  'Your sign-in could not be renewed right now. Please try again; no new email is needed.',
  'Check your email and password, or use Forgot password.',

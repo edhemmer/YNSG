@@ -4,7 +4,6 @@ import type {InvoiceCredit} from '../lib/invoice-credit-contract';
 import {creditTotal} from '../lib/invoice-credit-contract';
 
 import {invoiceNumber} from "../lib/invoice-number";
-import {ownerRequestContext} from '../lib/email-links';
 import { publicError } from "../lib/public-errors";
 import {companyTheme} from "../lib/company-brand";
 import Icon from './crm-icons';
@@ -40,7 +39,7 @@ import AvailabilityPanel from './availability-panel';
 import SchedulingReviewPanel from './scheduling-review-panel';
 import CustomerRecords from './customer-records';
 import {sessionFetch,SessionApiError} from '../lib/session-fetch';
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 type Membership = { organization_id: string; role: string };
 const loginBrand = process.env.NEXT_PUBLIC_LOGIN_BRAND || "Your Neighborhood Service Guy";
 type RequestRecord = {
@@ -157,14 +156,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
     [checking, setChecking] = useState(configured),
     [error, setError] = useState(""),
     [message, setMessage] = useState("");
-  const [email, setEmail] = useState(initialEmail),
-    [password, setPassword] = useState(""),
-    [showPassword, setShowPassword] = useState(false),
-    [authMode, setAuthMode] = useState<"email" | "code">("email"),
-    [emailCode,setEmailCode]=useState(""),
-    [ownerPassword,setOwnerPassword]=useState(""),
-    [sent, setSent] = useState(false),
-    [pending, setPending] = useState(false);
+  const [pending, setPending] = useState(false);
   const [org, setOrg] = useState(""),
     [data, setData] = useState<Data | null>(null),
     [section, setSection] = useState("Dashboard");
@@ -196,7 +188,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
       setError(previous=>previous.startsWith('We could not check your saved sign-in.')?'':previous);
       if(!initialWorkspaceChosen.current){initialWorkspaceChosen.current=true;const initial=s.memberships.find((m:Membership)=>m.organization_id===org)||s.memberships[0];if(initial?.role==='technician')setSection('Today');else if(initial?.role==='bookkeeper')setSection('Money');else if(initial?.role==='dispatcher')setSection('Requests');}
       setSession(s);
-      setMessage("");setSent(false);setPassword("");setShowPassword(false);
+      setMessage("");
       const locationParams = new URLSearchParams(window.location.search);
       const googleOrg = locationParams.get('googleOrganization') || locationParams.get('organization');
       setOrg((o: string) => o || s.memberships.find((m: Membership)=>m.organization_id===googleOrg)?.organization_id || s.memberships[0]?.organization_id || "");
@@ -215,7 +207,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
   }
   useEffect(() => {
     if(new URLSearchParams(window.location.search).get("setup")==="google")setSection("Settings");
-    if(new URLSearchParams(window.location.search).get('auth')==='failed')setError('That email link could not be verified. Use a new one-time code or Continue with Google instead.');
+    if(new URLSearchParams(window.location.search).get('auth')==='failed')setError('That sign-in link could not be verified. Sign in with your password or choose Forgot password.');
     if (configured) void loadSession();
   }, [configured]);
   useEffect(()=>{
@@ -244,33 +236,6 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
     setData(null);
     if (org) void refresh(org);
   }, [org,page]);
-  async function login(event: FormEvent) {
-    event.preventDefault();
-    if(pending)return;
-    setPending(true);setError("");
-    try {
-      if(authMode==="email") {
-        await api("/api/session",{action:"send",email,destination:"owner",requestContext:ownerRequestContext(Object.fromEntries(new URLSearchParams(window.location.search)))||undefined});
-        setSent(true);setAuthMode("code");
-        setMessage("Check your email for the newest sign-in code.");
-      } else {
-        await api("/api/session",{action:"verify",email,code:emailCode.trim()});
-        setEmailCode("");await loadSession();
-      }
-    } catch(e){setError(publicError(e));}
-    finally{setPending(false);}
-  }
-
-  async function passwordLogin() {
-    if(pending||!ownerPassword)return;
-    setPending(true);setError("");
-    try {
-      await api("/api/session",{action:"password",email,password:ownerPassword});
-      setOwnerPassword("");
-      await loadSession();
-    }catch(e){setError(publicError(e));}
-    finally{setPending(false);}
-  }
   async function act(value: Record<string, unknown>) {
     if (ownerCommandFlight.current) return;
     const fingerprint = JSON.stringify([org, value]);
@@ -368,7 +333,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
         <nav aria-label="Workspace"><p className="nav-group-label">Workflow</p>{primarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span>{s.key==='Requests'&&data.requests.some(r=>r.status==='submitted')&&<i className="nav-attention" aria-label="New requests"/>}</button>)}<details className="sidebar-more" open={secondarySections.some(s=>s.key===section)}><summary><Icon name="settings"/><span>More workspace</span></summary>{secondarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span></button>)}</details></nav>
         <div className="sidebar-footer"><span className="sidebar-profile">{session.email.slice(0,2).toUpperCase()}</span><div><strong>{role==='owner'?'Business owner':'Team workspace'}</strong><small>{session.email}</small></div></div>
       </aside>}
-      {session&&<header className="crm-topbar"><div className="topbar-context"><button className="icon-button secondary mobile-menu" aria-expanded={mobileNav} aria-label="Toggle workspace menu" onClick={()=>setMobileNav(v=>!v)}><Icon name={mobileNav?'close':'menu'}/></button><span className="context-dot"/><strong>{data?.company.display_name||'Service workspace'}</strong></div><div className="topbar-actions"><ThemeToggle/>{operational&&<button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/><span>Requests</span></button>}{['owner','admin'].includes(role||'')&&<button className="icon-button secondary" aria-label="Activity and messages" onClick={()=>navigate('Activity')}><Icon name="bell"/></button>}<button className="icon-button secondary" aria-label="Sign out" onClick={async()=>{if(pending||invoiceBusy||!canLeave())return;if(!window.confirm('Sign out of your workspace?'))return;try{sessionSequence.current++;await api('/api/session',{action:'logout'});sessionSequence.current++;initialWorkspaceChosen.current=false;handledRequestLink.current=false;setSession(null);setSessionUnavailable(false);reloadSequence.current++;retryKeys.current.clear();setData(null);setOrg('');setEmail('');setPassword('');setShowPassword(false);setSent(false);setActiveRequest(null);}catch(e){setError(publicError(e));}}}><Icon name="logout"/></button></div></header>}
+      {session&&<header className="crm-topbar"><div className="topbar-context"><button className="icon-button secondary mobile-menu" aria-expanded={mobileNav} aria-label="Toggle workspace menu" onClick={()=>setMobileNav(v=>!v)}><Icon name={mobileNav?'close':'menu'}/></button><span className="context-dot"/><strong>{data?.company.display_name||'Service workspace'}</strong></div><div className="topbar-actions"><ThemeToggle/>{operational&&<button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/><span>Requests</span></button>}{['owner','admin'].includes(role||'')&&<button className="icon-button secondary" aria-label="Activity and messages" onClick={()=>navigate('Activity')}><Icon name="bell"/></button>}<button className="icon-button secondary" aria-label="Sign out" onClick={async()=>{if(pending||invoiceBusy||!canLeave())return;if(!window.confirm('Sign out of your workspace?'))return;try{sessionSequence.current++;await api('/api/session',{action:'logout'});sessionSequence.current++;initialWorkspaceChosen.current=false;handledRequestLink.current=false;setSession(null);setSessionUnavailable(false);reloadSequence.current++;retryKeys.current.clear();setData(null);setOrg('');setActiveRequest(null);}catch(e){setError(publicError(e));}}}><Icon name="logout"/></button></div></header>}
       {session&&data&&<nav className="crm-mobile-dock" aria-label="Quick workspace navigation">{primarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} type="button" aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span>{s.key==='Requests'&&data.requests.some(r=>r.status==='submitted')&&<i className="dock-attention" aria-label="New requests"/>}</button>)}</nav>}
       <main className={`shell${session?' workspace-main':''}`} id="main">
 
@@ -432,7 +397,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
                 {!data && (
                   <div className="card">
                     <h2>Open your workspace</h2>
-                    <p>Your email sign-in is complete. If your workspace has not loaded, try again.</p>
+                    <p>Your sign-in is complete. If your workspace has not loaded, try again.</p>
                     <button disabled={pending} onClick={() => void refresh()}>Reload workspace</button>
                   </div>
                 )}

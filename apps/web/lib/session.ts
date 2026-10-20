@@ -11,8 +11,15 @@ export function sameOrigin(request:Request){return configured()&&request.headers
 export async function authenticated(){
  const jar=await cookies();const access=jar.get('ynsg-access')?.value;
  if(!access)throw new Error('UNAUTHORIZED');
- const db=authClient(access);const {data,error}=await db.auth.getUser(access);
- if(error||!data.user)throw new Error('UNAUTHORIZED');
+ const db=authClient(access);
+ const {data,error}=await db.auth.getUser(access).catch(()=>{throw new Error('AUTH_UNAVAILABLE');});
+ if(error){
+  // A provider outage is not an expired credential. Keep cookies and let the
+  // workspace retry saved access rather than initiating sign-in/rotation.
+  if(![400,401,403].includes(error.status||0))throw new Error('AUTH_UNAVAILABLE');
+  throw new Error('UNAUTHORIZED');
+ }
+ if(!data.user)throw new Error('UNAUTHORIZED');
  return {db,user:data.user,access};
 }
 export function saveSession(response:NextResponse,session:{access_token:string;refresh_token:string;expires_in:number}){
@@ -24,5 +31,5 @@ export function saveSession(response:NextResponse,session:{access_token:string;r
 }
 export function failure(error:unknown){
  const code=error instanceof Error?error.message:'FAILED';
- return NextResponse.json({error:code==='UNAUTHORIZED'?'Sign in to continue.':code==='SETUP_REQUIRED'?'This workspace connection is not configured yet.':code==='SECURITY_LOG_UNAVAILABLE'?'Sign-in protection is temporarily unavailable. Please try again shortly.':'The action could not be completed. Your saved records have not been discarded.'},{status:code==='UNAUTHORIZED'?401:['SETUP_REQUIRED','SECURITY_LOG_UNAVAILABLE'].includes(code)?503:400,headers:{'Cache-Control':'no-store'}});
+ return NextResponse.json({error:code==='UNAUTHORIZED'?'Sign in to continue.':code==='SETUP_REQUIRED'?'This workspace connection is not configured yet.':code==='AUTH_UNAVAILABLE'?'Your saved sign-in could not be checked right now. Try again shortly; no new email is needed.':code==='SECURITY_LOG_UNAVAILABLE'?'Sign-in protection is temporarily unavailable. Please try again shortly.':'The action could not be completed. Your saved records have not been discarded.'},{status:code==='UNAUTHORIZED'?401:['SETUP_REQUIRED','SECURITY_LOG_UNAVAILABLE','AUTH_UNAVAILABLE'].includes(code)?503:400,headers:{'Cache-Control':'no-store'}});
 }
