@@ -32,3 +32,9 @@ export function invoiceIssuanceReadiness(configuration:Record<string,unknown>|nu
 export function invoiceDraftFingerprint(lines:Record<string,unknown>[]){
  return JSON.stringify(lines.map(line=>Object.fromEntries(Object.entries({...line,description:typeof line.description==='string'?line.description.trim():line.description}).sort(([a],[b])=>a.localeCompare(b)))));
 }
+
+/** Owner-facing next action stays appointment-first, including retained history. */
+export function ownerRequestNextStep(request:InboxRequest,quotes:LinkedQuote[],jobs:LinkedJob[],invoices:LinkedInvoice[]){
+ if(!['declined','canceled'].includes(request.status)&&!request.appointments.some(a=>visitState(a)==='reserved'))return {step:2,title:'Confirm appointment',detail:'Review the requested time or choose another available time. You can also decline this request.',action:'schedule'};
+ return serviceNextStep(request,quotes,jobs,invoices);
+}

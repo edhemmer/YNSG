@@ -7,7 +7,7 @@ const {DeclineDecisionFields}=await import('../apps/web/app/decline-message-fiel
 const node=document.querySelector('#root');async function select(el,value){await act(async()=>{el.value=value;el.dispatchEvent(new Event('change',{bubbles:true}));});}
 test('time decision offers only time/custom, service decision offers all reasons and editable message',async()=>{
  const root=createRoot(node);try{await act(async()=>root.render(React.createElement('form',{},React.createElement(DeclineDecisionFields,{proposal:true,organization:'a933d657-14d3-46b6-85e6-21d973e4ed97'}))));
- assert.equal(node.querySelectorAll('select')[1].options.length,3);assert.equal(node.querySelector('form').checkValidity(),false);
+ assert.equal(node.querySelector('select').value,'decline_service');await select(node.querySelector('select'),'decline_time');assert.equal(node.querySelectorAll('select')[1].options.length,3);assert.equal(node.querySelector('form').checkValidity(),false);
  await select(node.querySelectorAll('select')[1],'time');assert.match(node.querySelector('textarea').value,/not available/);assert.equal(node.querySelector('form').checkValidity(),true);
  await select(node.querySelector('select'),'decline_service');assert.equal(node.querySelectorAll('select')[1].options.length,5);assert.equal(node.querySelector('textarea').value,'');
  await select(node.querySelectorAll('select')[1],'service');assert.match(node.querySelector('textarea').value,/outside the services/);assert.match(node.textContent,/future project/);
@@ -25,7 +25,7 @@ test('quick decline freezes the selected wording after an unknown result and ret
  const {default:Quick}=await import('../apps/web/app/request-quick-actions.tsx');const bodies=[];let changed=0;
  globalThis.fetch=async(_url,init)=>{bodies.push(init.body);return new Response(JSON.stringify(bodies.length===1?{error:'Unknown'}:{ok:true,result:{id:'50000000-0000-4000-8000-000000000001',revision:2,status:'declined'}}),{status:bodies.length===1?503:200});};
  const root=createRoot(node);try{await act(async()=>root.render(React.createElement(Quick,{organization:'a933d657-14d3-46b6-85e6-21d973e4ed97',request:{id:'50000000-0000-4000-8000-000000000001',status:'submitted',revision:1,appointments:[],original_submission:{name:'Synthetic'}},canManage:true,onReview(){},onChanged(){changed++;}})));
- await act(async()=>[...node.querySelectorAll('button')].find(b=>b.textContent==='Decline').click());await select(node.querySelector('select'),'service');
+ await act(async()=>[...node.querySelectorAll('button')].find(b=>b.textContent==='Decline request').click());await select(node.querySelector('select'),'service');
  await act(async()=>node.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
  assert.match(node.textContent,/Check saved decline/);assert.equal(node.querySelector('fieldset').disabled,true);assert.equal(changed,0);
  await act(async()=>node.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));

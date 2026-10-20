@@ -13,17 +13,22 @@ create function pg_temp.future_start() returns timestamptz language sql as $$ se
 
 
 -- Deliberately retain catalog compliance=review, exactly like the production failure.
-update public.service_requests set status='reviewing';
+-- Keep submitted until the actual booking transaction succeeds.
 insert into private.google_accounts(organization_id,revision,encrypted_tokens,calendar_id,health) values('20000000-0000-4000-8000-000000000001',1,'synthetic-ciphertext-never-used','synthetic-calendar','connected');
 create function pg_temp.owner_input() returns jsonb language plpgsql security definer set search_path='' as $$
 declare raw jsonb;start_time timestamptz:=pg_temp.future_start();
 begin
- raw:=jsonb_build_object('confirmImmediately',true,'organizationId','20000000-0000-4000-8000-000000000001','requestId','50000000-0000-4000-8000-000000000001','requestRevision',1,'configurationVersion',2,'scheduleRevision',(select revision from private.schedule_state where organization_id='20000000-0000-4000-8000-000000000001'),'appointmentId',null,'appointmentRevision',null,'resources',jsonb_build_array('40000000-0000-4000-8000-000000000001'),'travelBeforeMinutes',0,'travelAfterMinutes',0,'scopeReviewed',true,'equipmentReviewed',true,'pickupReviewed',true,'reviewNote','Owner reviewed this requested work and exclusions');
+ raw:=jsonb_build_object('confirmImmediately',true,'organizationId','20000000-0000-4000-8000-000000000001','requestId','50000000-0000-4000-8000-000000000001','requestRevision',(select revision from public.service_requests where organization_id='20000000-0000-4000-8000-000000000001' and id='50000000-0000-4000-8000-000000000001'),'configurationVersion',2,'scheduleRevision',(select revision from private.schedule_state where organization_id='20000000-0000-4000-8000-000000000001'),'appointmentId',null,'appointmentRevision',null,'resources',jsonb_build_array('40000000-0000-4000-8000-000000000001'),'travelBeforeMinutes',0,'travelAfterMinutes',0,'scopeReviewed',true,'equipmentReviewed',true,'pickupReviewed',true,'reviewNote','Owner reviewed this requested work and exclusions');
  return raw||jsonb_build_object('startAt',start_time,'endAt',start_time+interval '2 hours','arrivalAt',start_time,'commandInput',raw);
 end$$;
 create function pg_temp.owner_provider() returns jsonb language sql as $$select jsonb_build_object('connectionRevision',1,'calendarId','synthetic-calendar','checkedAt',clock_timestamp(),'windowStart',pg_temp.future_start()-interval '1 hour','windowEnd',pg_temp.future_start()+interval '3 hours','busy','[]'::jsonb)$$;
 create table pg_temp.owner_results(evidence jsonb,input jsonb,result jsonb);
 grant all on pg_temp.owner_results to authenticated,service_role;
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select pg_temp.assert_true(public.scheduling_review_context('20000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001',null)->>'requestRevision'='1','submitted request scheduling context is readable');
+select pg_temp.assert_true((select status='submitted' and revision=1 from public.service_requests),'opening scheduling does not change status');
+reset role;
 set local role service_role;
 select set_config('request.jwt.claims','{"role":"service_role"}',true);
 insert into pg_temp.owner_results(evidence,input) select public.record_scheduling_review('20000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','owner-evidence-key-01',pg_temp.owner_input(),pg_temp.owner_provider()),pg_temp.owner_input()->'commandInput';
@@ -35,6 +40,7 @@ select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-
 update pg_temp.owner_results set result=public.commit_confirmed_schedule('20000000-0000-4000-8000-000000000001',input,'owner-confirm-key-001',(evidence->>'evidenceId')::uuid);
 select public.commit_confirmed_schedule('20000000-0000-4000-8000-000000000001',(select input from pg_temp.owner_results),'owner-confirm-key-001',null);
 select pg_temp.assert_true((select count(*)=1 from public.appointments where status='reserved'),'one click creates reserved appointment');
+select pg_temp.assert_true((select status='reviewing' and revision=2 from public.service_requests),'submitted request advances once after successful booking');
 select pg_temp.assert_true((select count(*)=0 from public.appointments where status in('proposal','held')),'no incomplete owner proposal');
 select pg_temp.assert_true((select count(*)=1 from public.resource_reservations where active),'one resource reservation');
 select pg_temp.assert_true((select count(*)=1 from public.outbox where kind='appointment.confirmation' and status='pending'),'one customer confirmation');

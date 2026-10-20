@@ -36,8 +36,8 @@ test('returning owner reaches inbox, full request and branded decline without re
  try{
   await act(async()=>{root.render(React.createElement(Workspace,{configured:true,initialEmail:'owner@example.invalid'}));for(let n=0;n<6;n++)await tick();});
   assert.match(node.querySelector('.request-summary-card').textContent,/Synthetic Neighbor/);
-  await click('Decline');const reason=node.querySelector('.quick-decision select');await act(async()=>{reason.value='service';reason.dispatchEvent(new Event('change',{bubbles:true}));await tick();});
-  assert.match(node.querySelector('.quick-decision textarea').value,/outside the services/);assert.match(node.querySelector('.quick-decision').textContent,/future project/);assert.match(node.querySelector('.quick-decision').textContent,/Confirm decline/);
+  await click('Decline request');const reason=node.querySelector('.quick-decision select');await act(async()=>{reason.value='service';reason.dispatchEvent(new Event('change',{bubbles:true}));await tick();});
+  assert.match(node.querySelector('.quick-decision textarea').value,/outside the services/);assert.match(node.querySelector('.quick-decision').textContent,/future project/);assert.match(node.querySelector('.quick-decision').textContent,/Approve decline & send message/);
   await click('Cancel');await act(async()=>{node.querySelector('.request-summary-card .secondary').click();for(let n=0;n<6;n++)await tick();});
   assert.match(node.textContent,/Synthetic full note for incident recovery verification/);
   assert.ok(writes.every(w=>w.path==='/api/session'));assert.deepEqual(writes,[]);

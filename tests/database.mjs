@@ -21,6 +21,7 @@ try {
  const foundation=await readFile('tests/foundation.sql','utf8');
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/account-deletion.sql','utf8'));
  await db.exec(foundation);
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/decline-quoted-request.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/export-reauthentication.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/operations-health.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/private-owner-api.sql','utf8'));

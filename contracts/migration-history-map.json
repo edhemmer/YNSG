@@ -426,5 +426,16 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": []
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261020124641_decline_unconfirmed_quote.sql",
+      "name": "decline_unconfirmed_quote",
+      "status": "not_applied_to_connected_supabase"
+    },
+    {
+      "file": "20261020124942_submitted_scheduling_review.sql",
+      "name": "submitted_scheduling_review",
+      "status": "not_applied_to_connected_supabase"
+    }
+  ]
 }
