@@ -17,7 +17,7 @@ export function sameOrigin(request:Request){
   if(!submitted||submitted==='null')return false;
   const canonical=new URL(process.env.APP_ORIGIN!);
   // Isolated browser CI terminates HTTPS at a loopback proxy before Next.js.
-  if(actual.hostname==='127.0.0.1'&&canonical.hostname==='127.0.0.1'&&submitted===canonical.origin)return true;
+  if(['127.0.0.1','localhost'].includes(actual.hostname)&&['127.0.0.1','localhost'].includes(canonical.hostname)&&submitted===canonical.origin)return true;
   if(submitted!==actual.origin)return false;
   if(actual.protocol!=='https:'&&process.env.NODE_ENV==='production')return false;
   const allowed=new Set([canonical.origin,'https://yourneighborhoodserviceguy.app','https://yourneighborhoodserviceguy.com']);
