@@ -274,3 +274,17 @@ html[data-theme=dark] .request-dialog .detail-tabs button{color:#b3c2cd}html[dat
 .request-dialog :is(p,summary,dd,li){overflow-wrap:anywhere}
 .service-workflow label:has(input[type=checkbox]){min-height:44px;align-items:center}
 .request-dialog .empty-inline p{font-size:1rem;color:var(--ink)}.request-dialog .empty-inline small{font-size:.875rem}
+
+/* Solo-owner field-first Jobs view — compact actions, readable on 320px phones. */
+.owner-jobs-compact{max-width:100%;min-width:0}
+.owner-jobs-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.owner-jobs-heading h2{margin:0;font-size:clamp(1.25rem,4vw,1.65rem)}
+.owner-jobs-heading button{display:inline-flex;gap:8px;align-items:center;justify-content:center;min-height:44px;white-space:nowrap}
+.owner-jobs-list{display:grid;gap:10px}
+.owner-job-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--paper);min-width:0}
+.owner-job-main{min-width:0}.owner-job-main h3{margin:5px 0;font-size:1.1rem;line-height:1.3}.owner-job-main p{margin:3px 0;font-size:.92rem;line-height:1.4;overflow-wrap:anywhere}
+.owner-job-status{display:inline-block;font-size:.78rem;font-weight:750;letter-spacing:.02em;color:var(--green)}
+.owner-job-services{color:var(--ink);opacity:.85}
+.owner-job-action{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;min-height:48px;padding:10px 15px;text-align:center;text-decoration:none;font-size:.95rem;font-weight:750;white-space:nowrap}
+.owner-jobs-pages{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}
+@media(max-width:620px){.owner-jobs-compact{padding:16px 14px}.owner-job-row{grid-template-columns:minmax(0,1fr);gap:9px;padding:13px}.owner-job-action{width:100%;min-width:0}.owner-job-services{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.owner-jobs-heading button{font-size:.9rem;padding:8px}}
