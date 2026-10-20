@@ -143,7 +143,7 @@ export default function Account() {
     <main id="main" className="account-shell">
       <header className="account-header">
         <a href="/account">My account</a>
-        {signed && <a href="/account?password=change">Change password</a>}
+        {signed && <a href="/auth/password">Change password</a>}
         {signed && workspaceAccess && <a href="/owner">Workspace</a>}
         {signed && (
           <button

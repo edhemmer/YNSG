@@ -49,6 +49,8 @@ jobs:
         run: |
           node scripts/build.mjs
           pnpm --dir apps/web exec next build
+      - name: Verify native browser authentication through production HTTP routes
+        run: node scripts/verify-native-auth.mjs
       - name: Install isolated locked native dependencies
         run: pnpm --dir apps/mobile install --frozen-lockfile
       - name: Verify native types, lint, SDK and iOS JavaScript bundle

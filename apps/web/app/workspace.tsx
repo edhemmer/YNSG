@@ -363,7 +363,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
         ) : sessionUnavailable && !session ? (
           <div className="auth card"><h1>Reconnect to your workspace</h1><p>Your saved sign-in could not be checked. You do not need to request another email.</p><button onClick={()=>{setChecking(true);void loadSession();}}>Try saved sign-in again</button></div>
         ) : !session ? (
-          <OwnerLogin initialEmail={initialEmail} brand={loginBrand} onSignedIn={loadSession}/>
+          <OwnerLogin initialEmail={initialEmail} brand={loginBrand}/>
         ) : (
           <>
 
@@ -496,7 +496,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
                       <>
                       <div className="card">
                         <h2>Business preferences</h2>
-                        <p><a href="/account?password=change">Change my password</a></p>
+                        <p><a href="/auth/password">Change my password</a></p>
                         <p><a href="/owner/practice">Practice with sample requests, jobs and payments</a></p>
                         <p><a href={"/owner/production-check?"+new URLSearchParams({organization:org})}>Sample invoices and email checks</a></p>
                         <p className="badge">{data.company.status}</p>
