@@ -21,5 +21,5 @@ export function passwordUpdateFailure(error?:{status?:number;code?:string}|null)
  if(error?.code==='same_password')return {status:400,code:'same_password',message:'Choose a password different from your current password.'};
  if(error?.code==='weak_password')return {status:400,code:'weak_password',message:'Choose a stronger password with at least 10 characters.'};
  if(error?.code==='reauthentication_needed')return {status:403,code:'reauthenticate',message:'Open a new password reset email to verify your account before changing the password.'};
- return {status:503,code:'unavailable',message:'Your password could not be saved right now. Your existing sign-in is kept. Please try again shortly.'};
+ return {status:503,code:'password_uncertain',message:'The password change could not be confirmed. Try signing in with the new password before requesting another reset.'};
 }

@@ -125,11 +125,13 @@ export async function handleSessionPost(request: Request) {
       if(identity.error||!identity.data.user?.email_confirmed_at)throw new Error("UNAUTHORIZED");
       const actor=identity.data.user.id;
       if(value.expectedUser&&actor!==value.expectedUser)throw new Error("UNAUTHORIZED");
-      const result=await db.auth.updateUser({password:value.password});
+      let result;
+      try{result=await db.auth.updateUser({password:value.password});}
+      catch{const failed=passwordUpdateFailure();return saveSession(NextResponse.json({error:failed.message,code:failed.code},{status:failed.status,headers:{"Cache-Control":"no-store"}}),bound.data.session);}
       if(result.error){const failed=passwordUpdateFailure(result.error);return saveSession(NextResponse.json({error:failed.message,code:failed.code},{status:failed.status,headers:{"Cache-Control":"no-store"}}),bound.data.session);}
       // Never claim a definite failure or automatically repeat a password update
       // after the provider accepted it but the response/session is uncertain.
-      const session=(await db.auth.getSession()).data.session;
+      let session;try{session=(await db.auth.getSession()).data.session;}catch{session=null;}
       if(!session||session.user.id!==actor||result.data.user?.id!==actor)return NextResponse.json({error:"The password change could not be confirmed. Try signing in with the new password before requesting another reset.",code:"password_uncertain"},{status:503,headers:{"Cache-Control":"no-store"}});
       return saveSession(NextResponse.json({ok:true},{headers:{"Cache-Control":"no-store"}}),session);
     }

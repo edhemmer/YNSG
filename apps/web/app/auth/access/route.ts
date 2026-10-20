@@ -5,7 +5,9 @@ import {nativeAuthInput,nativeAuthError} from '../../../lib/native-auth-contract
 import {ownerReturnTarget,ownerRequestContext} from '../../../lib/email-links';
 export async function POST(request:Request){
  const headers={'Cache-Control':'private, no-store','Referrer-Policy':'no-referrer'};
- if(!sameOrigin(request))return NextResponse.json({error:'Request not accepted.'},{status:403,headers});
+ // A native navigation needs an HTML denial with a safe way back. Never echo
+ // the body, origin, credentials or provider response; the guard stays exact.
+ if(!sameOrigin(request))return new NextResponse('<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Reopen sign in</title></head><body><main><h1>Reopen sign in</h1><p>This form could not be accepted. No sign-in or password change was made.</p><p><a href="/sign-in?error=invalid_form">Open sign in</a></p><p><a href="/sign-in?mode=reset">Open password recovery</a></p></main></body></html>',{status:403,headers:{...headers,'Content-Type':'text/html; charset=utf-8','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY'}});
  const origin=process.env.APP_ORIGIN!;
  let action='password';
  let context:{request:string;organization:string}|null=null;
