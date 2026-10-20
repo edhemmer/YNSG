@@ -9,6 +9,7 @@ export async function verifyBrowserAuth({origin,providerOrigin,email,faults,pass
    for(const javaScriptEnabled of [true,false]){
     const context=await browser.newContext({javaScriptEnabled,ignoreHTTPSErrors:true,viewport:{width:390,height:844},isMobile:true,hasTouch:true});
     await context.route('**/*',route=>{const url=new URL(route.request().url());return [origin,providerOrigin].includes(url.origin)?route.continue():route.abort();});
+    console.log('Checking '+name+' mobile, JavaScript '+javaScriptEnabled);
     const page=await context.newPage(),origins=[];
     page.on('request',r=>{if(r.method()==='POST'&&r.url()===origin+'/auth/access')origins.push(r.headers().origin??null);});
     const submit=async(label,url)=>{await Promise.all([page.waitForURL(url),page.getByRole('button',{name:label,exact:true}).click()]);};
@@ -19,7 +20,7 @@ export async function verifyBrowserAuth({origin,providerOrigin,email,faults,pass
     }
     await page.goto(origin+'/sign-in');await page.getByLabel('Email address',{exact:true}).fill(email);await page.getByLabel('Password',{exact:true}).fill('synthetic-wrong-password');
     await Promise.all([page.waitForResponse(r=>r.url()===origin+'/auth/access').then(r=>assert.equal(r.status(),303,'Native password submit must not be rejected by document policy')),submit('Sign in','**/sign-in?error=invalid')]);
-    assert.ok(await page.getByRole('alert').isVisible());
+    assert.ok(await page.locator('p[role="alert"]').isVisible());
     await page.getByLabel('Email address',{exact:true}).fill(email);await page.getByLabel('Password',{exact:true}).fill(password());
     await submit('Sign in','**/owner');
     assert.equal((await context.request.get(origin+'/api/session')).status(),200);
@@ -36,7 +37,7 @@ export async function verifyBrowserAuth({origin,providerOrigin,email,faults,pass
     faults.callback=true;await page.goto(origin+'/auth/confirm?code=synthetic-code');await page.waitForURL('**/sign-in?mode=reset&error=limited');faults.callback=false;
     assert.equal((await context.cookies()).find(c=>c.name==='ynsg-email-pkce')?.value,verifier.value,'Temporary callback failure preserves verifier');
     await page.goto(providerOrigin+'/email-link?target='+encodeURIComponent(origin+'/auth/confirm?code=synthetic-code'));await page.getByRole('link',{name:'Open reset email',exact:true}).click();await page.waitForURL(url=>url.pathname==='/auth/password');
-    await page.getByLabel('New password',{exact:true}).fill('synthetic-browser-new-password');await page.getByLabel('Confirm new password',{exact:true}).fill('synthetic-browser-new-password');
+    const nextPassword='synthetic-'+name+'-'+javaScriptEnabled+'-password';await page.getByLabel('New password',{exact:true}).fill(nextPassword);await page.getByLabel('Confirm new password',{exact:true}).fill(nextPassword);
     const changed=counts().updates;await submit('Save password','**/auth/password?status=saved');assert.equal(counts().updates,changed+1);assert.ok(await page.getByRole('heading',{name:'Password saved',exact:true}).isVisible());
     await page.reload();assert.equal(counts().updates,changed+1,'GET/reload must not replay a password mutation');
     await context.clearCookies();await page.goto(origin+'/auth/confirm?code=synthetic-code');await page.waitForURL('**/sign-in?error=expired');
