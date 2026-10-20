@@ -11,3 +11,17 @@ export function mobileWorkflow(request:InboxRequest,quotes:LinkedQuote[],jobs:Li
  const phase:MobilePhase=next.step<=3?'visit':next.step===4?'work':next.step===5?'invoice':'closeout';
  return {next,phase,settled,balance,unbilled};
 }
+
+/** Navigation offers only actions supported by saved workflow evidence. */
+export function availableMobilePhases(request:InboxRequest,jobs:LinkedJob[],invoices:LinkedInvoice[]):MobilePhase[]{
+ const confirmed=request.appointments.some(a=>a.status==='reserved');
+ const activeWork=jobs.some(j=>j.status!=='canceled');
+ const completed=jobs.some(j=>j.status==='completed');
+ const billed=invoices.length>0;
+ return [
+  'visit',
+  ...(confirmed||activeWork||billed?['work' as const]:[]),
+  ...(completed||billed?['invoice' as const]:[]),
+  ...(billed?['closeout' as const]:[]),
+ ];
+}

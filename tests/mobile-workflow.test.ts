@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mobileWorkflow} from '../apps/web/lib/mobile-workflow.ts';
+import {mobileWorkflow,availableMobilePhases} from '../apps/web/lib/mobile-workflow.ts';
 import {mobileNavigation,ownerStart} from '../apps/mobile/src/navigation-policy.ts';
 import type {InboxRequest,LinkedJob,LinkedQuote,LinkedInvoice} from '../apps/web/lib/request-inbox.ts';
 const request:InboxRequest={id:'r',status:'quoted',revision:1,created_at:'2030-10-16T12:00:00Z',original_submission:{name:'Synthetic',email:'test@example.invalid',phone:'5550100',street:'Test',city:'DeKalb'},appointments:[]};
@@ -17,4 +17,15 @@ test('native navigation never embeds foreign or non-HTTPS pages in the credentia
  assert.equal(mobileNavigation(ownerStart),'internal');assert.equal(mobileNavigation('https://yourneighborhoodserviceguy.app/invoice?id=test'),'internal');
  for(const url of ['https://yourneighborhoodserviceguy.app.attacker.invalid/owner','https://attacker.invalid/','tel:+17706302094','mailto:owner@example.invalid'])assert.equal(mobileNavigation(url),'external');
  for(const url of ['javascript:alert(1)','file:///etc/passwd','http://yourneighborhoodserviceguy.app/owner','https://user:secret@yourneighborhoodserviceguy.app/owner','mailto:owner@example.invalid%0d%0aBcc:other@example.invalid'])assert.equal(mobileNavigation(url),'blocked');
+});
+
+test('owner request progression unlocks actions only after actual saved milestones',()=>{
+ assert.deepEqual(availableMobilePhases(request,[],[]),['visit']);
+ const visit={id:'p',request_id:'r',revision:1,status:'proposal',start_at:'2030-10-21T12:00:00Z',end_at:'2030-10-21T14:00:00Z',arrival_at:'2030-10-21T12:00:00Z',expires_at:null,replaces_id:null,customer_response:'pending'};
+ const withProposal:InboxRequest={...request,appointments:[visit]};
+ assert.deepEqual(availableMobilePhases(withProposal,[],[]),['visit']);
+ const withConfirmed:InboxRequest={...request,appointments:[{...visit,status:'reserved'}]};
+ assert.deepEqual(availableMobilePhases(withConfirmed,[],[]),['visit','work']);
+ assert.deepEqual(availableMobilePhases(withConfirmed,[job],[]),['visit','work','invoice']);
+ assert.deepEqual(availableMobilePhases(withConfirmed,[job],[invoice]),['visit','work','invoice','closeout']);
 });
