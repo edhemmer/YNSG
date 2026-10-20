@@ -8,7 +8,9 @@ export async function POST(request:Request){
  // A native navigation needs an HTML denial with a safe way back. Never echo
  // the body, origin, credentials or provider response; the guard stays exact.
  if(!sameOrigin(request))return new NextResponse('<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Reopen sign in</title></head><body><main><h1>Reopen sign in</h1><p>This form could not be accepted. No sign-in or password change was made.</p><p><a href="/sign-in?error=invalid_form">Open sign in</a></p><p><a href="/sign-in?mode=reset">Open password recovery</a></p></main></body></html>',{status:403,headers:{...headers,'Content-Type':'text/html; charset=utf-8','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY'}});
- const origin=process.env.APP_ORIGIN!;
+ // The browser Origin was validated by sameOrigin; use it for the 303
+ // navigation so HTTPS proxy termination cannot redirect to internal HTTP.
+ const origin=request.headers.get('origin')!;
  let action='password';
  let context:{request:string;organization:string}|null=null;
  const back=(code:string)=>NextResponse.redirect(origin+(action==='set-password'?'/auth/password':'/sign-in')+'?'+new URLSearchParams({...(action==='recover'?{mode:'reset'}:{}),error:code,...(action==='password'&&context?context:{})}),{status:303,headers});
@@ -23,7 +25,11 @@ export async function POST(request:Request){
   const value=parsed.data;action=value.action;if(value.action==='password')context=ownerRequestContext(value);
   if(value.action==='set-password'&&value.password!==value.confirmation)return back('mismatch');
   const payload=value.action==='set-password'?{action:value.action,password:value.password,expectedUser:value.expectedUser}:value.action==='password'?{action:value.action,email:value.email,password:value.password}:value;
-  const result=await handleSessionPost(new Request(origin+'/api/session',{method:'POST',headers:{origin,'Content-Type':'application/json'},body:JSON.stringify(payload)}));
+  // The public native POST passed sameOrigin above. The in-process session
+  // dispatch uses the configured canonical origin for its own guard, not the
+  // TLS proxy transport host or a second untrusted browser-supplied origin.
+  const canonical=process.env.APP_ORIGIN!;
+  const result=await handleSessionPost(new Request(canonical+'/api/session',{method:'POST',headers:{origin:canonical,'Content-Type':'application/json'},body:JSON.stringify(payload)}));
   const data=await result.json();
   let response:NextResponse;
   if(result.ok&&data.ok!==true)response=back(value.action==='set-password'?'password_uncertain':'unavailable');

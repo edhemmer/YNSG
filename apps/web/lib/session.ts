@@ -7,7 +7,23 @@ export function authClient(token?:string){
  if(!configured())throw new Error('SETUP_REQUIRED');
  return createClient(process.env.SUPABASE_URL!,process.env.SUPABASE_PUBLISHABLE_KEY!,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},...(token?{global:{headers:{Authorization:`Bearer ${token}`}}}:{})});
 }
-export function sameOrigin(request:Request){return configured()&&request.headers.get('origin')===process.env.APP_ORIGIN;}
+// Production hosts are explicit trust boundaries. A POST must originate from its
+// own browser-visible host; the primary APP_ORIGIN is not the only custom domain.
+export function sameOrigin(request:Request){
+ if(!configured())return false;
+ try{
+  const actual=new URL(request.url);
+  const submitted=request.headers.get('origin');
+  if(!submitted||submitted==='null')return false;
+  const canonical=new URL(process.env.APP_ORIGIN!);
+  // Isolated browser CI terminates HTTPS at a loopback proxy before Next.js.
+  if(['127.0.0.1','localhost'].includes(actual.hostname)&&['127.0.0.1','localhost'].includes(canonical.hostname)&&submitted===canonical.origin)return true;
+  if(submitted!==actual.origin)return false;
+  if(actual.protocol!=='https:'&&process.env.NODE_ENV==='production')return false;
+  const allowed=new Set([canonical.origin,'https://yourneighborhoodserviceguy.app','https://yourneighborhoodserviceguy.com']);
+  return allowed.has(actual.origin);
+ }catch{return false;}
+}
 export async function authenticated(){
  const jar=await cookies();const access=jar.get('ynsg-access')?.value;
  if(!access)throw new Error('UNAUTHORIZED');
