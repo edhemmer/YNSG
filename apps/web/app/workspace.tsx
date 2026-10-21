@@ -321,7 +321,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
       });
       unresolvedOwnerCommand.current=null;
       retryKeys.current.delete(fingerprint);
-      setMessage("Saved. The current record is shown below.");
+      setMessage("Saved");
       await refresh();
       return r;
     } catch (e) {
@@ -438,7 +438,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
           {session&&pendingJobAction?.actor===session.email&&<section className="card timer-recovery" role="status"><strong>Check the saved timer action</strong><p>Check the original {pendingJobAction.body.action} action before starting another timer. This checks its saved result without creating an extra timer.</p><button type="button" disabled={pending||invoiceBusy||!session.memberships.some(m=>m.organization_id===pendingJobAction.body.organizationId&&['owner','admin','technician'].includes(m.role))} onClick={()=>void sendFieldAction(pendingJobAction,true)}>Check saved timer action</button>{!session.memberships.some(m=>m.organization_id===pendingJobAction.body.organizationId&&['owner','admin','technician'].includes(m.role))&&<p>Current access to the original company is required. The retry remains saved.</p>}</section>}
           {session&&timerRecoveryUnavailable&&<p className="error" role="alert">Timer recovery on this device needs attention. Keep the original browser tab and retry available; do not start a replacement timer.</p>}
           {error && <div role="alert" className="error card workspace-error"><p>{error}</p><button type="button" className="secondary" aria-label="Dismiss message" onClick={()=>setError("")}>Dismiss</button></div>}
-          {message && <p role="status" className="note">{message}</p>}
+          {message && <p role="status" className="workspace-save-ack"><span>{message}</span><button type="button" aria-label="Dismiss saved confirmation" onClick={()=>setMessage("")}>×</button></p>}
         </div>
         {!configured ? (
           <div className="auth card">
