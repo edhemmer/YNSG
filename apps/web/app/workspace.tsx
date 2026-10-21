@@ -183,6 +183,15 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
   useEffect(()=>{
     const onHistory=()=>{
       if(pending||invoiceBusy||!canLeave()){
+        // A popstate already moved the URL; restore the visible destination without
+        // creating another history entry while a draft or command is unresolved.
+        const actual=new URL(window.location.href);
+        actual.searchParams.set('section',section);
+        if(section==='Work'&&workRequest)actual.searchParams.set('request',workRequest);
+        else actual.searchParams.delete('request');
+        if(section==='Customers'&&customerFocus)actual.searchParams.set('customer',customerFocus);
+        else actual.searchParams.delete('customer');
+        window.history.replaceState(null,'',actual);
         setError('Finish or discard your current changes before using browser navigation.');
         return;
       }
@@ -203,7 +212,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
     };
     window.addEventListener('popstate',onHistory);
     return()=>window.removeEventListener('popstate',onHistory);
-  },[pending,invoiceBusy,session,org]);
+  },[pending,invoiceBusy,session,org,section,workRequest,customerFocus]);
   async function loadSession() {
     const sequence=++sessionSequence.current;
     try {
