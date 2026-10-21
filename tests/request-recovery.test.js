@@ -37,3 +37,9 @@ test('invalid recovery attempts cannot overwrite a valid in-flight customer requ
  assert.equal(r.saveDraft({...data,services:[]}),true);
  assert.equal(r.read().kind,'draft');
 });
+
+test('malformed success and non-JSON errors never report a committed request',async()=>{
+ await assert.rejects(deliverRequest(data,async()=>({ok:true,json:async()=>{throw new SyntaxError('HTML response');}})),/DELIVERY_UNKNOWN/);
+ await assert.rejects(deliverRequest(data,async()=>({ok:true,json:async()=>({ok:true,saved:false,id:data.requestKey})})),/DELIVERY_UNKNOWN/);
+ await assert.rejects(deliverRequest(data,async()=>({ok:false,status:502,json:async()=>{throw new SyntaxError('bad gateway');}})),/DELIVERY_UNKNOWN/);
+});
