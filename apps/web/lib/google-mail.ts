@@ -1,3 +1,4 @@
+import { appointmentReminderCurrent } from "./appointment-reminder-guard";
 import {completeInvoicePayments} from './complete-invoice-payments';
 import {invoiceRecordState} from './invoice-record-contract';
 import {recurringMessage} from "./recurring-message";
@@ -123,6 +124,9 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
         .eq("id", item.object_id)
         .single();
       if (appointment.error) continue;
+      // Recheck reminder revision and arrival before issuing a customer link or sending.
+      // The canonical database begin_delivery check remains the final concurrency guard.
+      if (!appointmentReminderCurrent(item.kind, item.payload, appointment.data)) continue;
       if(item.kind==='appointment.canceled'&&(appointment.data.status!=='canceled'||appointment.data.revision!==item.payload.appointmentRevision))continue;
       const request = await db
         .from("service_requests")
