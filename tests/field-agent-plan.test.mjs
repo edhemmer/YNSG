@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {prepareAgentPlan} from '../apps/web/lib/field-agent-plan.ts';
+import {prepareAgentPlan,prepareCustomerFollowUp} from '../apps/web/lib/field-agent-plan.ts';
 import {readFileSync} from 'node:fs';
 const source=readFileSync(new URL('../apps/web/app/service-workflow.tsx',import.meta.url),'utf8');
 const base={id:'10000000-0000-4000-8000-000000000001',status:'submitted',revision:1,original_submission:{name:'Synthetic',phone:'5550100',services:[{service:'Yard',task:'Mow'}]},appointments:[]};
@@ -18,4 +18,13 @@ test('field workflow displays prepared decision as an uncommitted recommendation
  assert.match(source,/prepareAgentPlan\(request,quotes,jobs,invoices\)/);
  assert.match(source,/Prepared next decision/);
  assert.match(source,/Awaiting your review · no action sent/);
+});
+
+test('follow-up is a draft only and never assumes appointment confirmation',()=>{
+ const draft=prepareCustomerFollowUp(base);
+ assert.equal(draft?.requiresOwnerApproval,true);
+ assert.equal(draft?.status,'draft');
+ assert.match(draft.body,/not confirmed until/);
+ assert.equal(prepareCustomerFollowUp({...base,status:'declined'}),null);
+ assert.match(source,/Prepared customer follow-up · not sent/);
 });
