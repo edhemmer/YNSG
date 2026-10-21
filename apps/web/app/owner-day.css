@@ -36,3 +36,7 @@
 .owner-stop .owner-stop-quick-actions+button{margin-top:8px}
 .owner-upcoming-actions button{flex:1 1 120px}
 @media(max-width:600px){.owner-stop-quick-actions,.owner-upcoming-actions{gap:8px}}
+
+.owner-day-heading-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.owner-day-heading-actions button{min-height:44px}
+@media(max-width:600px){.owner-day-heading-actions{width:100%}.owner-day-heading-actions button{flex:1 1 110px}}

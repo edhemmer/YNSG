@@ -14,7 +14,7 @@ export async function readOwnerDay(db:SupabaseClient,org:string,userId:string,ch
   const r=Array.isArray(v.request)?v.request[0]:v.request;
   if(!r?.original_submission)throw Error('FAILED');
   const s=r.original_submission;
-  return {id:v.id,requestId:v.request_id,startAt:v.start_at,arrivalAt:v.arrival_at||v.start_at,endAt:v.end_at,name:s.name,address:[s.street,s.city].filter(Boolean).join(', '),phone:s.phone,tasks:requestTasks(s).map(t=>t.task||t.service)};
+  return {id:v.id,requestId:v.request_id,startAt:v.start_at,arrivalAt:v.arrival_at||v.start_at,endAt:v.end_at,name:s.name,address:[s.street,s.city,s.state,s.zip].filter((part:unknown)=>typeof part==='string'&&part.trim()).map((part:string)=>part.trim()).join(', '),phone:s.phone,tasks:requestTasks(s).map(t=>t.task||t.service)};
  });
  return ownerDayResponse.parse({checkedAt,timezone:company.data.timezone,calls,hasMore:visits.data.length>12});
 }

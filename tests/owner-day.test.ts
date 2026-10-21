@@ -12,7 +12,7 @@ test('owner Today uses business timezone rather than device UTC day and preserve
 });
 function readerFixture(access:boolean,broken=false){
  const operations:{table:string;method:string;args:unknown[]}[]=[];
- const row={id:call.id,request_id:call.requestId,start_at:call.startAt,arrival_at:call.arrivalAt,end_at:call.endAt,request:{original_submission:{name:call.name,street:'Test',city:'DeKalb',phone:call.phone,services:[{service:'Assembly',task:'Furniture'}]}}};
+ const row={id:call.id,request_id:call.requestId,start_at:call.startAt,arrival_at:call.arrivalAt,end_at:call.endAt,request:{original_submission:{name:call.name,street:'Test',city:'DeKalb',state:'IL',zip:'60115',phone:call.phone,services:[{service:'Assembly',task:'Furniture'}]}}};
  const results:Record<string,unknown>={memberships:{data:access?{role:'owner'}:null,error:null},organizations:{data:{timezone:'America/Chicago'},error:null},appointments:{data:broken?[{...row,request:null}]:Array.from({length:13},(_,i)=>({...row,id:'10000000-0000-4000-8000-'+String(i+1).padStart(12,'0')})),error:null}};
  const db={from(table:string){const query:Record<string,unknown>={then(resolve:(v:unknown)=>unknown){return Promise.resolve(results[table]).then(resolve);}};for(const method of ['select','eq','is','in','not','gte','order','range','single','maybeSingle'])query[method]=(...args:unknown[])=>{operations.push({table,method,args});return query;};return query;}};
  return {db:db as unknown as SupabaseClient,operations};
@@ -20,7 +20,7 @@ function readerFixture(access:boolean,broken=false){
 test('owner day enforces owner membership before data reads and scopes bounded schedule queries',async()=>{
  const denied=readerFixture(false);await assert.rejects(()=>readOwnerDay(denied.db,call.id,call.requestId),/OWNER_ACCESS_REQUIRED/);assert.ok(denied.operations.every(v=>v.table==='memberships'));
  const fixture=readerFixture(true);const result=await readOwnerDay(fixture.db,call.id,call.requestId,'2030-10-16T12:00:00Z');
- assert.equal(result.calls.length,12);assert.equal(result.hasMore,true);assert.equal(result.calls[0]!.tasks[0],'Furniture');
+ assert.equal(result.calls.length,12);assert.equal(result.hasMore,true);assert.equal(result.calls[0]!.tasks[0],'Furniture');assert.equal(result.calls[0]!.address,'Test, DeKalb, IL, 60115');
  assert.ok(fixture.operations.some(v=>v.table==='appointments'&&v.method==='range'&&JSON.stringify(v.args)==='[0,12]'));
  assert.ok(fixture.operations.some(v=>v.table==='appointments'&&v.method==='eq'&&JSON.stringify(v.args)==='["status","reserved"]'));
  for(const table of ['memberships','appointments'])assert.ok(fixture.operations.some(v=>v.table===table&&v.method==='eq'&&v.args[0]==='organization_id'&&v.args[1]===call.id));
