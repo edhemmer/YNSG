@@ -37,6 +37,8 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
  useEffect(()=>{onBusy(Object.values(childBusy).some(Boolean));return()=>onBusy(false);},[childBusy,onBusy]);
  function busyFor(id:string){if(!callbacks.current.has(id))callbacks.current.set(id,value=>setChildBusy(previous=>previous[id]===value?previous:{...previous,[id]:value}));return callbacks.current.get(id)!;}
  const transition=useRef(false),stateKey=JSON.stringify([request.revision,jobs.map(j=>[j.id,j.revision,j.status]),invoices.map(i=>[i.id,i.payments])]);
+ const priorSavedState=useRef(stateKey);
+ useEffect(()=>{if(priorSavedState.current!==stateKey){priorSavedState.current=stateKey;document.querySelector<HTMLElement>('.field-cockpit-next')?.scrollIntoView({block:'start',behavior:'smooth'});}},[stateKey]);
  // The workflow is progressive: future actions are not offered before their
  // canonical appointment/work/invoice prerequisites exist.
  const confirmedVisit=request.appointments.some(a=>visitState(a)==='reserved');
