@@ -96,7 +96,7 @@ function QuickQuoteAgreement({quote,blocked,act}:{quote:LinkedQuote;blocked:bool
  const [saving,setSaving]=useState(false);
  return <form className="field-quick-agreement" onSubmit={e=>{e.preventDefault();if(!channel||saving||blocked)return;setSaving(true);void act({command:'ApproveQuote',id:quote.id,version:quote.current_version,evidence:'Customer explicitly approved the saved scope and price '+(channel==='phone'?'by phone':channel==='in_person'?'in person':'by message')+'. Approval recorded by owner.'}).finally(()=>setSaving(false));}}>
  <strong>Did the customer approve this quote?</strong><p>Choose how they actually agreed. Nothing is sent to the customer.</p>
- <label>Approval method <select required value={channel} onChange={e=>setChannel(e.target.value)} disabled={blocked||saving}><option value="">Choose method</option><option value="phone">Phone</option><option value="in_person">In person</option><option value="message">Text or email</option></select></label>
+ <label>Approval method <select name="approvalMethod" required value={channel} onChange={e=>setChannel(e.target.value)} disabled={blocked||saving}><option value="">Choose method</option><option value="phone">Phone</option><option value="in_person">In person</option><option value="message">Text or email</option></select></label>
  <button type="submit" disabled={!channel||blocked||saving}>{saving?'Saving…':'Record customer approval'}</button>
  </form>;
 }
