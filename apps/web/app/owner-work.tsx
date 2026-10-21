@@ -14,7 +14,7 @@ export default function OwnerWork({organization,revision,onOpen}:{organization:s
  <header className="owner-jobs-heading"><h2>Jobs {data?'('+data.total+')':''}</h2><button type="button" className="secondary" aria-label="Refresh jobs" onClick={()=>setRetry(n=>n+1)}><Icon name="refresh"/>Refresh</button></header>
  {error?<p role="alert" className="error">Could not load jobs. {error}</p>:!data?<p role="status">Loading jobs…</p>:<>
  <div className="owner-jobs-list">{data.items.map(j=><article className="owner-job-row" key={j.job}>
-  <div className="owner-job-main"><span className="owner-job-status">{j.status==='completed'?'Invoice ready':j.status==='paused'?'Paused':'In progress'}</span><h3>{j.name}</h3><p>{j.address}</p><p className="owner-job-services">{j.tasks.slice(0,2).join(' · ')}{j.tasks.length>2?' · +'+(j.tasks.length-2)+' more':''}</p></div>
+  <div className="owner-job-main"><span className="owner-job-status">{j.status==='completed'?'Invoice ready':j.status==='paused'?'Paused':'In progress'}</span><h3>{j.name}</h3><p className="owner-job-services">{j.tasks.slice(0,2).join(' · ')}{j.tasks.length>2?' · +'+(j.tasks.length-2)+' more':''}</p><details className="owner-job-extra"><summary>Address & details</summary><p>{j.address}</p><p>{j.tasks.join(' · ')}</p></details></div>
   <button type="button" className="button owner-job-action" onClick={()=>onOpen(j.request)}>{j.status==='completed'?'Review invoice':'Open job'}<Icon name="arrow"/></button>
  </article>)}</div>
  {!data.items.length&&<p>All caught up. Scheduled visits are in Calendar.</p>}
