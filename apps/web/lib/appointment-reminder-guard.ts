@@ -18,5 +18,6 @@ export function appointmentReminderCurrent(
   return Number.isFinite(scheduled) &&
     Number.isFinite(issuedFor) &&
     scheduled === issuedFor &&
-    scheduled > now.getTime();
+    scheduled > now.getTime() &&
+    now.getTime() >= scheduled - 24 * 60 * 60 * 1000;
 }

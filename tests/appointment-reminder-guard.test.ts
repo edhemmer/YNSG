@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { appointmentReminderCurrent } from "../apps/web/lib/appointment-reminder-guard.ts";
 
-const now = new Date("2026-10-21T12:00:00.000Z");
+const now = new Date("2026-10-22T16:00:00.000Z");
 const appointment = {
   status: "reserved",
   revision: 4,
@@ -16,6 +16,8 @@ const payload = {
 for (const kind of ["appointment.reminder", "appointment.owner_reminder"]) {
   test(`${kind} accepts the current confirmed future visit`, () => {
     assert.equal(appointmentReminderCurrent(kind, payload, appointment, now), true);
+    assert.equal(appointmentReminderCurrent(kind, payload, appointment, new Date("2026-10-22T14:59:59Z")), false);
+    assert.equal(appointmentReminderCurrent(kind, payload, appointment, new Date("2026-10-22T15:00:00Z")), true);
   });
   test(`${kind} suppresses canceled, rescheduled, stale, and past visits`, () => {
     assert.equal(appointmentReminderCurrent(kind, payload, { ...appointment, status: "canceled" }, now), false);
