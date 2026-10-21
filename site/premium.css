@@ -268,3 +268,15 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
  .site-footer{padding-bottom:0}
 }
 @media(max-width:390px){.site-header .brand img{width:57px;flex-basis:57px}.site-header .brand-identity strong{font-size:15px}.site-header .nav-mobile>a{font-size:12px}}
+
+/* Approved identity: display the ORIGINAL full brand logo, not a reconstructed text lockup. */
+.site-header .brand{display:flex;align-items:center;width:228px;min-width:0;max-width:100%;flex-shrink:0}
+.site-header .brand img{display:block;width:228px;max-width:100%;height:auto;flex:none}
+@media(max-width:1100px){.site-header .brand{width:206px}.site-header .brand img{width:206px;max-width:100%}}
+@media(max-width:850px){
+ .site-header .brand{display:block;width:min(244px,100%);max-width:100%;margin:0 auto 2px 0;grid-column:1}
+ .site-header .brand img{width:100%;max-width:244px;display:block;height:auto}
+ .site-header .header-row{grid-template-columns:minmax(0,1fr);gap:4px}
+ .site-header .nav-mobile{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:390px){.site-header .brand{width:min(220px,100%)}.site-header .brand img{width:100%;max-width:220px}}
