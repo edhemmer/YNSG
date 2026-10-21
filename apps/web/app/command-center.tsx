@@ -9,6 +9,7 @@ import RequestInbox from './request-inbox';
 import BusinessBrief from './business-brief';
 import MarketingDrafts from './marketing-drafts';
 import OwnerDay from './owner-day';
+import OwnerWork from './owner-work';
 export default function CommandCenter({organization,timezone,revision,onOpen,onNavigate}:{organization:string;timezone:string;revision:number;onOpen:(id:string)=>void;onNavigate:(section:string)=>void}){
  const [data,setData]=useState<BusinessSnapshot|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
  const today=localDate(new Date(),timezone);
@@ -17,10 +18,11 @@ export default function CommandCenter({organization,timezone,revision,onOpen,onN
   void read();const timer=setInterval(()=>{if(document.visibilityState==='visible')void read();},60000);return()=>{live=false;controller.abort();clearInterval(timer);};
  },[organization,today,revision,retry]);
  return <>
-  <header className="owner-today-heading"><div><h2>Your next jobs</h2></div><button className="secondary" onClick={()=>onNavigate('Today')}><Icon name="pin"/>Routes</button></header>
+  <header className="owner-today-heading"><div><h2>Ready for your next stop</h2></div><div className="actions"><button type="button" className="secondary" onClick={()=>onNavigate('Work')}><Icon name="work"/>Jobs</button><button type="button" className="secondary" onClick={()=>onNavigate('Today')}><Icon name="pin"/>Routes</button></div></header>
   <OwnerDay organization={organization} revision={revision} onNavigate={onNavigate} onOpen={onOpen}/>
   {error&&<p role="alert" className="error note">Business totals could not load. {error}</p>}
   <RequestInbox organization={organization} timezone={timezone} revision={revision} onOpen={onOpen} canManage compact/>
+  <details className="owner-today-admin"><summary>Continue unfinished jobs</summary><OwnerWork organization={organization} revision={revision} onOpen={onOpen}/></details>
   <details className="owner-today-admin"><summary>Business overview and reports</summary>
   <section className="metric-grid" aria-label="Current business totals">{[
    {label:'Needs review',value:data?.counts.requestsToReview,icon:'inbox',section:'Requests',note:'New and under-review requests',tone:'amber'},
