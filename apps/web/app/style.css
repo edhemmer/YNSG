@@ -301,3 +301,15 @@ html[data-theme=dark] .request-dialog .detail-tabs button{color:#b3c2cd}html[dat
 .money-invoice-outstanding{display:flex;flex-wrap:wrap;gap:.35em;font-size:1rem}
 .money-tools>summary,.money-pending>summary{cursor:pointer;min-height:44px;align-content:center;font-weight:650}
 .money-invoice>summary:focus-visible,.money-tools>summary:focus-visible,.money-pending>summary:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+
+/* Field cockpit: action first, one-screen summary, secondary administrative detail on demand. */
+.service-workflow .field-cockpit-next{padding:16px;border:1px solid var(--forest,#315842);border-left:5px solid #79aa85;border-radius:14px;margin:12px 0;display:grid;gap:10px}
+.service-workflow .field-cockpit-next strong{font-size:clamp(1.1rem,3.6vw,1.5rem);line-height:1.25}
+.service-workflow .field-cockpit-next .actions{display:flex;gap:8px;flex-wrap:wrap}
+.service-workflow .field-cockpit-next button{min-height:48px;max-width:100%}
+.service-workflow .workflow-secondary-panel{margin:8px 0;padding:8px 12px}
+.service-workflow .workflow-secondary-panel>summary{font-size:.92rem;cursor:pointer}
+.service-workflow .field-visit-line{font-size:1rem;margin:6px 0;line-height:1.35}
+.service-workflow .field-visit-line>details{margin-top:7px}
+.service-workflow .field-visit-line>details>summary{font-size:.88rem;cursor:pointer}
+@media(max-width:680px){.service-workflow .field-cockpit-next{padding:14px;margin:8px 0}.service-workflow .field-cockpit-next button{width:100%}.service-workflow .workflow-visit-overview{margin-block:8px}.service-workflow .workflow-visit-overview .visit-summary{max-width:100%}}
