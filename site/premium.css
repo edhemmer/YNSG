@@ -242,3 +242,41 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
 @media(max-width:1100px){.site-header .brand{width:235px;gap:7px}.site-header .brand img{width:65px}.site-header .brand-identity strong{font-size:14px}}
 @media(max-width:850px){.site-header .brand{width:auto;max-width:calc(100% - 100px);gap:9px}.site-header .brand img{width:68px}.site-header .brand-identity strong{font-size:clamp(13px,3.8vw,17px)}}
 @media(max-width:390px){.site-header .brand{max-width:100%;gap:7px}.site-header .brand img{width:58px}.site-header .brand-identity strong{font-size:13px}.site-header .brand-identity small{font-size:11px}}
+
+/* Header hierarchy: brand first, booking call-to-action second. */
+.site-header .header-actions .nav-request{background:transparent;color:var(--navy);border:1px solid #a9beb1;border-radius:7px;box-shadow:none;min-height:42px;padding:8px 12px;font-size:.86rem;font-weight:700;gap:8px;transform:none}
+.site-header .header-actions .nav-request:hover,.site-header .header-actions .nav-request:focus-visible{background:#eaf1e9;border-color:var(--forest);transform:none}
+.site-header .header-actions .nav-request span:last-child{font-size:1rem}
+@media(max-width:850px){.site-header .nav-mobile a[href="/request/"],.site-header .nav-mobile a[href="/request"]{background:#f3f6f2;color:var(--navy);border:1px solid #c1d0c5}}
+/* Persistent mobile action bar should not visually shout over the business identity. */
+@media(max-width:850px){.mobile-rail a:last-child{background:#e3ecdf;color:var(--navy);border-top:1px solid #b7c9ba}.mobile-rail a{font-size:.9rem;min-height:54px}}
+
+/* 2026 field usability: one compact mobile brand row, one quiet navigation row. */
+@media(max-width:850px){
+ .site-header .header-row{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;min-height:0;padding-block:9px 10px;align-items:center}
+ .site-header .brand{grid-column:1;width:100%;max-width:100%;display:flex;flex-wrap:nowrap;align-items:center;gap:11px;min-width:0}
+ .site-header .brand img{width:66px;max-width:none;flex:0 0 66px;height:auto}
+ .site-header .brand-identity{min-width:0;flex:1}
+ .site-header .brand-identity strong{font-size:clamp(16px,4vw,19px);line-height:1.13;letter-spacing:-.02em}
+ .site-header .brand-identity strong br{display:none}
+ .site-header .brand-identity small{font-size:12px}
+ .site-header .header-actions,.site-header .nav-desktop{display:none!important}
+ .site-header .nav-mobile{display:grid;grid-column:1;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;width:100%;margin:0;min-width:0}
+ .site-header .nav-mobile>a{display:flex;justify-content:center;align-items:center;min-width:0;min-height:40px;padding:7px 3px;border:0;border-radius:5px;font-size:clamp(12px,3vw,14px);font-weight:650;line-height:1.2;text-align:center;overflow-wrap:normal;white-space:normal}
+ .site-header .nav-mobile>a[aria-current=page]{border:0;border-bottom:2px solid var(--forest);background:#edf3ed}
+ .mobile-rail{display:none!important}
+ .site-footer{padding-bottom:0}
+}
+@media(max-width:390px){.site-header .brand img{width:57px;flex-basis:57px}.site-header .brand-identity strong{font-size:15px}.site-header .nav-mobile>a{font-size:12px}}
+
+/* Approved identity: display the ORIGINAL full brand logo, not a reconstructed text lockup. */
+.site-header .brand{display:flex;align-items:center;width:228px;min-width:0;max-width:100%;flex-shrink:0}
+.site-header .brand img{display:block;width:228px;max-width:100%;height:auto;flex:none}
+@media(max-width:1100px){.site-header .brand{width:206px}.site-header .brand img{width:206px;max-width:100%}}
+@media(max-width:850px){
+ .site-header .brand{display:block;width:min(244px,100%);max-width:100%;margin:0 auto 2px 0;grid-column:1}
+ .site-header .brand img{width:100%;max-width:244px;display:block;height:auto}
+ .site-header .header-row{grid-template-columns:minmax(0,1fr);gap:4px}
+ .site-header .nav-mobile{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:390px){.site-header .brand{width:min(220px,100%)}.site-header .brand img{width:100%;max-width:220px}}
