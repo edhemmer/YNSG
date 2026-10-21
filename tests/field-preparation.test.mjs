@@ -12,9 +12,9 @@ test('field preparation derives action and instructions without writing or fabri
  assert.equal(brief.hasConfirmedVisit,false);
  assert.equal(JSON.stringify(request),before);
 });
-test('field action remains primary and prepared context is expandable',()=>{
+test('current owner action remains primary without repeating an agent explanation',()=>{
  assert.match(source,/className="workflow-next" role="status"/);
- assert.match(source,/className="workflow-field-brief workflow-secondary-panel"/);
- assert.match(source,/<summary>\{fieldBrief.notes.length\} check/);
- assert.match(source,/prepareFieldBrief\(request,quotes,jobs,invoices\)/);
+ assert.match(source,/data-field-cockpit-next/);
+ assert.doesNotMatch(source,/Prepared next decision/);
+ assert.doesNotMatch(source,/className="workflow-field-brief/);
 });
