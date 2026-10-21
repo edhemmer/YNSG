@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-19",
+  "updatedAt": "2026-10-21",
   "baselineCommit": "56b0a9fec3f7c9e4664c2192c91564b9340b9584",
   "milestones": [
     "web",
@@ -50,7 +50,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "City \u2192 required ZIP selection added to new public intake, with owner address editing and saved-customer ZIP handling; see docs/production/city-postal-codes.md. ZIP migration applied as Supabase history 20261019020939; function guards, permissions and legacy context verified read-only. PR #129 exact-head CI and both live deployments passed; see docs/production/release-mobile-zip-2026-10-19.md. PR #77 merged (booking field focus; exact-head CI passed). Execute A01\u2013A03 full guest journey, failure/retry, controlled delivery, and physical mobile accessibility evidence before verification.",
+      "nextAction": "City \u2192 required ZIP selection added to new public intake, with owner address editing and saved-customer ZIP handling; see docs/production/city-postal-codes.md. ZIP migration applied as Supabase history 20261019020939; function guards, permissions and legacy context verified read-only. PR #129 exact-head CI and both live deployments passed; see docs/production/release-mobile-zip-2026-10-19.md. PR #77 merged (booking field focus; exact-head CI passed). Execute A01\u2013A03 full guest journey, failure/retry, controlled delivery, and physical mobile accessibility evidence before verification. October 21 rendered-page audit removed booking.css legacy logo shrink override; the original centered masthead now renders 270px at 390px viewport. Built homepage/request Chromium layout tests pass across four widths and both themes with zero writes; exact-head two-browser CI and A01\u2013A03 physical/controlled delivery acceptance remain required. See docs/production/atomic-production-2026-10-21.md.",
       "acceptance": "Required name/email/phone/address; multiple services; honest arrange-time path; free address check is advisory; retry saves one request and one milestone notification; no abandoned hold leaks.",
       "requiredEvidence": "Synthetic full-journey tests plus approved controlled delivery and physical-device evidence.",
       "evidence": []
@@ -88,7 +88,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "Owner practice workspace provides six browser-local scenarios using real workflow screens: scheduling, estimate/agreement, timer, completion, invoice and cash/Zelle closeout. Use docs/production/owner-practice.md for phone acceptance; canonical backend, real provider and actual-work/funds evidence remain separate.",
+      "nextAction": "Atomic October 21 candidate connects authorized field navigation, compact invoice balances and protected start/pause/resume recovery. Timer responses must match the exact job, next revision and requested state; a frozen actor/company/body/key is retained in the original browser tab before sending and survives refresh. A dedicated recovery action replays it even after displayed records change; permission loss retains an earlier unknown attempt. Full-shell failure, malformed receipt, storage, duplicate and reload tests pass locally. Complete A04/A06/A08 actual service/funds and device acceptance; see docs/production/atomic-production-2026-10-21.md.",
       "acceptance": "One guided record with distinct next action; appointment date/time separated from notes; draft invoice visible after scheduling without being an issued bill; actual work stops timers atomically; explicit agreement and invoice issue.",
       "requiredEvidence": "Full scenario record linking UI, API, canonical revisions and isolated database assertions.",
       "evidence": []
@@ -145,7 +145,7 @@
         "WEB-03",
         "WEB-05"
       ],
-      "nextAction": "Verify invoice email exact retry and unknown-result navigation lock; complete controlled provider delivery, reminder replacement and reconciliation evidence under #37.",
+      "nextAction": "Read-only October 21 checks confirm active one-minute mail/calendar cron jobs, zero failed cron runs and zero non-200 worker HTTP responses in the preceding hour. This verifies execution health, not actual customer reminder/invoice inbox receipt. Complete A05/A07/A08 controlled independent inbox, replacement and reconciliation evidence under #37; see docs/production/atomic-production-2026-10-21.md.",
       "acceptance": "Natural concise copy; one intent per milestone; no repetitive blasts; link scanners cannot mutate; recipient/template snapshot retained; provider acceptance distinct from inbox delivery; failed/unknown sends have safe recovery.",
       "requiredEvidence": "Template/link tests, queue crash/retry tests, controlled independent inbox receipts and reminder timing.",
       "evidence": []
@@ -204,7 +204,7 @@
         "WEB-05",
         "WEB-06"
       ],
-      "nextAction": "Cross-screen layout/error audit and local fixes recorded in docs/production/screen-review-2026-10-19.md, including public narrow-phone and owner tablet overflow. PR #129 merged at 97e919e624f5401dc4a1b8ffc5b0a27f977cc773 with both CI jobs passing; verify both live deployments and physical Safari/VoiceOver, real Maps and full acceptance. Validate screenshot-driven mobile route/month, date-field and money pagination fixes in docs/production/mobile-routes-money-2026-10-19.md. Owner authorized publication on October 18 Eastern; actual iPhone/Safari and Google Maps configuration acceptance remain required. Use the resettable /owner/practice sample workspace for phone/iPad large-text, dark/light, keyboard and task review without production QA records. Interaction tests enforce zero network calls; actual device/performance/accessibility evidence remains required. Shared unsaved/uncertain entry guards now also cover same-tab external HTTPS navigation and current-document reload links; see docs/production/recovery-review-2026-10-19.md. Physical device acceptance stays open. Owner request redesign acceptance, canonical quoted-decline and submitted scheduling behavior are tracked in docs/production/mobile-owner-redesign-2026-10-20.md. Verify exact-head browser/native PostgreSQL CI and deployed commit; physical iPhone keyboard, rotation, Dynamic Type and VoiceOver remain separate.",
+      "nextAction": "Atomic October 21 navigation and compact invoice candidate adds full React shell session/history/company/role interaction coverage and Chromium/WebKit responsive checks at 320, 375, 390, 430, 768 and 1366px, both themes, and 200% text. A temporary local Chromium runner passed 41 full-shell and 150 existing mobile checks; rendered 200% identity-column failure was fixed and guarded. Verify both-engine exact-head CI. Actual iPhone/iPad, VoiceOver, task timing, performance and owner acceptance remain required under #162/#176; see docs/production/atomic-production-2026-10-21.md.",
       "acceptance": "Approved brand; restrained visible navigation; clear primary action/status; light/dark; no clipped financial amounts; labels, focus, large text, screen readers, keyboard and reduced motion. Meet measured task/performance targets or fix scope.",
       "requiredEvidence": "Device/browser matrix, sanitized captures, task measurements and elderly/disabled participant findings.",
       "evidence": []
@@ -224,7 +224,7 @@
         "WEB-01",
         "WEB-06"
       ],
-      "nextAction": "Review corrected invoice-history billing capability guard and complete receipt reads across documents/email/owner lists, alongside server-only file verification and append-only receipt corrections. Verify invoice_billing_read_permission privileges and billing-only/approval-only/household/tenant/expiry/revocation fixtures. Independent human review and existing advisor findings remain separate; no warning suppression.",
+      "nextAction": "October 21 shell changes discard protected records immediately on identity/company/role revocation, reject malformed or unauthorized deep links and prevent late reads from restoring another company. Full-shell isolated tests exercise these paths. Existing independent human review, advisor findings, leaked-password eligibility and broader security acceptance remain required; see docs/production/atomic-production-2026-10-21.md.",
       "acceptance": "No unresolved exploitable critical/high finding; other findings have documented impact/remediation. Required MFA is not reintroduced; leaked-password setting/eligibility is confirmed. AI review cannot sign this gate.",
       "requiredEvidence": "Named independent human review, candidate SHA, findings/resolutions and scoped retest.",
       "evidence": []
@@ -360,7 +360,7 @@
         "WEB-15",
         "WEB-16"
       ],
-      "nextAction": "Run npm run certify:production for an exact clean committed tree; retain every actual build/audit/milestone-gate result, required exact-head CI, reviewed merge-tree mapping and both deployment/alias proofs in the release PR. PR #136 is the prior verified engineering release at 418ae57043d87f5f756ee09f0efd23e0093f4342. Native advisories and missing owner/device/provider/independent evidence are real certification failures, not bypasses. Complete prerequisite WEB gates before full production certification.",
+      "nextAction": "October 21 atomic candidate preserves all 28 gates and makes completion:report show every gate, including blocked dependencies and required evidence; --report --json supplies the full register view. Run all release checks, exact-head native PostgreSQL/browser CI, intended merge/deployment SHA and read-only smoke verification. Complete every prerequisite WEB gate before certification; no aggregate completion claim from engineering checks.",
       "acceptance": "Zero unresolved blocker/high defect in included scope; all required gates verified and still applicable; intended production team/project/branch verified; accepted operations handover.",
       "requiredEvidence": "Exact-head CI, tested merge/deployed SHA mapping, migration checks and signed candidate decision.",
       "evidence": []

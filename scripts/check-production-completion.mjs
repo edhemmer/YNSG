@@ -28,9 +28,31 @@ export function releaseFailures(data,milestone,candidate,native){
  if(milestone==='ios'){assert.ok(native&&Array.isArray(native.gates)&&native.gates.length===8,'Native evidence register required');for(const g of native.gates)if(g.status!=='verified'||!/^https:\/\//.test(g.evidence||''))failures.push('native:'+g.id);}
  return failures;
 }
+export function completionReport(data){
+ validateCompletion(data);
+ return {updatedAt:data.updatedAt,milestones:data.milestones.map(milestone=>{
+  const gates=data.gates.filter(g=>g.milestone===milestone);
+  return {milestone,accepted:gates.filter(g=>g.status==='verified').length,total:gates.length,
+   gates:gates.map(g=>({id:g.id,title:g.title,status:g.status,owner:g.owner,
+    unverifiedDependencies:g.dependsOn.filter(id=>data.gates.find(d=>d.id===id).status!=='verified'),
+    blocker:g.blocker||null,nextAction:g.nextAction,requiredEvidence:g.requiredEvidence}))};
+ })};
+}
 function main(){const args=process.argv.slice(2);const value=flag=>args[args.indexOf(flag)+1];const data=validateCompletion(JSON.parse(readFileSync('contracts/production-completion.json','utf8')));
  if(args.includes('--release')){const milestone=value('--release'),candidate=args.includes('--candidate')?value('--candidate'):'';const native=milestone==='ios'?JSON.parse(readFileSync('contracts/native-release-evidence.json','utf8')):null;const failed=releaseFailures(data,milestone,candidate,native);if(failed.length){console.error('PRODUCTION COMPLETION BLOCKED: '+failed.join(', '));process.exitCode=1;}else console.log('REGISTER PASS: '+milestone+' candidate '+candidate+'. Evidence authenticity, human acceptance and actual provider/Apple decisions require separate review.');}
- else if(args.includes('--report')){for(const milestone of data.milestones){const gates=data.gates.filter(g=>g.milestone===milestone);console.log(milestone+': '+gates.filter(g=>g.status==='verified').length+'/'+gates.length+' gates accepted');}const ready=data.gates.filter(g=>g.status!=='verified'&&g.status!=='blocked'&&g.dependsOn.every(id=>data.gates.find(d=>d.id===id).status==='verified'));for(const g of ready)console.log(`${g.id} [${g.owner}] ${g.nextAction}`);}
+ else if(args.includes('--report')){
+  const report=completionReport(data);
+  if(args.includes('--json'))console.log(JSON.stringify(report,null,2));
+  else for(const milestone of report.milestones){
+   console.log(`${milestone.milestone}: ${milestone.accepted}/${milestone.total} gates accepted`);
+   for(const g of milestone.gates){console.log(`${g.id} [${g.status}] ${g.title}`);if(g.status==='verified')continue;
+    if(g.unverifiedDependencies.length)console.log('  Requires: '+g.unverifiedDependencies.join(', '));
+    if(g.blocker)console.log('  Blocker: '+g.blocker);
+    console.log(`  Next [${g.owner}]: ${g.nextAction}`);
+    console.log('  Evidence: '+g.requiredEvidence);
+   }
+  }
+ }
  else console.log('PASS: completion register integrity; open gates are not product readiness.');
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){try{main();}catch(e){console.error('Completion check failed: '+e.message);process.exitCode=1;}}
