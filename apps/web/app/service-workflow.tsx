@@ -41,6 +41,29 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
  const requestedPhase=selection?.state===stateKey?selection.phase:plan.phase;
  const phase=allowedPhases.includes(requestedPhase)?requestedPhase:allowedPhases[allowedPhases.length-1];
  const proposal=request.appointments.find(a=>visitState(a)==='proposal');
+ const readyJob=jobs.find(j=>['approved','scheduled','en_route','arrived','working','paused'].includes(j.status)&&!invoices.some(i=>i.job_id===j.id));
+ const unfinishedInvoice=jobs.find(j=>j.status==='completed'&&!invoices.some(i=>i.job_id===j.id));
+ const pendingBalance=invoices.some(i=>i.total_cents-creditTotal(i.credits)-i.payments.reduce((sum,p)=>sum+p.cents,0)>0);
+ const needAgreement=confirmedVisit&&(!quotes.some(q=>q.status==='accepted'));
+ function focusPhase(target:MobilePhase){
+  if(blocked||!canLeave())return;
+  setSelection({phase:target,state:stateKey});
+ }
+ const fieldActionLabel=!confirmedVisit?'Confirm appointment':readyJob?
+  (readyJob.status==='working'?'Pause timer':readyJob.status==='paused'?'Resume timer':'Start work'):
+  needAgreement?'Review scope & approval':unfinishedInvoice?'Prepare invoice':
+  pendingBalance?'Record payment':plan.settled?'Closed out':'Open job details';
+ const fieldActionDisabled=blocked||(!confirmedVisit&&!canManage)||(Boolean(readyJob)&&!canWork)||plan.settled;
+ function executeFieldAction(){
+  if(fieldActionDisabled)return;
+  if(!confirmedVisit){focusPhase('visit');openSchedule();return;}
+  if(readyJob){void fieldAction(readyJob,readyJob.status==='working'?'pause':readyJob.status==='paused'?'resume':'start');return;}
+  if(needAgreement){focusPhase('visit');return;}
+  if(unfinishedInvoice){focusPhase('work');return;}
+  if(pendingBalance){focusPhase('closeout');return;}
+  focusPhase(plan.phase);
+ }
+
  async function prepareQuote(value:Record<string,unknown>){
   if(transition.current||busy)return;transition.current=true;
   try{let revision=request.revision;if(request.status==='submitted'){const r=await act({command:'ReviewRequest',id:request.id,revision,status:'reviewing'}) as {ok?:boolean;result?:{revision?:number}}|undefined;if(!r?.ok||!Number.isInteger(r.result?.revision))return;revision=r.result!.revision!;}return await act({...value,revision});}
@@ -55,13 +78,17 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
   {canManage&&request.customer_id&&onCustomer&&<p><button type="button" className="secondary" disabled={blocked} onClick={()=>onCustomer(request.customer_id!)}>Customer record & current contacts</button><span className="tiny"> Visit details above are from the original request.</span></p>}
   {canManage&&request.customer_id&&jobs.length>0&&<RelatedCustomerFiles key={organization+':'+request.customer_id} organization={organization} customer={request.customer_id} targets={[...jobs.map(j=>({kind:'job' as const,id:j.id})),...invoices.map(i=>({kind:'invoice' as const,id:i.id}))]} disabled={blocked} onManage={onCustomer?()=>onCustomer(request.customer_id!):undefined}/>}
   </details>
-  {allowedPhases.length>1&&<details className="workflow-supporting workflow-other-steps"><summary>Other steps</summary><nav className="mobile-workflow-steps" aria-label="Available service steps">{mobilePhases.filter(p=>allowedPhases.includes(p.id)).map(p=><button type="button" key={p.id} className={phase===p.id?'is-current':''} aria-current={phase===p.id?'step':undefined} disabled={blocked} onClick={()=>{if(p.id===phase||canLeave())setSelection({phase:p.id,state:stateKey});}}><Icon name={p.icon}/><span>{p.label}</span></button>)}</nav></details>}
-  <div className="workflow-next" role="status"><strong>{plan.settled?next.title:'Next: '+next.title}</strong></div>
+  <div className="field-command" aria-label="Current field action">
+   <div className="field-command-context"><span className="field-command-status">{!confirmedVisit?'Awaiting confirmation':readyJob?.status==='working'?'Timer running':readyJob?.status==='paused'?'Work paused':readyJob?'Ready for work':needAgreement?'Agreement needed':unfinishedInvoice?'Invoice needed':pendingBalance?'Payment outstanding':plan.settled?'Paid and closed':next.title}</span><strong>{requestTasks(request.original_submission).slice(0,2).map(t=>t.task||t.service).filter(Boolean).join(' · ')||'Service visit'}</strong></div>
+   <div className="field-command-actions"><button type="button" className="field-command-primary" disabled={fieldActionDisabled} onClick={executeFieldAction}>{fieldActionLabel}<Icon name="arrow"/></button>
+   {!confirmedVisit&&canManage&&!['declined','canceled'].includes(request.status)&&<button type="button" className="secondary" disabled={blocked} onClick={()=>{if(canLeave())setDeclineOpen(true);}}>Decline request</button>}</div>
+  </div>
+  <details className="field-secondary-tools"><summary>Details & additional tools</summary><nav className="mobile-workflow-steps" aria-label="Available service steps">{mobilePhases.filter(p=>allowedPhases.includes(p.id)).map(p=><button type="button" key={p.id} aria-current={phase===p.id?'step':undefined} disabled={blocked} onClick={()=>focusPhase(p.id)}>{p.label}</button>)}</nav><button type="button" className="secondary" disabled={blocked} onClick={onReview}>Full request record</button></details>
   <section className="workflow-visit-overview" aria-label="Appointment at a glance">{request.appointments.some(a=>['reserved','proposal','needs_review'].includes(visitState(a)))?<div className="workflow-job-context">{request.appointments.filter(a=>['reserved','proposal','needs_review'].includes(visitState(a))).map(a=><AppointmentSummary key={a.id} visit={a} timezone={timezone}/>)}</div>:<p>{timing.label}: <strong>{timing.text}</strong></p>}</section>
   {request.original_submission.description&&<details className="workflow-customer-note" open={phase==='visit'}><summary>Customer’s note <span>Read before confirming or starting work</span></summary><p>{request.original_submission.description}</p></details>}
   {confirmedVisit&&<details className="workflow-supporting"><summary>Upcoming invoice preview</summary><ScheduledInvoice compact request={{...request,appointments:request.appointments.filter(a=>!a.job_id||!invoices.some(i=>i.job_id===a.job_id))}} quotes={quotes} jobs={jobs} timezone={timezone}/></details>} 
   {phase==='visit'&&<>
-  {next.step>0&&<section className="workflow-section workflow-appointment-actions"><h3>Manage appointment</h3><button type="button" className="secondary" disabled={blocked} onClick={()=>void openSchedule()}>{!confirmedVisit?'Confirm appointment':next.action==='schedule'?'Choose or confirm a time':'Change appointment'}</button>{canManage&&!confirmedVisit&&!['declined','canceled'].includes(request.status)&&<button type="button" className="danger-ghost" disabled={blocked} onClick={()=>{if(canLeave())setDeclineOpen(true);}}>Decline request</button>}{scheduleOpen&&<SchedulingReviewPanel key={proposal?.id||request.id} organization={organization} requestId={request.id} appointmentId={proposal?.id||null} initialExpanded initialStart={request.original_submission.preferredTime} onBusy={busyFor('schedule')} completed={()=>{setScheduleOpen(false);onChanged();}}/>}</section>}
+  {next.step>0&&<section className="workflow-section workflow-appointment-actions"><h3>Manage appointment</h3><button type="button" className="secondary" disabled={blocked} onClick={()=>void openSchedule()}>{confirmedVisit?'Change appointment':'Review appointment'}</button>{canManage&&!confirmedVisit&&!['declined','canceled'].includes(request.status)&&<button type="button" className="danger-ghost" disabled={blocked} onClick={()=>{if(canLeave())setDeclineOpen(true);}}>Decline request</button>}{scheduleOpen&&<SchedulingReviewPanel key={proposal?.id||request.id} organization={organization} requestId={request.id} appointmentId={proposal?.id||null} initialExpanded initialStart={request.original_submission.preferredTime} onBusy={busyFor('schedule')} completed={()=>{setScheduleOpen(false);onChanged();}}/>}</section>}
   {confirmedVisit&&next.step>0&&<section className="workflow-section"><h3>Scope & price</h3>
    {canManage&&requestTasks(request.original_submission).map((task,i)=>{const review=hiddenConditionPreflight(task.service,task.task);return review&&<details key={i} className="note"><summary>Before quoting {task.task||task.service}: {review.title}</summary>{review.hold&&<p role="alert">Do not promise this work without verified licensing and service scope.</p>}<ul>{review.questions.map(q=><li key={q}>{q}</li>)}</ul></details>;})}
    {!quotes.length&&<><p>Save the work and estimated labor amount. Nothing is emailed or approved automatically.</p>{canQuote&&['submitted','reviewing'].includes(request.status)&&<WorkflowQuoteForm request={request} busy={blocked} submit={prepareQuote} organization={organization} canLink={canManage}/>}</>}
@@ -71,7 +98,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
   {canManage&&phase==='work'&&<details className="workflow-supporting"><summary>Extra work or unexpected conditions</summary><OnSiteExtraReview /><UnforeseenJobReview /></details>}
   {(phase==='work'||phase==='invoice')&&jobs.filter(j=>j.status!=='canceled'&&!invoices.some(i=>i.job_id===j.id)).length===0&&<p>Confirm the appointment, scope and price in step 1 before recording work.</p>}
   {(phase==='work'||phase==='invoice')&&jobs.filter(j=>j.status!=='canceled'&&!invoices.some(i=>i.job_id===j.id)).map(j=>{const hasInvoice=invoices.some(i=>i.job_id===j.id);const q=quotes.find(q=>q.id===j.quote_id),v=q?.quote_versions.find(v=>v.version===(j.approved_version??q.current_version));return <section className="workflow-section" key={j.id}><h3>Work & invoice</h3><p><strong>{j.status==='completed'?'Work completed':j.status==='working'?'Work in progress':j.status==='paused'?'Work paused':j.status==='canceled'?'Work canceled':'Ready to start'}</strong></p>
-   {canWork&&next.action!=='schedule'&&<div className="actions">{['approved','scheduled','en_route','arrived'].includes(j.status)&&<button disabled={blocked} onClick={()=>void fieldAction(j,'start')}>Start work timer</button>}{j.status==='working'&&<button disabled={blocked} onClick={()=>void fieldAction(j,'pause')}>Pause work</button>}{j.status==='paused'&&<button disabled={blocked} onClick={()=>void fieldAction(j,'resume')}>Resume work</button>}</div>}
+   {/* Timer controls are centralized in the field command above. */}
    {canManage&&!hasInvoice&&['working','paused','completed'].includes(j.status)&&<InvoiceDraft mobile completeOnSave={j.status!=='completed'} organization={organization} job={j.id} revision={j.revision} completed={j.status==='completed'} blocked={blocked} onBusy={busyFor('work:'+j.id)} saved={onChanged} suggestedWork={v?{description:v.scope,chargedCents:v.labor_cents}:undefined}/>}
    {!hasInvoice&&j.status==='completed'&&<p>No invoice has been issued yet. Review the draft above to continue.</p>}
   </section>;})}

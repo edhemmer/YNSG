@@ -40,3 +40,18 @@
 .owner-day-heading-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .owner-day-heading-actions button{min-height:44px}
 @media(max-width:600px){.owner-day-heading-actions{width:100%}.owner-day-heading-actions button{flex:1 1 110px}}
+
+/* One action above the fold; secondary administration is opt-in. */
+.field-command{margin:16px 0 12px;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--paper);display:grid;gap:12px}
+.field-command-context{display:grid;gap:6px;min-width:0;overflow-wrap:anywhere}
+.field-command-context strong{font-size:1rem}
+.field-command-status{font-size:.8rem;font-weight:700;letter-spacing:.025em;text-transform:uppercase;color:var(--green)}
+.field-command-actions{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.field-command-primary{min-height:56px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;font-weight:750;font-size:1.05rem}
+.field-command-primary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.field-command-actions>.secondary{min-height:44px}
+.field-secondary-tools{margin:8px 0 12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.field-secondary-tools>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:650}
+.field-secondary-tools .mobile-workflow-steps{margin:8px 0;display:flex;gap:8px;flex-wrap:wrap}
+.field-secondary-tools .mobile-workflow-steps button{min-height:44px}
+@media(min-width:768px){.field-command{grid-template-columns:minmax(0,1fr) minmax(210px,280px);align-items:center;padding:20px}.field-command-actions{width:100%}}

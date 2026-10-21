@@ -16,3 +16,12 @@ test('confirmation, decline, deliberate invoicing, payments and notes stay conne
  assert.match(s,/InvoicePayments guided/);
  assert.match(s,/phase==='closeout'&&invoices\.map/);
 });
+
+test('field command presents a real canonical timer and scheduling action above optional tools',()=>{
+ assert.match(s,/className="field-command-primary"/);
+ assert.match(s,/onClick=\{executeFieldAction\}/);
+ assert.match(s,/fieldAction\(readyJob,readyJob\.status==='working'\?'pause':readyJob\.status==='paused'\?'resume':'start'\)/);
+ assert.match(s,/if\(!confirmedVisit\)\{focusPhase\('visit'\);openSchedule\(\);return;\}/);
+ assert.match(s,/className="field-secondary-tools"/);
+ assert.doesNotMatch(s,/Prepared next decision|Prepared customer follow-up|Prepared for you/);
+});
