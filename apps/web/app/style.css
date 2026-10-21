@@ -322,3 +322,8 @@ html[data-theme=dark] .request-dialog .detail-tabs button{color:#b3c2cd}html[dat
 .field-quick-agreement select{min-height:48px;width:100%;max-width:100%;padding:8px;border-radius:8px}
 .field-quick-agreement button{min-height:48px}
 .field-cockpit-next{scroll-margin-top:110px}
+
+/* Field cockpit hook also retains compatibility with existing workflow status semantics. */
+.service-workflow .workflow-next[data-field-cockpit-next]{padding:16px;border:1px solid #648e75;border-left:5px solid #79aa85;border-radius:14px;margin:12px 0;display:grid;gap:10px;scroll-margin-top:110px}
+.service-workflow .workflow-next[data-field-cockpit-next] strong{font-size:clamp(1.1rem,3.6vw,1.5rem);line-height:1.25}
+.service-workflow .workflow-next[data-field-cockpit-next] button{min-height:48px;max-width:100%}
