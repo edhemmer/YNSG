@@ -26,3 +26,14 @@ test('malformed, unsupported and oversized recovery records are discarded',()=>{
  storage.setItem('ynsg-request-recovery-v1','x'.repeat(20001));assert.equal(recovery.read(),null);
 });
 
+
+test('invalid recovery attempts cannot overwrite a valid in-flight customer request',()=>{
+ const storage=memory(),r=requestRecovery(storage);
+ assert.equal(r.savePending(data),true);
+ for(const invalid of [{...data,requestKey:'bad'}, {...data,services:[null]}, {...data,name:undefined}, {...data,postalCode:'invalid'}]){
+  assert.equal(r.savePending(invalid),false);
+  assert.deepEqual(r.read().data,data);
+ }
+ assert.equal(r.saveDraft({...data,services:[]}),true);
+ assert.equal(r.read().kind,'draft');
+});

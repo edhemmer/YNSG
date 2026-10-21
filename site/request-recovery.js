@@ -20,6 +20,8 @@ export function requestRecovery(storage,clock=Date.now){
   }catch{clear();return null;}
  }
  function save(kind,data){
+  // Never replace a recoverable submission with invalid or incomplete state.
+  if(!['draft','pending'].includes(kind)||!validData(data,kind))return false;
   try{const raw=JSON.stringify({version:1,kind,savedAt:clock(),data});if(raw.length>20000)return false;storage?.setItem(key,raw);return Boolean(storage);}catch{return false;}
  }
  return {read,clear,saveDraft:data=>save('draft',data),savePending:data=>save('pending',data)};
