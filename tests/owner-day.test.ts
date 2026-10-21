@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {ownerDayQuery,ownerDayResponse,ownerDayLabel} from '../apps/web/lib/owner-day.ts';
+import {ownerDayQuery,ownerDayResponse,ownerDayLabel,ownerStopDirections,ownerStopCall} from '../apps/web/lib/owner-day.ts';
 import {readOwnerDay} from '../apps/web/lib/owner-day-read.ts';
 import type {SupabaseClient} from '@supabase/supabase-js';
 const call={id:'10000000-0000-4000-8000-000000000001',requestId:'10000000-0000-4000-8000-000000000002',startAt:'2030-10-16T13:00:00Z',arrivalAt:'2030-10-16T14:00:00Z',endAt:'2030-10-16T17:00:00Z',name:'Synthetic',address:'Test address',phone:'5550100',tasks:['Assembly']};
@@ -33,4 +33,14 @@ test('owner day contracts reject unbounded lists, malformed dates and mutation i
  assert.equal(ownerDayResponse.safeParse({...data,calls:Array(13).fill(call)}).success,false);
  assert.equal(ownerDayResponse.safeParse({...data,calls:[{...call,arrivalAt:'yesterday'}]}).success,false);
  assert.equal(ownerDayResponse.safeParse({...data,calls:[{...call,token:'private'}]}).success,false);
+});
+
+test('field shortcuts produce safe user-invoked call and navigation links',()=>{
+ assert.equal(ownerStopDirections(' 123 Main St, DeKalb IL '),'https://www.google.com/maps/search/?api=1&query=123%20Main%20St%2C%20DeKalb%20IL');
+ assert.equal(ownerStopDirections('  '),null);
+ assert.equal(ownerStopDirections('x'.repeat(501)),null);
+ assert.equal(ownerStopCall('(815) 555-0100'),'tel:8155550100');
+ assert.equal(ownerStopCall('+1 815 555 0100'),'tel:+18155550100');
+ assert.equal(ownerStopCall('not a number'),null);
+ assert.equal(ownerStopCall('555'),null);
 });

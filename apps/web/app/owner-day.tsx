@@ -2,7 +2,7 @@
 import {useEffect,useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 import {publicError} from '../lib/public-errors';
-import {ownerDayResponse,ownerDayLabel,type OwnerDay} from '../lib/owner-day';
+import {ownerDayResponse,ownerDayLabel,ownerStopDirections,ownerStopCall,type OwnerDay} from '../lib/owner-day';
 import Icon from './crm-icons';
 export default function OwnerDay({organization,revision,onNavigate,onOpen}:{organization:string;revision:number;onNavigate:(section:string)=>void;onOpen:(requestId:string)=>void}){
  const [data,setData]=useState<OwnerDay|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
@@ -18,9 +18,14 @@ export default function OwnerDay({organization,revision,onNavigate,onOpen}:{orga
     <p className="eyebrow">{i===0?'Next stop · ':''}{ownerDayLabel(c,data.timezone)}</p><h3>{c.name}</h3>
     <p className="owner-stop-time"><Icon name="calendar"/>{format(c.arrivalAt,{weekday:'short',month:'short',day:'numeric'})}<strong>{format(c.arrivalAt,{hour:'numeric',minute:'2-digit',timeZoneName:'short'})}</strong></p>
     {c.startAt!==c.arrivalAt&&<p className="tiny">Work / pickup starts {format(c.startAt,{hour:'numeric',minute:'2-digit',timeZoneName:'short'})}</p>}
-    <p><Icon name="pin"/>{c.address}</p><p>{c.tasks.join(' · ')}</p><button type="button" className="button" onClick={()=>onOpen(c.requestId)}>Open job<Icon name="arrow"/></button>
+    <p><Icon name="pin"/>{c.address||'Address needs review'}</p><p>{c.tasks.join(' · ')}</p>
+    <div className="owner-stop-quick-actions">
+     {ownerStopDirections(c.address)&&<a className="secondary owner-stop-link" href={ownerStopDirections(c.address)!} target="_blank" rel="noopener noreferrer" aria-label={`Get directions to ${c.name}`}>Directions</a>}
+     {ownerStopCall(c.phone)&&<a className="secondary owner-stop-link" href={ownerStopCall(c.phone)!} aria-label={`Call ${c.name}`}>Call</a>}
+    </div>
+    <button type="button" className="button" onClick={()=>onOpen(c.requestId)}>Open job<Icon name="arrow"/></button>
    </article>;})}</div>
-   {data.calls.length>1&&<details className="owner-upcoming-stops"><summary>Next {Math.min(data.calls.length-1,2)} upcoming {data.calls.length-1===1?'stop':'stops'}</summary><div className="owner-stop-list">{data.calls.slice(1,3).map(c=><article className="owner-stop" key={c.id}><strong>{c.name}</strong><p>{ownerDayLabel(c,data.timezone)} · {c.tasks.slice(0,2).join(' · ')}</p><button type="button" className="secondary" onClick={()=>onOpen(c.requestId)}>Open job <Icon name="arrow"/></button></article>)}</div></details>}{(data.calls.length>3||data.hasMore)&&<p className="tiny">Calendar shows all confirmed visits.</p>}
+   {data.calls.length>1&&<details className="owner-upcoming-stops"><summary>Next {Math.min(data.calls.length-1,2)} upcoming {data.calls.length-1===1?'stop':'stops'}</summary><div className="owner-stop-list">{data.calls.slice(1,3).map(c=><article className="owner-stop" key={c.id}><strong>{c.name}</strong><p>{ownerDayLabel(c,data.timezone)} · {c.tasks.slice(0,2).join(' · ')}</p><div className="owner-upcoming-actions"><button type="button" className="secondary" onClick={()=>onOpen(c.requestId)}>Open job <Icon name="arrow"/></button>{ownerStopDirections(c.address)&&<a className="secondary owner-stop-link" href={ownerStopDirections(c.address)!} target="_blank" rel="noopener noreferrer" aria-label={`Get directions to ${c.name}`}>Directions</a>}</div></article>)}</div></details>}{(data.calls.length>3||data.hasMore)&&<p className="tiny">Calendar shows all confirmed visits.</p>}
 
   </>}
  </section>;
