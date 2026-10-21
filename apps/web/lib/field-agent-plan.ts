@@ -13,3 +13,15 @@ export function prepareAgentPlan(request:InboxRequest,quotes:LinkedQuote[],jobs:
  if(brief.phase==='closeout')return [task({kind:'payment',title:'Review outstanding receipt',detail:'Confirm only cash or Zelle actually received; never credit an expected transfer.'})];
  return [task({kind:'review',title:brief.next,detail:brief.notes[0]||'Review the saved customer and job record before proceeding.'})];
 }
+
+/** Draft for owner review only; never queued or sent by this function. */
+export function prepareCustomerFollowUp(request:InboxRequest):{subject:string;body:string;requiresOwnerApproval:true;status:'draft'}|null{
+ if(['declined','canceled'].includes(request.status))return null;
+ const name=String(request.original_submission.name||'').trim().split(/\s+/)[0]||'there';
+ const tasks=request.original_submission.services;
+ const summary=Array.isArray(tasks)?tasks.slice(0,2).map(t=>String(t.task||t.service||'').trim()).filter(Boolean).join(' and '):'your home or yard project';
+ const service=summary||'your home or yard project';
+ return {subject:'Your Neighborhood Service Guy — appointment follow-up',
+  body:`Hi ${name},\n\nThank you for contacting Your Neighborhood Service Guy about ${service}. I am reviewing the details and will confirm the next steps with you. Your requested appointment is not confirmed until you receive a confirmation.\n\nEd Hemmer\nYour Neighborhood Service Guy`,
+  requiresOwnerApproval:true,status:'draft'};
+}
