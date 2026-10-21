@@ -63,7 +63,7 @@ test('scheduling and estimate agreement are operable with sample data',async()=>
   const start=node.querySelector('select[name="visitTime"]');assert.ok(start);const option=[...start.options].find(o=>o.value);assert.ok(option);
   await input('visitTime',option.value);await click('Schedule appointment');assert.match(node.textContent,/Scope & price/);
   assert.doesNotMatch(node.textContent,/Google Calendar update queued/);
-  await click('Save labor estimate');await until(()=>node.textContent.includes('How did the customer agree'),'Agreement form becomes available after estimate save');await input('evidence','Practice only: fictional agreement for this sample.');await click('Record customer agreement');assert.ok(getBrowserPractice().snapshot().jobs.some(j=>j.status==='approved'||j.status==='scheduled'));assert.equal(h.calls(),0);
+  await click('Save labor estimate');await until(()=>node.textContent.includes('Did the customer approve this quote?'),'Agreement action becomes available after estimate save');await input('approvalMethod','phone');await click('Record customer approval');assert.ok(getBrowserPractice().snapshot().jobs.some(j=>j.status==='approved'||j.status==='scheduled'));assert.equal(h.calls(),0);
  }finally{await h.close();}
 });
 test('customer screen shows editable sample contacts and hides unavailable external actions',async()=>{
