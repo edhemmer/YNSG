@@ -51,10 +51,14 @@ jobs:
           pnpm --dir apps/web exec next build
       - name: Install browser engines for native form regression
         run: pnpm exec playwright install --with-deps chromium webkit
+      - name: Verify rendered public masthead and booking layouts
+        run: node scripts/verify-public-layout.mjs
       - name: Verify authentication through HTTP routes and real browser forms
         run: node scripts/verify-native-auth.mjs --browsers
       - name: Verify mobile owner workflow and responsive drawer
         run: node scripts/verify-owner-mobile.mjs
+      - name: Verify workspace history, live permission changes and compact invoices
+        run: node scripts/verify-workspace-navigation.mjs
       - name: Install isolated locked native dependencies
         run: pnpm --dir apps/mobile install --frozen-lockfile
       - name: Verify native types, lint, SDK and iOS JavaScript bundle

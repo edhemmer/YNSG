@@ -7,7 +7,6 @@ test('workspace navigation rejects role-inaccessible and unknown destinations be
  assert.ok(handler);
  const roleCheck=handler.indexOf('sections.some(item=>item.key===next&&canSeeSection(item))');
  assert.ok(roleCheck>=0);
- assert.ok(roleCheck<handler.indexOf('setSection(next)'));
- assert.ok(roleCheck<handler.indexOf('history.pushState'));
+ assert.ok(roleCheck<handler.indexOf('saveDestination'));
  assert.match(handler,/That workspace destination is not available to your account/);
 });

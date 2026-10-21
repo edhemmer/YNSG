@@ -288,3 +288,16 @@ html[data-theme=dark] .request-dialog .detail-tabs button{color:#b3c2cd}html[dat
 .owner-job-action{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;min-height:48px;padding:10px 15px;text-align:center;text-decoration:none;font-size:.95rem;font-weight:750;white-space:nowrap}
 .owner-jobs-pages{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}
 @media(max-width:620px){.owner-jobs-compact{padding:16px 14px}.owner-job-row{grid-template-columns:minmax(0,1fr);gap:9px;padding:13px}.owner-job-action{width:100%;min-width:0}.owner-job-services{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.owner-jobs-heading button{font-size:.9rem;padding:8px}}
+
+/* Field money: one balance row per invoice, supporting forms on demand. */
+.money-invoice>summary{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"identity toggle" "balance balance";gap:.5rem .75rem;min-height:60px;cursor:pointer;list-style:none}
+.money-invoice>summary>span{display:grid;gap:.25rem;min-width:0;overflow-wrap:break-word;word-break:normal}
+.money-invoice>summary>span:first-child{grid-area:identity}
+.money-invoice>summary .money-invoice-balance{grid-area:balance;display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:.35em .75em}
+.money-invoice>summary span span{font-size:.9rem;color:var(--muted)}
+.money-invoice>summary::after{grid-area:toggle;content:'+';font-size:1.25rem}
+.money-invoice[open]>summary::after{content:'−'}
+.money-invoice-actions{padding-top:1rem;border-top:1px solid var(--line);margin-top:1rem}
+.money-invoice-outstanding{display:flex;flex-wrap:wrap;gap:.35em;font-size:1rem}
+.money-tools>summary,.money-pending>summary{cursor:pointer;min-height:44px;align-content:center;font-weight:650}
+.money-invoice>summary:focus-visible,.money-tools>summary:focus-visible,.money-pending>summary:focus-visible{outline:3px solid var(--gold);outline-offset:3px}

@@ -8,8 +8,8 @@ test('Jobs primary action opens guarded in-app work, preserving request context'
  assert.match(workspace,/onOpen=\{openWork\}/);
  assert.doesNotMatch(owner,/event\.preventDefault\(\)/);
  assert.doesNotMatch(owner,/onClick=\{event=>/);
- assert.match(workspace,/requestedSection==='Work'/);
- assert.match(workspace,/setWorkRequest\(linkedRequest\)/);
+ assert.match(workspace,/readWorkspaceRoute/);
+ assert.match(workspace,/setWorkRequest\(route.section==='Work'\?route.request:null\)/);
 });
 test('blocked in-app request navigation reports a reason, not a silent ignored tap',()=>{
  assert.match(workspace,/Please finish the current action before opening another request/);
