@@ -203,7 +203,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
     };
     window.addEventListener('popstate',onHistory);
     return()=>window.removeEventListener('popstate',onHistory);
-  },[pending,invoiceBusy,role,org]);
+  },[pending,invoiceBusy,session,org]);
   async function loadSession() {
     const sequence=++sessionSequence.current;
     try {
