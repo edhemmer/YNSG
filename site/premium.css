@@ -280,3 +280,22 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
  .site-header .nav-mobile{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
 @media(max-width:390px){.site-header .brand{width:min(220px,100%)}.site-header .brand img{width:100%;max-width:220px}}
+
+/* Brand-first masthead: full approved logo, centered ABOVE navigation and hero. */
+.site-header .header-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px 16px;padding:14px 0 12px;min-height:0}
+.site-header .brand{grid-column:1/-1;justify-self:center;display:block;width:min(330px,70vw);max-width:100%;margin:0}
+.site-header .brand img{display:block;width:100%;max-width:none;height:auto}
+.site-header .nav-desktop{grid-column:1;grid-row:2;display:flex;flex-wrap:wrap;gap:clamp(12px,2vw,28px);margin:0;align-items:center}
+.site-header .header-actions{grid-column:2;grid-row:2;gap:8px}
+.site-header .nav-desktop a{padding:8px 0}
+.site-header .header-actions .nav-request{min-height:42px}
+@media(max-width:1100px){.site-header .brand{width:min(310px,72vw)}.site-header .brand img{width:100%;max-width:none}}
+@media(max-width:850px){
+ .site-header .header-row{grid-template-columns:minmax(0,1fr);gap:8px;padding:12px 0}
+ .site-header .brand{grid-column:1;grid-row:1;justify-self:center;width:min(310px,80vw);margin:0}
+ .site-header .brand img{width:100%;max-width:none}
+ .site-header .nav-mobile{grid-column:1;grid-row:2;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;width:100%;margin:0}
+ .site-header .nav-desktop,.site-header .header-actions{display:none!important}
+ .site-header .nav-mobile>a{min-width:0;min-height:44px;padding:8px 3px;text-align:center}
+}
+@media(max-width:390px){.site-header .brand{width:min(270px,78vw)}.site-header .brand img{width:100%;max-width:none}}

@@ -10,5 +10,5 @@ test('phone header prioritizes the intact original logo with one calm navigation
  assert.match(css,/\.site-header \.header-actions,\.site-header \.nav-desktop\{display:none!important\}/);
  assert.match(css,/\.site-header \.nav-mobile\{display:grid;grid-column:1;grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
  assert.match(css,/\.mobile-rail\{display:none!important\}/);
- assert.match(css,/\.site-header \.brand img\{width:100%;max-width:244px/);
+ assert.match(css,/\.site-header \.brand\{grid-column:1;grid-row:1;justify-self:center/);
 });

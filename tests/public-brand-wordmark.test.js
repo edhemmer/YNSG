@@ -7,7 +7,7 @@ test('website preserves original logo as dominant brand across desktop and mobil
  assert.match(build,/src="\/assets\/logo.jpg"/);
  assert.match(build,/alt="Your Neighborhood Service Guy/);
  assert.doesNotMatch(build,/class="brand-identity"/);
- assert.match(css,/\.site-header \.brand img\{display:block;width:228px/);
- assert.match(css,/\.site-header \.brand img\{width:100%;max-width:244px/);
+ assert.match(css,/\.site-header \.brand\{grid-column:1\/-1;justify-self:center/);
+ assert.match(css,/\.site-header \.brand img\{display:block;width:100%;max-width:none/);
  assert.match(css,/@media\(max-width:390px\)/);
 });
