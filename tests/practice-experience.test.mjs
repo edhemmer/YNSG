@@ -59,11 +59,11 @@ test('work recording through invoice issue and document uses the real connected 
 test('scheduling and estimate agreement are operable with sample data',async()=>{
  const h=await mount();try{
   await openSample('Sample — New request');await click('Confirm appointment');
-  await until(()=>Boolean(node.querySelector('select[name="visitTime"]')),'Appointment time selector becomes available');
+  await until(()=>[...document.querySelectorAll('select[name="visitTime"] option')].some(option=>option.value),'Appointment time choices load');
   const start=node.querySelector('select[name="visitTime"]');assert.ok(start);const option=[...start.options].find(o=>o.value);assert.ok(option);
   await input('visitTime',option.value);await click('Schedule appointment');assert.match(node.textContent,/Scope & price/);
   assert.doesNotMatch(node.textContent,/Google Calendar update queued/);
-  await click('Save labor estimate');assert.match(node.textContent,/How did the customer agree/);await input('evidence','Practice only: fictional agreement for this sample.');await click('Record customer agreement');assert.ok(getBrowserPractice().snapshot().jobs.some(j=>j.status==='approved'||j.status==='scheduled'));assert.equal(h.calls(),0);
+  await click('Save labor estimate');await until(()=>node.textContent.includes('How did the customer agree'),'Agreement form becomes available after estimate save');await input('evidence','Practice only: fictional agreement for this sample.');await click('Record customer agreement');assert.ok(getBrowserPractice().snapshot().jobs.some(j=>j.status==='approved'||j.status==='scheduled'));assert.equal(h.calls(),0);
  }finally{await h.close();}
 });
 test('customer screen shows editable sample contacts and hides unavailable external actions',async()=>{
