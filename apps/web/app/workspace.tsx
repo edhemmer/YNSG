@@ -174,11 +174,36 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
   const primarySections=sections.filter(s=>['Dashboard','Requests','Calendar','Today','Work','Money'].includes(s.key));
   const secondarySections=sections.filter(s=>['Customers','Snapshot','Learning','Activity','Settings'].includes(s.key));
   const canSeeSection=(s:{key:string})=>['owner','admin'].includes(role||'')||(role==='dispatcher'?['Requests','Customers','Work','Today'].includes(s.key):role==='bookkeeper'?['Customers','Money'].includes(s.key):['Today','Work'].includes(s.key));
-  function navigate(next:string){if(pending||invoiceBusy){setError('Finish the current action before changing screens.');return;}if(!canLeave())return;setPage(0);setMessage('');setError('');setSection(next);setCustomerFocus(null);setMobileNav(false);const url=new URL(window.location.href);url.searchParams.set('section',next);url.searchParams.delete('customer');if(next!=='Work'){setWorkRequest(null);url.searchParams.delete('request');}window.history.replaceState(null,'',url);void refresh();}
-  function openWork(id:string){if(pending||invoiceBusy){setError('Please finish the current action before opening another request.');return;}if(!canLeave())return;setActiveRequest(null);setCustomerFocus(null);setMobileNav(false);setWorkRequest(id);const url=new URL(window.location.href);url.searchParams.delete('customer');url.searchParams.set('request',id);url.searchParams.set('section','Work');window.history.replaceState(null,'',url);setSection('Work');setPage(0);void refresh();}
+  function navigate(next:string){if(pending||invoiceBusy){setError('Finish the current action before changing screens.');return;}if(!canLeave())return;setPage(0);setMessage('');setError('');setSection(next);setCustomerFocus(null);setMobileNav(false);const url=new URL(window.location.href);url.searchParams.set('section',next);url.searchParams.delete('customer');if(next!=='Work'){setWorkRequest(null);url.searchParams.delete('request');}window.history.pushState(null,'',url);void refresh();}
+  function openWork(id:string){if(pending||invoiceBusy){setError('Please finish the current action before opening another request.');return;}if(!canLeave())return;setActiveRequest(null);setCustomerFocus(null);setMobileNav(false);setWorkRequest(id);const url=new URL(window.location.href);url.searchParams.delete('customer');url.searchParams.set('request',id);url.searchParams.set('section','Work');window.history.pushState(null,'',url);setSection('Work');setPage(0);void refresh();}
 
-  function openCustomer(id:string){if(pending||invoiceBusy||!canLeave())return;setMobileNav(false);setCustomerFocus(id);setSection('Customers');setActiveRequest(null);setWorkRequest(null);const url=new URL(window.location.href);url.searchParams.delete('request');url.searchParams.set('section','Customers');url.searchParams.set('customer',id);window.history.replaceState(null,'',url);}
+  function openCustomer(id:string){if(pending||invoiceBusy||!canLeave())return;setMobileNav(false);setCustomerFocus(id);setSection('Customers');setActiveRequest(null);setWorkRequest(null);const url=new URL(window.location.href);url.searchParams.delete('request');url.searchParams.set('section','Customers');url.searchParams.set('customer',id);window.history.pushState(null,'',url);}
 
+  // Keep browser navigation aligned with the selected workspace, without bypassing unsaved work.
+  useEffect(()=>{
+    const onHistory=()=>{
+      if(pending||invoiceBusy||!canLeave()){
+        setError('Finish or discard your current changes before using browser navigation.');
+        return;
+      }
+      const params=new URLSearchParams(window.location.search);
+      const next=params.get('section')||'Dashboard';
+      const allowed=sections.find(item=>item.key===next&&canSeeSection(item));
+      if(!allowed){setError('That workspace destination is not available to your account.');return;}
+      const request=params.get('request');
+      const customer=params.get('customer');
+      setSection(next);
+      setWorkRequest(next==='Work'&&request&&/^[a-f0-9-]{36}$/i.test(request)?request:null);
+      setCustomerFocus(next==='Customers'&&customer&&/^[a-f0-9-]{36}$/i.test(customer)?customer:null);
+      setActiveRequest(null);
+      setMobileNav(false);
+      setError('');
+      setPage(0);
+      void refresh();
+    };
+    window.addEventListener('popstate',onHistory);
+    return()=>window.removeEventListener('popstate',onHistory);
+  },[pending,invoiceBusy,role,org]);
   async function loadSession() {
     const sequence=++sessionSequence.current;
     try {
