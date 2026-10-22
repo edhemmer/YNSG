@@ -9,8 +9,8 @@ test('owner mobile shell has one persistent entry to secondary navigation',()=>{
   assert.doesNotMatch(source,/aria-label="Toggle workspace menu"/);
   assert.match(source,/setMobileNav\(v=>!v\)/);
 });
-test('mobile dock keeps Today, Requests and Calendar as primary actions',()=>{
-  assert.match(source,/\['Dashboard','Requests','Calendar'\]\.includes\(s\.key\)/);
+test('mobile dock keeps Today, Requests and Jobs as primary actions',()=>{
+  assert.match(source,/\['Dashboard','Requests','Work'\]\.includes\(s\.key\)/);
   assert.match(source,/\{key:'Dashboard',label:'Today'/);
   assert.match(source,/\{key:'Requests',label:'Requests'/);
   assert.match(source,/\{key:'Calendar',label:'Calendar'/);

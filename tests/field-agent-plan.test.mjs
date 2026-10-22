@@ -16,7 +16,7 @@ test('agent prepares scheduling decision without mutating records or sending com
 test('declined requests produce no agent actions',()=>assert.deepEqual(prepareAgentPlan({...base,status:'declined'},[],[],[]),[]));
 test('field workflow does not present proposal-only agent advice as completed work',()=>{
  assert.doesNotMatch(source,/Prepared next decision|Awaiting your review · no action sent/);
- assert.match(source,/onClick=\{executeFieldAction\}/);
+ assert.match(source,/fieldAction\(j,'start'\)/);
 });
 
 test('follow-up is a draft only and never assumes appointment confirmation',()=>{

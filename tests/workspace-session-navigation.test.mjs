@@ -150,3 +150,18 @@ test('workspace refresh preserves mounted invoice tools on transient failures an
   }finally{h.close();}
  }
 });
+
+test('lost customer-agreement response retains exact key through denial and saved-state refresh until acknowledged',async()=>{
+ const h=await mount('?section=Work&request='+requestId,'owner',{state:'confirmed'});
+ try{
+  const savedJob=h.fixture.data.jobs[0];h.fixture.data.quotes[0].status='sent';h.fixture.data.jobs=[];
+  h.w.document.querySelector('#main .heading-actions button').click();await until(()=>h.w.document.querySelector('.field-job textarea[name=evidence]'));
+  const evidence=h.w.document.querySelector('textarea[name=evidence]');Object.getOwnPropertyDescriptor(h.w.HTMLTextAreaElement.prototype,'value').set.call(evidence,'Synthetic actual customer agreement for this fixture.');evidence.dispatchEvent(new h.w.Event('input',{bubbles:true}));
+  const press=label=>{const b=[...h.w.document.querySelectorAll('.field-job button')].find(b=>b.textContent===label);assert.ok(b,label);assert.equal(b.disabled,false,label);b.click();};
+  h.control.post=()=>Response.json({error:'Lost response after save'},{status:503});press('Record customer agreement');await until(()=>h.w.document.querySelector('.field-job').textContent.includes('Check saved field decision'));assert.equal(h.writes.length,1);
+  const original=h.writes[0].body;h.control.post=()=>Response.json({error:'Access changed'},{status:403});press('Check saved field decision');await until(()=>h.writes.length===2);await tick();await tick();assert.equal(h.writes[1].body,original);
+  h.fixture.data.quotes[0].status='accepted';h.fixture.data.jobs=[savedJob];h.w.document.querySelector('#main .heading-actions button').click();await until(()=>[...h.w.document.querySelectorAll('.field-job button')].some(b=>b.textContent==='Start work'));
+  assert.equal([...h.w.document.querySelectorAll('.field-job button')].find(b=>b.textContent==='Start work').disabled,true);await h.click('Jobs');assert.equal(new URL(h.w.location.href).searchParams.get('request'),requestId);
+  h.control.post=()=>Response.json({ok:true,result:{id:savedJob.id,revision:4}});press('Check saved field decision');await until(()=>h.writes.length===3);await until(()=>![...h.w.document.querySelectorAll('.field-job button')].find(b=>b.textContent==='Start work')?.disabled);assert.equal(h.writes[2].body,original);assert.equal(h.w.document.querySelector('.field-job').textContent.includes('Check saved field decision'),false);
+ }finally{h.close();}
+});

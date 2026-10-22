@@ -231,13 +231,13 @@ export default function InvoiceDraft({
       {entryConflict&&<div className="note" role="alert"><p>The job changed elsewhere. Saving and issuing are paused to protect both versions.</p><button type="button" className="secondary" onClick={()=>{if(window.confirm('Reloading discards these unsaved entries. Have you copied anything you need?')){dirtyRef.current=false;setTaxRule(entryBaseline.taxRule);setTaxEvidence(entryBaseline.taxEvidence);setLoaded(false);setLoadRetry(n=>n+1);}}}>Reload saved work</button></div>}
       {readiness?.ready===false&&<div className="note" role="status"><strong>Before this invoice can be issued</strong><ul>{readiness.reasons.map(reason=><li key={reason}>{reason}</li>)}</ul><p>Your work and draft can still be saved.</p><a href={'/owner/taxes?'+new URLSearchParams({organization})}>Open tax rules and review</a><br/><a href={'/owner?'+new URLSearchParams({organization,section:'Settings'})}>Open business settings</a></div>}
       <p className="invoice-draft-step" role="status">{!loaded?'Loading work record…':!lines.length?'Add the work performed.':!savedDraft?'Step 1: review the work and save this draft.':!completed?'Draft saved. Finish the work before issuing the invoice.':!reviewed?'Step 2: confirm the saved charges below, then issue the invoice.':'Draft reviewed. You can issue the invoice when business tax settings are ready.'}</p>
-      {loaded&&!savedDraft&&suggestedWork&&suggestedWork.description.length>1000&&<p>The agreed scope is shown above. Summarize the actual work in up to 1,000 characters per item, or add separate work items.</p>}{loaded&&!savedDraft&&suggestedWork&&<p>The starting amount comes from the customer’s agreed estimate. Enter the actual work time and review the charge before saving.</p>}
+      {loaded&&!savedDraft&&suggestedWork&&suggestedWork.description.length>1000&&<p>The agreed scope is shown above. Summarize the actual work in up to 1,000 characters per item, or add separate work items.</p>}{!mobile&&loaded&&!savedDraft&&suggestedWork&&<p>The starting amount comes from the customer’s agreed estimate. Enter the actual work time and review the charge before saving.</p>}
       {!loaded&&message&&<button type="button" className="secondary" onClick={()=>setLoadRetry(n=>n+1)}>Retry loading the work record</button>}
-      <p>
+      {!mobile&&<p>
         {completed
           ? "Save any changes, then review the saved draft before approving. Approval fixes the issued charges; it does not email the customer."
           : "You can prepare the draft now. Complete the service call before approving its invoice."}
-      </p>
+      </p>}
       {completionUncertain&&<button type="button" disabled={busy} onClick={checkCompletion}>Check saved work</button>}
       {draftUnknown&&<button type="button" disabled={busy} onClick={()=>void replayDraft()}>Check saved draft result</button>}
       <form onSubmit={save}>
@@ -306,6 +306,7 @@ export default function InvoiceDraft({
               </label>}
               <button
                 type="button"
+                className="secondary"
                 disabled={busy}
                 onClick={() => {
                   setLines((items) => items.filter((_, n) => n !== i));
@@ -319,6 +320,7 @@ export default function InvoiceDraft({
           ))}
           <button
             type="button"
+            className="secondary"
             disabled={busy || lines.length >= 50}
             onClick={() => {
               setLines((items) => [

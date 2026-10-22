@@ -35,9 +35,10 @@ async function layout(page,label){
   const root=document.querySelector('dialog[open]')||document.querySelector('main'),width=innerWidth,failures=[];
   if(document.documentElement.scrollWidth>width+1)failures.push('page overflow');
   if(root.scrollWidth>root.clientWidth+1)failures.push('content overflow');
-  const controls=[...root.querySelectorAll('button,input,textarea,select,a.button')].filter(e=>e.getClientRects().length);
+  // Closed details retain layout boxes in some engines; only painted controls can overlap.
+  const controls=[...root.querySelectorAll('button,input,textarea,select,a.button')].filter(e=>e.getClientRects().length&&e.checkVisibility());
   for(const el of controls){const r=el.getBoundingClientRect(),parent=root.getBoundingClientRect();if(r.left<parent.left-1||r.right>parent.right+1)failures.push('clipped '+el.textContent.slice(0,45));const target=el.matches('input[type=checkbox],input[type=radio]')?el.closest('label')?.getBoundingClientRect():r;if(target&&target.height<43)failures.push('small target '+el.tagName+' '+el.type+' '+el.textContent.slice(0,45));}
-  const buttons=controls.filter(e=>e.matches('button,a.button'));for(let i=0;i<buttons.length;i++)for(let j=i+1;j<buttons.length;j++){const a=buttons[i].getBoundingClientRect(),b=buttons[j].getBoundingClientRect();if(Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1)failures.push('overlapping buttons');}
+  const buttons=controls.filter(e=>e.matches('button,a.button'));for(let i=0;i<buttons.length;i++)for(let j=i+1;j<buttons.length;j++){const a=buttons[i].getBoundingClientRect(),b=buttons[j].getBoundingClientRect();if(Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1)failures.push('overlapping buttons: '+buttons[i].textContent.trim()+' / '+buttons[j].textContent.trim());}
   return failures;
  });assert.deepEqual(failures,[],label+': '+failures.join(', '));results.push(label);
 }
@@ -67,6 +68,7 @@ try{
   for(const width of [320,390,768])for(const state of ['new','retained','confirmed','working','completed','issued','paid','canceled']){
    const {page}=await mount(state,width,'light','work');await page.getByRole('heading',{name:'Morgan Synthetic Neighbor'}).waitFor();await layout(page,engine+' workflow '+width+' '+state);
    if(['new','retained'].includes(state)){assert.equal(await page.getByRole('button',{name:/Start work timer|Save work|Approve and issue invoice|Record received payment/}).count(),0);await page.getByRole('button',{name:'Decline request',exact:true}).click();await page.locator('.decline-fields select').last().waitFor();}
+   if(['issued','paid'].includes(state)){for(const summary of await page.locator('.field-job details:not([open]) > summary').all())if(await summary.isVisible())await summary.click();await layout(page,engine+' expanded workflow '+width+' '+state);}
    await page.close();
   }
   // Editable, branded decline and exact replay after an interrupted response.

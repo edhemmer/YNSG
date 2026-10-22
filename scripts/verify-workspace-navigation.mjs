@@ -28,6 +28,8 @@ async function mount({role='owner',width=390,path='?section=Requests',theme='lig
    const org=url.searchParams.get('organization');
    return route.fulfill({json:{...fixture.data,brand:null,company:{id:org,display_name:'Synthetic Field Company',timezone:'America/Chicago',status:'active'},customers:[],outbox:[],invoiceAdmin:{},appointments:fixture.data.requests[0].appointments,schedulingPreferences:[],pagination:{page:Number(url.searchParams.get('page')),hasMore:false,appointmentFrom:new Date().toISOString()},features:{productionWorkflows:true}}});
   }
+  if(url.pathname==='/api/owner-day')return route.fulfill({json:{checkedAt:new Date().toISOString(),timezone:'America/Chicago',hasMore:false,calls:fixture.data.requests[0].appointments.filter(a=>a.status==='reserved').map(a=>({id:a.id,requestId:requestId,startAt:a.start_at,arrivalAt:a.arrival_at||a.start_at,endAt:a.end_at,name:fixture.data.requests[0].original_submission.name,address:'100 Synthetic Street, DeKalb',phone:'5550100999',tasks:['Furniture assembly']}))}});
+  if(url.pathname==='/api/owner-work')return route.fulfill({json:{checkedAt:new Date().toISOString(),page:0,total:fixture.data.jobs.length,hasMore:false,items:fixture.data.jobs.filter(j=>['working','paused','completed'].includes(j.status)&&!fixture.data.invoices.some(i=>i.job_id===j.id)).map(j=>({job:j.id,request:requestId,name:fixture.data.requests[0].original_submission.name,address:'100 Synthetic Street, DeKalb',tasks:['Furniture assembly'],status:j.status}))}});
   if(url.pathname==='/api/request-inbox')return route.fulfill({json:fixture.data});
   return route.fulfill({status:503,json:{error:'Synthetic optional data unavailable'}});
  });
@@ -37,8 +39,8 @@ async function mount({role='owner',width=390,path='?section=Requests',theme='lig
 async function heading(page,name){await page.locator('#main h1').filter({hasText:name}).waitFor();}
 async function go(page,label){
  const dock=page.locator('.crm-mobile-dock');
- if(await dock.isVisible()&&['Today','Requests','Calendar'].includes(label))await dock.getByRole('button',{name:label,exact:true}).click();
- else{if(await dock.isVisible())await dock.getByRole('button',{name:'More workspace tools'}).click();await page.getByRole('navigation',{name:'Workspace',exact:true}).getByRole('button',{name:label,exact:true}).click();}
+ if(await dock.isVisible()&&['Today','Requests','Jobs'].includes(label))await dock.getByRole('button',{name:label,exact:true}).click();
+ else{if(await dock.isVisible())await dock.getByRole('button',{name:'More workspace tools'}).click();const nav=page.getByRole('navigation',{name:'Workspace',exact:true}),target=nav.getByRole('button',{name:label,exact:true});if(!await target.isVisible())await nav.locator('.sidebar-more>summary').click();await target.click();}
 }
 async function layout(page,label){
  const failures=await page.evaluate(()=>{
@@ -110,6 +112,13 @@ try{
    if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-money-normal.png',fullPage:true});
    await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' 200% money '+width+' '+theme);
    assert.equal(writes.length,0);if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-money.png',fullPage:true});await page.close();
+  }
+  for(const width of [320,375,390,430,768,1366])for(const theme of ['light','dark']){
+   const {page,reads,writes}=await mount({width,theme,state:'working',path:'?section=Dashboard'});await heading(page,'Today');await page.getByRole('button',{name:'Continue job',exact:true}).waitFor();
+   assert.equal(await page.locator('.marketing-assistant,.metric-grid,.business-brief').count(),0);assert.equal(reads.filter(p=>p.startsWith('/api/business-snapshot')).length,0);assert.equal(await page.locator('.field-desk h2').filter({hasText:'Morgan Synthetic Neighbor'}).count(),1);
+   await layout(page,engine+' field desk '+width+' '+theme);if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-field-desk.png',fullPage:true});
+   await page.getByRole('button',{name:'Continue job',exact:true}).click();await heading(page,'Job');assert.equal(await page.locator('.mobile-workflow-steps').count(),0);assert.equal(await page.locator('.field-job .field-job-service').count(),1);await layout(page,engine+' one field job '+width+' '+theme);if(width===390&&theme==='light')await page.locator('.field-job').screenshot({path:output+'/'+engine+'-field-job.png'});
+   await go(page,'Marketing');await heading(page,'Marketing');await page.locator('.marketing-assistant').waitFor();assert.equal(await page.locator('.field-desk,.field-job').count(),0);assert.equal(writes.length,0);await page.close();
   }
   await browser.close();browser=null;
  }
