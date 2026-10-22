@@ -13,7 +13,10 @@ export default function CustomerImportPreview({organization,customer}:{organizat
  const attempt=useRef<string|null>(null),sending=useRef(false),generation=useRef(0),identity=useRef(organization+':'+customer);identity.current=organization+':'+customer;
  useBlockedEntry('customer-import:'+organization+':'+customer,saving||unknown);
  useUnsavedEntry('customer-import-review:'+organization+':'+customer,Boolean(preview));
- useEffect(()=>{generation.current++;setPreview(null);setBusy(false);setSaving(false);setUnknown(false);setNotice('');setError('');attempt.current=null;return()=>{generation.current++;};},[organization,customer]);
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownGeneration=generation;
+ generation.current++;setPreview(null);setBusy(false);setSaving(false);setUnknown(false);setNotice('');setError('');attempt.current=null;return()=>{teardownGeneration.current++;};},[organization,customer]);
  async function review(file:File|undefined){
   if(sending.current||unknown||saving)return;const target=organization+':'+customer,n=++generation.current;setPreview(null);setError('');setNotice('');attempt.current=null;if(!file)return;
   if(file.size>250000||file.size<1){setError('Choose a customer JSON export smaller than 250 KB.');return;}

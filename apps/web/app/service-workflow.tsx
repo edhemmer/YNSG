@@ -35,8 +35,6 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
  // The workflow is progressive: future actions are not offered before their
  // canonical appointment/work/invoice prerequisites exist.
  const confirmedVisit=request.appointments.some(a=>visitState(a)==='reserved');
- const hasWork=jobs.some(j=>j.status!=='canceled');
- const hasInvoice=invoices.length>0;
  const allowedPhases=availableMobilePhases(request,jobs,invoices);
  const requestedPhase=selection?.state===stateKey?selection.phase:plan.phase;
  const phase=allowedPhases.includes(requestedPhase)?requestedPhase:allowedPhases[allowedPhases.length-1];
@@ -86,7 +84,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
   <details className="field-secondary-tools"><summary>Details & additional tools</summary><nav className="mobile-workflow-steps" aria-label="Available service steps">{mobilePhases.filter(p=>allowedPhases.includes(p.id)).map(p=><button type="button" key={p.id} aria-current={phase===p.id?'step':undefined} disabled={blocked} onClick={()=>focusPhase(p.id)}>{p.label}</button>)}</nav><button type="button" className="secondary" disabled={blocked} onClick={onReview}>Full request record</button></details>
   <section className="workflow-visit-overview" aria-label="Appointment at a glance">{request.appointments.some(a=>['reserved','proposal','needs_review'].includes(visitState(a)))?<div className="workflow-job-context">{request.appointments.filter(a=>['reserved','proposal','needs_review'].includes(visitState(a))).map(a=><AppointmentSummary key={a.id} visit={a} timezone={timezone}/>)}</div>:<p>{timing.label}: <strong>{timing.text}</strong></p>}</section>
   {request.original_submission.description&&<details className="workflow-customer-note" open={phase==='visit'}><summary>Customer’s note <span>Read before confirming or starting work</span></summary><p>{request.original_submission.description}</p></details>}
-  {confirmedVisit&&<details className="workflow-supporting"><summary>Upcoming invoice preview</summary><ScheduledInvoice compact request={{...request,appointments:request.appointments.filter(a=>!a.job_id||!invoices.some(i=>i.job_id===a.job_id))}} quotes={quotes} jobs={jobs} timezone={timezone}/></details>} 
+  {confirmedVisit&&<details className="workflow-supporting"><summary>Upcoming invoice preview</summary><ScheduledInvoice compact request={{...request,appointments:request.appointments.filter(a=>!a.job_id||!invoices.some(i=>i.job_id===a.job_id))}} quotes={quotes} jobs={jobs} timezone={timezone}/></details>}
   {phase==='visit'&&<>
   {next.step>0&&<section className="workflow-section workflow-appointment-actions"><h3>Manage appointment</h3><button type="button" className="secondary" disabled={blocked} onClick={()=>void openSchedule()}>{confirmedVisit?'Change appointment':'Review appointment'}</button>{scheduleOpen&&<SchedulingReviewPanel key={proposal?.id||request.id} organization={organization} requestId={request.id} appointmentId={proposal?.id||null} initialExpanded initialStart={request.original_submission.preferredTime} onBusy={busyFor('schedule')} completed={()=>{setScheduleOpen(false);onChanged();}}/>}</section>}
   {confirmedVisit&&next.step>0&&<section className="workflow-section"><h3>Scope & price</h3>

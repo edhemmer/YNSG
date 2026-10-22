@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {readWeather} from '../apps/web/lib/weather-provider.ts';import {hasOutdoorWork,currentWeather,weatherRequest,weatherLocationReview} from '../apps/web/lib/weather-contract.ts';
+import {readWeather} from '../apps/web/lib/weather-provider.ts';import {hasOutdoorWork,currentWeather,weatherRequest} from '../apps/web/lib/weather-contract.ts';
 import {checkAddress,checkWeatherAddress} from '../lib/address-check.js';
 const now=new Date('2026-10-20T12:00:00Z'),start='2026-10-20T13:00:00Z',end='2026-10-20T15:00:00Z',location={street:'100 SYNTHETIC RD',city:'DEKALB',state:'IL' as const,postalCode:'60115',coordinates:{lat:41.9,lng:-88.7}},forecastUrl='https://api.weather.gov/gridpoints/LOT/50,60/forecast/hourly';
 function data(){return {properties:{updateTime:'2026-10-20T11:00:00Z',periods:[13,14].map(hour=>({startTime:`2026-10-20T${hour}:00:00Z`,endTime:`2026-10-20T${hour+1}:00:00Z`,temperature:50,temperatureUnit:'F',windSpeed:'5 to 10 mph',windDirection:'NW',shortForecast:'Chance Rain',probabilityOfPrecipitation:{unitCode:'wmoUnit:percent',value:hour===13?50:null}}))}};}

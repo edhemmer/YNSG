@@ -2,7 +2,7 @@
 import InvoiceCredits from './invoice-credits';
 import {creditTotal} from '../lib/invoice-credit-contract';
 
-import {useEffect,useRef,useState,type FormEvent} from 'react';
+import {useCallback,useEffect,useRef,useState,type FormEvent} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 import {verifiedInvoicePayments,type InvoicePaymentData} from '../lib/invoice-payment-context';
 import {invoiceChargeCents} from '../lib/invoice-charge';
@@ -18,21 +18,21 @@ type PaymentData=InvoicePaymentData;
 export default function InvoicePayments({organization,invoice,totalCents,timezone,onChanged,guided=false,onBusy,refreshToken=0}:{organization:string;invoice:string;totalCents:number;timezone:string;onChanged?:()=>void;guided?:boolean;onBusy?:(busy:boolean)=>void;refreshToken?:number}){
  const [creditBusy,setCreditBusy]=useState(false),[creditDirty,setCreditDirty]=useState(false);
  const [receiptDirty,setReceiptDirty]=useState(false),[receiptEpoch,setReceiptEpoch]=useState(0),[adminBusy,setAdminBusy]=useState(false),[correctionBusy,setCorrectionBusy]=useState(false),[adminDirty,setAdminDirty]=useState(false),receiptDirtyRef=useRef(false),detailsCurrent=useRef(false);
- const [paymentOpen,setPaymentOpen]=useState(false),[loadRetry,setLoadRetry]=useState(0),[detailsStale,setDetailsStale]=useState(true),[detailsLoading,setDetailsLoading]=useState(false),[detailsDenied,setDetailsDenied]=useState(false),[receiptUncertain,setReceiptUncertain]=useState(false);
+ const [paymentOpen,setPaymentOpen]=useState(false),[detailsStale,setDetailsStale]=useState(true),[detailsLoading,setDetailsLoading]=useState(false),[detailsDenied,setDetailsDenied]=useState(false),[receiptUncertain,setReceiptUncertain]=useState(false);
  const receiptAttempt=useRef<Record<string,unknown>|null>(null),identity=organization+':'+invoice,currentIdentity=useRef(identity);currentIdentity.current=identity;
  useEffect(()=>{detailsCurrent.current=false;setData(null);setDetailsDenied(false);setDetailsStale(true);setError('');setReceiptSyncNeeded(false);setReceiptUncertain(false);setPaymentOpen(false);receiptDirtyRef.current=false;setReceiptDirty(false);receiptAttempt.current=null;receiptRetry.current=null;},[identity]);
  const [data,setData]=useState<PaymentData|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[amount,setAmount]=useState(''),[message,setMessage]=useState(''),[receiptSyncNeeded,setReceiptSyncNeeded]=useState(false);const loadGeneration=useRef(0),mounted=useRef(true),sending=useRef(false),receiptRetry=useRef<{value:string;key:string}|null>(null);
  useEffect(()=>{onBusy?.(busy||receiptUncertain||receiptSyncNeeded||adminBusy||correctionBusy||creditBusy);return()=>onBusy?.(false);},[busy,receiptUncertain,receiptSyncNeeded,adminBusy,correctionBusy,creditBusy,onBusy]);
  useUnsavedEntry('invoice-receipt:'+identity,receiptDirty);
  useBlockedEntry('invoice-receipt:'+identity,busy||receiptUncertain||receiptSyncNeeded||adminBusy||correctionBusy||creditBusy);
- async function load(){
+ const load=useCallback(async ()=>{
   const generation=++loadGeneration.current,target=identity;detailsCurrent.current=false;setDetailsStale(true);setDetailsLoading(true);
   try{const r=await sessionFetch('/api/invoice-admin?'+new URLSearchParams({organization,invoice}),{cache:'no-store',signal:AbortSignal.timeout(45000)}),raw=await r.json();if(!r.ok){if((r.status===401||r.status===403)&&mounted.current&&generation===loadGeneration.current&&currentIdentity.current===target)setDetailsDenied(true);throw Error('UNAVAILABLE');}
    const d=verifiedInvoicePayments(raw,organization,invoice,totalCents);if(!mounted.current||generation!==loadGeneration.current||currentIdentity.current!==target)throw Error('STALE_READ');setData(d);setDetailsDenied(false);detailsCurrent.current=true;setDetailsStale(false);if(!receiptDirtyRef.current)setReceiptEpoch(n=>n+1);setAmount(((totalCents-creditTotal(d.creditContext.credits)-d.payments.reduce((sum,p)=>sum+p.cents,0))/100).toFixed(2));return d.admin;
   }finally{if(mounted.current&&generation===loadGeneration.current&&currentIdentity.current===target)setDetailsLoading(false);}
- }
+ },[organization,invoice,identity,totalCents]);
 
- useEffect(()=>{mounted.current=true;const target=identity,pending=load(),generation=loadGeneration.current;void pending.catch(()=>{if(mounted.current&&currentIdentity.current===target&&generation===loadGeneration.current)setError('Payment details could not be loaded. Refresh this invoice.');});return()=>{mounted.current=false};},[organization,invoice,totalCents,loadRetry,refreshToken]);
+ useEffect(()=>{mounted.current=true;const target=identity,pending=load(),generation=loadGeneration.current;void pending.catch(()=>{if(mounted.current&&currentIdentity.current===target&&generation===loadGeneration.current)setError('Payment details could not be loaded. Refresh this invoice.');});return()=>{mounted.current=false};},[load,identity,refreshToken]);
  async function card(action:'create'|'cancel'){if(sending.current||creditBusy||creditDirty||correctionBusy||!detailsCurrent.current)return;const cents=action==='cancel'?pending?.cents:invoiceChargeCents(amount);if(!cents){setError('Enter a positive payment amount.');return;}sending.current=true;setBusy(true);setError('');try{const r=await sessionFetch('/api/stripe/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({organization,invoice,amountCents:cents,action})});const d=await r.json();if(!r.ok)throw Error(d.error);if(d.url){const u=new URL(d.url);if(u.origin!=='https://checkout.stripe.com')throw Error('Card checkout could not be opened.');location.assign(u.href);}else{await load();onChanged?.();setMessage('Card checkout updated. Payment status uses Stripe confirmation.');}}catch(e){setError(e instanceof Error?e.message:'Card checkout unavailable.');}finally{sending.current=false;if(mounted.current)setBusy(false);}}
  async function recordReceipt(e:FormEvent<HTMLFormElement>){
   e.preventDefault();

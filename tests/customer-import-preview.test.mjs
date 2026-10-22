@@ -13,7 +13,7 @@ test('customer import preview is explicitly non-mutating and tenant authorized',
 });
 test('customer import preview available only within selected owner customer record',()=>{
  const owner=readFileSync('apps/web/app/customer-records.tsx','utf8'),ui=readFileSync('apps/web/app/customer-import-preview.tsx','utf8');
- assert.match(owner,/<CustomerImportPreview key=\{organization\+':'\+detail\.customer\.id\} organization=\{organization\} customer=\{detail\.customer\.id\}\/>/);
+ assert.match(owner,/<CustomerImportPreview key=\{'import:'\+organization\+':'\+detail\.customer\.id\} organization=\{organization\} customer=\{detail\.customer\.id\}\/>/);
  assert.match(ui,/data\?\.writeCount!==0/);
  assert.match(ui,/nothing imported/i);
 });

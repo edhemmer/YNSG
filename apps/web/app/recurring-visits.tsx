@@ -10,10 +10,16 @@ export default function RecurringVisits({organization,requestId,firstAppointment
  const [expanded,setExpanded]=useState(false),[now,setNow]=useState(Date.now());
  const mounted=useRef(true),sending=useRef(false),generation=useRef(0),saved=useRef<{input:RecurringInput;review:string;key:string}|null>(null),stopCommand=useRef<Record<string,unknown>|null>(null);
  useEffect(()=>{onBusy?.(busy||uncertain);return()=>onBusy?.(false);},[busy,uncertain,onBusy]);
- useEffect(()=>{mounted.current=true;const timer=setInterval(()=>setNow(Date.now()),1000);return()=>{mounted.current=false;clearInterval(timer);};},[]);
- useEffect(()=>{const n=++generation.current,controller=new AbortController();setError('');setLoading(true);
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownMounted=mounted;
+ mounted.current=true;const timer=setInterval(()=>setNow(Date.now()),1000);return()=>{teardownMounted.current=false;clearInterval(timer);};},[]);
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownGeneration=generation;
+ const n=++generation.current,controller=new AbortController();setError('');setLoading(true);
   void sessionFetch('/api/recurring-series?'+new URLSearchParams({organization,page:String(page),...(requestId?{request:requestId}:{})}),{signal:controller.signal}).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error);if(n===generation.current){setSeries(d.series);setHasMore(d.hasMore);setLoading(false);}}).catch(e=>{if(!controller.signal.aborted&&n===generation.current){setError(e instanceof Error?e.message:'Weekly schedules could not be loaded.');setLoading(false);}});
-  return()=>{controller.abort();generation.current++;};
+  return()=>{controller.abort();teardownGeneration.current++;};
  },[organization,requestId,page,refresh,revision]);
  useEffect(()=>{setContext(null);setReview(null);saved.current=null;if(!firstAppointment||!expanded)return;let live=true;
   void sessionFetch('/api/recurring-series?'+new URLSearchParams({organization,first:firstAppointment})).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error);if(live)setContext(d.context);}).catch(e=>{if(live)setError(e instanceof Error?e.message:'The first visit needs review.');});return()=>{live=false;};

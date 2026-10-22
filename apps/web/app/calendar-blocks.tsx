@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useRef,useState} from 'react';
+import {useCallback,useEffect,useRef,useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 import {localInstant,localMinute} from '../../../packages/domain/timezone';
 import {calendarBlockCommand,calendarBlockList,calendarBlockRejection,validateCalendarBlockReceipt,type CalendarBlock,type CalendarBlockCommand} from '../lib/calendar-block-contract';
@@ -16,15 +16,18 @@ function BlockEditor({organization,timezone,revision=0,onChanged}:Props){
  useUnsavedEntry('calendar-block:'+organization,dirty);useBlockedEntry('calendar-block:'+organization,busy);
  const format=(value:string)=>new Date(value).toLocaleString('en-US',{timeZone:timezone,weekday:'short',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'});
  function clear(){setStart('');setEnd('');setSelection(null);}
- async function load(){const current=++generation.current;setLoading(true);setError('');try{
+ const load=useCallback(async ()=>{const current=++generation.current;setLoading(true);setError('');try{
   const r=await sessionFetch('/api/calendar-blocks?'+new URLSearchParams({organization}),{cache:'no-store'});
   if(!r.ok){if(mounted.current&&current===generation.current&&(r.status===401||r.status===403)){setDenied(true);setAccessNeeded(true);}throw Error('UNAVAILABLE');}
   const data=calendarBlockList.parse(await r.json());if(!mounted.current||current!==generation.current)return false;
   setBlocks(data.blocks);setPage(p=>Math.min(p,Math.max(0,Math.ceil(data.blocks.length/10)-1)));setStale(false);setSyncNeeded(false);setDenied(false);setAccessNeeded(false);return true;
  }catch{if(mounted.current&&current===generation.current){setStale(true);setError('Saved time blocks could not refresh. Your entries are kept. Refresh saved blocks before making another change.');}return false;}
- finally{if(mounted.current&&current===generation.current)setLoading(false);}}
- useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;generation.current++;};},[]);
- useEffect(()=>{void load();},[revision]);
+ finally{if(mounted.current&&current===generation.current)setLoading(false);}},[organization]);
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownMounted=mounted;const teardownGeneration=generation;
+ mounted.current=true;return()=>{teardownMounted.current=false;teardownGeneration.current++;};},[]);
+ useEffect(()=>{void load();},[load,revision]);
  useEffect(()=>{if(selection?.kind==='edit')startInput.current?.focus();if(selection?.kind==='remove')removeButton.current?.focus();},[selection]);
  async function send(){if(sending.current||!attempt.current)return;sending.current=true;generation.current++;setLoading(false);setPending(true);setError('');setAccessNeeded(false);setNotice('');acknowledged.current='';setStale(true);
   try{const r=await sessionFetch('/api/calendar-blocks',{method:'POST',headers:{'Content-Type':'application/json'},body:attempt.current.body});

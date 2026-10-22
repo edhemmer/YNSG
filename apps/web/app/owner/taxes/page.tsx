@@ -3,7 +3,7 @@ import ProtectedDownload from '../../protected-download';
 import type {InvoiceCredit} from '../../../lib/invoice-credit-contract';
 
 import IncomeEstimator, {type EstimateDraft} from './income-estimator';
-import {useEffect,useRef,useState} from 'react';
+import {useCallback,useEffect,useRef,useState} from 'react';
 import {sessionFetch} from '../../../lib/session-fetch';
 import {taxProfileSchema,taxRuleSchema,estimatedInstallments,ratePpm,taxSources,illinoisLaborDraft,type TaxProfile,type TaxRule} from '../../../lib/taxes';
 import {EntrySafety,useBlockedEntry,useUnsavedEntry} from '../../entry-safety';
@@ -31,8 +31,8 @@ function TaxPage({organization:org}:{organization:string}){
  useUnsavedEntry('tax-entry:'+org,Boolean(draftOwner));useBlockedEntry('tax-entry:'+org,busy);
  const disabled=(family:DraftOwner)=>busy||!data?.canEdit||Boolean(draftOwner&&draftOwner!==family);
  function claim(family:DraftOwner){if(busy||sending.current||(owner.current&&owner.current!==family))return false;if(!owner.current){draftVersion.current=data?.profile?.version||0;owner.current=family;if(family==='estimate')setEstimateState(data?.profile?.data.state||operatingState);setDraftOwner(family);}return true;}
- function clearDraft(){owner.current=null;setDraftOwner(null);setPayment(null);setCorrection(null);setReason('');setEstimateDraft(null);setEstimateState(null);setUseLaborDraft(false);setRuleDirty(false);setFormEpoch(n=>n+1);setRuleEpoch(n=>n+1);setEstimateEpoch(n=>n+1);}
- async function load(replaceDraft=false){
+ const clearDraft=useCallback(()=>{owner.current=null;setDraftOwner(null);setPayment(null);setCorrection(null);setReason('');setEstimateDraft(null);setEstimateState(null);setUseLaborDraft(false);setRuleDirty(false);setFormEpoch(n=>n+1);setRuleEpoch(n=>n+1);setEstimateEpoch(n=>n+1);},[]);
+ const load=useCallback(async (replaceDraft=false)=>{
   const generation=++loadGeneration.current;setLoading(true);
   try{const r=await sessionFetch('/api/taxes?'+new URLSearchParams({organization:org,year:String(year)}),{cache:'no-store'});
    if(!r.ok){if((r.status===401||r.status===403)&&mounted.current&&generation===loadGeneration.current){setAccessDenied(true);setAccessNeeded(true);}throw Error('UNAVAILABLE');}
@@ -43,11 +43,17 @@ function TaxPage({organization:org}:{organization:string}){
    if(!owner.current){setRules(d.profile?.data.rules||[]);setFormEpoch(n=>n+1);setRuleEpoch(n=>n+1);}return true;
   }catch{if(mounted.current&&generation===loadGeneration.current){setStale(true);setError('Tax records could not refresh. Your entries are kept. Refresh saved tax records before using totals, exporting or saving another change.');}return false;}
   finally{if(mounted.current&&generation===loadGeneration.current)setLoading(false);}
- }
- useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;loadGeneration.current++;};},[]);
- useEffect(()=>{void load();return()=>{loadGeneration.current++;};},[year]);
+ },[org,year,clearDraft]);
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownMounted=mounted;const teardownLoadGeneration=loadGeneration;
+ mounted.current=true;return()=>{teardownMounted.current=false;teardownLoadGeneration.current++;};},[]);
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownLoadGeneration=loadGeneration;
+ void load();return()=>{teardownLoadGeneration.current++;};},[load]);
  useEffect(()=>{let active=true;void sessionFetch('/api/configuration?'+new URLSearchParams({organization:org})).then(async r=>{if(!r.ok)return;const d=await r.json();if(active){setOperatingState(String(d.configuration?.settings?.region||'').trim().toUpperCase());if(!owner.current)setFormEpoch(n=>n+1);}}).catch(()=>{});return()=>{active=false;};},[org]);
- useEffect(()=>{if(correction)reasonInput.current?.focus();},[correction?.id]);
+ useEffect(()=>{if(correction)reasonInput.current?.focus();},[correction]);
  async function send(){
   if(sending.current||!attempt.current)return false;sending.current=true;loadGeneration.current++;setLoading(false);setPending(true);setError('');setNotice('');setAccessNeeded(false);setStale(true);
   try{const r=await sessionFetch('/api/taxes',{method:'POST',headers:{'Content-Type':'application/json'},body:attempt.current.body});

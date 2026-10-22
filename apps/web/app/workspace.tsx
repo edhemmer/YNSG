@@ -30,10 +30,8 @@ import CalendarBlocks from './calendar-blocks';
 import RecurringVisits from './recurring-visits';
 import MonthCalendar from './month-calendar';
 import DailyCallSheet from './day-plan';
-import AvailabilityPanel from './availability-panel';
-import SchedulingReviewPanel from './scheduling-review-panel';
 import {sessionFetch,SessionApiError} from '../lib/session-fetch';
-import { useEffect, useRef, useState } from "react";
+import {useCallback, useEffect, useRef, useState } from "react";
 
 function PanelLoading(){return <p role="status">Opening workspace tools…</p>;}
 const RetentionControls=dynamic(()=>import('./privacy-controls').then(module=>module.RetentionControls),{loading:PanelLoading});
@@ -123,9 +121,6 @@ type Data = {
   pagination:{page:number;hasMore:boolean;appointmentFrom:string};
   features?:{productionWorkflows:boolean};
 };
-const requestServices = (request: RequestRecord) => request.original_submission.services?.length
-  ? request.original_submission.services.map(item => `${item.service}: ${item.task || 'Not sure yet'}`)
-  : [`${request.original_submission.service || 'Service'}: ${request.original_submission.task || 'Not sure yet'}`];
 const usd = (v: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
     v / 100,
@@ -147,7 +142,7 @@ async function api(path: string, value?: unknown) {
 }
 type WorkspaceProps={configured:boolean;initialEmail?:string;ownerGoogle?:{enabled:boolean}};
 export default function Workspace(props:WorkspaceProps){return <EntrySafety><WorkspaceContent {...props}/></EntrySafety>;}
-function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: WorkspaceProps) {
+function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
   const {canLeave}=useEntrySafety();
   const [invoiceBusy, setInvoiceBusy] = useState(false);
   const [pendingJobAction,setPendingJobAction]=useState<PendingJobAction|null>(null);
@@ -182,7 +177,8 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
   const [customerFocus,setCustomerFocus]=useState<string|null>(null);
   currentWorkspace.current={org,section,workRequest,customerFocus,session};
   // A new workspace destination starts at its heading, never the previous screen's scroll.
-  useEffect(()=>{window.scrollTo({top:0,behavior:'instant'});document.querySelector<HTMLElement>('#main h1')?.focus({preventScroll:true});},[org,section,workRequest,customerFocus,Boolean(data)]);
+  const hasData=Boolean(data);
+  useEffect(()=>{window.scrollTo({top:0,behavior:'instant'});document.querySelector<HTMLElement>('#main h1')?.focus({preventScroll:true});},[org,section,workRequest,customerFocus,hasData]);
   useBlockedEntry('workspace',pending||invoiceBusy);
   const sections=[{key:'Dashboard',label:'Today',icon:'dashboard'},{key:'Requests',label:'Requests',icon:'inbox'},{key:'Calendar',label:'Calendar',icon:'calendar'},{key:'Today',label:'Day routes',icon:'pin'},{key:'Customers',label:'Customers',icon:'users'},{key:'Work',label:'Jobs',icon:'work'},{key:'Money',label:'Invoices & money',icon:'money'},{key:'Snapshot',label:'Reports',icon:'chart'},{key:'Learning',label:'Field guide',icon:'book'},{key:'Activity',label:'Activity & messages',icon:'bell'},{key:'Settings',label:'Settings',icon:'settings'}];
   const primarySections=sections.filter(s=>['Dashboard','Requests','Calendar','Today','Work','Money'].includes(s.key));
@@ -285,7 +281,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
     window.addEventListener('focus',resume);
     return()=>window.removeEventListener('focus',resume);
   },[configured]);
-  async function refresh(selected = org) {
+  const refresh=useCallback(async (selected = org)=>{
     if (!selected) return;
     const sequence = ++reloadSequence.current;
     setError("");
@@ -301,11 +297,11 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
         setError('Saved records could not be refreshed. Your open entries are kept unless company access has ended. '+publicError(e));
       }
     }
-  }
+  },[org,page,workRequest]);
   useEffect(() => {
     setData(null);
     if (org) void refresh(org);
-  }, [org,page,workRequest,accessRevision]);
+  }, [org,refresh,accessRevision]);
   async function act(value: Record<string, unknown>) {
     if (ownerCommandFlight.current) return;
     const fingerprint = JSON.stringify([org, value]);
@@ -343,28 +339,6 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
       ownerCommandFlight.current=false;
       setPending(false);
     }
-  }
-  async function decideTime(input: Record<string, unknown>) {
-    if(ownerCommandFlight.current)return;
-    const fingerprint=JSON.stringify(['schedule',org,input]);
-    if(unresolvedOwnerCommand.current && unresolvedOwnerCommand.current!==fingerprint){
-      setError("A prior change could not be confirmed. Check its saved result and retry only the same action first.");return;
-    }
-    ownerCommandFlight.current=true;setPending(true);setError("");
-    if(!retryKeys.current.has(fingerprint))retryKeys.current.set(fingerprint,crypto.randomUUID());
-    try{
-      await api("/api/scheduling",{schemaVersion:1,organizationId:org,key:retryKeys.current.get(fingerprint),input});
-      retryKeys.current.delete(fingerprint);unresolvedOwnerCommand.current=null;
-      setMessage("Decision saved. Customer delivery is shown separately in the communication queue.");
-      await refresh();
-    }catch(e){
-      if(e instanceof SessionApiError&&[400,401,403,404,409,422].includes(e.status)){
-        retryKeys.current.delete(fingerprint);unresolvedOwnerCommand.current=null;setError(publicError(e));
-      }else{
-        unresolvedOwnerCommand.current=fingerprint;
-        setError("The scheduling result is unconfirmed. Check the calendar, then retry only this unchanged decision.");
-      }
-    }finally{ownerCommandFlight.current=false;setPending(false);}
   }
   useEffect(()=>{
     setPendingJobAction(null);setTimerRecoveryUnavailable(false);
@@ -426,8 +400,6 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
   )?.role;
   const operational = ["owner", "admin", "dispatcher"].includes(role || "");
   const finance = ["owner", "admin", "bookkeeper"].includes(role || "");
-  const customerName = (id: string) =>
-    data?.customers.find((c) => c.id === id)?.display_name || "Customer record";
   return (
     <div className={`company-workspace${session ? "" : " signed-out"}`} style={companyTheme(data?.brand)}>
       {session&&data&&<aside className={'crm-sidebar'+(mobileNav?' is-open':'')} aria-label="Business navigation" inert={isMobile&&!mobileNav}>
@@ -514,7 +486,7 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
                       <div className="heading-actions"><span className="tiny">{new Intl.DateTimeFormat('en-US',{timeZone:data.company.timezone,dateStyle:'full'}).format(new Date())}</span><button className="secondary" onClick={()=>void refresh()}><Icon name="refresh"/>Refresh</button></div>
                     </div>
                     {(page>0||data.pagination.hasMore)&&(section==='Money'||(section==='Customers'&&!['owner','admin'].includes(role||''))||(section==='Work'&&role==='technician')) && <div className="actions record-pages" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1} · 50 records per page</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>}
-                    
+
                     {section==='Dashboard'&&['owner','admin'].includes(role||'')&&<CommandCenter key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest} onNavigate={navigate}/>}
                     {section==='Requests'&&operational&&<RequestInbox key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest} canManage={['owner','admin'].includes(role||'')}/>}
                     {section==='Activity'&&['owner','admin'].includes(role||'')&&<NotificationAttention organization={org}/>}

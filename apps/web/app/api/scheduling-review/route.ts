@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { sameOrigin } from '../../../lib/session';
 import { authorizeGoogle, accessToken, serverDatabase } from '../../../lib/google-server';
 import { GoogleFailure, hash } from '../../../lib/google-core';
-import { reviewedBusy, type OwnEvent } from '../../../lib/google-availability';
+import { type OwnEvent } from '../../../lib/google-availability';
 import { schedulingReview } from '../../../../../packages/contracts/scheduling-review';
 import { localInstant } from '../../../../../packages/domain/timezone';
 import { DomainError } from '../../../../../packages/contracts';

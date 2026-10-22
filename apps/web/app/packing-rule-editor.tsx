@@ -1,5 +1,4 @@
 "use client";
-import { publicError } from "../lib/public-errors";
 import {useBlockedEntry} from "./entry-safety";
 import { useRef, useState } from "react";
 import { sessionFetch } from "../lib/session-fetch";

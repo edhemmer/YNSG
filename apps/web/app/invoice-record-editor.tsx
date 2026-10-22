@@ -13,7 +13,7 @@ export default function InvoiceRecordEditor({organization,invoice,saved,disabled
  useEffect(()=>{onDraft?.(dirty);return()=>onDraft?.(false);},[dirty,onDraft]);
  useEffect(()=>{onBusy?.(locked);return()=>onBusy?.(false);},[locked,onBusy]);
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
- useEffect(()=>{if(saved.revision<=revision)return;if(dirtyRef.current||attempt.current){setConflict(true);return;}baseline.current=fields(saved);setDraft(baseline.current);setRevision(saved.revision);},[saved.revision,saved.dueDate,saved.archived,revision]);
+ useEffect(()=>{if(saved.revision<=revision)return;if(dirtyRef.current||attempt.current){setConflict(true);return;}baseline.current=fields(saved);setDraft(baseline.current);setRevision(saved.revision);},[saved,revision]);
  function edit(value:Partial<Draft>){const next={...draft,...value},changed=JSON.stringify(next)!==JSON.stringify(baseline.current);dirtyRef.current=changed;setDirty(changed);setNotice('');setError('');setDraft(next);}
  async function refresh(){
   if(locked||disabled||sending.current)return;

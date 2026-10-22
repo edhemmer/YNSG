@@ -1,4 +1,4 @@
-import {weatherPeriod,weatherAlert,weatherReport,type WeatherLocation} from './weather-contract.ts';
+import {weatherPeriod,weatherAlert,type WeatherLocation} from './weather-contract.ts';
 // Read-only public government sources. No model, scheduling command or customer message.
 async function json(url:string,send:typeof fetch){
  const r=await send(url,{headers:{Accept:'application/geo+json','User-Agent':'YNSG-weather-review/1.0 (https://yourneighborhoodserviceguy.app)'},redirect:'error',cache:'no-store',signal:AbortSignal.timeout(8000)});

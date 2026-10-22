@@ -9,7 +9,7 @@ import {useBlockedEntry,useUnsavedEntry,useEntrySafety} from './entry-safety';
 import { sessionFetch } from '../lib/session-fetch';
 import { confirmationReview } from '../lib/confirmation-review';
 import { localMinute } from '../../../packages/domain/timezone';
-import { preferredVisitStart, nextVisitDates, visitStart, visitTimes, type VisitHours } from '../lib/visit-start';
+import { preferredVisitStart, nextVisitDates, visitStart, type VisitHours } from '../lib/visit-start';
 type Resource={id:string;name:string;kind:string;status:string};
 type Context={minimumDurationMinutes?:number;requestRevision:number;configurationVersion:number;scheduleRevision:number;settings:{timezone:string;scheduling:VisitHours&{bufferMinutes:number|null;leadMinutes:number;horizonMinutes:number}};resources:Resource[];confirmedAppointments:{id:string;start:string;end:string}[];appointmentResources?:string[];allowAdditionalResources?:boolean;appointment?:{revision:number;start_at:string;end_at:string;arrival_at:string}};
 export default function SchedulingReviewPanel({organization,requestId,appointmentId=null,completed,initialExpanded=false,initialStart,onBusy}:{organization:string;requestId:string;appointmentId?:string|null;completed:(status:string,message?:string)=>void;initialExpanded?:boolean;initialStart?:string;onBusy?:(busy:boolean)=>void}){
@@ -40,9 +40,12 @@ export default function SchedulingReviewPanel({organization,requestId,appointmen
  },[organization,appointmentId,expanded,context,visitDate,resourceKey,duration,timeRefresh,replacementId,requestId]);
  useEffect(()=>{onBusy?.(pending||uncertain);return()=>onBusy?.(false);},[pending,uncertain,onBusy]);
  const key=useRef<{fingerprint:string;value:string}|null>(null),sequence=useRef(0);
- useEffect(()=>{const s=++sequence.current;setContext(null);setSelected([]);setError('');setMessage('');setPending(false);key.current=null;if(!expanded)return;
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownSequence=sequence;
+ const s=++sequence.current;setContext(null);setSelected([]);setError('');setMessage('');setPending(false);key.current=null;if(!expanded)return;
   void sessionFetch('/api/scheduling-review?'+new URLSearchParams({organization,request:requestId,...(appointmentId?{appointment:appointmentId}:{})}),{cache:'no-store'}).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error);if(s===sequence.current){setContext(d);if(!appointmentId){setDuration(String(d.minimumDurationMinutes||120));setReplacementId(d.confirmedAppointments.length===1?d.confirmedAppointments[0].id:'');}if(!appointmentId)setVisitDate(current=>current||nextVisitDates(d.settings.scheduling,d.settings.timezone)[0]||'');setSelected(d.appointmentResources||(d.resources.filter((r:Resource)=>r.kind==='operator'&&r.status==='available').length===1?[d.resources.find((r:Resource)=>r.kind==='operator'&&r.status==='available').id]:[]));}}).catch(e=>{if(s===sequence.current)setError(publicError(e));});
-  return()=>{sequence.current++;};
+  return()=>{teardownSequence.current++;};
  },[organization,requestId,appointmentId,expanded,retry]);
  async function submit(form:HTMLFormElement){
   if(!context||sending.current||uncertain)return;const fields=new FormData(form),a=context.appointment;

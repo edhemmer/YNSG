@@ -23,15 +23,15 @@ function PracticeContent(){
  useEffect(()=>{refresh();},[refresh]);
  useEffect(()=>{heading.current?.focus();},[section,selected,document]);
  function navigate(next:Section,id?:string){if(busy||!canLeave())return;setDocument(null);setDetail(false);setSection(next);if(id)setSelected(id);setError('');setNotice('');}
- async function send(path:string,value:Record<string,unknown>){
+ const send=useCallback(async (path:string,value:Record<string,unknown>)=>{
   if(sending.current)return;sending.current=true;setCommandBusy(true);setError('');
   const fingerprint=JSON.stringify([path,value]);if(!keys.current.has(fingerprint))keys.current.set(fingerprint,crypto.randomUUID());
   try{const r=await sessionFetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({organizationId:PRACTICE_ORG,key:keys.current.get(fingerprint),...value})}),d=await r.json();if(!r.ok)throw Error(d.error);keys.current.delete(fingerprint);refresh();setNotice('Practice change saved in this tab only.');return d;}
   catch(e){setError(e instanceof Error?e.message:'Practice change unavailable.');}
   finally{sending.current=false;setCommandBusy(false);}
- }
- const act=useCallback((value:Record<string,unknown>)=>send('/api/commands',value),[]);
- const fieldAction=useCallback(async(j:LinkedJob,action:'start'|'pause'|'resume')=>{await send('/api/jobs',{id:j.id,revision:j.revision,action,note:''});},[]);
+ },[refresh]);
+ const act=useCallback((value:Record<string,unknown>)=>send('/api/commands',value),[send]);
+ const fieldAction=useCallback(async(j:LinkedJob,action:'start'|'pause'|'resume')=>{await send('/api/jobs',{id:j.id,revision:j.revision,action,note:''});},[send]);
  function reset(){if(busy||!canLeave()||!window.confirm('Reset all practice records to the original examples? Live business records are never affected.'))return;resetBrowserPractice();keys.current.clear();setSelected('');setCustomer(null);setDetail(false);setDocument(null);setSection('requests');setNotice('Original sample records restored.');setError('');refresh();}
  // Existing workflow links are intercepted before navigation. A practice invoice
  // renders the real document locally; phone/maps/PDF/provider/account links never

@@ -12,7 +12,7 @@ function harness({receipt={version:4},publishError=null,origin=true,brand=true,r
  const source=readFileSync('apps/web/app/api/configuration/route.ts','utf8').replace(/^import .*;\n/gm,'');
  const code=stripTypeScriptTypes(source).replace(/^export /gm,'')+'\nexports.POST=POST;exports.GET=GET;';
  const table={select:()=>table,eq:()=>table,order:()=>table,limit:()=>table,maybeSingle:async()=>({data:{settings:{}},error:readError})};
- const db={from:(name)=>{calls.push(name);return table;},rpc:async(name,args)=>{calls.push(name);return name==='production_workflows_ready'?{data:ready,error:null}:{data:receipt,error:publishError};}};
+ const db={from:(name)=>{calls.push(name);return table;},rpc:async(name)=>{calls.push(name);return name==='production_workflows_ready'?{data:ready,error:null}:{data:receipt,error:publishError};}};
  const context={exports:{},z,Buffer,URL,Error,NextResponse:{json:(data,options)=>new Response(JSON.stringify(data),options)},sameOrigin:()=>origin,authenticated:async()=>({db}),configurationCommand:{parse:v=>v},validateConfiguration:v=>v,preservesLicensedBrand:()=>brand,failure:()=>new Response(JSON.stringify({error:'Unavailable'}),{status:503})};
  runInNewContext(code,context);
  return {...context.exports,calls};

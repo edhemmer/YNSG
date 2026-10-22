@@ -21,6 +21,9 @@ export default function MonthCalendar({organization,timezone,revision,onOpen}:{o
  const weekDays=Array.from({length:7},(_,n)=>{const d=new Date(weekStart);d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);});
  const fetchMonths=view==='week'?[...new Set(weekDays.map(d=>d.slice(0,7)))].sort().join(','):month;
  useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownSequence=sequence;
+
   const seq=++sequence.current;const controller=new AbortController();setBusy(true);setError('');setData(null);
   void (async()=>{
    try {
@@ -30,7 +33,7 @@ export default function MonthCalendar({organization,timezone,revision,onOpen}:{o
    }catch(e){if(seq===sequence.current&&!controller.signal.aborted)setError(publicError(e));}
    finally{if(seq===sequence.current)setBusy(false);}
   })();
-  return()=>{controller.abort();sequence.current++;};
+  return()=>{controller.abort();teardownSequence.current++;};
  },[organization,month,fetchMonths,reload,revision]);
  useEffect(()=>{const timer=setInterval(()=>{if(document.visibilityState==='visible')setReload(n=>n+1);},60000);return()=>clearInterval(timer);},[]);
  const label=new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(month+'-01T12:00:00Z'));

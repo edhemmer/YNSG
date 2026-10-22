@@ -67,7 +67,7 @@ function settingsError(error: unknown): string {
   if(message==='Settings were not published. Check your access and required fields.')return message;
   return settingsIssue(error)?.message || publicError(error, "Settings could not be saved. Refresh and try again.");
 }
-function template(name: string, organization: string): CompanySettings {
+function template(organization: string): CompanySettings {
   return {
     schemaVersion: 1,
     displayName: "Your Neighborhood Service Guy",
@@ -119,7 +119,6 @@ function template(name: string, organization: string): CompanySettings {
 }
 export default function CompanySettingsPanel({
   organization,
-  name,
 }: {
   organization: string;
   name: string;
@@ -372,7 +371,7 @@ export default function CompanySettingsPanel({
           </p>
           <button
             onClick={() => {
-              setDraft(template(name,organization));
+              setDraft(template(organization));
               setCatalog(ynsgCatalog());
               setVersion(0);
             }}

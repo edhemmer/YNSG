@@ -2,7 +2,7 @@
 import {mailActivationBlocker} from "../lib/mail-activation";
 import { publicError } from "../lib/public-errors";
 import { googleMessages as messages } from "../lib/google-messages";
-import { useEffect, useRef, useState } from "react";
+import {useCallback, useEffect, useRef, useState } from "react";
 import {sessionFetch} from '../lib/session-fetch';
 type Connection = {
   connected: boolean;
@@ -37,7 +37,25 @@ export default function GoogleControls({
   const deliveryKey=useRef<string|null>(null);
   const generation = useRef(0),
     testKey = useRef<string | null>(null);
-  async function load(advance=true) {
+  const loadCalendars=useCallback(async (gen = generation.current)=>{
+    setCalendarsLoading(true);
+    try {
+      const response = await sessionFetch("/api/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "calendars", organization }),
+      });
+      const value = await response.json();
+      if (gen !== generation.current) return;
+      if (!response.ok) throw new Error(value.error);
+      setCalendars(value.calendars);
+    } catch {
+      if (gen === generation.current) setMessage("Your calendar list could not be loaded. Press Refresh calendars to try again.");
+    } finally {
+      if (gen === generation.current) setCalendarsLoading(false);
+    }
+  },[organization]);
+  const load=useCallback(async (advance=true)=>{
     const gen = advance?++generation.current:generation.current;
     setStatusLoading(true);
     try {
@@ -65,26 +83,12 @@ export default function GoogleControls({
     } finally {
       if (gen === generation.current) setStatusLoading(false);
     }
-  }
-  async function loadCalendars(gen = generation.current) {
-    setCalendarsLoading(true);
-    try {
-      const response = await sessionFetch("/api/google", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "calendars", organization }),
-      });
-      const value = await response.json();
-      if (gen !== generation.current) return;
-      if (!response.ok) throw new Error(value.error);
-      setCalendars(value.calendars);
-    } catch {
-      if (gen === generation.current) setMessage("Your calendar list could not be loaded. Press Refresh calendars to try again.");
-    } finally {
-      if (gen === generation.current) setCalendarsLoading(false);
-    }
-  }
+  },[organization,view,loadCalendars]);
+
   useEffect(() => {
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownGeneration=generation;
+
     setConnection(null);setDelivery(null);setReceived(false);setMaps(null);setCalendarSyncEnabled(false);deliveryKey.current=null;
     setCalendars([]);setCreation(null);setBusy(false);setMessage("");setCalendarsLoading(false);
     testKey.current = null;
@@ -97,9 +101,9 @@ export default function GoogleControls({
           : "Google connection was not completed. Check configuration and try Connect Google again.",
       );
     return () => {
-      generation.current++;
+      teardownGeneration.current++;
     };
-  }, [organization, view]);
+  }, [load]);
   async function act(action: string, extra: Record<string, unknown> = {}) {
     if (busy) return;
     setBusy(true);

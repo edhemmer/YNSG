@@ -5,7 +5,10 @@ import {useEffect,useRef,useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 export default function CustomerExport({organization,customer}:{organization:string;customer:string}){
  const current=useRef(organization+':'+customer),generation=useRef(0),sending=useRef(false),inFlight=useRef<AbortController|null>(null);current.current=organization+':'+customer;
- useEffect(()=>{generation.current++;setBusy(false);setError('');setReauth(false);return()=>{generation.current++;inFlight.current?.abort();inFlight.current=null;sending.current=false;};},[organization,customer]);
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownGeneration=generation;const teardownInFlight=inFlight;const teardownSending=sending;
+ generation.current++;setBusy(false);setError('');setReauth(false);return()=>{teardownGeneration.current++;teardownInFlight.current?.abort();teardownInFlight.current=null;teardownSending.current=false;};},[organization,customer]);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[reauth,setReauth]=useState(false);
  async function download(){
   if(sending.current||busy)return;const target=organization+':'+customer,attemptGeneration=generation.current,controller=new AbortController();inFlight.current=controller;sending.current=true;setBusy(true);setError('');

@@ -136,3 +136,17 @@ test('confirmed timer save remains saved when local retry cleanup fails',async()
   assert.equal(h.w.sessionStorage.length,1);assert.doesNotMatch(h.w.document.body.textContent,/timer result is unconfirmed/);assert.match(h.w.document.body.textContent,/could not clear its protected retry/);
  }finally{h.close();}
 });
+
+test('workspace refresh preserves mounted invoice tools on transient failures and removes protected data on denied reads',async()=>{
+ for(const status of [503,401,403]){
+  const h=await mount('?section=Money');
+  try{
+   const invoice=h.w.document.querySelector('.money-invoice');assert.ok(invoice);
+   h.control.workspace=()=>Response.json({error:'Synthetic workspace unavailable'},{status});
+   const refresh=[...h.w.document.querySelectorAll('.heading-actions button')].find(button=>button.textContent==='Refresh');assert.ok(refresh);refresh.click();
+   await until(()=>h.w.document.body.textContent.includes('Saved records could not be refreshed.'));
+   assert.equal(h.w.document.querySelector('.money-invoice'),status===503?invoice:null);
+   assert.equal(h.writes.length,0);
+  }finally{h.close();}
+ }
+});
