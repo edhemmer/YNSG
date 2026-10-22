@@ -173,7 +173,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Working, paused and completed jobs without an issued invoice, oldest first. Exact count and bounded pagination. No mutation.",
+            "description": "Working, paused and completed jobs without an issued invoice, in that priority order, oldest first within each status. Exact count and bounded pagination. No mutation.",
             "content": {
               "application/json": {
                 "schema": {

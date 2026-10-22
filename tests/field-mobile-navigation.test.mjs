@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 const source=readFileSync('apps/web/app/workspace.tsx','utf8');
 test('mobile dock uses primary task shortcuts plus accessible More drawer',()=>{
  const dock=source.slice(source.indexOf('<nav className="crm-mobile-dock"'),source.indexOf('</nav>}',source.indexOf('<nav className="crm-mobile-dock"')));
- assert.match(dock,/\['Dashboard','Requests','Calendar'\]/);
+ assert.match(dock,/\['Dashboard','Requests','Work'\]/);
  assert.match(dock,/More workspace tools/);
  assert.match(dock,/aria-expanded=\{mobileNav\}/);
  assert.match(dock,/setMobileNav\(v=>!v\)/);

@@ -15,7 +15,7 @@ test('unfinished work is tenant-scoped, unbilled and paginated independently of 
  assert.equal(result.items.length,20);assert.equal(result.total,45);assert.equal(result.hasMore,true);assert.equal(result.page,2);assert.equal(result.items[0]!.request,uuid(200));
  assert.ok(f.operations.some(v=>v.table==='jobs'&&v.method==='is'&&JSON.stringify(v.args)==='["invoices","null"]'));
  assert.ok(f.operations.some(v=>v.table==='jobs'&&v.method==='range'&&JSON.stringify(v.args)==='[40,60]'));
- assert.ok(f.operations.some(v=>v.table==='jobs'&&v.method==='order'&&v.args[0]==='created_at'));
+ assert.deepEqual(f.operations.filter(v=>v.table==='jobs'&&v.method==='order').map(v=>v.args),[['status',{ascending:false}],['created_at'],['id']]);
  for(const table of ['jobs','quotes','service_requests'])assert.ok(f.operations.some(v=>v.table===table&&v.method==='eq'&&v.args[0]==='organization_id'&&v.args[1]===uuid(500)));
  assert.ok(!f.operations.some(v=>v.method==='gte'||v.method==='insert'||v.method==='update'));
 });

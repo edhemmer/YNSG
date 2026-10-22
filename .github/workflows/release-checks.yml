@@ -59,6 +59,8 @@ jobs:
         run: node scripts/verify-owner-mobile.mjs
       - name: Verify workspace history, live permission changes and compact invoices
         run: node scripts/verify-workspace-navigation.mjs
+      - name: Verify complete field request-to-receipt journey
+        run: node scripts/verify-field-system.mjs
       - name: Install isolated locked native dependencies
         run: pnpm --dir apps/mobile install --frozen-lockfile
       - name: Verify native types, lint, SDK and iOS JavaScript bundle

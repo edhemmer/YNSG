@@ -34,7 +34,7 @@ test('partial payment screen accepts a sample receipt and shows exact paid close
   await openSample('Sample — Partial payment');assert.match(node.textContent,/Remaining balance\$60.00/);
   await input('reference','Practice Zelle receipt');
   await act(async()=>{const checkbox=[...node.querySelectorAll('input[type="checkbox"]')].find(c=>c.parentElement.textContent.includes('confirmed the money'));checkbox.click();await tick();});
-  await click('Record received payment');assert.match(node.textContent,/No payment remains due/);assert.match(node.textContent,/Visit closed out/);
+  await click('Record received payment');assert.match(node.textContent,/No payment remains due/);assert.match(node.textContent,/Closed out/);
   assert.equal(getBrowserPractice().document(getBrowserPractice().snapshot().invoices[0].id).balanceCents,0);
   const anchor=[...node.querySelectorAll('a')].find(a=>a.textContent.includes('Open invoice'));await act(async()=>{anchor.click();await settle();});assert.match(node.textContent,/SAMPLE/);assert.ok([...node.querySelectorAll('button')].some(b=>b.textContent==='Back to sample visit'));assert.equal(h.calls(),0);
  }finally{await h.close();}
@@ -48,11 +48,11 @@ test('practice prevents real calls and unknown operations and reset restores sam
 });
 test('work recording through invoice issue and document uses the real connected components',async()=>{
  const h=await mount();try{
-  await openSample('Sample — Work in progress');
+  await openSample('Sample — Work in progress');await click('Finish work');
   const minutes=[...node.querySelectorAll('label')].find(l=>l.textContent.trim()==='Actual minutes recorded')?.querySelector('input');assert.ok(minutes);
   await act(async()=>{Object.getOwnPropertyDescriptor(Object.getPrototypeOf(minutes),'value').set.call(minutes,'120');minutes.dispatchEvent(new Event('input',{bubbles:true}));await tick();});
   await act(async()=>{const review=[...node.querySelectorAll('input[type="checkbox"]')].find(c=>c.parentElement.textContent.includes('The work is finished'));assert.ok(review);review.click();await tick();});
-  await click('Save work & complete visit');assert.match(node.textContent,/Work completed/);
+  await click('Save work & complete visit');assert.match(node.textContent,/Review & issue invoice/);
   await click('Approve and issue invoice');assert.match(node.textContent,/Invoice /);assert.ok([...node.querySelectorAll('a')].some(a=>a.textContent.includes('Open invoice')));assert.equal(h.calls(),0);
  }finally{await h.close();}
 });

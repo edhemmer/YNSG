@@ -10,9 +10,9 @@ test('Today compact request cards surface action without long redundant context'
  assert.match(inbox,/<RequestQuickActions request=\{r\}/);
 });
 test('work detail keeps call, directions, full address and canonical actions',()=>{
- assert.match(workflow,/<summary>Service address<\/summary>/);
+ assert.match(workflow,/className="field-job-header"/);
  assert.match(workflow,/submissionAddress\(request.original_submission\)/);
  assert.match(workflow,/href=\{'tel:'\+request.original_submission.phone\}/);
  assert.match(workflow,/navigationUrl\(submissionAddress\(request.original_submission\)\)/);
- assert.match(workflow,/fieldAction\(readyJob,readyJob\.status==='working'\?'pause':readyJob\.status==='paused'\?'resume':'start'\)/);
+ assert.match(workflow,/fieldAction\(j,task.kind==='working'\?'pause':'resume'\)/);
 });

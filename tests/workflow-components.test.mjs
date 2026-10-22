@@ -118,9 +118,9 @@ test('accepted quote opens for jobs without invoices and uses canonical invoice 
  for(const status of ['approved','working','paused','completed']){
   const html=renderToStaticMarkup(React.createElement(ServiceWorkflow,{...props,jobs:[{id:'job',quote_id:'quote',revision:1,status,invoices:null}],invoices:[]}));
   assert.ok(html.includes('Scope &amp; price: accepted'));
-  if(status==='approved'){assert.match(html, /class="field-command-primary"[^>]*>Start work/);assert.equal((html.match(/>Start work</g)||[]).length,1);}
+  if(status==='approved'){assert.match(html, />Start work/);assert.equal((html.match(/>Start work</g)||[]).length,1);}
   else assert.ok(html.includes(status==='completed'?'Invoice draft':'Work record'));
-  if(status==='completed')assert.ok(html.includes('No invoice has been issued yet'));
+  if(status==='completed')assert.ok(html.includes('Review &amp; issue invoice'));
  }
  for(const relation of [null,{id:'invoice',number:2026100001},[]]){
   const html=renderToStaticMarkup(React.createElement(ServiceWorkflow,{...props,jobs:[{id:'job',quote_id:'quote',revision:1,status:'completed',invoices:relation}],invoices:[{id:'invoice',job_id:'job',number:2026100001,total_cents:12000,payments:[]}]}));
@@ -239,5 +239,5 @@ test('visit brief separates services and appointment from the complete customer 
  const {renderToStaticMarkup}=require('react-dom/server');
  const request={id,status:'reviewing',revision:1,created_at:'2026-10-15T12:00:00Z',original_submission:{name:'Synthetic visit brief',street:'100 Synthetic Street',city:'DeKalb',phone:'5550100999',services:[{service:'Home jobs',task:'Furniture assembly'}],description:'Synthetic access instruction that must remain readable.'},appointments:[{id:'60000000-0000-4000-8000-000000000001',status:'reserved',revision:1,start_at:'2026-10-20T14:00:00Z',arrival_at:'2026-10-20T14:00:00Z',end_at:'2026-10-20T16:00:00Z',expires_at:null}]};
  const html=renderToStaticMarkup(React.createElement(ServiceWorkflow,{organization:org,request,quotes:[],jobs:[],invoices:[],timezone:'America/Chicago',canManage:true,canQuote:true,canWork:true,busy:false,onBusy:quiet,onReview:quiet,act:async()=>({ok:true}),fieldAction:async()=>{},onChanged:quiet}));const doc=new JSDOM(html).window.document;
- assert.match(doc.querySelector('.workflow-service-summary').textContent,/Furniture assembly/);assert.equal(doc.querySelector('.workflow-header .customer-note'),null);assert.match(doc.querySelector('.workflow-visit-overview').textContent,/9:00 AM/);assert.ok(doc.querySelector('.workflow-customer-note').open,'Owner starts with customer instructions expanded during confirmation');assert.match(doc.querySelector('.workflow-customer-note p').textContent,/must remain readable/);assert.ok(html.indexOf('workflow-visit-overview')<html.indexOf('workflow-customer-note'));assert.equal(doc.querySelectorAll('.workflow-section>.visit-summary').length,0,'No duplicate primary appointment card');
+ assert.match(doc.querySelector('.field-job-service').textContent,/Furniture assembly/);assert.equal(doc.querySelector('.field-job-header .customer-note'),null);assert.match(doc.querySelector('.field-job-time').textContent,/9:00 AM/);assert.ok(doc.querySelector('.workflow-customer-note').open,'Owner starts with customer instructions expanded during confirmation');assert.match(doc.querySelector('.workflow-customer-note p').textContent,/must remain readable/);assert.ok(html.indexOf('field-job-time')<html.indexOf('workflow-customer-note'));assert.equal(doc.querySelectorAll('.workflow-section>.visit-summary').length,0,'No duplicate primary appointment card');
 });

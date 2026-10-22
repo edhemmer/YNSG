@@ -1,0 +1,36 @@
+# Owner field operating system — October 22, 2026
+
+Baseline: `f0f255fd8d8045528a42288d05ed9e2f737ff2af`, `codex/crm-workflow`. Advances WEB-04/WEB-10 and #162. This replaces the owner presentation and navigation across Today, Requests, Jobs, invoice review and receipts as one release. It does not certify the full product or close physical-device, provider, owner or independent-human gates.
+
+## Pass/fail contract
+
+- Today shows current work first, then deduplicated appointments and requests needing a decision. One customer request appears once in the queue, including when several jobs/appointments link to it. Later work stays accessible without stacking full dashboards.
+- Marketing exists only in its explicit destination. No metrics grid, business assistant, promotional headline or marketing editor loads in Today or the current job.
+- Requests open the same job used by Today and Jobs. Jobs no longer appends another complete request inbox. Browser history, role/company access, saved session and dirty-entry guards remain authoritative.
+- A job shows its customer, service and appointment once, followed by its saved-state task. No phase navigation or separate competing next-action system. Full customer instructions are expanded during confirmation/agreement and remain accessible afterward. Files, contacts, changes, original agreements and history remain discoverable.
+- Confirmation/decline precede price agreement and work. Missing accepted job version or inadequate appointment duration cannot offer Start work. Working/paused jobs expose one timer control and Finish work; actual work must still be recorded/reviewed before completing the visit. Completion does not issue an invoice automatically.
+- Completed work opens the actual invoice editor. Issued invoices move to actual receipt entry; partial receipts leave an outstanding balance. Closeout requires all unbilled jobs resolved and all issued balances settled. Cash/Zelle are explicitly confirmed receipts, not automatic bank verification.
+- Collapsing payment history/adjustments preserves mounted drafts and exact-attempt locks. Invoice email/PDF and optional job tools are secondary disclosures. Money uses one payment balance panel rather than repeated expanded invoice totals.
+- Keep all 28 gates, original financial/customer evidence, canonical commands, pricing/services/brand, tenant permissions, replay and protected session behavior. No migration, new paid provider, Google login, mandatory MFA, live Stripe activation, real test messages or customer writes.
+
+## Implementation and boundaries
+
+`command-center.tsx` becomes the field queue. It reads existing owner-work, owner-day and request-inbox APIs concurrently, validates bounded responses, deduplicates request identities, isolates partial failures, times out reads and discards old-company/unmounted results. It fetches no business snapshot or marketing data. Running timers are prioritized before paused/completed work at the database query before pagination; within each status, oldest work and stable IDs retain deterministic ordering. The executable API description is regenerated.
+
+`field-workflow.ts` derives one task from the canonical existing next-step rules. `service-workflow.tsx` renders that task directly and retains existing schedule, quote, work, invoice, delivery and receipt components/commands. The job does not invent a second state machine that can approve work or funds. The field decision hook retains frozen estimate/agreement inputs through uncertain responses and saved-state transitions. Unknown generic command keys survive subsequent permission denials until the same attempt is acknowledged; an actual full-workspace regression covers response loss, denial, refresh and exact replay. Unsaved customer-agreement evidence also guards navigation. Work-entry components stay mounted while their panel is hidden, so their draft/recovery guards remain active. Invoice/work transitions use their existing fresh revisions and exact retry identities.
+
+Marketing is a role-checked route in the same history parser/serializer, restricted to owner/admin. Its module loads only on that destination. Reports, day routes, customer records, learning and settings remain available under Office & tools. The phone dock favors Today, Requests and Jobs; Calendar remains in the main menu. Existing roles retain their authorized destinations.
+
+## Verification
+
+`tests/field-system.test.mjs` exercises rendered confirmation/decline, closed requests, saved agreement/duration gating, working/paused controls, invoice and partial/settled states, multiple jobs, Marketing permissions, deduplication, partial read failure and late-company replies. Existing sample-workflow and session/recovery tests remain part of release validation. Source-spelling tests that required the rejected stacked layout are replaced by behavioral coverage rather than preserving that UI.
+
+`scripts/verify-field-system.mjs` runs real connected components against the isolated sample store: request → schedule → save estimate → record fictional agreement → start/pause/resume → actual sample work review → complete → issue → partial cash → final Zelle → closeout → retained invoice document. Chromium and WebKit run at phone, iPad and desktop widths, both themes and 200% text, with all external traffic blocked. This is synthetic execution evidence; it does not replace live database permission/concurrency checks, actual work/funds or device/provider acceptance.
+
+The existing full-workspace browser script adds Today/selected-job/Marketing isolation and navigation across six widths and both themes. Native PostgreSQL lifecycle/concurrency/recovery and the full release checks remain required CI. Exact final head, merge-tree mapping, deployment aliases and read-only live results are recorded in the release PR after checks pass.
+
+The browser overlap check now uses native `checkVisibility()` as well as layout boxes: closed HTML details can retain child boxes that are not painted. The suite also opens issued/paid job disclosures and rechecks their visible controls, so collapsing tools does not hide an actual layout defect. Required CI still tests both engines.
+
+Local release candidate verification: 919 application tests, lint, strict root/CRM types, generated contracts, migration/lifecycle assertions and production dependency audit pass. The public build generates 11 pages and the optimized Next.js CRM build passes. Chromium passes 156 existing mobile interaction/layout cases, 66 full-workspace navigation/layout cases and 56 complete field journey/layout cases. Rendered review corrected the Directions label wrapping. Required CI must still pass both browser engines and native PostgreSQL on the published immutable head before production; the PR records that final evidence and deployment mapping.
+
+Final queue permission review: any owner-day/work/inbox 401 or 403 immediately clears every private queue source, even while other reads are still pending. Ordinary provider/read outages can retain independently reverified sources; access denial cannot. Regressions verify both mixed success/denial and revocation of an already-visible queue before slow sibling responses settle. The corrected immutable head requires its own fresh full CI; an earlier green candidate is not its release evidence.
