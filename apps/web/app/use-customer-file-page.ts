@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useRef,useState} from 'react';
+import {useCallback,useEffect,useRef,useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 import {verifyFilePage,type FilePageCursor} from '../lib/customer-file-page-contract';
 import type {z} from 'zod';
@@ -8,19 +8,23 @@ type Page=z.infer<typeof filePage>;
 type Position={cursor:FilePageCursor|null;index:number;previous:(FilePageCursor|null)[]};
 const first=():Position=>({cursor:null,index:0,previous:[]});
 export function useCustomerFilePage(organization:string,customer:string,filters:{jobs?:string;invoices?:string}={},autoLoad=false){
+ const {jobs,invoices}=filters;
  const [page,setPage]=useState<Page|null>(null),[loading,setLoading]=useState(autoLoad),[readFailed,setReadFailed]=useState(false),[error,setError]=useState(''),[index,setIndex]=useState(0);
  const position=useRef(first()),attempt=useRef(first()),active=useRef(false),sequence=useRef(0),mounted=useRef(true);
- async function load(target:Position){
+ const load=useCallback(async (target:Position)=>{
   if(active.current)return false;active.current=true;attempt.current=target;const seq=++sequence.current;setLoading(true);setError('');
-  const input={organization,customer,...filters,...(target.cursor?{afterCreatedAt:target.cursor.createdAt,afterId:target.cursor.id}:{})};
+  const input={organization,customer,...(jobs===undefined?{}:{jobs}),...(invoices===undefined?{}:{invoices}),...(target.cursor?{afterCreatedAt:target.cursor.createdAt,afterId:target.cursor.id}:{})};
   try{const response=await sessionFetch('/api/customer-file-page?'+new URLSearchParams(input),{cache:'no-store',signal:AbortSignal.timeout(15000)});
    if(!response.ok){if((response.status===401||response.status===403)&&mounted.current&&seq===sequence.current)setPage(null);throw Error();}
    const checked=verifyFilePage(input,await response.json());if(!mounted.current||seq!==sequence.current)return false;
    position.current=target;setPage(checked);setIndex(target.index);setReadFailed(false);return true;
   }catch{if(mounted.current&&seq===sequence.current){setReadFailed(true);setError('Attachments could not be verified. Retry this page before adding or sharing files.');}return false;}
   finally{if(mounted.current&&seq===sequence.current){active.current=false;setLoading(false);}}
- }
- useEffect(()=>{mounted.current=true;if(autoLoad)void load(first());return()=>{mounted.current=false;active.current=false;sequence.current++;};},[]);
+ },[organization,customer,jobs,invoices]);
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownMounted=mounted;const teardownActive=active;const teardownSequence=sequence;
+ mounted.current=true;setPage(null);setIndex(0);setReadFailed(false);setLoading(autoLoad);setError('');position.current=first();attempt.current=first();if(autoLoad)void load(first());return()=>{teardownMounted.current=false;teardownActive.current=false;teardownSequence.current++;};},[load,autoLoad]);
  return {page,index,loading,readFailed,error,
   refresh:()=>load(position.current),retry:()=>load(readFailed?attempt.current:position.current),reset:()=>load(first()),
   next:()=>{if(!page?.nextCursor||readFailed)return Promise.resolve(false);const p=position.current;return load({cursor:page.nextCursor,index:p.index+1,previous:[...p.previous,p.cursor]});},

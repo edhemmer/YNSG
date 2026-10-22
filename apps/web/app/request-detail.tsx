@@ -7,7 +7,7 @@ import {invoiceNumber} from "../lib/invoice-number";
 import {useEffect,useRef,useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 import {publicError} from '../lib/public-errors';
-import {requestStage,requestTasks,requestTiming,visitState,type InboxData,type Visit} from '../lib/request-inbox';
+import {requestStage,requestTasks,requestTiming,visitState,type InboxData} from '../lib/request-inbox';
 import {navigationUrl} from '../lib/day-plan';
 import Icon from './crm-icons';
 import RequestReplyDraft from './request-reply-draft';

@@ -53,6 +53,9 @@ export default function CustomerRequest() {
     return d.context as Context;
   }
   useEffect(() => {
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownSeq=seq;
+
     let alive = true;
     const s = ++seq.current;
     if (!opening.current) {
@@ -79,7 +82,7 @@ export default function CustomerRequest() {
       });
     return () => {
       alive = false;
-      seq.current++;
+      teardownSeq.current++;
     };
   }, []);
   async function act(action: "confirm" | "request_another_time") {

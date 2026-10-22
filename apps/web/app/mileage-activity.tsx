@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useRef,useState} from 'react';
+import {useCallback,useEffectEvent,useEffect,useRef,useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 import {mileageEntry,mileageReport,verifiedMileageReceipt} from '../lib/mileage-contract';
 import {useBlockedEntry,useUnsavedEntry} from './entry-safety';
@@ -13,11 +13,12 @@ export default function MileageActivity({organization,timezone}:{organization:st
  const [draft,setDraft]=useState(()=>blank(day)),[data,setData]=useState<Data|null>(null),[from,setFrom]=useState(day.slice(0,4)+'-01-01'),[to,setTo]=useState(day),[page,setPage]=useState(0),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[unknown,setUnknown]=useState(false),[stale,setStale]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[reason,setReason]=useState(''),[selected,setSelected]=useState('');
  const attempt=useRef<string|null>(null),sending=useRef(false),writingOrg=useRef<string|null>(null),revision=useRef(0);
  const identity=useRef(organization);identity.current=organization;
- useEffect(()=>{attempt.current=null;setData(null);setDraft(blank(day));setReason('');setSelected('');setUnknown(false);setBusy(false);setNotice('');},[organization]);
+ const resetOrganization=useEffectEvent(()=>{attempt.current=null;setData(null);setDraft(blank(day));setReason('');setSelected('');setUnknown(false);setBusy(false);setNotice('');});
+ useEffect(()=>{resetOrganization();},[organization]);
  const dirty=JSON.stringify(draft)!==JSON.stringify(blank(day))||Boolean(reason);
  useUnsavedEntry('mileage:'+organization,dirty);
  useBlockedEntry('mileage:'+organization,busy||unknown);
- async function reload(){
+ const reload=useCallback(async ()=>{
   if(sending.current&&writingOrg.current===organization)return;
   const target=organization,n=++revision.current;setLoading(true);setError('');setStale(true);
   try{
@@ -31,8 +32,11 @@ export default function MileageActivity({organization,timezone}:{organization:st
    // Retain the frozen attempt until its exact receipt is recovered.
   }catch{if(n===revision.current)setError('Trip records could not be confirmed. Refresh before another change or export.');}
   finally{if(n===revision.current)setLoading(false);}
- }
- useEffect(()=>{void reload();return()=>{revision.current++;};},[organization,from,to,page]);
+ },[organization,from,to,page]);
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownRevision=revision;
+ void reload();return()=>{teardownRevision.current++;};},[reload]);
  async function send(){
   if(sending.current||!attempt.current)return;
   sending.current=true;writingOrg.current=organization;setBusy(true);setError('');setNotice('');setStale(true);

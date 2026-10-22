@@ -1,6 +1,6 @@
 "use client";
 import { publicError } from "../lib/public-errors";
-import { useEffect, useRef, useState } from "react";
+import { useEffectEvent, useEffect, useRef, useState } from "react";
 import { sessionFetch } from "../lib/session-fetch";
 import {invoiceChargeCents} from "../lib/invoice-charge";
 import {salesTax,type TaxRule,type TaxComponent} from "../lib/taxes";
@@ -71,7 +71,10 @@ export default function InvoiceDraft({
   useUnsavedEntry('invoice:'+organization+':'+job,entryDirty);
   useBlockedEntry('invoice-draft:'+organization+':'+job,busy||draftUnknown||completionUncertain);
   useEffect(() => {mounted.current=true;return()=>{mounted.current=false;onBusy(false);};}, [onBusy]);
+  // Sample unsaved review inputs when a saved job revision loads. Typing must not restart that read.
+  const draftInputs=useEffectEvent(()=>({taxRule,taxEvidence,entryBaseline,suggestedWork}));
   useEffect(() => {
+    const {taxRule,taxEvidence,entryBaseline,suggestedWork}=draftInputs();
     if(completionAttempt.current||draftAttempt.current)return;
     if(dirtyRef.current&&loadedRevision.current!==revision&&ownSaved.current?.revision!==revision){setEntryConflict(true);setMessage('The saved job changed while you were editing. Your entries are still shown. Copy anything you need before reloading the current saved record.');return;}
     // Saving work does not save the tax agreement. Preserve its local review

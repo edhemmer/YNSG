@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useRef,useState,type FormEvent} from 'react';
+import {useCallback,useEffect,useRef,useState,type FormEvent} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 import {noteCommand,noteSaved,noteList} from '../lib/relationship-note-contract';
 import {useBlockedEntry,useUnsavedEntry} from './entry-safety';
@@ -10,14 +10,20 @@ function NotesEditor({organization,type,target,timezone}:Props){
  const [open,setOpen]=useState(false),[notes,setNotes]=useState<Note[]>([]),[body,setBody]=useState(''),[pending,setPending]=useState(false),[unknown,setUnknown]=useState(false),[accessNeeded,setAccessNeeded]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[page,setPage]=useState(0),[hasMore,setHasMore]=useState(false);
  const sequence=useRef(0),attempt=useRef<string|null>(null),sending=useRef(false),mounted=useRef(true),locked=pending||unknown,region=`notes-${type}-${target}`;
  useUnsavedEntry(region,body.trim().length>0);useBlockedEntry(region,locked);
- useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;sequence.current++;};},[]);
- async function reload(readPage=page){
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownMounted=mounted;const teardownSequence=sequence;
+ mounted.current=true;return()=>{teardownMounted.current=false;teardownSequence.current++;};},[]);
+ const reload=useCallback(async (readPage=page)=>{
   const current=++sequence.current;setLoading(true);setError('');
   try{const response=await sessionFetch('/api/notes?'+new URLSearchParams({organization,type,target,page:String(readPage)}),{cache:'no-store'});if(!response.ok)throw Error('UNAVAILABLE');const result=noteList.parse(await response.json());if(result.page!==readPage)throw Error('UNVERIFIED');if(mounted.current&&sequence.current===current){setNotes(result.notes);setHasMore(result.hasMore);}}
   catch{if(mounted.current&&sequence.current===current)setError('Notes could not refresh. Your entries and current history are kept. Try Refresh notes.');}
   finally{if(mounted.current&&sequence.current===current)setLoading(false);}
- }
- useEffect(()=>{if(open)void reload();return()=>{sequence.current++;};},[open,page]);
+ },[organization,type,target,page]);
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownSequence=sequence;
+ if(open)void reload();return()=>{teardownSequence.current++;};},[open,reload]);
  async function send(){
   if(sending.current||!attempt.current)return;sending.current=true;setPending(true);setError('');setMessage('');setAccessNeeded(false);
   try{const response=await sessionFetch('/api/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:attempt.current});

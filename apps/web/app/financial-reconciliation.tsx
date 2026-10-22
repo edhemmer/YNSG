@@ -10,7 +10,10 @@ export default function FinancialReconciliation(props:{organization:string;from:
 function Report({organization,from,to,disabled}:{organization:string;from:string;to:string;disabled:boolean}){
  const [result,setResult]=useState<Result|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[page,setPage]=useState(0);
  const mounted=useRef(true),sending=useRef(false),generation=useRef(0),controller=useRef<AbortController|null>(null);
- useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;generation.current++;controller.current?.abort();};},[]);
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownMounted=mounted;const teardownGeneration=generation;const teardownController=controller;
+ mounted.current=true;return()=>{teardownMounted.current=false;teardownGeneration.current++;teardownController.current?.abort();};},[]);
  useEffect(()=>{if(disabled){generation.current++;controller.current?.abort();sending.current=false;setBusy(false);setResult(null);setError('');}},[disabled]);
  async function load(){if(disabled||sending.current)return;const q=reconciliationQuery.safeParse({organization,from,to});if(!q.success){setError('Choose a valid date range of up to 366 days.');return;}
   const current=++generation.current;const active=new AbortController(),timer=setTimeout(()=>active.abort(),45000);controller.current=active;sending.current=true;setBusy(true);setResult(null);setError('');

@@ -27,7 +27,9 @@
       "node",
       "react",
       "react-dom"
-    ]
+    ],
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
   "include": [
     "next-env.d.ts",

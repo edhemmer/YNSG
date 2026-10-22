@@ -9,7 +9,10 @@ export default function CustomerFileLinkEditor({organization,customer,file,saved
  const locked=busy||unknown||syncNeeded;
  useEffect(()=>{setReviewed(false);},[file.link?.revision]);
  useBlockedEntry('file-link:'+identity,locked);useUnsavedEntry('file-link:'+identity,Boolean(reason)||reviewed);
- useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;querySequence.current++;historySequence.current++;};},[]);
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownMounted=mounted;const teardownQuerySequence=querySequence;const teardownHistorySequence=historySequence;
+ mounted.current=true;return()=>{teardownMounted.current=false;teardownQuerySequence.current++;teardownHistorySequence.current++;};},[]);
  useEffect(()=>{notifyBusy(locked);return()=>notifyBusy(false);},[locked,notifyBusy]);
  useEffect(()=>{const seq=++querySequence.current,controller=new AbortController();setTargets([]);setMore(false);if(kind==='customer'){setLoading(false);return;}setLoading(true);setError('');
   void sessionFetch('/api/customer-file-links?'+new URLSearchParams({organization,customer,kind,search:search.trim(),page:String(page)}),{signal:controller.signal}).then(async r=>{if(!r.ok)throw Error();const data=fileLinkTargets.parse(await r.json());if(data.organization!==organization||data.customer!==customer||data.kind!==kind||data.search!==search.trim()||data.page!==page)throw Error();if(mounted.current&&seq===querySequence.current){setTargets(data.rows);setMore(data.hasMore);}}).catch(()=>{if(mounted.current&&seq===querySequence.current&&!controller.signal.aborted)setError('Records could not load. Try the search again before choosing a link.');}).finally(()=>{if(mounted.current&&seq===querySequence.current)setLoading(false);});return()=>controller.abort();

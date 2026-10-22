@@ -194,7 +194,7 @@ if(form){
     form.querySelector('#email-fallback').hidden=true;
     let refreshCalendar=false;
     try{
-      const receipt=await deliverRequest(data);
+      await deliverRequest(data);
       recovery.clear();
       form.dataset.deliveryUnknown='false';
       form.hidden=true;

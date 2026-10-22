@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useRef,useState} from 'react';
+import {useCallback,useEffect,useRef,useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 import {useBlockedEntry} from './entry-safety';
 
@@ -10,7 +10,7 @@ export default function CustomerDelegates({organization,customer}:{organization:
  const sending=useRef(false),generation=useRef(0),identity=useRef(organization+':'+customer);
  identity.current=organization+':'+customer;
  useBlockedEntry('customer-delegates:'+organization+':'+customer,busy||uncertain);
- async function load(){
+ const load=useCallback(async ()=>{
   const current=++generation.current;setLoading(true);setVerified(false);setError('');
   try{
    const url='/api/customer-delegate?'+new URLSearchParams({organization,customer});
@@ -20,8 +20,11 @@ export default function CustomerDelegates({organization,customer}:{organization:
    if(current===generation.current&&identity.current===organization+':'+customer){setRows(result.delegates);setVerified(true);setUncertain(false);}
   }catch{if(current===generation.current){setVerified(false);setError('Customer access could not be verified. Try reloading before making changes.');}}
   finally{if(current===generation.current)setLoading(false);}
- }
- useEffect(()=>{setRows([]);setBusy(false);setNotice('');setUncertain(false);void load();return()=>{generation.current++;};},[organization,customer]);
+ },[organization,customer]);
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownGeneration=generation;
+ setRows([]);setBusy(false);setNotice('');setUncertain(false);void load();return()=>{teardownGeneration.current++;};},[load]);
  async function update(item:Delegate,action:'revoke'|'capabilities',canApprove=false,canViewBilling=false){
   if(sending.current||!verified||loading||busy||uncertain||item.revoked||item.expired)return;
   const explanation=action==='revoke'?'Remove this person’s access to the customer account? This cannot be undone with the same invitation.':'Change this person’s approval and billing permissions?';

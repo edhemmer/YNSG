@@ -1,6 +1,6 @@
 'use client';
 import ProtectedDownload from './protected-download';
-import {useEffect,useRef,useState,type FormEvent} from 'react';
+import {useCallback,useEffect,useRef,useState,type FormEvent} from 'react';
 import AccountingExport from './accounting-export';
 import FinancialReconciliation from './financial-reconciliation';
 import {sessionFetch} from '../lib/session-fetch';
@@ -22,9 +22,12 @@ function Activity({organization,companyName,timezone}:{organization:string;compa
  const attempt=useRef<{body:string;command:ExpenseCommand}|null>(null),sending=useRef(false),mounted=useRef(true),sequence=useRef(0),reasonInput=useRef<HTMLInputElement|null>(null);
  const dirty=JSON.stringify(draft)!==JSON.stringify(baseline.current),correctionDirty=reason.trim().length>0,locked=busy||unknown||syncNeeded;
  useUnsavedEntry('expense:'+organization,dirty||correctionDirty);useBlockedEntry('expense:'+organization,locked);
- useEffect(()=>{if(selected)reasonInput.current?.focus();},[selected?.id]);
- useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;sequence.current++;};},[]);
- async function load(){
+ useEffect(()=>{if(selected)reasonInput.current?.focus();},[selected]);
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownMounted=mounted;const teardownSequence=sequence;
+ mounted.current=true;return()=>{teardownMounted.current=false;teardownSequence.current++;};},[]);
+ const load=useCallback(async ()=>{
   const current=++sequence.current;setLoading(true);setReadError('');
   try{const response=await sessionFetch('/api/finance-activity?'+new URLSearchParams({organization,from,to,page:String(page)}),{cache:'no-store'});
    if(!response.ok){if((response.status===401||response.status===403)&&mounted.current&&current===sequence.current){setAccessDenied(true);setResult(null);}throw Error('UNAVAILABLE');}
@@ -32,8 +35,11 @@ function Activity({organization,companyName,timezone}:{organization:string;compa
    if(!mounted.current||current!==sequence.current)return false;setResult(data);setStale(false);setSyncNeeded(false);setAccessDenied(false);return true;
   }catch{if(mounted.current&&current===sequence.current){setStale(true);setReadError('The report could not refresh. Your entries are kept. Refresh the report before using its totals or recording another change.');}return false;}
   finally{if(mounted.current&&current===sequence.current)setLoading(false);}
- }
- useEffect(()=>{void load();return()=>{sequence.current++;};},[from,to,page]);
+ },[organization,from,to,page,timezone]);
+ useEffect(()=>{
+ // Capture ref containers so teardown invalidates the latest in-flight generation.
+ const teardownSequence=sequence;
+ void load();return()=>{teardownSequence.current++;};},[load]);
  async function send(){
   if(sending.current||!attempt.current)return;sending.current=true;sequence.current++;setLoading(false);setBusy(true);setError('');setMessage('');setAccessNeeded(false);setStale(true);
   try{const response=await sessionFetch('/api/commands',{method:'POST',headers:{'Content-Type':'application/json'},body:attempt.current.body});

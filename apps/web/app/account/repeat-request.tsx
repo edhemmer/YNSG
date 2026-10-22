@@ -48,7 +48,7 @@ export default function RepeatRequest({organization,onSaved}:{organization:strin
    if(activeOrg.current!==org||generation.current!==attemptGeneration)return;
    retry.current=null;setUnknown(false);setSaved(true);
    try{await onSaved()}catch{if(activeOrg.current!==org||generation.current!==attemptGeneration)return;setError('Your request is saved, but your account overview could not refresh. Refresh the account overview to see the latest request.');}
-  } catch (caughtError) {
+  } catch {
    if (activeOrg.current === org && generation.current === attemptGeneration) {
     if (retry.current) retry.current.uncertain = true;
     setUnknown(true);

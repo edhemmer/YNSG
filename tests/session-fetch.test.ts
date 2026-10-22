@@ -84,7 +84,7 @@ test('password login after logout re-enables renewal only when login succeeds',a
 
 test('password update renews an expired session before its single authenticated retry',async()=>{
  let renewed=false,updates=0;
- const request=createSessionFetch(async(path,init)=>{
+ const request=createSessionFetch(async(_path,init)=>{
   if(init?.method==='POST') {
    const action=JSON.parse(String(init.body)).action;
    if(action==='refresh'){renewed=true;return result();}

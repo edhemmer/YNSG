@@ -18,7 +18,6 @@ function harness(uploadError,storedBytes=validImage){
   if(name==='verified_customer_file_access')return {data:{path:org+'/'+file,name:'receipt.png',mime:'image/png',bytes:validImage.length,sha256:createHash('sha256').update(validImage).digest('hex')},error:null};
   return {data:[],error:null};
  },storage:{from:()=>({createSignedUrl:async()=>{calls.push('signed');return {data:{signedUrl:'https://storage.example.invalid/sample'},error:null};},upload:async()=>({error:uploadError}),download:async()=>{calls.push('download');return {data:new Blob([storedBytes]),error:null};}})}};
- const headers={};
  const NextResponse={json:(data,options={})=>new Response(JSON.stringify(data),{status:options.status||200,headers:options.headers})};
  const imports={createHash,z,NextResponse,authenticated:async()=>({db,user:{id:customer},access:'validated-access'}),verifiedFileSession:()=>customer,confirmVerifiedCustomerFile:async()=>{calls.push('confirm_verified_customer_file');return {data:{id:file,ready:true},error:null};},sameOrigin:()=>true,failure:()=>NextResponse.json({error:'error'},{status:503}),...contract};
  let code=src.split('\n').filter(line=>!line.startsWith('import ')&&!line.startsWith('export const dynamic')).join('\n');

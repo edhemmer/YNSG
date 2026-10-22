@@ -1,7 +1,6 @@
 import {calendarFacts} from "./calendar-authority";
 import {z} from 'zod';
-import {accessToken,serverDatabase} from './google-server';
-import {busyTimes} from './google-core';
+import {serverDatabase} from './google-server';
 export const websiteSelection=z.object({mode:z.enum(['once','weekly']),start:z.iso.datetime(),token:z.string().regex(/^[a-f0-9]{64}$/),clientKey:z.uuid()}).strict();
 export async function websiteBookingFacts(org:string,start:string){
  const db=serverDatabase();
@@ -9,7 +8,7 @@ export async function websiteBookingFacts(org:string,start:string){
  const buffer=cfg.data?.settings?.scheduling?.bufferMinutes;
  if(cfg.error||!Number.isInteger(buffer)||buffer<0||buffer>180)throw Error('SETUP_REQUIRED');
  const when=Date.parse(start);if(!Number.isFinite(when))throw Error('VALIDATION');
- 
+
  const windowStart=new Date(when-buffer*60000).toISOString(),windowEnd=new Date(when+(120+buffer)*60000).toISOString();
  return calendarFacts(org,windowStart,windowEnd);
 }

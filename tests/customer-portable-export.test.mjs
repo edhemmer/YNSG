@@ -21,5 +21,5 @@ test('customer export UI requires complete scope and exact organization/customer
  const owner=readFileSync('apps/web/app/customer-records.tsx','utf8');
  assert.match(ui,/verifiedCustomerExport\(/);
  assert.match(ui,/\{organization,customer\}/);
- assert.match(owner,/<CustomerExport key=\{organization\+':'\+detail\.customer\.id\} organization=\{organization\} customer=\{detail\.customer\.id\}\/>/);
+ assert.match(owner,/<CustomerExport key=\{'export:'\+organization\+':'\+detail\.customer\.id\} organization=\{organization\} customer=\{detail\.customer\.id\}\/>/);
 });
