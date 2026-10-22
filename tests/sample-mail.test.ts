@@ -5,9 +5,9 @@ import {dispatchSampleMail} from '../apps/web/lib/sample-mail.ts';
 import {productionSamples} from '../apps/web/lib/production-samples.ts';
 const org='00000000-0000-4000-8000-000000000001',actor='00000000-0000-4000-8000-000000000003',run='00000000-0000-4000-8000-000000000002';
 const settings={displayName:'Synthetic',notificationRecipient:'owner@example.invalid',sender:'owner@example.invalid'};
-function fixture(){
+function fixture(pdf=false){
  const suite=productionSamples(settings,org,settings.sender,'https://crm.example.invalid',run);
- const items=[{id:'00000000-0000-4000-8000-000000000004',organization_id:org,object_id:run,kind:'diagnostic.template_preview',status:'pending',payload:{actor,template:suite.messages[0]!.id,recipient:settings.sender}}, {id:run,organization_id:org,kind:'diagnostic.sample_suite',status:'suppressed',payload:{actor,suite}}];
+ const items=[{id:'00000000-0000-4000-8000-000000000004',organization_id:org,object_id:run,kind:'diagnostic.template_preview',status:'pending',payload:{actor,template:(pdf?suite.messages.find(message=>message.pdf)!:suite.messages[0]!).id,recipient:settings.sender}}, {id:run,organization_id:org,kind:'diagnostic.sample_suite',status:'suppressed',payload:{actor,suite}}];
  let owner=true,race=false;
  const db={from(table:string){let patch:Record<string,unknown>|null=null,one=false;const filters:((r:any)=>boolean)[]=[];let maximum=100;
  const q:any={select(){return q},update(p:Record<string,unknown>){patch=p;return q},eq(k:string,v:unknown){filters.push(r=>r[k]===v);return q},is(){return q},in(){return q},order(){return q},limit(n:number){maximum=n;return q},single(){one=true;return q},maybeSingle(){one=true;return q},then(resolve:(x:unknown)=>void){
@@ -34,4 +34,19 @@ test('failed compare-and-set sends nothing; unknown Gmail outcomes are retained 
  await dispatchSampleMail(org,f.db,'synthetic-token',settings.sender,settings,3,transport);assert.equal(calls,0);
  await dispatchSampleMail(org,f.db,'synthetic-token',settings.sender,settings,3,transport);assert.equal(calls,1);assert.equal(f.items[0]!.status,'needs_reconciliation');
  await dispatchSampleMail(org,f.db,'synthetic-token',settings.sender,settings,3,transport);assert.equal(calls,1);
+});
+
+test('business mail worker delivers a prepared sample PDF once and retains uncertain outcomes',async()=>{
+ for(const uncertain of [false,true]){
+  const f=fixture(true);let calls=0;
+  const send=async (_id:string,message:import('../apps/web/lib/transactional-mail-message.ts').BusinessMessage)=>{
+   calls++;assert.equal(message.to,settings.sender);assert.match(message.attachment!.filename,/^sample-invoice-.*-not-a-bill\.pdf$/);
+   assert.equal(Buffer.from(message.attachment!.bytes).subarray(0,5).toString(),'%PDF-');
+   if(uncertain)throw Error('synthetic timeout');return 'synthetic-business-provider-id';
+  };
+  const noGmail:typeof fetch=async()=>{throw Error('Gmail must not be called for business transport');};
+  const result=await dispatchSampleMail(org,f.db,'',settings.sender,settings,3,noGmail,send);
+  assert.equal(result[0]?.status,uncertain?'needs_reconciliation':'accepted');
+  await dispatchSampleMail(org,f.db,'',settings.sender,settings,3,noGmail,send);assert.equal(calls,1);
+ }
 });

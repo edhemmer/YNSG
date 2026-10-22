@@ -118,7 +118,7 @@ test('accepted quote opens for jobs without invoices and uses canonical invoice 
  for(const status of ['approved','working','paused','completed']){
   const html=renderToStaticMarkup(React.createElement(ServiceWorkflow,{...props,jobs:[{id:'job',quote_id:'quote',revision:1,status,invoices:null}],invoices:[]}));
   assert.ok(html.includes('Scope &amp; price: accepted'));
-  if(status==='approved')assert.ok(html.includes('Start work timer'));
+  if(status==='approved'){assert.match(html, /class="field-command-primary"[^>]*>Start work/);assert.equal((html.match(/>Start work</g)||[]).length,1);}
   else assert.ok(html.includes(status==='completed'?'Invoice draft':'Work record'));
   if(status==='completed')assert.ok(html.includes('No invoice has been issued yet'));
  }

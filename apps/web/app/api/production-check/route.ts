@@ -4,7 +4,6 @@ import {NextResponse} from 'next/server';
 import {z} from 'zod';
 import {sameOrigin,failure} from '../../../lib/session';
 import {authorizeGoogle,serverDatabase,accessToken} from '../../../lib/google-server';
-import {emailRaw} from '../../../lib/google-core';
 import {productionSamples,type SampleSuite} from '../../../lib/production-samples';
 import {invoicePdf} from '../../../lib/invoice-pdf';
 import {stripeConfigured,merchantFor} from '../../../lib/stripe-server';
@@ -59,8 +58,6 @@ export async function POST(request:Request){
  if(!message||message.to.toLowerCase()!==c.recipient)return json({error:'This sample does not match the approved owner address.'},409);
  const permission=await c.db.rpc('mail_delivery_status',{p_org:v.organization});if(permission.error||!permission.data?.enabled)return json({error:'Email sending is paused. Review Business email in Settings.'},409);
  const service=await mailTransport(v.organization);if(service&&!service.ready)return json({error:'Business email needs attention. Contact your platform administrator.'},409);const {token,account}=service?{token:'',account:{email:c.settings.sender,gmail_test:'accepted'}}:await accessToken(v.organization);if(account.gmail_test!=='accepted'||account.email?.toLowerCase()!==c.settings.sender?.toLowerCase())return json({error:'Verify your business email service before sending samples.'},409);
- const bytes=message.pdf?await invoicePdf(suite.invoice):null;
- const rawEmail=emailRaw(account.email!,c.recipient,message.subject,message.body,'ynsg-sample-'+v.run+'-'+v.template.replace(/[^a-z0-9-]/g,'-'),{fromName:c.settings.displayName,html:message.html,...(bytes?{attachment:{filename:`sample-invoice-${suite.invoice.number}-not-a-bill.pdf`,bytes}}:{})});
  const eventKey='sample:'+v.run+':'+v.template;
  const before=await c.server.from('outbox').select('id,status').eq('organization_id',v.organization).eq('event_key',eventKey).maybeSingle();if(before.error)throw before.error;if(before.data)return json({status:before.data.status,replay:true});
  const id=randomUUID();
