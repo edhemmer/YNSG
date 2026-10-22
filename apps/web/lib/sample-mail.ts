@@ -1,6 +1,6 @@
 import type {BusinessMessage} from "./transactional-mail-message.ts";
 import type {SupabaseClient} from '@supabase/supabase-js';
-import {emailRaw,sendEmail,GoogleFailure} from './google-core.ts';
+import {emailRaw,sendEmail} from './google-core.ts';
 import {invoicePdf} from './invoice-pdf.ts';
 import type {SampleSuite} from './production-samples.ts';
 // Called only within the existing verified, enabled and leased company worker.
@@ -17,13 +17,15 @@ export async function dispatchSampleMail(org:string,db:SupabaseClient,token:stri
  await db.from('outbox').update({status:'suppressed'}).eq('organization_id',org).eq('id',item.id).eq('status','pending');results.push({id:item.id,status:'suppressed'});continue;
  }
  let raw:string;
+ let attachment:BusinessMessage['attachment'];
  try{const bytes=message.pdf?await invoicePdf(suite.invoice):null;
- raw=emailRaw(sender,recipient,message.subject,message.body,'ynsg-sample-'+item.id,{fromName:settings.displayName,html:message.html,...(bytes?{attachment:{filename:`sample-invoice-${suite.invoice.number}-not-a-bill.pdf`,bytes}}:{})});}
+ attachment=bytes?{filename:`sample-invoice-${suite.invoice.number}-not-a-bill.pdf`,bytes}:undefined;
+ raw=emailRaw(sender,recipient,message.subject,message.body,'ynsg-sample-'+item.id,{fromName:settings.displayName,html:message.html,...(attachment?{attachment}:{})});}
  catch{await db.from('outbox').update({status:'failed'}).eq('organization_id',org).eq('id',item.id).eq('status','pending');results.push({id:item.id,status:'failed'});continue;}
  const claim=await db.from('outbox').update({status:'sending',attempts:1,lease_until:new Date(Date.now()+120000).toISOString()}).eq('organization_id',org).eq('id',item.id).eq('status','pending').select('id');
  if(claim.error||claim.data?.length!==1)continue;
  let status='needs_reconciliation',providerId:string|null=null;
- try{providerId=sendBusiness?await sendBusiness(item.id,{to:recipient,subject:message.subject,body:message.body,html:message.html,replyTo:settings.sender,...(message.pdf?{attachment:{filename:`sample-invoice-${suite.invoice.number}-not-a-bill.pdf`,bytes:await invoicePdf(suite.invoice)}}:{})}):await sendEmail(token,raw,transport);status='accepted';}catch(e){if(typeof (e as {status?:number})?.status==='number'&&(e as {status:number}).status>=400&&(e as {status:number}).status<500)status='failed';}
+ try{providerId=sendBusiness?await sendBusiness(item.id,{to:recipient,subject:message.subject,body:message.body,html:message.html,replyTo:settings.sender,...(attachment?{attachment}:{})}):await sendEmail(token,raw,transport);status='accepted';}catch(e){if(typeof (e as {status?:number})?.status==='number'&&(e as {status:number}).status>=400&&(e as {status:number}).status<500)status='failed';}
  const finish=await db.from('outbox').update({status,lease_until:null,payload:{...item.payload,providerId}}).eq('organization_id',org).eq('id',item.id).eq('status','sending').select('id');
  results.push({id:item.id,status:finish.error||finish.data?.length!==1?'needs_reconciliation':status});
  }

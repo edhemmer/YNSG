@@ -84,6 +84,23 @@ try{
    const {page,writes}=await mount({role,path:'?section=Settings&request='+requestId+'&customer='+requestId});
    await heading(page,role==='dispatcher'?'Requests':role==='bookkeeper'?'Invoices & money':'Day routes');assert.equal(new URL(page.url()).searchParams.has('request'),false);assert.equal(new URL(page.url()).searchParams.has('customer'),false);assert.equal(writes.length,0);await page.close();
   }results.push(engine+' denied deep links sanitized for all staff roles');
+  {
+   const {page,reads,writes}=await mount({path:'?section=Money'});
+   const expense=page.locator('.money-tools').filter({has:page.locator('summary').filter({hasText:'Expenses & cash activity'})});
+   const mileage=page.locator('.money-tools').filter({has:page.locator('summary').filter({hasText:'Mileage & trips'})});
+   assert.equal(reads.filter(path=>/^\/api\/(finance-activity|mileage)\?/.test(path)).length,0);
+   assert.equal(await expense.locator('input').count(),0);assert.equal(await mileage.locator('input').count(),0);
+   await expense.locator(':scope > summary').click();await expense.getByText('Record a paid business expense',{exact:true}).click();await expense.getByLabel('Vendor',{exact:true}).fill('Synthetic retained draft');
+   const expenseReads=reads.filter(path=>path.startsWith('/api/finance-activity?')).length;assert.equal(expenseReads,1);
+   await expense.locator(':scope > summary').click();
+   page.once('dialog',dialog=>dialog.dismiss());await go(page,'Requests');await heading(page,'Invoices & money');
+   await expense.locator(':scope > summary').click();assert.equal(await expense.getByLabel('Vendor',{exact:true}).inputValue(),'Synthetic retained draft');
+   assert.equal(reads.filter(path=>path.startsWith('/api/finance-activity?')).length,expenseReads);
+   assert.equal(reads.filter(path=>path.startsWith('/api/mileage?')).length,0);
+   page.once('dialog',dialog=>dialog.accept());await page.getByLabel('Switch business').selectOption(company2);await heading(page,'Invoices & money');
+   assert.equal(await page.locator('.money-tools input').count(),0);
+   assert.equal(writes.length,0);await page.close();results.push(engine+' tools defer reads, retain collapsed drafts and guard company/navigation changes');
+  }
   for(const width of [320,375,390,430,768,1366])for(const theme of ['light','dark']){
    const {page,writes}=await mount({width,theme,path:'?section=Money'});await heading(page,'Invoices & money');
    assert.equal(await page.locator('.money-invoice:not([open])').count(),1);assert.equal(await page.locator('.money-tools[open]').count(),0);
