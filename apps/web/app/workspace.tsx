@@ -1,5 +1,7 @@
 "use client";
-import {RetentionControls} from './privacy-controls';
+import dynamic from 'next/dynamic';
+import DeferredTool from './deferred-tool';
+
 import type {InvoiceCredit} from '../lib/invoice-credit-contract';
 import {creditTotal} from '../lib/invoice-credit-contract';
 
@@ -16,12 +18,6 @@ import ThemeToggle from './theme-toggle';
 import MobileNotifications from './mobile-notifications';
 import RequestDetail from './request-detail';
 import NotificationAttention from "./notification-attention";
-import OwnerSecurity from './owner-security';
-import BusinessSnapshot from './business-snapshot';
-import FinanceActivity from './finance-activity';
-import MileageActivity from './mileage-activity';
-import GoogleControls from './google-controls';
-import CalendarConnections from './calendar-connections';
 import OwnerSetup from './owner-setup';
 import ServiceWorkflow from './service-workflow';
 import OwnerWork from './owner-work';
@@ -33,15 +29,25 @@ import InvoiceDelivery from './invoice-delivery';
 import CalendarBlocks from './calendar-blocks';
 import RecurringVisits from './recurring-visits';
 import MonthCalendar from './month-calendar';
-import SchedulingReadiness from './scheduling-readiness';
-import CompanySettingsPanel from './company-settings';
-import OwnerLearningToolkit from './owner-learning-toolkit';
 import DailyCallSheet from './day-plan';
 import AvailabilityPanel from './availability-panel';
 import SchedulingReviewPanel from './scheduling-review-panel';
-import CustomerRecords from './customer-records';
 import {sessionFetch,SessionApiError} from '../lib/session-fetch';
 import { useEffect, useRef, useState } from "react";
+
+function PanelLoading(){return <p role="status">Opening workspace tools…</p>;}
+const RetentionControls=dynamic(()=>import('./privacy-controls').then(module=>module.RetentionControls),{loading:PanelLoading});
+const OwnerSecurity=dynamic(()=>import('./owner-security'),{loading:PanelLoading});
+const BusinessSnapshot=dynamic(()=>import('./business-snapshot'),{loading:PanelLoading});
+const FinanceActivity=dynamic(()=>import('./finance-activity'),{loading:PanelLoading});
+const MileageActivity=dynamic(()=>import('./mileage-activity'),{loading:PanelLoading});
+const GoogleControls=dynamic(()=>import('./google-controls'),{loading:PanelLoading});
+const CalendarConnections=dynamic(()=>import('./calendar-connections'),{loading:PanelLoading});
+const SchedulingReadiness=dynamic(()=>import('./scheduling-readiness'),{loading:PanelLoading});
+const CompanySettingsPanel=dynamic(()=>import('./company-settings'),{loading:PanelLoading});
+const OwnerLearningToolkit=dynamic(()=>import('./owner-learning-toolkit'),{loading:PanelLoading});
+const CustomerRecords=dynamic(()=>import('./customer-records'),{loading:PanelLoading});
+
 type Membership = { organization_id: string; role: string };
 const loginBrand = process.env.NEXT_PUBLIC_LOGIN_BRAND || "Your Neighborhood Service Guy";
 type RequestRecord = {
@@ -584,8 +590,8 @@ function WorkspaceContent({ configured, initialEmail = "", ownerGoogle }: Worksp
                         <details className="card money-pending"><summary>Scheduled work · pending invoices</summary><p>See the appointment and agreed labor estimate while work is waiting. Issued invoices appear below.</p>{data.requests.filter(r=>data.appointments.some(a=>a.request_id===r.id&&a.status==='reserved'&&!data.invoices.some(i=>i.job_id===a.job_id))).map(r=><ScheduledInvoice key={r.id} request={{...r,appointments:data.appointments.filter(a=>a.request_id===r.id)}} quotes={data.quotes.filter(q=>q.request_id===r.id)} jobs={data.jobs} timezone={data.company.timezone} busy={pending} onOpen={()=>openWork(r.id)}/>)}{!data.requests.some(r=>data.appointments.some(a=>a.request_id===r.id&&a.status==='reserved'&&!data.invoices.some(i=>i.job_id===a.job_id)))&&<p>No pending invoices on this records page. Open Calendar to review other scheduled visits.</p>}</details>
                         {["owner","admin"].includes(role||"")&&<p><a href={"/owner/production-check?"+new URLSearchParams({organization:org})}>View sample invoice and email checks</a></p>}
                         {finance && <p><a href={"/owner/taxes?"+new URLSearchParams({organization:org})}>Taxes · rules, due dates, payments and exports</a></p>}
-                        {finance && <details className="card money-tools"><summary>Expenses & cash activity</summary><FinanceActivity key={org} organization={org} companyName={data.company.display_name} timezone={data.company.timezone}/></details>}
-                        {finance && <details className="card money-tools"><summary>Mileage & trips</summary><MileageActivity key={'mileage:'+org} organization={org} timezone={data.company.timezone}/></details>}
+                        {finance && <DeferredTool key={"expenses:"+org} label="Expenses & cash activity"><FinanceActivity key={org} organization={org} companyName={data.company.display_name} timezone={data.company.timezone}/></DeferredTool>}
+                        {finance && <DeferredTool key={"mileage:"+org} label="Mileage & trips"><MileageActivity key={'mileage:'+org} organization={org} timezone={data.company.timezone}/></DeferredTool>}
 
                       </>
                     )}
