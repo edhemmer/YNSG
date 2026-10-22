@@ -10,19 +10,19 @@ const require=createRequire(new URL('../apps/web/package.json',import.meta.url))
 globalThis.React=React;
 const {act}=React,{createRoot}=require('react-dom/client');
 const {useCustomerFilePage}=await import('../apps/web/app/use-customer-file-page.ts');
-const organization='20000000-0000-4000-8000-000000000001',customer='30000000-0000-4000-8000-000000000001',otherCustomer='30000000-0000-4000-8000-000000000002',job='40000000-0000-4000-8000-000000000001';
+const organization='20000000-0000-4000-8000-000000000001',customer='30000000-0000-4000-8000-000000000001',otherCustomer='30000000-0000-4000-8000-000000000002',job='40000000-0000-4000-8000-000000000001',otherJob='40000000-0000-4000-8000-000000000002',otherOrganization='20000000-0000-4000-8000-000000000002';
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 function pageFor(path){
  const query=new URL(path,'https://example.invalid').searchParams;
  return {organization:query.get('organization'),customer:query.get('customer'),cursor:null,jobs:query.get('jobs')?.split(',')||[],invoices:[],files:[],hasMore:false,nextCursor:null};
 }
 async function mount(fetcher,props={}){
- globalThis.fetch=fetcher;let latest;
- function Probe(input){latest=useCustomerFilePage(input.organization,input.customer,{...(input.job?{jobs:input.job}:{})},input.autoLoad);return React.createElement('output',null,latest.page?.customer||'No verified page');}
+ globalThis.fetch=fetcher;let latest;const observed=[];
+ function Probe(input){latest=useCustomerFilePage(input.organization,input.customer,{...(input.job?{jobs:input.job}:{})},input.autoLoad);observed.push({scope:input.customer,organization:input.organization,filter:input.job??'',page:latest.page?.customer||null,pageOrganization:latest.page?.organization||null,jobs:latest.page?.jobs.join(',')??null});return React.createElement('output',null,latest.page?.customer||'No verified page');}
  const root=createRoot(document.querySelector('#root'));
  const render=async(extra={})=>{await act(async()=>{root.render(React.createElement(Probe,{organization,customer,autoLoad:true,...props,...extra}));await tick();await tick();});};
  await render();
- return {render,current:()=>latest,close:()=>act(async()=>root.unmount())};
+ return {render,current:()=>latest,observed,close:()=>act(async()=>root.unmount())};
 }
 
 test('equivalent file filters and ordinary renders reuse one read; changed scope loads fresh data',async()=>{
@@ -32,6 +32,9 @@ test('equivalent file filters and ordinary renders reuse one read; changed scope
   assert.equal(h.current().page.customer,customer);assert.equal(reads.length,1);
   await h.render({job});await h.render({job});assert.equal(reads.length,1);
   await h.render({customer:otherCustomer,job});assert.equal(reads.length,2);assert.equal(h.current().page.customer,otherCustomer);
+  await h.render({customer:otherCustomer,job:otherJob});assert.equal(reads.length,3);
+  await h.render({organization:otherOrganization,customer:otherCustomer,job:otherJob});assert.equal(reads.length,4);
+  assert.ok(h.observed.every(render=>render.page===null||(render.page===render.scope&&render.pageOrganization===render.organization&&render.jobs===render.filter)),'Every render must hide a prior customer page, including before passive effects run.');
  }finally{await h.close();}
 });
 
