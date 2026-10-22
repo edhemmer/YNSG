@@ -13,8 +13,7 @@ test('field preparation derives action and instructions without writing or fabri
  assert.equal(JSON.stringify(request),before);
 });
 test('field action remains primary and prepared context is expandable',()=>{
- assert.match(source,/className="workflow-next" role="status"/);
- assert.match(source,/className="workflow-field-brief"/);
- assert.match(source,/<summary>\{fieldBrief.notes.length\} check/);
- assert.match(source,/prepareFieldBrief\(request,quotes,jobs,invoices\)/);
+ assert.match(source,/className="field-command-primary"/);
+ assert.match(source,/className="field-secondary-tools"/);
+ assert.doesNotMatch(source,/Prepared for you|className="workflow-field-brief"/);
 });

@@ -14,5 +14,5 @@ test('work detail keeps call, directions, full address and canonical actions',()
  assert.match(workflow,/submissionAddress\(request.original_submission\)/);
  assert.match(workflow,/href=\{'tel:'\+request.original_submission.phone\}/);
  assert.match(workflow,/navigationUrl\(submissionAddress\(request.original_submission\)\)/);
- assert.match(workflow,/fieldAction\(j,'start'\)/);
+ assert.match(workflow,/fieldAction\(readyJob,readyJob\.status==='working'\?'pause':readyJob\.status==='paused'\?'resume':'start'\)/);
 });

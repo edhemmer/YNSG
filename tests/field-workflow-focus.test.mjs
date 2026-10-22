@@ -6,7 +6,7 @@ test('field workflow emphasizes next action and folds optional administration',(
  assert.match(s,/<details className="workflow-supporting"><summary>Customer files and contacts<\/summary>/);
  assert.match(s,/<details className="workflow-supporting"><summary>Extra work or unexpected conditions<\/summary>/);
  assert.doesNotMatch(s,/initialExpanded suggestedWork=/);
- assert.match(s,/className="workflow-next" role="status"/);
+ assert.match(s,/className="field-command-primary"/);
 });
 test('confirmation, decline, deliberate invoicing, payments and notes stay connected',()=>{
  assert.match(s,/Confirm appointment/);

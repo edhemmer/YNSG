@@ -14,10 +14,9 @@ test('agent prepares scheduling decision without mutating records or sending com
  assert.equal(JSON.stringify(base),original);
 });
 test('declined requests produce no agent actions',()=>assert.deepEqual(prepareAgentPlan({...base,status:'declined'},[],[],[]),[]));
-test('field workflow displays prepared decision as an uncommitted recommendation',()=>{
- assert.match(source,/prepareAgentPlan\(request,quotes,jobs,invoices\)/);
- assert.match(source,/Prepared next decision/);
- assert.match(source,/Awaiting your review · no action sent/);
+test('field workflow does not present proposal-only agent advice as completed work',()=>{
+ assert.doesNotMatch(source,/Prepared next decision|Awaiting your review · no action sent/);
+ assert.match(source,/onClick=\{executeFieldAction\}/);
 });
 
 test('follow-up is a draft only and never assumes appointment confirmation',()=>{
@@ -26,5 +25,5 @@ test('follow-up is a draft only and never assumes appointment confirmation',()=>
  assert.equal(draft?.status,'draft');
  assert.match(draft.body,/not confirmed until/);
  assert.equal(prepareCustomerFollowUp({...base,status:'declined'}),null);
- assert.match(source,/Prepared customer follow-up · not sent/);
+ assert.doesNotMatch(source,/Prepared customer follow-up · not sent/);
 });

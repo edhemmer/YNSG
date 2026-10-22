@@ -24,8 +24,8 @@ test('real request and job screens work with sample data and never reach product
  const h=await mount();try{
   assert.equal(node.querySelectorAll('.request-summary-card').length,6);assert.match(node.textContent,/simulated responses/);
   await openSample('Sample — Scheduled visit');assert.match(node.textContent,/Customer’s note/);assert.match(node.textContent,/Pending invoice/);
-  await click('Start work timer');assert.match(node.textContent,/Work in progress/);
-  await click('Pause work');assert.match(node.textContent,/Work paused/);await click('Resume work');assert.match(node.textContent,/Work in progress/);
+  await click('Start work');assert.match(node.textContent,/Work in progress/);
+  await click('Pause timer');assert.match(node.textContent,/Work paused/);await click('Resume timer');assert.match(node.textContent,/Work in progress/);
   await click('All sample visits');assert.equal(node.querySelectorAll('.request-summary-card').length,6);assert.equal(h.calls(),0);
  }finally{await h.close();}
 });
