@@ -60,6 +60,25 @@ test('field desk deduplicates active work, scheduled visit and request; opens ex
 test('partial queue failure keeps independently verified work, identifies missing appointments and exposes retry',async()=>{
  const h=await mount(async path=>path.startsWith('/api/owner-day')?new Response('{}',{status:503}):Response.json(path.startsWith('/api/owner-work')?work:{total:0,hasMore:false,requests:[]}));try{const node=document.querySelector('#root');assert.match(node.textContent,/Appointments could not refresh/);assert.match(node.textContent,/Synthetic field customer/);assert.ok([...node.querySelectorAll('button')].some(b=>b.textContent==='Retry queue'));}finally{await h.close();}
 });
+
+test('queue finder opens the matched job, clears back to next action and never makes search requests',async()=>{
+ const reads=[];const h=await mount(async path=>{reads.push(path);return Response.json(path.startsWith('/api/owner-day')?day:path.startsWith('/api/owner-work')?work:{total:0,hasMore:false,requests:[]});});
+ const enter=async value=>act(async()=>{const input=document.querySelector('#field-search');Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(input,value);input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));});
+ try{
+  await enter('synthetic');
+  assert.match(document.querySelector('[aria-label="Matching work"]').textContent,/1 match/);
+  await act(async()=>document.querySelector('[aria-label="Matching work"] .field-queue-row').click());
+  assert.equal(h.opened(),request.id);
+  await enter('missing customer');
+  assert.match(document.querySelector('[aria-label="Matching work"]').textContent,/0 matches/);
+  await act(async()=>[...document.querySelectorAll('button')].find(b=>b.textContent==='Clear').click());
+  assert.ok(document.querySelector('[aria-label="Current job"]'));
+  await enter('synthetic');
+  assert.equal(reads.length,3);
+  await h.render(id(9));
+  assert.equal(document.querySelector('#field-search')?.value||'','');
+ }finally{await h.close();}
+});
 test('organization changes and late queue replies never restore the previous company',async()=>{
  const pending=[];const h=await mount((path)=>new Promise(resolve=>pending.push({path,resolve})));try{await h.render(id(9));await act(async()=>{for(const p of pending.filter(p=>new URL(p.path,'https://example.invalid').searchParams.get('organization')===id(9)))p.resolve(Response.json(p.path.startsWith('/api/owner-day')?{...day,calls:[]}:p.path.startsWith('/api/owner-work')?{...work,items:[],total:0}:{requests:[],total:0,hasMore:false}));await tick();});await act(async()=>{for(const p of pending.filter(p=>new URL(p.path,'https://example.invalid').searchParams.get('organization')===org))p.resolve(Response.json(p.path.startsWith('/api/owner-day')?day:p.path.startsWith('/api/owner-work')?work:{requests:[request],total:1,hasMore:false}));await tick();});assert.doesNotMatch(document.querySelector('#root').textContent,/Synthetic field customer/);}finally{await h.close();}
 });
