@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-21",
+  "updatedAt": "2026-10-23",
   "baselineCommit": "56b0a9fec3f7c9e4664c2192c91564b9340b9584",
   "milestones": [
     "web",
@@ -39,7 +39,7 @@
     {
       "id": "WEB-02",
       "milestone": "web",
-      "title": "Walk public navigation, services, pricing, contact and Services \u2192 Time \u2192 Details with deliberate selection and optional account.",
+      "title": "Walk public navigation, services, pricing, contact and Services → Time → Details with deliberate selection and optional account.",
       "owner": "Engineering lead",
       "status": "open",
       "requirements": [
@@ -50,7 +50,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "City \u2192 required ZIP selection added to new public intake, with owner address editing and saved-customer ZIP handling; see docs/production/city-postal-codes.md. ZIP migration applied as Supabase history 20261019020939; function guards, permissions and legacy context verified read-only. PR #129 exact-head CI and both live deployments passed; see docs/production/release-mobile-zip-2026-10-19.md. PR #77 merged (booking field focus; exact-head CI passed). Execute A01\u2013A03 full guest journey, failure/retry, controlled delivery, and physical mobile accessibility evidence before verification. October 21 rendered-page audit removed booking.css legacy logo shrink override; the original centered masthead now renders 270px at 390px viewport. Built homepage/request Chromium layout tests pass across four widths and both themes with zero writes; exact-head two-browser CI and A01\u2013A03 physical/controlled delivery acceptance remain required. See docs/production/atomic-production-2026-10-21.md.",
+      "nextAction": "City → required ZIP selection added to new public intake, with owner address editing and saved-customer ZIP handling; see docs/production/city-postal-codes.md. ZIP migration applied as Supabase history 20261019020939; function guards, permissions and legacy context verified read-only. PR #129 exact-head CI and both live deployments passed; see docs/production/release-mobile-zip-2026-10-19.md. PR #77 merged (booking field focus; exact-head CI passed). Execute A01–A03 full guest journey, failure/retry, controlled delivery, and physical mobile accessibility evidence before verification. October 21 rendered-page audit removed booking.css legacy logo shrink override; the original centered masthead now renders 270px at 390px viewport. Built homepage/request Chromium layout tests pass across four widths and both themes with zero writes; exact-head two-browser CI and A01–A03 physical/controlled delivery acceptance remain required. See docs/production/atomic-production-2026-10-21.md.",
       "acceptance": "Required name/email/phone/address; multiple services; honest arrange-time path; free address check is advisory; retry saves one request and one milestone notification; no abandoned hold leaks.",
       "requiredEvidence": "Synthetic full-journey tests plus approved controlled delivery and physical-device evidence.",
       "evidence": []
@@ -77,7 +77,7 @@
     {
       "id": "WEB-04",
       "milestone": "web",
-      "title": "Accept the complete phone workflow: open/read \u2192 confirm \u2192 complete \u2192 issue invoice \u2192 close out, including declined and zero-charge work.",
+      "title": "Accept the complete phone workflow: open/read → confirm → complete → issue invoice → close out, including declined and zero-charge work.",
       "owner": "Engineering lead",
       "status": "working",
       "requirements": [
@@ -204,7 +204,7 @@
         "WEB-05",
         "WEB-06"
       ],
-      "nextAction": "Atomic October 21 navigation and compact invoice candidate adds full React shell session/history/company/role interaction coverage and Chromium/WebKit responsive checks at 320, 375, 390, 430, 768 and 1366px, both themes, and 200% text. A temporary local Chromium runner passed 41 full-shell and 150 existing mobile checks; rendered 200% identity-column failure was fixed and guarded. Verify both-engine exact-head CI. Actual iPhone/iPad, VoiceOver, task timing, performance and owner acceptance remain required under #162/#176; see docs/production/atomic-production-2026-10-21.md. Workspace loading optimization defers secondary administration code and closed expense/mileage reads while retaining drafts and unknown-command guards; 42 local Chromium shell cases and 909 release tests pass. See docs/production/workspace-loading-optimization.md; exact-head both-browser/PostgreSQL CI and actual device acceptance remain required. October 22 engineering quality candidate upgrades the stable framework, enforces Hooks/core lint and unused-code checks, stabilizes scoped effects, and replaces source-extracted refresh testing with actual workspace behavior. See docs/production/engineering-quality-2026-10-22.md; complete exact-head CI/deployment checks and retain physical-device acceptance. October 22 owner field execution redesign replaces stacked Today dashboards and repeated phase controls with a deduplicated operational queue and one saved-state job task, isolates marketing to its destination, and adds complete synthetic request-to-receipt browser acceptance. See docs/production/field-operating-system-2026-10-22.md. Require exact-head CI/deployment proof and retain actual owner/device/provider acceptance.",
+      "nextAction": "Atomic October 21 navigation and compact invoice candidate adds full React shell session/history/company/role interaction coverage and Chromium/WebKit responsive checks at 320, 375, 390, 430, 768 and 1366px, both themes, and 200% text. A temporary local Chromium runner passed 41 full-shell and 150 existing mobile checks; rendered 200% identity-column failure was fixed and guarded. Verify both-engine exact-head CI. Actual iPhone/iPad, VoiceOver, task timing, performance and owner acceptance remain required under #162/#176; see docs/production/atomic-production-2026-10-21.md. Workspace loading optimization defers secondary administration code and closed expense/mileage reads while retaining drafts and unknown-command guards; 42 local Chromium shell cases and 909 release tests pass. See docs/production/workspace-loading-optimization.md; exact-head both-browser/PostgreSQL CI and actual device acceptance remain required. October 22 engineering quality candidate upgrades the stable framework, enforces Hooks/core lint and unused-code checks, stabilizes scoped effects, and replaces source-extracted refresh testing with actual workspace behavior. See docs/production/engineering-quality-2026-10-22.md; complete exact-head CI/deployment checks and retain physical-device acceptance. October 22 owner field execution redesign replaces stacked Today dashboards and repeated phase controls with a deduplicated operational queue and one saved-state job task, isolates marketing to its destination, and adds complete synthetic request-to-receipt browser acceptance. See docs/production/field-operating-system-2026-10-22.md. Require exact-head CI/deployment proof and retain actual owner/device/provider acceptance. October 23 candidate adds a local mobile job finder across the authorized loaded queue, with deduplicated results, explicit partial-list limits and company isolation. Research and free-only automation direction: docs/production/field-platform-research-2026-10-23.md. Local Chromium covers search/clear/open at six widths, both themes and enlarged text. Retain exact-head CI and owner/device acceptance.",
       "acceptance": "Approved brand; restrained visible navigation; clear primary action/status; light/dark; no clipped financial amounts; labels, focus, large text, screen readers, keyboard and reduced motion. Meet measured task/performance targets or fix scope.",
       "requiredEvidence": "Device/browser matrix, sanitized captures, task measurements and elderly/disabled participant findings.",
       "evidence": []
