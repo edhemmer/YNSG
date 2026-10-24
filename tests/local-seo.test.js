@@ -1,6 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { seo, WEBSITE_ORIGIN, canonicalUrl } from '../scripts/seo.mjs';
+import { seo, WEBSITE_ORIGIN, canonicalUrl, localServicePages } from '../scripts/seo.mjs';
+
+test('each local landing page describes its own primary service with the same verified provider and geography', () => {
+  assert.equal(Object.keys(localServicePages).length,6);
+  for(const slug of Object.keys(localServicePages)){
+    const graph=JSON.parse(seo(slug,'Service','Service details').schema)['@graph'];
+    const page=graph.find(node=>node['@type']==='WebPage');
+    const service=graph.find(node=>node['@id']===page.mainEntity['@id']);
+    assert.equal(service['@type'],'Service');
+    assert.equal(service.url,canonicalUrl(slug));
+    assert.equal(service.mainEntityOfPage['@id'],page['@id']);
+    assert.equal(service.provider['@id'],WEBSITE_ORIGIN+'/#business');
+    assert.deepEqual(service.areaServed,graph[0].areaServed);
+    assert.ok(!service.offers&&!service.review&&!service.aggregateRating);
+  }
+});
 
 test('Local business identity and geography are consistent across indexable pages', () => {
   for (const slug of ['', 'services', 'service-area', 'pricing', 'about', 'request']) {

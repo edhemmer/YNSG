@@ -297,7 +297,7 @@
       "dependsOn": [
         "WEB-02"
       ],
-      "nextAction": "Verify real Google Business Profile and Search Console ownership, service area, contact/hours and sitemap/canonical indexing.",
+      "nextAction": "October 24 local SEO audit: six live service pages, keyword-to-page map and account acceptance steps in docs/production/local-seo-2026-10-24.md. Validate useful service content, primary Service entities and the generated-site metadata/link/sitemap audit in exact-head CI. Ed must verify actual Business Profile/Search Console ownership, accurate service-area/contact/hours and URL Inspection results before acceptance.",
       "acceptance": "Consistent real business information, structured metadata and crawl checks; no invented storefront/reviews/ranking promises.",
       "requiredEvidence": "Account verification and inspection results plus current metadata/schema/sitemap checks.",
       "evidence": []
