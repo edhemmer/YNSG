@@ -128,6 +128,14 @@ try{
    await page.locator('[aria-label="Matching work"] .field-queue-row').click();await heading(page,'Job');assert.equal(await page.locator('.mobile-workflow-steps').count(),0);assert.equal(await page.locator('.field-job .field-job-service').count(),1);await layout(page,engine+' one field job '+width+' '+theme);if(width===390&&theme==='light')await page.locator('.field-job').screenshot({path:output+'/'+engine+'-field-job.png'});
    await go(page,'Marketing');await heading(page,'Marketing');await page.locator('.marketing-assistant').waitFor();assert.equal(await page.locator('.field-desk,.field-job').count(),0);assert.equal(writes.length,0);await page.close();
   }
+  for(const width of [320,375,390,430,768,1366])for(const theme of ['light','dark']){
+   const {page,writes}=await mount({width,theme,state:'new',path:'?section=Dashboard'});await heading(page,'Today');
+   await page.getByLabel('Find in your work queue').fill('fictional dekalb reviewing');
+   const match=page.locator('[aria-label="Matching work"] .field-queue-row');await match.waitFor();assert.match(await match.textContent(),/100 Fictional Lane.*DeKalb/);
+   await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' pending address finder '+width+' '+theme);
+   if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-request-finder.png',fullPage:true});
+   await match.click();await heading(page,'Job');await page.getByRole('button',{name:'Confirm appointment',exact:true}).waitFor();assert.equal(writes.length,0);await page.close();
+  }
   await browser.close();browser=null;
  }
  assert.deepEqual(errors,[]);writeFileSync(output+'/results.json',JSON.stringify({cases:results.length,results,uncaughtErrors:errors,externalActions:0},null,2));console.log('PASS: '+results.length+' full workspace navigation and invoice checks; synthetic API only.');
