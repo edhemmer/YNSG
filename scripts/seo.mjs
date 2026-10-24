@@ -9,6 +9,12 @@ const titles={
  about:'About Our Local Home & Yard Service',
  request:'Request a Home or Yard Service Appointment',
  'service-area':'DeKalb, Sycamore & Cortland Service Area',
+ 'handyman-dekalb-il':'Small Handyman Jobs in DeKalb, IL',
+ 'lawn-mowing-dekalb-il':'Lawn Mowing in DeKalb, IL',
+ 'leaf-cleanup-dekalb-il':'Leaf Cleanup in DeKalb, IL',
+ 'snow-removal-dekalb-il':'Residential Snow Removal in DeKalb, IL',
+ 'mulch-yard-cleanup-dekalb-il':'Mulch & Yard Cleanup in DeKalb, IL',
+ 'concrete-pressure-washing-dekalb-il':'Concrete Pressure Washing in DeKalb, IL',
 };
 export function seo(slug,title,description){
  const url=canonicalUrl(slug),origin=WEBSITE_ORIGIN+'/';
