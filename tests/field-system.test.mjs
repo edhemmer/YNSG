@@ -91,3 +91,11 @@ test('permission loss hides an already visible queue before slower sibling reads
  const h=await mount(async path=>{if(denied){if(path.startsWith('/api/owner-day'))return new Response('{}',{status:403});return new Promise(resolve=>pending.push({path,resolve}));}return Response.json(path.startsWith('/api/owner-day')?day:path.startsWith('/api/owner-work')?work:{requests:[],total:0,hasMore:false});});
  try{assert.match(document.querySelector('#root').textContent,/Synthetic field customer/);denied=true;Object.defineProperty(document,'visibilityState',{value:'visible',configurable:true});await act(async()=>{document.dispatchEvent(new dom.window.Event('visibilitychange'));await tick();await tick();});assert.equal(pending.length,2);assert.match(document.querySelector('#root').textContent,/Company access could not be verified/);assert.doesNotMatch(document.querySelector('#root').textContent,/Synthetic field customer/);}finally{await h.close();for(const p of pending)p.resolve(Response.json(p.path.startsWith('/api/owner-work')?work:{requests:[],total:0,hasMore:false}));}
 });
+
+ test('pending request finder retains address and status and opens the matching request without new reads',async()=>{
+ const reads=[];const pending={...request,status:'reviewing',appointments:[],original_submission:{...request.original_submission,street:'204 Maple Avenue',city:'Sycamore'}};
+ const h=await mount(async path=>{reads.push(path);return Response.json(path.startsWith('/api/owner-day')?{...day,calls:[]}:path.startsWith('/api/owner-work')?{...work,items:[],total:0}:{total:1,hasMore:false,requests:[pending]});});
+ try{await act(async()=>{const input=document.querySelector('#field-search');Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(input,'maple sycamore reviewing');input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));});
+ const row=document.querySelector('[aria-label="Matching work"] .field-queue-row');assert.ok(row);assert.match(row.textContent,/204 Maple Avenue · Sycamore/);await act(async()=>row.click());assert.equal(h.opened(),pending.id);assert.equal(reads.length,3);
+ }finally{await h.close();}
+ });
