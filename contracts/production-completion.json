@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-23",
+  "updatedAt": "2026-10-24",
   "baselineCommit": "56b0a9fec3f7c9e4664c2192c91564b9340b9584",
   "milestones": [
     "web",
@@ -224,7 +224,7 @@
         "WEB-01",
         "WEB-06"
       ],
-      "nextAction": "October 21 shell changes discard protected records immediately on identity/company/role revocation, reject malformed or unauthorized deep links and prevent late reads from restoring another company. Full-shell isolated tests exercise these paths. Existing independent human review, advisor findings, leaked-password eligibility and broader security acceptance remain required; see docs/production/atomic-production-2026-10-21.md.",
+      "nextAction": "October 21 shell changes discard protected records immediately on identity/company/role revocation, reject malformed or unauthorized deep links and prevent late reads from restoring another company. Full-shell isolated tests exercise these paths. Existing independent human review, advisor findings, leaked-password eligibility and broader security acceptance remain required; see docs/production/atomic-production-2026-10-21.md. October 24 release audit caught GHSA-mrhx-c7xc-m3w5 after prior green CI. Root/CRM Zod patched to 4.6.6 with bounded-collection regressions; see docs/production/validation-security-2026-10-24.md. Require exact-head Linux CI, clean audit and verified deployment before recording release evidence.",
       "acceptance": "No unresolved exploitable critical/high finding; other findings have documented impact/remediation. Required MFA is not reintroduced; leaked-password setting/eligibility is confirmed. AI review cannot sign this gate.",
       "requiredEvidence": "Named independent human review, candidate SHA, findings/resolutions and scoped retest.",
       "evidence": []
