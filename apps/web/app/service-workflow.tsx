@@ -42,9 +42,12 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
  }
  function openSchedule(){if(blocked||!canLeave())return;setScheduleOpen(true);}
  const working=task.kind==='working'||task.kind==='paused';
+ const agreedWork=(task.kind==='ready'||working)&&q?.status==='accepted'&&q.request_id===request.id?v:null;
+ const scopeCharacters=Array.from(agreedWork?.scope||'');
+ const scopePreview=scopeCharacters.slice(0,240).join('');
  return <section className="card service-workflow field-job" aria-label={'Service workflow for '+request.original_submission.name}>
   <header className="field-job-header"><div><h2>{request.original_submission.name}</h2><p>{submissionAddress(request.original_submission)}</p></div><div className="field-contact-actions"><a className="button secondary" href={'tel:'+request.original_submission.phone} aria-label="Call customer"><Icon name="phone"/>Call</a><a className="button secondary" href={navigationUrl(submissionAddress(request.original_submission))||undefined} target="_blank" rel="noreferrer"><Icon name="pin"/>Directions</a></div></header>
-  <p className="field-job-service">{requestTasks(request.original_submission).map(t=>t.task||t.service).join(' · ')}</p>
+  {agreedWork?<section className="field-work-brief" aria-label="Agreed work brief"><h3>Agreed work</h3><p className="field-job-service">{scopePreview}{scopeCharacters.length>240?'…':''}</p>{scopeCharacters.length>240&&<details><summary>Read full agreed scope</summary><p className="field-agreed-scope">{agreedWork.scope}</p></details>}<dl><div><dt>Estimated time</dt><dd>{agreedWork.duration_minutes/60} hours</dd></div><div><dt>Labor estimate</dt><dd>{money(agreedWork.labor_cents)}</dd></div></dl><p className="tiny">Saved agreement · version {agreedWork.version}. Final charges are reviewed after work.</p></section>:<p className="field-job-service">{requestTasks(request.original_submission).map(t=>t.task||t.service).join(' · ')}</p>}
   <p className="field-job-time"><Icon name="calendar"/><strong>{timing.label}</strong> {timing.text}</p>
   {request.original_submission.description&&<details className="workflow-customer-note" open={task.kind==='confirm'||task.kind==='agreement'}><summary>Customer’s note</summary><p>{request.original_submission.description}</p></details>}
   {decision.unknown&&<div className="note" role="alert"><p>The last field decision is unconfirmed. Its original details are kept; check the saved result before editing or leaving.</p><button type="button" disabled={decision.busy} onClick={()=>void decision.run()}>Check saved field decision</button></div>}

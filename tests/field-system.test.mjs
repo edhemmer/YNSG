@@ -99,3 +99,18 @@ test('permission loss hides an already visible queue before slower sibling reads
  const row=document.querySelector('[aria-label="Matching work"] .field-queue-row');assert.ok(row);assert.match(row.textContent,/204 Maple Avenue · Sycamore/);await act(async()=>row.click());assert.equal(h.opened(),pending.id);assert.equal(reads.length,3);
  }finally{await h.close();}
  });
+
+test('field brief uses the job approved version rather than original intake or a newer estimate',()=>{
+ const changed={...quote,current_version:2,quote_versions:[{...quote.quote_versions[0],scope:'Assemble only the bookcase',labor_cents:13500,duration_minutes:120},{version:2,scope:'Unapproved additional work',labor_cents:30000,duration_minutes:240}]};
+ for(const status of ['approved','working','paused']){
+  const d=html(scheduled,[changed],[{...job,approved_version:1,status}],[]),brief=d.querySelector('[aria-label="Agreed work brief"]');
+  assert.ok(brief);assert.match(brief.textContent,/Assemble only the bookcase/);assert.ok(brief.textContent.includes('$135.00'));assert.match(brief.textContent,/2 hours/);assert.match(brief.textContent,/version 1/);assert.doesNotMatch(brief.textContent,/Unapproved additional|300.00|Agreed furniture assembly/);
+ }
+});
+test('field brief never labels missing or unaccepted scope as agreed and retains full long scope on demand',()=>{
+ for(const qs of [[],[{...quote,status:'sent'}],[{...quote,quote_versions:[]}]])assert.equal(html(scheduled,qs,[{...job,status:'working',approved_version:1}],[]).querySelector('[aria-label="Agreed work brief"]'),null);
+ const scope='Preserve approved instructions. '.repeat(30)+'Final condition stays intact.';
+ const d=html(scheduled,[{...quote,quote_versions:[{...quote.quote_versions[0],scope}]}],[{...job,approved_version:1}],[]);
+ assert.equal(d.querySelector('.field-agreed-scope').textContent,scope);assert.equal(d.querySelector('.field-work-brief details').open,false);assert.equal(Array.from(d.querySelector('.field-job-service').textContent).length,241);assert.deepEqual(actions(d),['Start work']);
+ assert.match(d.querySelector('.workflow-customer-note').textContent,/Use side entrance/);
+});
