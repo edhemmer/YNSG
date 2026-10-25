@@ -1,4 +1,5 @@
 import {seo,canonicalUrl} from './seo.mjs';
+import {verifyLocalSeo} from './check-local-seo.mjs';
 import {icon} from '../site/icons.js';
 import { readFile, writeFile, mkdir, cp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -61,5 +62,6 @@ for(const [slug,[title,description]] of Object.entries(pages)){
 }
 await writeFile(join(output,'robots.txt'),'User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: https://www.yourneighborhoodserviceguy.com/sitemap.xml\n');
 await writeFile(join(output,'sitemap.xml'),`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${Object.keys(pages).map(slug=>`<url><loc>${canonicalUrl(slug)}</loc></url>`).join('')}</urlset>`);
+await verifyLocalSeo(output);
 console.log(`Built ${Object.keys(pages).length} HTML pages.`);
 
