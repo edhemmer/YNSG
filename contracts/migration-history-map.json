@@ -409,6 +409,11 @@
       "file": "20261026131540_customer_self_service_profile.sql",
       "historyVersion": "20261026142455",
       "name": "customer_self_service_profile"
+    },
+    {
+      "file": "20261026170000_field_agent_tasks.sql",
+      "historyVersion": "20261026154110",
+      "name": "field_agent_tasks"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
