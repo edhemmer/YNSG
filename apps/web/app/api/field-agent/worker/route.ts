@@ -3,6 +3,7 @@ import {NextResponse} from 'next/server';
 import {serverDatabase} from '../../../../lib/google-server';
 import {completeInvoicePayments} from '../../../../lib/complete-invoice-payments';
 import {prepareAgentPlan} from '../../../../lib/field-agent-plan';
+import {suggestFieldPreparation} from '../../../../lib/field-agent-ai';
 import {taskResolution} from '../../../../lib/field-agent-resolution';
 import type {InboxRequest,LinkedQuote,LinkedJob} from '../../../../lib/request-inbox';
 export const runtime='nodejs';
@@ -31,7 +32,7 @@ export async function GET(request:Request){
   ]);
   if(open.error||prior.error)throw Error('DISCOVERY_FAILED');
   const ids=[...new Set([...(prior.data||[]).map(x=>x.request_id),...(open.data||[]).map(x=>x.id)])].slice(0,20);
-  let processed=0,needsAttention=0;
+  let processed=0,needsAttention=0,aiBudget=1;
   for(const id of ids){
    try{
     const record=await db.from('service_requests').select('id,customer_id,status,revision,created_at,original_submission,appointments!appointments_organization_id_request_id_fkey(id,request_id,job_id,status,revision,start_at,end_at,arrival_at,expires_at,replaces_id,customer_response)').eq('organization_id',org).eq('id',id).maybeSingle();
@@ -48,7 +49,19 @@ export async function GET(request:Request){
     const still=await db.from('service_requests').select('revision').eq('organization_id',org).eq('id',id).maybeSingle();
     if(still.error||still.data?.revision!==revision)throw Error('STALE_READ');
     for(const task of tasks){
-     const saved=await db.from('field_agent_tasks').upsert({organization_id:org,request_id:id,request_revision:revision,task_kind:task.kind,title:task.title,detail:task.detail,status:'proposed',updated_at:new Date().toISOString()},{onConflict:'organization_id,request_id,request_revision,task_kind'});
+     let detail=task.detail;
+     // Limit external model requests to one new task per scheduled run.
+     // Never transmit customer names, addresses, instructions, contact details or payment records.
+     if(aiBudget>0&&process.env.YNSG_AI_ENABLED==='true'){
+      const existing=await db.from('field_agent_tasks').select('id').eq('organization_id',org).eq('request_id',id).eq('request_revision',revision).eq('task_kind',task.kind).maybeSingle();
+      if(existing.error)throw Error('SAVE_FAILED');
+      if(!existing.data){
+       aiBudget--;
+       const advice=await suggestFieldPreparation(task);
+       if(advice)detail+=' Optional AI preparation (review only): '+advice;
+      }
+     }
+     const saved=await db.from('field_agent_tasks').upsert({organization_id:org,request_id:id,request_revision:revision,task_kind:task.kind,title:task.title,detail,status:'proposed',updated_at:new Date().toISOString()},{onConflict:'organization_id,request_id,request_revision,task_kind'});
      if(saved.error)throw Error('SAVE_FAILED');
     }
     // Retire only proposals not supported by the latest authoritative decision.
