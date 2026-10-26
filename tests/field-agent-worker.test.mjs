@@ -22,8 +22,8 @@ test('discovery rotates through requests with bounded refresh and reconciles old
  assert.match(source,/completeInvoicePayments\(db,org,invoices\.data\)/);
  assert.match(source,/automaticActions:0/);
 });
-test('owner sees approvals inside Today, not in an additional dashboard',()=>{
- assert.match(today,/FieldAgentAttention/);
+test('agent review API is owner-only and no competing Today dashboard is mounted',()=>{
+ assert.doesNotMatch(today,/<FieldAgentAttention/);
  assert.match(attention,/onOpen\(first\.request_id\)/);
  assert.match(attention,/Prepared automatically · not approved/);
  assert.match(route,/export async function GET/);
