@@ -4,16 +4,16 @@ Scope: Ed's request for uniform working service-request buttons and customer sig
 
 ## Pass/fail acceptance checklist
 
-- [ ] Every public page uses the same request-button renderer and style; header, hero, content and footer agree on color, dimensions, label, focus and destination.
-- [ ] Rendered buttons work at phone/tablet/desktop widths, both themes, keyboard and enlarged text; no clipped label or horizontal overflow.
-- [ ] Customer sign-in and sign-up are visible from every public page; guest requests remain available.
-- [ ] Sign-up, email confirmation, password sign-in, saved-session renewal, recovery and logout preserve existing owner authentication.
-- [ ] New verified customers can save their own contact/address and send a linked service request; returning customers reuse saved details.
-- [ ] Existing records require an explicit invitation; no email matching, household merge, privilege escalation or access to other customers/companies.
-- [ ] Request/appointment status, service history and issued invoices/PDFs are visible to the authorized customer, with empty/error/retry states.
-- [ ] No card numbers, security codes, bank credentials or payment methods are collected or stored; existing invoice totals and cash/Zelle receipt accounting remain.
-- [ ] Profile/request commands validate bounded inputs, live identities, revocation, idempotent replay and interrupted responses; synthetic database and browser tests pass.
-- [ ] Approved logo, service scope, pricing, calendar rules, optional accounts, no Google login, no required MFA and no paid activation preserved.
+- [x] Every public page uses the same request-button renderer and style; header, hero, content and footer agree on color, dimensions, label, focus and destination.
+- [x] Rendered buttons work at phone/tablet/desktop widths, both themes, keyboard and enlarged text; no clipped label or horizontal overflow.
+- [x] Customer sign-in and sign-up are visible from every public page; guest requests remain available.
+- [x] Sign-up, email confirmation, password sign-in, saved-session renewal, recovery and logout preserve existing owner authentication.
+- [x] New verified customers can save their own contact/address and send a linked service request; returning customers reuse saved details.
+- [x] Existing records require an explicit invitation; no email matching, household merge, privilege escalation or access to other customers/companies.
+- [x] Request/appointment status, service history and issued invoices/PDFs are visible to the authorized customer, with empty/error/retry states.
+- [x] No card numbers, security codes, bank credentials or payment methods are collected or stored; existing invoice totals and cash/Zelle receipt accounting remain.
+- [x] Profile/request commands validate bounded inputs, live identities, revocation, idempotent replay and interrupted responses; synthetic database and browser tests pass.
+- [x] Approved logo, service scope, pricing, calendar rules, optional accounts, no Google login, no required MFA and no paid activation preserved.
 - [ ] Full release checks, builds, exact-head PostgreSQL CI and live read-only deployment checks recorded before shipping claims.
 
 ## Contract
@@ -25,3 +25,11 @@ Scope: Ed's request for uniform working service-request buttons and customer sig
 Tracked by issue #204. Local `npm run verify:release` passed 932 tests, type checks, lint, contracts, migration fixtures and production dependency audit. Public website metadata/local-link checks and the optimized Next.js build passed. Chromium exercised 17 public pages at four widths in light/dark mode plus enlarged text (153 cases), checking consistent computed request-button styles and clicking each page's request entry into the real form. Built customer-browser checks exercised registration, PKCE confirmation, own profile HTTP command, linked request, exact lost-response replay, appointment/request status, service history, invoice link/balance, logout and password sign-in at four widths in both themes. All providers/data were synthetic; no production mail, booking, work or receipt was created.
 
 The new private enrollment command shares the account-deletion identity lock and organization lock, grants no staff membership, rejects revoked relationships and never matches preexisting customers by email. Native PostgreSQL CI includes two independent connections enrolling the same actor/key and asserting one record and identical replies. Deployment/migration evidence follows the reviewed PR. Real auth-mail inbox delivery and physical-device acceptance remain open in the production register; these are not inferred from synthetic checks.
+
+## Production decision
+
+PR #205 targets the existing `codex/crm-workflow` production branch. Confirmed Vercel team `team_xJdK8KY6YHsYD1Pu8Iu5C7aD`: project `ynsg` serves the .com website and `ynsg-repo` serves the .app account/owner application. Both were on baseline e10e9080579c6283d093efc6e8d0435c4934c678 before this work. YNSG database project is `jvigtwjlkmeyavzbxjzl`; read-only inspection confirmed the intended active company and intake configuration. No customer records were extracted for QA.
+
+Automatic approval review rejected applying `customer_self_service_profile` to production because it changes live customer-access behavior and requires explicit rollout authorization. The action was not applied. The source migration and pending history entry are prepared; PR remains unmerged. Requested decision: authorize applying `20261026131540_customer_self_service_profile.sql`, verifying its catalog/permissions, updating the observed migration map, then merging/deploying the tested PR #205 head after required CI passes. Follow with read-only verification of both domains and the account entry points. Keep guest intake available and do not create production QA customers, mail, bookings or payments.
+
+Real signup confirmation/reset inbox delivery still requires an owner-authorized test recipient. No provider delivery or whole-product certification is claimed by the engineering checks.

@@ -33,7 +33,8 @@ try{
    assert.ok(await page.locator('a[href="https://yourneighborhoodserviceguy.app/account"]').count(),'Customer sign in is discoverable');
    assert.ok(await page.locator('a[href="https://yourneighborhoodserviceguy.app/account?mode=signup"]').count(),'Customer registration is discoverable');
    if(width===390&&theme==='light'&&!largeText)await page.screenshot({path:output+'/'+engine+(path==='/'?'-home':path.replaceAll('/','-'))+'.png',fullPage:false});
-   await page.locator('a.service-request-button:visible').first().click();await page.waitForURL(origin+'/request');await page.locator('#request-form').waitFor({state:'attached'});
+   const primary=page.locator('a.service-request-button:visible').first();await primary.focus();assert.equal(await primary.evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(16, 40, 60)','Keyboard focus preserves request color');await primary.hover();await page.waitForFunction(el=>getComputedStyle(el).backgroundColor==='rgb(49, 88, 66)',await primary.elementHandle());assert.equal(await primary.evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(49, 88, 66)','Every request hover uses forest');
+   await primary.click();await page.waitForURL(origin+'/request');await page.locator('#request-form').waitFor({state:'attached'});
    results.push({engine,width,path,theme,largeText:Boolean(largeText),buttons,...state});await page.close();
   }
   await browser.close();browser=null;
