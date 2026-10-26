@@ -414,6 +414,11 @@
       "file": "20261026170000_field_agent_tasks.sql",
       "historyVersion": "20261026154110",
       "name": "field_agent_tasks"
+    },
+    {
+      "file": "20261026180000_field_agent_resolution.sql",
+      "historyVersion": "20261026155050",
+      "name": "field_agent_resolution"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
