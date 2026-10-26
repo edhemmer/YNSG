@@ -65,3 +65,19 @@ test('owner workflow retains issued invoice balance when no appointment remains'
  const invoice={id:'i1',job_id:'j1',total_cents:12000,credits:[],payments:[]};
  assert.equal(fieldWorkflow({...request,appointments:[]},[quote],[completed],[invoice]).kind,'payment');
 });
+
+test('unassigned reservation cannot authorize two approved jobs',()=>{
+ const jobs=[{id:'j1',quote_id:'q1',approved_version:1,status:'approved'},{id:'j2',quote_id:'q2',approved_version:1,status:'approved'}];
+ const quotes=[quote,{...quote,id:'q2'}];
+ const unassigned={...request,appointments:[{...request.appointments[0],job_id:null}]};
+ const next=serviceNextStep(unassigned,quotes,jobs,[]);
+ assert.equal(next.step,2);
+ assert.match(next.title,/Confirm an appointment/);
+ assert.equal(fieldWorkflow(unassigned,quotes,jobs,[]).kind,'confirm');
+});
+test('single approved job may use a reserved unassigned appointment',()=>{
+ const job={id:'j1',quote_id:'q1',approved_version:1,status:'approved'};
+ const unassigned={...request,appointments:[{...request.appointments[0],job_id:null}]};
+ assert.equal(serviceNextStep(unassigned,[quote],[job],[]).step,4);
+ assert.equal(fieldWorkflow(unassigned,[quote],[job],[]).kind,'ready');
+});
