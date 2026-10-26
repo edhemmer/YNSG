@@ -8,7 +8,7 @@ export function serviceNextStep(request:InboxRequest,quotes:LinkedQuote[],jobs:L
  if(invoices.length&&pendingJobs.length===0)return balance>0?{step:6,title:'Record the payment received',detail:'Open the invoice, send its email if needed, then record cash or Zelle after the money arrives.',action:'invoice'}:{step:7,title:invoices.some(i=>creditTotal(i.credits)>0)?'Settled and complete':'Paid and complete',detail:'No balance remains on the issued invoices for this request.',action:'invoice'};
  if(pendingJobs.some(j=>j.status==='completed'))return {step:5,title:'Review and issue the invoice',detail:'The work is complete. Review the saved charges and any tax before issuing the invoice.',action:'work'};
  if(pendingJobs.some(j=>['working','paused'].includes(j.status)))return {step:4,title:'Finish and record the work',detail:'Keep the work record current. When the visit is finished, complete the work and review its invoice.',action:'work'};
- for(const job of jobs.filter(j=>['approved','scheduled','en_route','arrived'].includes(j.status))){
+ for(const job of pendingJobs.filter(j=>['approved','scheduled','en_route','arrived'].includes(j.status))){
   const quote=quotes.find(q=>q.id===job.quote_id&&q.status==='accepted'),version=quote?.quote_versions.find(v=>v.version===(job.approved_version||quote.current_version));
   if(!version)return {step:3,title:'Review the saved scope and customer agreement',detail:'The approved job could not be matched to an accepted quote version. Review its saved agreement before starting.',action:'work'};
   const visit=request.appointments.find(a=>visitState(a)==='reserved'&&(a.job_id===job.id||(!a.job_id&&jobs.filter(j=>j.status!=='canceled').length===1)));
