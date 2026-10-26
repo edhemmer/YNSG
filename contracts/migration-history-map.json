@@ -436,5 +436,11 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": []
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261026131540_customer_self_service_profile.sql",
+      "name": "customer_self_service_profile",
+      "status": "not_applied_to_connected_supabase"
+    }
+  ]
 }

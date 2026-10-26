@@ -1,0 +1,27 @@
+# Customer accounts and request buttons — 2026-10-26
+
+Scope: Ed's request for uniform working service-request buttons and customer sign-up/sign-in, requests, appointments, history and invoices without stored payment credentials. Baseline e10e9080579c6283d093efc6e8d0435c4934c678. Advances WEB-02, WEB-06 and WEB-10; does not certify unrelated production gates.
+
+## Pass/fail acceptance checklist
+
+- [ ] Every public page uses the same request-button renderer and style; header, hero, content and footer agree on color, dimensions, label, focus and destination.
+- [ ] Rendered buttons work at phone/tablet/desktop widths, both themes, keyboard and enlarged text; no clipped label or horizontal overflow.
+- [ ] Customer sign-in and sign-up are visible from every public page; guest requests remain available.
+- [ ] Sign-up, email confirmation, password sign-in, saved-session renewal, recovery and logout preserve existing owner authentication.
+- [ ] New verified customers can save their own contact/address and send a linked service request; returning customers reuse saved details.
+- [ ] Existing records require an explicit invitation; no email matching, household merge, privilege escalation or access to other customers/companies.
+- [ ] Request/appointment status, service history and issued invoices/PDFs are visible to the authorized customer, with empty/error/retry states.
+- [ ] No card numbers, security codes, bank credentials or payment methods are collected or stored; existing invoice totals and cash/Zelle receipt accounting remain.
+- [ ] Profile/request commands validate bounded inputs, live identities, revocation, idempotent replay and interrupted responses; synthetic database and browser tests pass.
+- [ ] Approved logo, service scope, pricing, calendar rules, optional accounts, no Google login, no required MFA and no paid activation preserved.
+- [ ] Full release checks, builds, exact-head PostgreSQL CI and live read-only deployment checks recorded before shipping claims.
+
+## Contract
+
+`POST /api/account-profile` accepts `{key: UUID, profile: {name, phone, street, city, postalCode}}` only. Company comes from the deployed public scheduling configuration; email comes from the verified live identity. The canonical `create_customer_profile` command creates one new self-owned customer/contact/address, records an actor-bound receipt and audit event, and never claims existing records. An existing or revoked relationship blocks new self-enrollment. Exact replay returns the original receipt while access remains valid. No communication or booking occurs during profile creation. Appointment submission uses existing `submit_customer_request`; owner confirmation is still required.
+
+## Engineering validation
+
+Tracked by issue #204. Local `npm run verify:release` passed 932 tests, type checks, lint, contracts, migration fixtures and production dependency audit. Public website metadata/local-link checks and the optimized Next.js build passed. Chromium exercised 17 public pages at four widths in light/dark mode plus enlarged text (153 cases), checking consistent computed request-button styles and clicking each page's request entry into the real form. Built customer-browser checks exercised registration, PKCE confirmation, own profile HTTP command, linked request, exact lost-response replay, appointment/request status, service history, invoice link/balance, logout and password sign-in at four widths in both themes. All providers/data were synthetic; no production mail, booking, work or receipt was created.
+
+The new private enrollment command shares the account-deletion identity lock and organization lock, grants no staff membership, rejects revoked relationships and never matches preexisting customers by email. Native PostgreSQL CI includes two independent connections enrolling the same actor/key and asserting one record and identical replies. Deployment/migration evidence follows the reviewed PR. Real auth-mail inbox delivery and physical-device acceptance remain open in the production register; these are not inferred from synthetic checks.

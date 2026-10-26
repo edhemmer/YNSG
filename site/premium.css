@@ -1,7 +1,7 @@
 /* Public website: readable type, calm hierarchy and obvious touch controls. */
 html{font-size:18px;scroll-padding-top:96px;scroll-padding-bottom:100px}
 body{font:1rem/1.6 var(--font-ui);color:#213848;background:#fbfaf6}
-h1,h2,h3{overflow-wrap:normal;letter-spacing:-.025em;line-height:1.18}
+h1,h2,h3{overflow-wrap:anywhere;letter-spacing:-.025em;line-height:1.18}
 h1{font-size:clamp(2rem,4vw,3.4rem)}
 h2{font-size:clamp(1.65rem,2.8vw,2.4rem)}
 h3{font-size:1.3rem}
@@ -299,3 +299,5 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
  .site-header .nav-mobile>a{min-width:0;min-height:44px;padding:8px 3px;text-align:center}
 }
 @media(max-width:390px){.site-header .brand{width:min(270px,78vw)}.site-header .brand img{width:100%;max-width:none}}
+
+.home-rates-layout>div{min-width:0}

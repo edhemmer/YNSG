@@ -32,6 +32,7 @@ export async function GET(request: Request) {
         { status: 403, headers: { "Cache-Control": "no-store" } },
       );
     const ids = relationships.map((a) => a.customer_id);
+    const billingIds=relationships.filter(a=>a.can_view_billing).map(a=>a.customer_id);
     const from = page * 20;
     // Select only customer-facing fields; internal submissions/notes and outbox never leave this API.
     const results = await Promise.all([
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
         .in("customer_id", ids).limit(1000),
       db
         .from("service_requests")
-        .select("id,status,created_at")
+        .select("id,status,created_at,services:original_submission->services")
         .eq("organization_id", org)
         .in("customer_id", ids)
         .order("created_at", { ascending: false })
@@ -64,7 +65,7 @@ export async function GET(request: Request) {
         .from("invoices")
         .select("id,number,total_cents,issued_at")
         .eq("organization_id", org)
-        .in("customer_id", ids)
+        .in("customer_id", billingIds)
         .order("issued_at", { ascending: false })
         .order("id")
         .range(from, from + 20),

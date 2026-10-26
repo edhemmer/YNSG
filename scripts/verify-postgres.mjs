@@ -40,6 +40,17 @@ console.log('PASS: atomic work completion rollback, retry, timer closure and per
 const lifecycle=await readFile('tests/service-lifecycle.sql','utf8');assert.ok(lifecycle.trim().endsWith('rollback;'));
 await sql(prefix+booking+lifecycle.replace(/rollback;\s*$/,'commit;'));
 console.log('PASS: canonical service → quote → work → invoice → split receipts committed in synthetic database');
+// Two independent requests must enroll one self-owned profile, including exact replay.
+await sql(`insert into auth.users(id,email,email_confirmed_at) values('00000000-0000-4000-8000-000000000006','profile-race@example.invalid',now());
+ insert into auth.sessions(id,user_id,aal) values('10000000-0000-4000-8000-000000000006','00000000-0000-4000-8000-000000000006','aal1');
+ update public.organizations set status='active' where id='20000000-0000-4000-8000-000000000001';`);
+const enrollment=`begin;set local role authenticated;select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000006","session_id":"10000000-0000-4000-8000-000000000006","aal":"aal1"}',true);
+ select public.create_customer_profile('20000000-0000-4000-8000-000000000001','90000000-0000-4000-8000-000000000006','{"name":"Race Synthetic","phone":"5550000000","street":"100 Synthetic Lane","city":"DeKalb","postalCode":"60115"}');commit;`;
+const enrolled=await Promise.all([sql(enrollment),sql(enrollment)]);
+assert.equal(enrolled[0],enrolled[1],'Concurrent exact enrollment replies must agree');
+assert.equal((await sql("select count(*) from public.customer_access where user_id='00000000-0000-4000-8000-000000000006';")).trim(),'1');
+console.log('PASS: independent concurrent customer profile enrollment creates one actor-bound customer and one exact receipt');
+
 await sql(`create schema qa_fixture;grant usage on schema qa_fixture to service_role;
  create function qa_fixture.start() returns timestamptz language sql as $$select ((date_trunc('week',clock_timestamp() at time zone 'America/Chicago')+interval '21 days 8 hours') at time zone 'America/Chicago')$$;
  create function qa_fixture.facts() returns jsonb language sql as $$select public.crm_calendar_facts('20000000-0000-4000-8000-000000000001',qa_fixture.start()-interval '1 hour',qa_fixture.start()+interval '3 hours')$$;`);

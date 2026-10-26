@@ -55,6 +55,8 @@ jobs:
         run: node scripts/verify-public-layout.mjs
       - name: Verify authentication through HTTP routes and real browser forms
         run: node scripts/verify-native-auth.mjs --browsers
+      - name: Verify customer registration, own profile, request and account history
+        run: node scripts/verify-customer-account.mjs
       - name: Verify mobile owner workflow and responsive drawer
         run: node scripts/verify-owner-mobile.mjs
       - name: Verify workspace history, live permission changes and compact invoices

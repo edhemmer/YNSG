@@ -16,7 +16,7 @@ export const portalPage=z.object({
  company:z.object({id,display_name:text,timezone}).strict(),
  customers:z.array(z.object({id,display_name:text}).strict()).max(1000),
  properties:z.array(z.object({id,street:text,city:text,region:text,postal_code:text.nullable()}).strict()).max(1000),
- requests:z.array(record).max(20),jobs:z.array(record).max(20),
+ requests:z.array(record.extend({services:z.array(z.object({service:z.string().max(80),task:z.string().max(120)}).strict()).max(15).nullable().optional()})).max(20),jobs:z.array(record).max(20),
  invoices:z.array(z.object({id,number:z.union([text,z.number().int().safe()]),total_cents:z.number().int().min(0).max(999999999),issued_at:instant,credits:z.array(invoiceCredit).max(10000),payments:z.array(payment).max(10000)}).strict()).max(20),
  appointments:z.array(z.object({id,start_at:instant,end_at:instant,arrival_at:instant.nullable(),status:text,timezone,customer_response:text.nullable()}).strict()).max(20),
  page:z.number().int().min(0).max(10000),hasMore:z.boolean()
