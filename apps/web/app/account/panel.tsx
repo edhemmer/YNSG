@@ -8,19 +8,23 @@ import { publicError } from "../../lib/public-errors";
 import { useEffect, useState } from "react";
 import { sessionFetch } from "../../lib/session-fetch";
 import RepeatRequest from "./repeat-request";
+import CustomerProfile from "./profile";
 import {portalAccess,portalPage,verifiedPortalPage} from '../../lib/customer-portal-contract';
 import type {z} from 'zod';
 type Portal=z.infer<typeof portalPage>;
-export default function Account() {
+export default function Account({initialMode="password"}:{initialMode?:"password"|"signup"}) {
   const {canLeave}=useEntrySafety();
   const [invitation, setInvitation] = useState("");
   const [mode, setMode] = useState<
     "password" | "signup" | "recover" | "set-password"
-  >("password");
+  >(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [recoverySent, setRecoverySent] = useState(false);
+  const [signupSent,setSignupSent]=useState(false);
+  const [requestOpen,setRequestOpen]=useState(false);
+  const [privacyOpen,setPrivacyOpen]=useState(false);
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -102,7 +106,7 @@ export default function Account() {
   }, [org, page, refresh]);
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (busy || (mode === "recover" && recoverySent)) return;
+    if (busy || (mode === "recover" && recoverySent) || (mode === "signup" && signupSent)) return;
     if (mode === "set-password" && password !== confirmation) { setMessage("Passwords do not match."); return; }
     setBusy(true);
     setMessage("");
@@ -125,6 +129,7 @@ export default function Account() {
       setConfirmation("");
       setVisible(false);
       if (mode === "recover") setRecoverySent(true);
+      if (mode === "signup") setSignupSent(true);
       setMessage(
         d.message ||
           (mode === "set-password" ? "Password saved." : "You are signed in."),
@@ -142,6 +147,7 @@ export default function Account() {
   return (
     <main id="main" className="account-shell">
       <header className="account-header">
+        <a href="https://www.yourneighborhoodserviceguy.com/">Back to website</a>
         <a href="/account">My account</a>
         {signed && <a href="/auth/password">Change password</a>}
         {signed && workspaceAccess && <a href="/owner">Workspace</a>}
@@ -194,6 +200,7 @@ export default function Account() {
               : "Sign in"}
       </h1>
       <p>{mode === "set-password" ? "Choose a new password for your account." : "Keep your requests, appointments and invoices together."}</p>
+      <p className="account-privacy-note">We do not collect or store card numbers, security codes or bank account details.</p>
       {message && (
         <p role="status" className="account-message">
           {message}
@@ -218,9 +225,9 @@ export default function Account() {
             </label>
           )}
           {mode !== "recover" && (
-            <label>
-              Password
-              <input
+            <div className="account-password-field">
+              <label htmlFor="account-password">Password</label>
+              <input id="account-password"
                 required
                 minLength={mode === "password" ? 1 : 10}
                 maxLength={128}
@@ -247,14 +254,14 @@ export default function Account() {
                   remember.
                 </small>
               )}
-            </label>
+            </div>
           )}
           {mode === "set-password" && <label>Confirm new password<input required type={visible ? "text" : "password"} autoComplete="new-password" autoCapitalize="none" autoCorrect="off" spellCheck={false} minLength={10} maxLength={128} value={confirmation} onChange={e => setConfirmation(e.target.value)} /></label>}
-          <button disabled={busy || (mode === "recover" && recoverySent)} type="submit">
+          <button disabled={busy || (mode === "recover" && recoverySent) || (mode === "signup" && signupSent)} type="submit">
             {busy
               ? "Please wait…"
               : mode === "signup"
-                ? "Create account"
+                ? (signupSent?"Check your email":"Create account")
                 : mode === "recover"
                   ? "Send reset email"
                   : mode === "set-password"
@@ -282,6 +289,8 @@ export default function Account() {
               hidden={mode === "signup" || mode === "set-password"}
               onClick={() => {
                 setMode("signup");
+                setSignupSent(false);
+                setMessage("");
                 setPassword("");
               }}
             >
@@ -337,16 +346,8 @@ export default function Account() {
           </button>
         </section>
       )}
-      <AccountPrivacy key={signed?'signed':'signed-out'} onDeleted={()=>{setSigned(false);setWorkspaceAccess(false);setData(null);setOrg('');setCompanies([]);setInvitation('');setPassword('');setConfirmation('');setMode('password');setMessage('Your sign-in identity has been deleted. Company records remain subject to the disclosed retention policies.');}}/>
-      {signed && mode !== "set-password" && companies.length === 0 && (
-        <section className="account-card">
-          <h2>No connected service records yet</h2>
-          <p>
-            Your account is ready. Service history appears after your requests
-            are securely connected. Please contact the business if earlier work
-            is missing.
-          </p>
-        </section>
+      {signed && mode !== "set-password" && companies.length === 0 && !invitation && (
+        <CustomerProfile key={email} email={email} onSaved={async()=>{setRequestOpen(true);await load();}} />
       )}
       {signed && mode !== "set-password" && companies.length > 1 && (
         <label>
@@ -367,7 +368,10 @@ export default function Account() {
           </select>
         </label>
       )}
-      {signed && mode !== "set-password" && org && <RepeatRequest organization={org} onSaved={()=>{setPage(0);setRefresh(n=>n+1);}}/>}
+      {signed && mode !== "set-password" && org && <section className="account-request-entry">
+        <button type="button" className="service-request-button" aria-expanded={requestOpen} aria-controls="account-new-request" onClick={()=>{if(canLeave())setRequestOpen(!requestOpen);}}>Request service appointment <span aria-hidden="true">↗</span></button>
+        <div id="account-new-request" hidden={!requestOpen}><RepeatRequest key={org} organization={org} onSaved={()=>{setPage(0);setRefresh(n=>n+1);setRequestOpen(false);setMessage('Your service request is saved. We’ll contact you to confirm the appointment.');}}/></div>
+      </section>}
       {signed && mode !== "set-password" && org && historyLoading && <p role="status">Loading your service history…</p>}
       {signed && mode !== "set-password" && org && historyFailed && <button type="button" onClick={()=>setRefresh(n=>n+1)}>Try loading service history again</button>}
       {signed && mode !== "set-password" && data && (
@@ -407,11 +411,15 @@ export default function Account() {
             ) : (
               data.requests.map((r) => (
                 <p key={r.id}>
-                  {new Date(r.created_at!).toLocaleDateString()} —{" "}
-                  {r.status.replaceAll("_", " ")}
+                  {new Date(r.created_at!).toLocaleDateString("en-US",{timeZone:data.company.timezone})} —{" "}
+                  Request {r.id.slice(0,8)} · {r.status.replaceAll("_", " ")}
+                  {r.services?.length ? <><br/>{r.services.map(s=>s.service+" — "+s.task).join("; ")}</> : null}
                 </p>
               ))
             )}
+          </section>
+          <section className="account-card"><h2>Service history</h2>
+            {data.jobs.length===0?<p>No service visits on this page yet.</p>:data.jobs.map(job=><p key={job.id}>Service {job.id.slice(0,8)} · {job.status.replaceAll("_"," ")}</p>)}
           </section>
           <section className="account-card">
             <h2>Invoices</h2>
@@ -457,6 +465,9 @@ export default function Account() {
           </div>
         </>
       )}
+      <details className="account-settings" onToggle={event=>setPrivacyOpen(event.currentTarget.open)}><summary>Privacy and account settings</summary>{privacyOpen && (
+      <AccountPrivacy key={signed?'signed':'signed-out'} onDeleted={()=>{setSigned(false);setWorkspaceAccess(false);setData(null);setOrg('');setCompanies([]);setInvitation('');setPassword('');setConfirmation('');setMode('password');setMessage('Your sign-in identity has been deleted. Company records remain subject to the disclosed retention policies.');}}/>
+      )}</details>
     </main>
   );
 }

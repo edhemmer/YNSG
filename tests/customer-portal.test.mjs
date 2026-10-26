@@ -21,3 +21,9 @@ test('customer history rejects negative net receipts and overpaid balances on se
   assert.equal(r.status,503);assert.equal((await r.json()).invoices,undefined);
  }
 });
+
+test('billing query uses explicit billing permission even when account also has staff access',async()=>{
+ const h=harness({customer_access:{data:[{organization_id:org,customer_id:customer,can_view_billing:false,can_approve:true}],count:1},invoices:{data:[]},payments:{data:[],count:0}});
+ assert.equal((await h.get()).status,200);
+ assert.deepEqual(h.calls.find(c=>c.table==='invoices').in,['customer_id',[]]);
+});

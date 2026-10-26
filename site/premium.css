@@ -1,7 +1,7 @@
 /* Public website: readable type, calm hierarchy and obvious touch controls. */
 html{font-size:18px;scroll-padding-top:96px;scroll-padding-bottom:100px}
 body{font:1rem/1.6 var(--font-ui);color:#213848;background:#fbfaf6}
-h1,h2,h3{overflow-wrap:normal;letter-spacing:-.025em;line-height:1.18}
+h1,h2,h3{overflow-wrap:anywhere;letter-spacing:-.025em;line-height:1.18}
 h1{font-size:clamp(2rem,4vw,3.4rem)}
 h2{font-size:clamp(1.65rem,2.8vw,2.4rem)}
 h3{font-size:1.3rem}
@@ -244,9 +244,6 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
 @media(max-width:390px){.site-header .brand{max-width:100%;gap:7px}.site-header .brand img{width:58px}.site-header .brand-identity strong{font-size:13px}.site-header .brand-identity small{font-size:11px}}
 
 /* Header hierarchy: brand first, booking call-to-action second. */
-.site-header .header-actions .nav-request{background:transparent;color:var(--navy);border:1px solid #a9beb1;border-radius:7px;box-shadow:none;min-height:42px;padding:8px 12px;font-size:.86rem;font-weight:700;gap:8px;transform:none}
-.site-header .header-actions .nav-request:hover,.site-header .header-actions .nav-request:focus-visible{background:#eaf1e9;border-color:var(--forest);transform:none}
-.site-header .header-actions .nav-request span:last-child{font-size:1rem}
 @media(max-width:850px){.site-header .nav-mobile a[href="/request/"],.site-header .nav-mobile a[href="/request"]{background:#f3f6f2;color:var(--navy);border:1px solid #c1d0c5}}
 /* Persistent mobile action bar should not visually shout over the business identity. */
 @media(max-width:850px){.mobile-rail a:last-child{background:#e3ecdf;color:var(--navy);border-top:1px solid #b7c9ba}.mobile-rail a{font-size:.9rem;min-height:54px}}
@@ -299,3 +296,5 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
  .site-header .nav-mobile>a{min-width:0;min-height:44px;padding:8px 3px;text-align:center}
 }
 @media(max-width:390px){.site-header .brand{width:min(270px,78vw)}.site-header .brand img{width:100%;max-width:none}}
+
+.home-rates-layout>div{min-width:0}

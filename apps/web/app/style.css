@@ -310,3 +310,10 @@ html[data-theme=dark] .request-dialog .detail-tabs button{color:#b3c2cd}html[dat
 .field-search{display:grid;gap:.45rem;min-width:0}.field-search label{font-weight:650}.field-search-input{display:flex;gap:.5rem;align-items:stretch}.field-search-input input{flex:1;min-width:0;min-height:48px;font-size:1rem}.field-search-input button{min-height:48px;flex-shrink:0}.field-search input:focus-visible{outline:3px solid var(--gold,#edbd6b);outline-offset:2px}
 
 .field-work-brief{display:grid;gap:.5rem;border-left:3px solid var(--green);padding:.5rem .8rem}.field-work-brief h3{margin:0;font-size:1rem}.field-work-brief p{margin:0}.field-work-brief .field-job-service,.field-agreed-scope{white-space:pre-wrap;overflow-wrap:anywhere}.field-work-brief dl{display:flex;flex-wrap:wrap;gap:.6rem 1.5rem;margin:.25rem 0}.field-work-brief dl>div{min-width:0}.field-work-brief dt{font-size:.875rem}.field-work-brief dd{margin:0;font-weight:700;overflow-wrap:anywhere}
+
+/* Customer account entry and history stay readable in both themes. */
+.account-request-entry{margin:24px 0}.account-privacy-note{max-width:65ch}.account-shell fieldset{border:0;padding:0;margin:0}.account-shell input:not([type=checkbox]),.account-shell select,.account-shell textarea{width:100%;max-width:100%}.account-shell textarea{padding:12px;font:inherit}.account-shell [hidden]{display:none}.account-shell .account-card h2{font-size:1.4rem}.account-shell .repeat-category summary{min-height:48px;padding:12px 0;cursor:pointer}
+
+.account-password-field{display:grid;gap:10px;margin-bottom:20px}.account-password-field>label{margin-bottom:0}.account-password-field>button{justify-self:start}
+
+.account-settings{margin-top:24px;border-top:1px solid #889c90;padding-top:12px}.account-settings>summary{min-height:48px;padding:12px 0;cursor:pointer;font-weight:700}

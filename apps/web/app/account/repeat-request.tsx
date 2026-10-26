@@ -78,6 +78,6 @@ export default function RepeatRequest({organization,onSaved}:{organization:strin
  <label>Anything else we should know?<textarea rows={3} maxLength={3000} required={selected.some(s=>s.service==='Something else')} minLength={selected.some(s=>s.service==='Something else')?10:0} value={description} onChange={e=>setDescription(e.target.value)}/></label>
  <label>A day or time that usually works? (optional)<input maxLength={180} value={preferredTime} onChange={e=>setPreferredTime(e.target.value)} placeholder="We’ll confirm a time together"/></label>
  <label>Ask about the Community Rate?<select value={communityRate} onChange={e=>setCommunityRate(e.target.value)}><option value="No">No, thanks</option><option value="Yes">Yes, please</option></select></label>
- <p>This sends a request; it doesn’t book an appointment.</p><button disabled={!address||!chosenContact||!selected.length} type="submit">{busy?'Saving your request…':'Send service request'}</button>
+ <p>This sends a request; it doesn’t book an appointment.</p><button className="service-request-button" disabled={!address||!chosenContact||!selected.length} type="submit">{busy?'Saving your request…':'Send service request'}</button>
  </fieldset></form>}</section>;
 }

@@ -10,5 +10,5 @@ import {EntrySafety} from "../entry-safety";
 export default async function Page({searchParams}:{searchParams?:Promise<Record<string,string|string[]|undefined>>}) {
   const params=searchParams?await searchParams:{};
   if(Object.hasOwn(params,"password"))redirect("/auth/password");
-  return <EntrySafety><Account /></EntrySafety>;
+  return <EntrySafety><Account initialMode={params.mode==="signup"?"signup":"password"} /></EntrySafety>;
 }

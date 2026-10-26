@@ -34,7 +34,7 @@ jobs:
           YNSG_TEST_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
   contracts-browser-and-native-foundation:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -50,11 +50,18 @@ jobs:
           npm run verify:seo
           pnpm --dir apps/web exec next build
       - name: Install browser engines for native form regression
-        run: pnpm exec playwright install --with-deps chromium webkit
+        run: |
+          # Keep signed Ubuntu packages; avoid the Azure mirror that stalled this runner.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/apt-mirrors.txt
+          fi
+          pnpm exec playwright install --with-deps --only-shell chromium webkit
       - name: Verify rendered public masthead and booking layouts
         run: node scripts/verify-public-layout.mjs
       - name: Verify authentication through HTTP routes and real browser forms
         run: node scripts/verify-native-auth.mjs --browsers
+      - name: Verify customer registration, own profile, request and account history
+        run: node scripts/verify-customer-account.mjs
       - name: Verify mobile owner workflow and responsive drawer
         run: node scripts/verify-owner-mobile.mjs
       - name: Verify workspace history, live permission changes and compact invoices
