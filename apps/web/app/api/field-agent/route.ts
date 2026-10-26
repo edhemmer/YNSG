@@ -27,8 +27,13 @@ export async function POST(request:Request){
    const write=await storage.from('field_agent_tasks').upsert({organization_id:args.organization,request_id:args.request,request_revision:prepared.requestRevision,task_kind:task.kind,title:task.title,detail:task.detail,status:'proposed',updated_at:new Date().toISOString()},{onConflict:'organization_id,request_id,request_revision,task_kind'});
    if(write.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
   }
-  const old=await storage.from('field_agent_tasks').update({status:'superseded',updated_at:new Date().toISOString()}).eq('organization_id',args.organization).eq('request_id',args.request).eq('status','proposed').not('task_kind','in','('+prepared.tasks.map(task=>task.kind).join(',')+')');
-  if(old.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
+  if(prepared.tasks.length){
+   const old=await storage.from('field_agent_tasks').update({status:'superseded',updated_at:new Date().toISOString()}).eq('organization_id',args.organization).eq('request_id',args.request).eq('status','proposed').eq('request_revision',prepared.requestRevision).not('task_kind','in','('+prepared.tasks.map(task=>task.kind).join(',')+')');
+   if(old.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
+  }else{
+   const old=await storage.from('field_agent_tasks').update({status:'superseded',updated_at:new Date().toISOString()}).eq('organization_id',args.organization).eq('request_id',args.request).eq('status','proposed');
+   if(old.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
+  }
   const obsolete=await storage.from('field_agent_tasks').update({status:'superseded',updated_at:new Date().toISOString()}).eq('organization_id',args.organization).eq('request_id',args.request).eq('status','proposed').neq('request_revision',prepared.requestRevision);
   if(obsolete.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
   const same=await storage.from('field_agent_tasks').select('id,task_kind,title,detail,status,request_revision').eq('organization_id',args.organization).eq('request_id',args.request).eq('request_revision',prepared.requestRevision).eq('status','proposed').order('created_at');
