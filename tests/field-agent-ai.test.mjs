@@ -29,6 +29,8 @@ test('scheduled agent invokes AI only within an explicit one-task budget',()=>{
  assert.match(worker,/aiBudget--/);
  assert.match(worker,/suggestFieldPreparation\(task\)/);
  assert.match(worker,/!existing\.data/);
+ assert.match(worker,/existing\.data\.detail/);
+ assert.match(worker,/startsWith\(task\.detail/);
  assert.match(worker,/Optional AI preparation \(review only\)/);
  assert.doesNotMatch(worker,/suggestFieldPreparation\(record\.data/);
 });
