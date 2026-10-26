@@ -40,3 +40,9 @@ test('model prompt sends fixed task categories, not customer instructions or pay
  assert.doesNotMatch(source,/task\.detail\.slice|task\.title\.slice/);
  assert.match(source,/\['schedule','quote','review','work','invoice','payment','follow_up'\]/);
 });
+
+test('AI advice must be checked against latest saved request revision',()=>{
+ assert.match(route,/latest\.data\.revision!==result\.requestRevision/);
+ assert.match(route,/status:'stale',suggestion:null/);
+ assert.match(route,/status:409/);
+});
