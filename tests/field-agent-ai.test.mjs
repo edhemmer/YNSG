@@ -22,3 +22,13 @@ test('AI advisory is bounded, single-purpose and cannot execute CRM commands',()
  assert.match(route,/execution:'none'/);
  assert.doesNotMatch(route,/\.insert\(|\.upsert\(|dispatchGoogleMail|RecordPayment|IssueInvoice/);
 });
+
+test('scheduled agent invokes AI only within an explicit one-task budget',()=>{
+ const worker=readFileSync(new URL('../apps/web/app/api/field-agent/worker/route.ts',import.meta.url),'utf8');
+ assert.match(worker,/aiBudget=1/);
+ assert.match(worker,/aiBudget--/);
+ assert.match(worker,/suggestFieldPreparation\(task\)/);
+ assert.match(worker,/!existing\.data/);
+ assert.match(worker,/Optional AI preparation \(review only\)/);
+ assert.doesNotMatch(worker,/suggestFieldPreparation\(record\.data/);
+});
