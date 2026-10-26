@@ -16,7 +16,7 @@ test('agent persistence never dispatches emails or performs financial commands',
  assert.match(sql,/revoke all on public\.field_agent_tasks from anon, authenticated/i);
 });
 test('agent supersedes obsolete and settled proposals',()=>{
- assert.match(api,/prepared\.tasks\.length/);
+ assert.match(api,/previous\.data/);
  assert.match(api,/status:'superseded'/);
  assert.match(api,/request_revision/);
 });
