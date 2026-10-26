@@ -3,6 +3,7 @@ import {NextResponse} from 'next/server';
 import {serverDatabase} from '../../../../lib/google-server';
 import {completeInvoicePayments} from '../../../../lib/complete-invoice-payments';
 import {prepareAgentPlan} from '../../../../lib/field-agent-plan';
+import {taskResolution} from '../../../../lib/field-agent-resolution';
 import type {InboxRequest,LinkedQuote,LinkedJob} from '../../../../lib/request-inbox';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
@@ -50,11 +51,15 @@ export async function GET(request:Request){
      const saved=await db.from('field_agent_tasks').upsert({organization_id:org,request_id:id,request_revision:revision,task_kind:task.kind,title:task.title,detail:task.detail,status:'proposed',updated_at:new Date().toISOString()},{onConflict:'organization_id,request_id,request_revision,task_kind'});
      if(saved.error)throw Error('SAVE_FAILED');
     }
-    // A task from a previous state is not a fresh owner approval.
-    let obsolete=db.from('field_agent_tasks').update({status:'superseded',updated_at:new Date().toISOString()}).eq('organization_id',org).eq('request_id',id).eq('status','proposed');
-    if(tasks.length)obsolete=obsolete.or(`request_revision.neq.${revision},task_kind.not.in.(${tasks.map(t=>t.kind).join(',')})`);
-    const old=await obsolete;
-    if(old.error)throw Error('SAVE_FAILED');
+    // Retire only proposals not supported by the latest authoritative decision.
+    const previous=await db.from('field_agent_tasks').select('id,request_revision,task_kind').eq('organization_id',org).eq('request_id',id).eq('status','proposed').limit(100);
+    if(previous.error||!previous.data||previous.data.length===100)throw Error('SAVE_FAILED');
+    for(const task of previous.data){
+     if(task.request_revision===revision&&tasks.some(t=>t.kind===task.task_kind))continue;
+     const now=new Date().toISOString();
+     const done=await db.from('field_agent_tasks').update({status:'superseded',resolution:taskResolution(task.task_kind,tasks[0]?.kind||null,record.data.status),resolved_at:now,updated_at:now}).eq('organization_id',org).eq('id',task.id).eq('status','proposed');
+     if(done.error)throw Error('SAVE_FAILED');
+    }
     processed++;
    }catch{needsAttention++;}
   }
