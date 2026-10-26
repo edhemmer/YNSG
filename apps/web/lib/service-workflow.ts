@@ -38,6 +38,9 @@ export function invoiceDraftFingerprint(lines:Record<string,unknown>[]){
 
 /** Owner-facing next action stays appointment-first, including retained history. */
 export function ownerRequestNextStep(request:InboxRequest,quotes:LinkedQuote[],jobs:LinkedJob[],invoices:LinkedInvoice[]){
+ const saved=serviceNextStep(request,quotes,jobs,invoices);
+ // An already-started or completed job must never regress to appointment confirmation.
+ if(saved.step===0||saved.step>=5||jobs.some(j=>['working','paused'].includes(j.status)))return saved;
  if(!['declined','canceled'].includes(request.status)&&!request.appointments.some(a=>visitState(a)==='reserved'))return {step:2,title:'Confirm appointment',detail:'Review the requested time or choose another available time. You can also decline this request.',action:'schedule'};
  return serviceNextStep(request,quotes,jobs,invoices);
 }
