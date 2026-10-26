@@ -53,9 +53,11 @@ export async function GET(request:Request){
      // Limit external model requests to one new task per scheduled run.
      // Never transmit customer names, addresses, instructions, contact details or payment records.
      if(aiBudget>0&&process.env.YNSG_AI_ENABLED==='true'){
-      const existing=await db.from('field_agent_tasks').select('id').eq('organization_id',org).eq('request_id',id).eq('request_revision',revision).eq('task_kind',task.kind).maybeSingle();
+      const existing=await db.from('field_agent_tasks').select('id,detail').eq('organization_id',org).eq('request_id',id).eq('request_revision',revision).eq('task_kind',task.kind).maybeSingle();
       if(existing.error)throw Error('SAVE_FAILED');
-      if(!existing.data){
+      if(existing.data?.detail?.startsWith(task.detail+' Optional AI preparation (review only): ')){
+       detail=existing.data.detail;
+      }else if(!existing.data||existing.data.detail!==task.detail){
        aiBudget--;
        const advice=await suggestFieldPreparation(task);
        if(advice)detail+=' Optional AI preparation (review only): '+advice;
