@@ -3,6 +3,7 @@ import {useState,useRef,useEffect} from 'react';
 import {creditTotal} from '../lib/invoice-credit-contract';
 import {submissionAddress,requestTasks,requestTiming,visitState,type InboxRequest,type LinkedQuote,type LinkedJob,type LinkedInvoice} from '../lib/request-inbox';
 import {fieldWorkflow} from '../lib/field-workflow';
+import {sessionFetch} from '../lib/session-fetch';
 import {prepareFieldBrief} from '../lib/field-preparation';
 import RequestDetail from './request-detail';
 import SchedulingReviewPanel from './scheduling-review-panel';
@@ -26,6 +27,13 @@ const money=(n:number)=>(n/100).toLocaleString('en-US',{style:'currency',currenc
 export default function ServiceWorkflow({organization,request,quotes,jobs,invoices,timezone,canManage,canQuote,canWork,busy,onBusy,onReview,act,fieldAction,onChanged,onCustomer}:{organization:string;request:InboxRequest;quotes:LinkedQuote[];jobs:Job[];invoices:LinkedInvoice[];timezone:string;canManage:boolean;canQuote:boolean;canWork:boolean;busy:boolean;onBusy:(v:boolean)=>void;onReview:()=>void;act:(value:Record<string,unknown>)=>Promise<unknown>;fieldAction:(job:Job,action:'start'|'pause'|'resume')=>Promise<void>;onChanged:()=>void;onCustomer?:(id:string)=>void}){
  const task=fieldWorkflow(request,quotes,jobs,invoices),{canLeave}=useEntrySafety();
  const prepared=prepareFieldBrief(request,quotes,jobs,invoices);
+ // Quietly reconcile the persistent proposal with the current request revision.
+ // The authoritative action stays in this job; no customer contact is initiated.
+ useEffect(()=>{
+  const controller=new AbortController();
+  void sessionFetch('/api/field-agent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({organization,request:request.id}),signal:controller.signal}).catch(()=>{});
+  return()=>controller.abort();
+ },[organization,request.id,request.revision]);
  const [scheduleOpen,setScheduleOpen]=useState(false),[declineOpen,setDeclineOpen]=useState(false),[workRecordOpen,setWorkRecordOpen]=useState(false);
  const [childBusy,setChildBusy]=useState<Record<string,boolean>>({}),callbacks=useRef(new Map<string,(v:boolean)=>void>());
  const decision=useFieldCommand('workflow:'+organization+':'+request.id,value=>value.command==='PublishQuote'?prepareQuote(value):act(value));
