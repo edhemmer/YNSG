@@ -47,3 +47,21 @@ test('ongoing work remains the actionable job when another approved job exists',
  assert.equal(result.kind,'working');
  assert.equal(result.job?.id,'j2');
 });
+
+test('owner workflow keeps an active timer actionable when prior visit is no longer reserved',()=>{
+ const active={id:'j1',quote_id:'q1',approved_version:1,status:'working'};
+ const canceled={...request,appointments:[{...request.appointments[0],status:'canceled'}]};
+ const next=fieldWorkflow(canceled,[quote],[active],[]);
+ assert.equal(next.kind,'working');
+ assert.equal(next.job?.id,'j1');
+});
+test('owner workflow retains completed work awaiting invoice without requiring new booking',()=>{
+ const completed={id:'j1',quote_id:'q1',approved_version:1,status:'completed'};
+ const canceled={...request,appointments:[]};
+ assert.equal(fieldWorkflow(canceled,[quote],[completed],[]).kind,'invoice');
+});
+test('owner workflow retains issued invoice balance when no appointment remains',()=>{
+ const completed={id:'j1',quote_id:'q1',approved_version:1,status:'completed'};
+ const invoice={id:'i1',job_id:'j1',total_cents:12000,credits:[],payments:[]};
+ assert.equal(fieldWorkflow({...request,appointments:[]},[quote],[completed],[invoice]).kind,'payment');
+});
