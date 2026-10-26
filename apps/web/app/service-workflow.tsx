@@ -3,6 +3,7 @@ import {useState,useRef,useEffect} from 'react';
 import {creditTotal} from '../lib/invoice-credit-contract';
 import {submissionAddress,requestTasks,requestTiming,visitState,type InboxRequest,type LinkedQuote,type LinkedJob,type LinkedInvoice} from '../lib/request-inbox';
 import {fieldWorkflow} from '../lib/field-workflow';
+import {prepareFieldBrief} from '../lib/field-preparation';
 import RequestDetail from './request-detail';
 import SchedulingReviewPanel from './scheduling-review-panel';
 import Icon from './crm-icons';
@@ -24,6 +25,7 @@ type Job=LinkedJob;
 const money=(n:number)=>(n/100).toLocaleString('en-US',{style:'currency',currency:'USD'});
 export default function ServiceWorkflow({organization,request,quotes,jobs,invoices,timezone,canManage,canQuote,canWork,busy,onBusy,onReview,act,fieldAction,onChanged,onCustomer}:{organization:string;request:InboxRequest;quotes:LinkedQuote[];jobs:Job[];invoices:LinkedInvoice[];timezone:string;canManage:boolean;canQuote:boolean;canWork:boolean;busy:boolean;onBusy:(v:boolean)=>void;onReview:()=>void;act:(value:Record<string,unknown>)=>Promise<unknown>;fieldAction:(job:Job,action:'start'|'pause'|'resume')=>Promise<void>;onChanged:()=>void;onCustomer?:(id:string)=>void}){
  const task=fieldWorkflow(request,quotes,jobs,invoices),{canLeave}=useEntrySafety();
+ const prepared=prepareFieldBrief(request,quotes,jobs,invoices);
  const [scheduleOpen,setScheduleOpen]=useState(false),[declineOpen,setDeclineOpen]=useState(false),[workRecordOpen,setWorkRecordOpen]=useState(false);
  const [childBusy,setChildBusy]=useState<Record<string,boolean>>({}),callbacks=useRef(new Map<string,(v:boolean)=>void>());
  const decision=useFieldCommand('workflow:'+organization+':'+request.id,value=>value.command==='PublishQuote'?prepareQuote(value):act(value));
@@ -49,6 +51,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
   <header className="field-job-header"><div><h2>{request.original_submission.name}</h2><p>{submissionAddress(request.original_submission)}</p></div><div className="field-contact-actions"><a className="button secondary" href={'tel:'+request.original_submission.phone} aria-label="Call customer"><Icon name="phone"/>Call</a><a className="button secondary" href={navigationUrl(submissionAddress(request.original_submission))||undefined} target="_blank" rel="noreferrer"><Icon name="pin"/>Directions</a></div></header>
   {agreedWork?<section className="field-work-brief" aria-label="Agreed work brief"><h3>Agreed work</h3><p className="field-job-service">{scopePreview}{scopeCharacters.length>240?'…':''}</p>{scopeCharacters.length>240&&<details><summary>Read full agreed scope</summary><p className="field-agreed-scope">{agreedWork.scope}</p></details>}<dl><div><dt>Estimated time</dt><dd>{agreedWork.duration_minutes/60} hours</dd></div><div><dt>Labor estimate</dt><dd>{money(agreedWork.labor_cents)}</dd></div></dl><p className="tiny">Saved agreement · version {agreedWork.version}. Final charges are reviewed after work.</p></section>:<p className="field-job-service">{requestTasks(request.original_submission).map(t=>t.task||t.service).join(' · ')}</p>}
   <p className="field-job-time"><Icon name="calendar"/><strong>{timing.label}</strong> {timing.text}</p>
+  {prepared.notes.length>0&&<div className="note field-auto-preparation" aria-label="Automatically prepared job checks"><strong>Prepared for this job</strong><ul>{prepared.notes.map(note=><li key={note}>{note}</li>)}</ul></div>}
   {request.original_submission.description&&<details className="workflow-customer-note" open={task.kind==='confirm'||task.kind==='agreement'}><summary>Customer’s note</summary><p>{request.original_submission.description}</p></details>}
   {decision.unknown&&<div className="note" role="alert"><p>The last field decision is unconfirmed. Its original details are kept; check the saved result before editing or leaving.</p><button type="button" disabled={decision.busy} onClick={()=>void decision.run()}>Check saved field decision</button></div>}
   <section className="field-task" aria-label="Current field action"><h3>{task.label}</h3>
