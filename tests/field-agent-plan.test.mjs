@@ -27,3 +27,34 @@ test('follow-up is a draft only and never assumes appointment confirmation',()=>
  assert.equal(prepareCustomerFollowUp({...base,status:'declined'}),null);
  assert.doesNotMatch(source,/Prepared customer follow-up · not sent/);
 });
+
+test('agent follows saved quote approval rather than treating any quote as accepted',()=>{
+ const confirmed={...base,appointments:[{status:'reserved'}]};
+ const quote={id:'q1',request_id:base.id,status:'sent',current_version:1,quote_versions:[{version:1,scope:'Mow',labor_cents:12000,duration_minutes:120}]};
+ const task=prepareAgentPlan(confirmed,[quote],[],[])[0];
+ assert.equal(task?.kind,'quote');
+ assert.match(task.title,/approval/i);
+});
+test('agent does not offer work when approved job has no accepted quote version',()=>{
+ const confirmed={...base,appointments:[{status:'reserved'}]};
+ const quote={id:'q1',request_id:base.id,status:'sent',current_version:1,quote_versions:[{version:1,scope:'Mow',labor_cents:12000,duration_minutes:120}]};
+ const job={id:'j1',quote_id:'q1',approved_version:1,status:'approved',revision:1};
+ const task=prepareAgentPlan(confirmed,[quote],[job],[])[0];
+ assert.equal(task?.kind,'quote');
+ assert.match(task.title,/agreement/i);
+});
+test('agent never asks for payment on an already settled invoice',()=>{
+ const confirmed={...base,appointments:[{status:'reserved'}]};
+ const job={id:'j1',quote_id:'q1',status:'completed',revision:1};
+ const invoice={id:'i1',job_id:'j1',number:1,total_cents:12000,payments:[{cents:12000}]};
+ assert.deepEqual(prepareAgentPlan(confirmed,[],[job],[invoice]),[]);
+});
+test('agent treats outstanding receipts as owner-confirmed evidence, not automation',()=>{
+ const confirmed={...base,appointments:[{status:'reserved'}]};
+ const job={id:'j1',quote_id:'q1',status:'completed',revision:1};
+ const invoice={id:'i1',job_id:'j1',number:1,total_cents:12000,payments:[]};
+ const task=prepareAgentPlan(confirmed,[],[job],[invoice])[0];
+ assert.equal(task?.kind,'payment');
+ assert.match(task.detail,/actually received/i);
+ assert.equal(task.requiresOwnerApproval,true);
+});
