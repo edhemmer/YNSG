@@ -81,3 +81,13 @@ test('single approved job may use a reserved unassigned appointment',()=>{
  assert.equal(serviceNextStep(unassigned,[quote],[job],[]).step,4);
  assert.equal(fieldWorkflow(unassigned,[quote],[job],[]).kind,'ready');
 });
+
+test('a previously invoiced approved job cannot redirect a second completed job to scheduling',()=>{
+ const invoiced={id:'j1',quote_id:'q1',approved_version:1,status:'approved'};
+ const completed={id:'j2',quote_id:'q2',approved_version:1,status:'completed'};
+ const oldInvoice={id:'i1',job_id:'j1',total_cents:12000,credits:[],payments:[]};
+ const withoutVisit={...request,appointments:[]};
+ const next=serviceNextStep(withoutVisit,[quote,{...quote,id:'q2'}],[invoiced,completed],[oldInvoice]);
+ assert.equal(next.step,5);
+ assert.equal(fieldWorkflow(withoutVisit,[quote,{...quote,id:'q2'}],[invoiced,completed],[oldInvoice]).kind,'invoice');
+});
