@@ -22,11 +22,11 @@ export async function GET(request:Request){
   // Bounded candidate discovery: open requests plus previous proposals, for closure cleanup.
   const total=await db.from('service_requests').select('id',{head:true,count:'exact'}).eq('organization_id',org).not('status','in','(declined,canceled)').is('recurring_series_id',null);
   if(total.error||total.count===null)throw Error('DISCOVERY_FAILED');
-  const pages=Math.max(1,Math.ceil(total.count/20));
+  const pages=Math.max(1,Math.ceil(total.count/10));
   const page=Math.floor(Date.now()/3600000)%pages;
   const [open,prior]=await Promise.all([
-   db.from('service_requests').select('id').eq('organization_id',org).not('status','in','(declined,canceled)').is('recurring_series_id',null).order('created_at',{ascending:true}).order('id').range(page*20,page*20+19),
-   db.from('field_agent_tasks').select('request_id').eq('organization_id',org).eq('status','proposed').order('updated_at',{ascending:true}).limit(20)
+   db.from('service_requests').select('id').eq('organization_id',org).not('status','in','(declined,canceled)').is('recurring_series_id',null).order('created_at',{ascending:true}).order('id').range(page*10,page*10+9),
+   db.from('field_agent_tasks').select('request_id').eq('organization_id',org).eq('status','proposed').order('updated_at',{ascending:true}).limit(10)
   ]);
   if(open.error||prior.error)throw Error('DISCOVERY_FAILED');
   const ids=[...new Set([...(prior.data||[]).map(x=>x.request_id),...(open.data||[]).map(x=>x.id)])].slice(0,20);
