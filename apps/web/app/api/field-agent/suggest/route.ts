@@ -24,6 +24,9 @@ export async function POST(request:Request){
   const task=result.tasks[0];
   if(!task)return NextResponse.json({status:'no_action',suggestion:null,requestRevision:result.requestRevision},{headers});
   const suggestion=await suggestFieldPreparation(task);
+  // Never present model output after the authoritative request revision changes.
+  const latest=await db.from('service_requests').select('revision').eq('organization_id',args.organization).eq('id',args.request).maybeSingle();
+  if(latest.error||!latest.data||latest.data.revision!==result.requestRevision)return NextResponse.json({status:'stale',suggestion:null,execution:'none'},{status:409,headers});
   return NextResponse.json({status:suggestion?'suggested':'unavailable',suggestion,requestRevision:result.requestRevision,kind:task.kind,execution:'none',requiresOwnerApproval:true},{headers});
  }catch(e){return failure(e);}
 }
