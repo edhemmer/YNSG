@@ -3,6 +3,7 @@ import {authenticated,failure} from '../../../lib/session';
 import {serverDatabase} from '../../../lib/google-server';
 import {GET as prepare} from '../field-intelligence/route';
 import {z} from 'zod';
+import {taskResolution} from '../../../lib/field-agent-resolution';
 export const dynamic='force-dynamic';
 const headers={'Cache-Control':'private, no-store'};
 const input=z.object({organization:z.uuid(),request:z.uuid()});
@@ -23,19 +24,21 @@ export async function POST(request:Request){
   const storage=serverDatabase();
   const current=await storage.from('service_requests').select('revision').eq('organization_id',args.organization).eq('id',args.request).maybeSingle();
   if(current.error||!current.data||current.data.revision!==prepared.requestRevision)throw Error('STALE_INTELLIGENCE');
+  const statusRead=await storage.from('service_requests').select('status,revision').eq('organization_id',args.organization).eq('id',args.request).maybeSingle();
+  if(statusRead.error||!statusRead.data||statusRead.data.revision!==prepared.requestRevision)throw Error('STALE_INTELLIGENCE');
+  const recordStatus=statusRead.data.status;
   for(const task of prepared.tasks){
    const write=await storage.from('field_agent_tasks').upsert({organization_id:args.organization,request_id:args.request,request_revision:prepared.requestRevision,task_kind:task.kind,title:task.title,detail:task.detail,status:'proposed',updated_at:new Date().toISOString()},{onConflict:'organization_id,request_id,request_revision,task_kind'});
    if(write.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
   }
-  if(prepared.tasks.length){
-   const old=await storage.from('field_agent_tasks').update({status:'superseded',updated_at:new Date().toISOString()}).eq('organization_id',args.organization).eq('request_id',args.request).eq('status','proposed').eq('request_revision',prepared.requestRevision).not('task_kind','in','('+prepared.tasks.map(task=>task.kind).join(',')+')');
-   if(old.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
-  }else{
-   const old=await storage.from('field_agent_tasks').update({status:'superseded',updated_at:new Date().toISOString()}).eq('organization_id',args.organization).eq('request_id',args.request).eq('status','proposed');
-   if(old.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
+  const previous=await storage.from('field_agent_tasks').select('id,request_revision,task_kind').eq('organization_id',args.organization).eq('request_id',args.request).eq('status','proposed').limit(100);
+  if(previous.error||!previous.data||previous.data.length===100)throw Error('AGENT_QUEUE_UNAVAILABLE');
+  for(const task of previous.data){
+   if(task.request_revision===prepared.requestRevision&&prepared.tasks.some(t=>t.kind===task.task_kind))continue;
+   const now=new Date().toISOString();
+   const done=await storage.from('field_agent_tasks').update({status:'superseded',resolution:taskResolution(task.task_kind,prepared.tasks[0]?.kind||null,recordStatus),resolved_at:now,updated_at:now}).eq('organization_id',args.organization).eq('id',task.id).eq('status','proposed');
+   if(done.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
   }
-  const obsolete=await storage.from('field_agent_tasks').update({status:'superseded',updated_at:new Date().toISOString()}).eq('organization_id',args.organization).eq('request_id',args.request).eq('status','proposed').neq('request_revision',prepared.requestRevision);
-  if(obsolete.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
   const same=await storage.from('field_agent_tasks').select('id,task_kind,title,detail,status,request_revision').eq('organization_id',args.organization).eq('request_id',args.request).eq('request_revision',prepared.requestRevision).eq('status','proposed').order('created_at');
   if(same.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
   return NextResponse.json({requestId:args.request,revision:prepared.requestRevision,tasks:same.data,execution:'owner_review_only'},{headers});
