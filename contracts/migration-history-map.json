@@ -1,8 +1,8 @@
 {
-  "observedOn": "2026-10-20",
+  "observedOn": "2026-10-26",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
-  "sourceBranch": "codex/crm-workflow",
-  "sourceCommit": "06a049418f4e7a912a67e2a358d6d4ea02bb40a1",
+  "sourceBranch": "codex/customer-accounts-request-buttons-20261026",
+  "sourceCommit": "7b32f0638686ecc40d7e9e14d1f35df81027f831",
   "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
   "repositoryMigrations": [
     {
@@ -404,6 +404,11 @@
       "file": "20261020124942_submitted_scheduling_review.sql",
       "name": "submitted_scheduling_review",
       "historyVersion": "20261020131958"
+    },
+    {
+      "file": "20261026131540_customer_self_service_profile.sql",
+      "historyVersion": "20261026142455",
+      "name": "customer_self_service_profile"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -436,11 +441,5 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": [
-    {
-      "file": "20261026131540_customer_self_service_profile.sql",
-      "name": "customer_self_service_profile",
-      "status": "not_applied_to_connected_supabase"
-    }
-  ]
+  "pendingUnappliedMigrations": []
 }
