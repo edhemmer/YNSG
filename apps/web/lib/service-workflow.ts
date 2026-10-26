@@ -11,7 +11,7 @@ export function serviceNextStep(request:InboxRequest,quotes:LinkedQuote[],jobs:L
  for(const job of jobs.filter(j=>['approved','scheduled','en_route','arrived'].includes(j.status))){
   const quote=quotes.find(q=>q.id===job.quote_id&&q.status==='accepted'),version=quote?.quote_versions.find(v=>v.version===(job.approved_version||quote.current_version));
   if(!version)return {step:3,title:'Review the saved scope and customer agreement',detail:'The approved job could not be matched to an accepted quote version. Review its saved agreement before starting.',action:'work'};
-  const visit=request.appointments.find(a=>visitState(a)==='reserved'&&(!a.job_id||a.job_id===job.id));
+  const visit=request.appointments.find(a=>visitState(a)==='reserved'&&(a.job_id===job.id||(!a.job_id&&jobs.filter(j=>j.status!=='canceled').length===1)));
   if(!visit)return {step:2,title:'Confirm an appointment for the agreed work',detail:'The scope and price are saved. Confirm a matching appointment before starting the timer.',action:'schedule'};
   const start=Date.parse(visit.arrival_at||visit.start_at),end=Date.parse(visit.end_at);
   if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start||!Number.isFinite(version.duration_minutes)||version.duration_minutes<=0)return {step:2,title:'Review the appointment window',detail:'The saved visit time or agreed duration is incomplete. Review and confirm the schedule before starting work.',action:'schedule'};
