@@ -14,7 +14,7 @@ export function fieldWorkflow(request:InboxRequest,quotes:LinkedQuote[],jobs:Lin
   if(!['approved','scheduled','en_route','arrived'].includes(j.status))return false;
   const quote=quotes.find(q=>q.id===j.quote_id&&q.status==='accepted');
   const version=quote?.quote_versions.find(v=>v.version===(j.approved_version||quote.current_version));
-  const visit=request.appointments.find(a=>a.status==='reserved'&&(!a.job_id||a.job_id===j.id));
+  const visit=request.appointments.find(a=>a.status==='reserved'&&(a.job_id===j.id||(!a.job_id&&jobs.filter(item=>item.status!=='canceled').length===1)));
   if(!version||!visit)return false;
   const start=Date.parse(visit.arrival_at||visit.start_at),end=Date.parse(visit.end_at);
   return Number.isFinite(start)&&Number.isFinite(end)&&end>start&&Number.isFinite(version.duration_minutes)&&version.duration_minutes>0&&(end-start)/60000>=version.duration_minutes;
