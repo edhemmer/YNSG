@@ -10,6 +10,15 @@ export function fieldWorkflow(request:InboxRequest,quotes:LinkedQuote[],jobs:Lin
  if(next.step===5)return {kind:'invoice' as const,label:'Review & issue invoice',next,job:pending.find(j=>j.status==='completed')||null};
  if(next.step===6)return {kind:'payment' as const,label:'Record money received',next,job:null};
  if(next.step===7)return {kind:'settled' as const,label:'Closed out',next,job:null};
- const job=pending.find(j=>j.status==='working')||pending.find(j=>j.status==='paused')||pending[0]||null;
+ const approved=pending.find(j=>{
+  if(!['approved','scheduled','en_route','arrived'].includes(j.status))return false;
+  const quote=quotes.find(q=>q.id===j.quote_id&&q.status==='accepted');
+  const version=quote?.quote_versions.find(v=>v.version===(j.approved_version||quote.current_version));
+  const visit=request.appointments.find(a=>a.status==='reserved'&&(!a.job_id||a.job_id===j.id));
+  if(!version||!visit)return false;
+  const start=Date.parse(visit.arrival_at||visit.start_at),end=Date.parse(visit.end_at);
+  return Number.isFinite(start)&&Number.isFinite(end)&&end>start&&Number.isFinite(version.duration_minutes)&&version.duration_minutes>0&&(end-start)/60000>=version.duration_minutes;
+ });
+ const job=pending.find(j=>j.status==='working')||pending.find(j=>j.status==='paused')||approved||null;
  return {kind:job?.status==='working'?'working' as const:job?.status==='paused'?'paused' as const:'ready' as const,label:job?.status==='working'?'Work in progress':job?.status==='paused'?'Work paused':'Ready to work',next,job};
 }
