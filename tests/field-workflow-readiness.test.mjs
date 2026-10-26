@@ -19,3 +19,17 @@ test('approved job missing accepted quote never starts work',()=>{
  const job={id:'j1',quote_id:'q1',approved_version:1,status:'approved'};
  assert.equal(serviceNextStep(request,[{...quote,status:'sent'}],[job],[]).step,3);
 });
+
+test('malformed appointment timestamp never permits a ready-to-work action',()=>{
+ const job={id:'j1',quote_id:'q1',approved_version:1,status:'approved'};
+ const invalid={...request,appointments:[{...request.appointments[0],end_at:'invalid'}]};
+ const next=serviceNextStep(invalid,[quote],[job],[]);
+ assert.equal(next.step,2);
+ assert.match(next.title,/Review the appointment window/);
+ assert.equal(fieldWorkflow(invalid,[quote],[job],[]).kind,'confirm');
+});
+test('insufficient reserved time requires scheduling before starting work',()=>{
+ const job={id:'j1',quote_id:'q1',approved_version:1,status:'approved'};
+ const short={...request,appointments:[{...request.appointments[0],end_at:'2026-10-30T14:45:00Z'}]};
+ assert.equal(serviceNextStep(short,[quote],[job],[]).step,2);
+});
