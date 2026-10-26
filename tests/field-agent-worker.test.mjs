@@ -15,7 +15,7 @@ test('agent discovery is independently scheduled and secret protected',()=>{
  assert.doesNotMatch(source,/export (async )?function POST/);
 });
 test('discovery rotates through requests with bounded refresh and reconciles old proposals',()=>{
- assert.match(source,/Math\.floor\(Date\.now\(\)\/3600000\)%pages/);
+ assert.match(source,/Math\.floor\(Date\.now\(\)\/86400000\)%pages/);
  assert.match(source,/\.range\(page\*10,page\*10\+9\)/);
  assert.match(source,/\.limit\(10\)/);
  assert.match(source,/status:'superseded'/);
