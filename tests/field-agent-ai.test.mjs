@@ -34,3 +34,9 @@ test('scheduled agent invokes AI only within an explicit one-task budget',()=>{
  assert.match(worker,/Optional AI preparation \(review only\)/);
  assert.doesNotMatch(worker,/suggestFieldPreparation\(record\.data/);
 });
+
+test('model prompt sends fixed task categories, not customer instructions or payment detail',()=>{
+ assert.match(source,/taskCategory:/);
+ assert.doesNotMatch(source,/task\.detail\.slice|task\.title\.slice/);
+ assert.match(source,/\['schedule','quote','review','work','invoice','payment','follow_up'\]/);
+});
