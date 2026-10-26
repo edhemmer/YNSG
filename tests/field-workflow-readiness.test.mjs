@@ -33,3 +33,17 @@ test('insufficient reserved time requires scheduling before starting work',()=>{
  const short={...request,appointments:[{...request.appointments[0],end_at:'2026-10-30T14:45:00Z'}]};
  assert.equal(serviceNextStep(short,[quote],[job],[]).step,2);
 });
+
+test('ready action resolves to the exact verified approved job rather than arbitrary pending job',()=>{
+ const job={id:'j1',quote_id:'q1',approved_version:1,status:'approved'};
+ const result=fieldWorkflow(request,[quote],[job],[]);
+ assert.equal(result.kind,'ready');
+ assert.equal(result.job?.id,'j1');
+});
+test('ongoing work remains the actionable job when another approved job exists',()=>{
+ const current={id:'j2',quote_id:'q2',approved_version:1,status:'working'};
+ const ready={id:'j1',quote_id:'q1',approved_version:1,status:'approved'};
+ const result=fieldWorkflow(request,[quote],[ready,current],[]);
+ assert.equal(result.kind,'working');
+ assert.equal(result.job?.id,'j2');
+});
