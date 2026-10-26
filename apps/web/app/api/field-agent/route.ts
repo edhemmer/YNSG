@@ -41,3 +41,22 @@ export async function POST(request:Request){
   return NextResponse.json({requestId:args.request,revision:prepared.requestRevision,tasks:same.data,execution:'owner_review_only'},{headers});
  }catch(e){return failure(e);}
 }
+
+/** Existing Today screen reads approval attention; no new workflow surface. */
+export async function GET(request:Request){
+ try{
+  const q=input.pick({organization:true}).parse(Object.fromEntries(new URL(request.url).searchParams));
+  const {db,user}=await authenticated();
+  const member=await db.from('memberships').select('role').eq('organization_id',q.organization).eq('user_id',user.id).is('revoked_at',null).in('role',['owner','admin']).maybeSingle();
+  if(member.error)throw Error('FAILED');
+  if(!member.data)return NextResponse.json({error:'Owner access is required.'},{status:403,headers});
+  const storage=serverDatabase();
+  const found=await storage.from('field_agent_tasks').select('id,request_id,request_revision,task_kind,title,detail,updated_at').eq('organization_id',q.organization).eq('status','proposed').order('updated_at',{ascending:false}).limit(20);
+  if(found.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
+  const ids=[...new Set((found.data||[]).map(x=>x.request_id))];
+  const current=ids.length?await storage.from('service_requests').select('id,revision,status').eq('organization_id',q.organization).in('id',ids):{data:[],error:null};
+  if(current.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
+  const valid=(found.data||[]).filter(x=>current.data?.some(r=>r.id===x.request_id&&r.revision===x.request_revision&&!['declined','canceled'].includes(r.status)));
+  return NextResponse.json({tasks:valid.slice(0,5),hasMore:valid.length>5,checkedAt:new Date().toISOString()},{headers});
+ }catch(e){return failure(e);}
+}
