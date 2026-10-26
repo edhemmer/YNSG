@@ -7,7 +7,7 @@ const today=readFileSync(new URL('../apps/web/app/command-center.tsx',import.met
 const route=readFileSync(new URL('../apps/web/app/api/field-agent/route.ts',import.meta.url),'utf8');
 const cron=JSON.parse(readFileSync(new URL('../apps/web/vercel.json',import.meta.url),'utf8'));
 test('agent discovery is independently scheduled and secret protected',()=>{
- assert.ok(cron.crons.some(c=>c.path==='/api/field-agent/worker'&&c.schedule==='0 * * * *'));
+ assert.ok(cron.crons.some(c=>c.path==='/api/field-agent/worker'&&c.schedule==='0 13 * * *'));
  assert.match(source,/timingSafeEqual/);
  assert.match(source,/process\.env\.CRON_SECRET/);
  assert.match(source,/process\.env\.GOOGLE_WORKER_ORGANIZATION_ID/);
