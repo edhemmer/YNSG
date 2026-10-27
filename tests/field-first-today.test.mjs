@@ -27,7 +27,7 @@ test('Today presents owner decisions as an explicit queue and never mistakes loa
  assert.match(s,/Requests needing a decision/);
  assert.match(s,/pending\.length/);
  assert.match(s,/data\.requests\?\.hasMore/);
- assert.match(s,/No requests needing a decision in the loaded queue/);
+ assert.match(s,/No outstanding decisions in the loaded queue/);
 });
 
 test('Today displays new customer decisions before secondary work backlog',()=>{
