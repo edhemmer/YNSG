@@ -35,3 +35,10 @@ test('Today displays new customer decisions before secondary work backlog',()=>{
  const later=s.indexOf('aria-label="Remaining work"');
  assert.ok(decisions>0&&later>decisions,'Owner review must be visible above expanded backlog');
 });
+
+test('Today keeps field actions available during periodic background updates',()=>{
+ assert.match(s,/let live=true,inFlight=false,firstRead=true/);
+ assert.match(s,/if\(firstRead\)setRefreshing\(true\)/);
+ assert.match(s,/setRefreshing\(false\);firstRead=false/);
+ assert.match(s,/aria-busy=\{refreshing\}/);
+});
