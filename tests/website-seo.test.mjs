@@ -21,7 +21,7 @@ test('customer booking keeps service, time and required details in ordered stage
  assert.ok(html.indexOf('id="appointment-times"')<html.indexOf('id="appointment-days"'));
  assert.ok(html.indexOf('id="appointment-days"')<html.indexOf('id="name"'));
  assert.ok(html.indexOf('id="appointment-picker"')<html.indexOf('id="name"'));
- assert.ok(html.includes('id="appointment-quick-dates"'));assert.ok(html.includes('Arrange a time with me instead'));
+ assert.ok(html.includes('id="appointment-quick-dates"'));assert.ok(html.includes('Let YNSG arrange a time'));
  for(const id of ['name','phone','email','street','city'])assert.match(html,new RegExp('<(?:input|select)[^>]*id="'+id+'"[^>]*required'));
 });
 
