@@ -16,16 +16,16 @@ export default function CommandCenter({organization,timezone,revision,onOpen,onN
  const [search,setSearch]=useState({organization,query:''});
  const query=search.organization===organization?search.query:'';
  useEffect(()=>{
-  let live=true,inFlight=false;const controller=new AbortController();setStored(null);setRefreshing(true);
+  let live=true,inFlight=false,firstRead=true;const controller=new AbortController();setStored(null);setRefreshing(true);
   async function read(){
-   if(inFlight)return;inFlight=true;setRefreshing(true);
+   if(inFlight)return;inFlight=true;if(firstRead)setRefreshing(true);
    const sources=[['day','/api/owner-day',ownerDayResponse],['work','/api/owner-work',ownerWorkResponse],['requests','/api/request-inbox',decisions]] as const;
    const results=await Promise.allSettled(sources.map(async([,path,schema])=>{
     const r=await sessionFetch(path+'?'+new URLSearchParams({organization,...(path.includes('inbox')?{filter:'review'}:{})}),{cache:'no-store',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(15000)])});
     if(r.status===401||r.status===403){if(live)setStored({organization,value:{day:null,work:null,requests:null,errors:['Company access'],denied:true}});throw Error('ACCESS_DENIED');}
     if(!r.ok)throw Error('UNAVAILABLE');return schema.parse(await r.json());
    }));
-   if(live){const value:Reads={day:null,work:null,requests:null,errors:[],denied:results.some(r=>r.status==='rejected'&&r.reason instanceof Error&&r.reason.message==='ACCESS_DENIED')};if(value.denied)value.errors=['Company access'];else results.forEach((r,i)=>{const key=sources[i]![0];if(r.status==='fulfilled'){if(key==='day')value.day=r.value as OwnerDay;else if(key==='work')value.work=r.value as OwnerWork;else value.requests=r.value as Decisions;}else value.errors.push(key==='day'?'Appointments':key==='work'?'Unfinished work':'Requests');});setStored({organization,value});setRefreshing(false);}inFlight=false;
+   if(live){const value:Reads={day:null,work:null,requests:null,errors:[],denied:results.some(r=>r.status==='rejected'&&r.reason instanceof Error&&r.reason.message==='ACCESS_DENIED')};if(value.denied)value.errors=['Company access'];else results.forEach((r,i)=>{const key=sources[i]![0];if(r.status==='fulfilled'){if(key==='day')value.day=r.value as OwnerDay;else if(key==='work')value.work=r.value as OwnerWork;else value.requests=r.value as Decisions;}else value.errors.push(key==='day'?'Appointments':key==='work'?'Unfinished work':'Requests');});setStored({organization,value});setRefreshing(false);firstRead=false;}inFlight=false;
   }
   void read();const resume=()=>{if(document.visibilityState==='visible')void read();};const timer=setInterval(resume,30000);document.addEventListener('visibilitychange',resume);
   return()=>{live=false;controller.abort();clearInterval(timer);document.removeEventListener('visibilitychange',resume);};
