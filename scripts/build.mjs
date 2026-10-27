@@ -34,7 +34,7 @@ const pages = {
   pricing: ['Pricing & Community Rate', 'Home and yard help in DeKalb, Sycamore and Cortland, IL: $60/hour standard or $45/hour Community Rate, with a two-hour minimum. Lawn, snow and concrete washing priced separately.', 'pricing'],
   about: ['About Your Neighborhood Service Guy', 'Meet the owner of Your Neighborhood Service Guy, serving DeKalb, Sycamore and Cortland, IL with small home jobs, lawn and seasonal yard services.', 'about'],
   request: ['Request a Service Appointment', 'Request home or yard service in DeKalb, Sycamore or Cortland, IL. No account needed. We review your request and confirm appointments after approval.', 'request'],
-  'handyman-dekalb-il': ['Small Handyman Jobs in DeKalb, IL', 'Small handyman jobs in DeKalb, Sycamore and Cortland: furniture assembly, household setup and minor repairs within our safety limits.', 'handyman-dekalb-il'],
+  'handyman-dekalb-il': ['Handyman Help in DeKalb, Sycamore & Cortland', 'Local handyman help in DeKalb, Sycamore and Cortland, IL. Furniture assembly, small drywall repairs and household setup within our safety limits.', 'handyman-dekalb-il'],
   'lawn-mowing-dekalb-il': ['Lawn Mowing in DeKalb, IL', 'Residential lawn mowing, trimming and edging in DeKalb, Sycamore and Cortland. One-time and recurring lawn care requests.', 'lawn-mowing-dekalb-il'],
   'leaf-cleanup-dekalb-il': ['Leaf Cleanup in DeKalb, IL', 'Residential fall leaf cleanup, leaf gathering and bagging in DeKalb, Sycamore and Cortland, Illinois.', 'leaf-cleanup-dekalb-il'],
   'snow-removal-dekalb-il': ['Residential Snow Removal in DeKalb, IL', 'Residential driveway, sidewalk and entryway snow clearing in DeKalb, Sycamore and Cortland, Illinois.', 'snow-removal-dekalb-il'],
