@@ -28,12 +28,12 @@ await cp(join(source,'appointment-hold.js'),join(output,'appointment-hold.js'));
 await cp(join(root,'lib','appointment-window.js'),join(output,'appointment-window.js'));
 const form = await readFile(join(source,'pages','form.html'),'utf8');
 const pages = {
-  '': ['Home & Yard Help in DeKalb, Sycamore & Cortland', 'Home and yard help in DeKalb, Sycamore and Cortland, IL. Small home jobs, lawn care, leaf cleanup, mulch and snow clearing. Call 770-630-2094.', 'home'],
+  '': ['Home & Yard Help in DeKalb, Sycamore & Cortland', 'Local handyman and yard help in DeKalb, Sycamore and Cortland, IL. Lawn mowing, leaf cleanup, mulch, small home jobs and residential snow clearing.', 'home'],
   services: ['Home & Yard Services', 'Lawn care, yard and garden help, concrete pressure washing, residential snow clearing and small jobs around the home in DeKalb, Sycamore and Cortland.', 'services'],
   'service-area': ['Home & Yard Help in DeKalb, Sycamore & Cortland', 'Local home and yard services in DeKalb, Sycamore and Cortland, Illinois. Check our service area, appointment hours and how to request a visit.', 'service-area'],
-  pricing: ['Pricing & Community Rate', 'Home and yard labor in DeKalb, IL: $60/hour standard or $45/hour Community Rate, with a two-hour minimum. Lawn, snow and concrete washing priced separately.', 'pricing'],
-  about: ['About Your Neighborhood Service Guy', 'Why we started a local service for the small home and yard jobs that keep getting pushed back.', 'about'],
-  request: ['Request a Service Appointment', 'Request a home or yard service appointment in DeKalb, Sycamore or Cortland. We will confirm scope, cost and timing.', 'request'],
+  pricing: ['Pricing & Community Rate', 'Home and yard help in DeKalb, Sycamore and Cortland, IL: $60/hour standard or $45/hour Community Rate, with a two-hour minimum. Lawn, snow and concrete washing priced separately.', 'pricing'],
+  about: ['About Your Neighborhood Service Guy', 'Meet the owner of Your Neighborhood Service Guy, serving DeKalb, Sycamore and Cortland, IL with small home jobs, lawn and seasonal yard services.', 'about'],
+  request: ['Request a Service Appointment', 'Request home or yard service in DeKalb, Sycamore or Cortland, IL. No account needed. We review your request and confirm appointments after approval.', 'request'],
   'handyman-dekalb-il': ['Small Handyman Jobs in DeKalb, IL', 'Small handyman jobs in DeKalb, Sycamore and Cortland: furniture assembly, household setup and minor repairs within our safety limits.', 'handyman-dekalb-il'],
   'lawn-mowing-dekalb-il': ['Lawn Mowing in DeKalb, IL', 'Residential lawn mowing, trimming and edging in DeKalb, Sycamore and Cortland. One-time and recurring lawn care requests.', 'lawn-mowing-dekalb-il'],
   'leaf-cleanup-dekalb-il': ['Leaf Cleanup in DeKalb, IL', 'Residential fall leaf cleanup, leaf gathering and bagging in DeKalb, Sycamore and Cortland, Illinois.', 'leaf-cleanup-dekalb-il'],
