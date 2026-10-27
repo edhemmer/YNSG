@@ -109,6 +109,13 @@ test('the single field screen links invoice and payment decisions to their exist
  assert.match(source,/id="field-invoice-draft"/);
  assert.match(source,/task\.kind==='payment'&&/);
  assert.match(source,/href="#field-payment-record"/);
- assert.match(source,/id=\{index===0\?'field-payment-record':undefined\}/);
+ assert.match(source,/id=\{i\.id===paymentTarget\?'field-payment-record':undefined\}/);
  assert.match(source,/Record only money actually received/);
+});
+
+test('payment shortcut prefers an invoice with a recorded outstanding balance',()=>{
+ const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/const paymentInvoices=invoices\.filter/);
+ assert.match(source,/creditTotal\(i\.credits\)>0/);
+ assert.match(source,/paymentInvoices\[0\]\?\.id\|\|invoices\[0\]\?\.id/);
 });
