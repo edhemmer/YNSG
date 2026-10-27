@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {JSDOM} from 'jsdom';
 import {fieldWorkflow} from '../apps/web/lib/field-workflow.ts';
@@ -113,4 +114,10 @@ test('field brief never labels missing or unaccepted scope as agreed and retains
  const d=html(scheduled,[{...quote,quote_versions:[{...quote.quote_versions[0],scope}]}],[{...job,approved_version:1}],[]);
  assert.equal(d.querySelector('.field-agreed-scope').textContent,scope);assert.equal(d.querySelector('.field-work-brief details').open,false);assert.equal(Array.from(d.querySelector('.field-job-service').textContent).length,241);assert.deepEqual(actions(d),['Start work']);
  assert.match(d.querySelector('.workflow-customer-note').textContent,/Use side entrance/);
+});
+
+test('mobile field preparation reveals every saved-state reminder behind one compact summary',()=>{
+ const source=readFileSync(new URL('../apps/web/app/service-workflow.tsx',import.meta.url),'utf8');
+ assert.match(source,/prepared\.notes\.slice\(1\)\.map/);
+ assert.match(source,/aria-label="Prepared job checks"/);
 });
