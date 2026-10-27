@@ -109,6 +109,6 @@ test('the single field screen links invoice and payment decisions to their exist
  assert.match(source,/id="field-invoice-draft"/);
  assert.match(source,/task\.kind==='payment'&&/);
  assert.match(source,/href="#field-payment-record"/);
- assert.match(source,/id="field-payment-record"/);
+ assert.match(source,/id=\{index===0\?'field-payment-record':undefined\}/);
  assert.match(source,/Record only money actually received/);
 });
