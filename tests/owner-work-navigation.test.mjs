@@ -17,7 +17,13 @@ test('blocked in-app request navigation reports a reason, not a silent ignored t
 
 test('unfinished job cards expose direct directions without replacing the in-app job action',()=>{
  assert.match(owner,/navigationUrl\(address\)/);
+ assert.doesNotMatch(owner,/navigationUrl\(address\)\|\|'#'/);
  assert.match(owner,/aria-label=\{"Directions to "\+j\.name\}/);
  assert.match(owner,/target="_blank" rel="noopener noreferrer"/);
  assert.match(owner,/onClick=\{\(\)=>onOpen\(j\.request\)\}/);
+});
+
+test('owner field cards distinguish paused jobs from actual work-in-progress',()=>{
+ assert.match(owner,/j\.status==='paused'\?'Resume job'/);
+ assert.match(owner,/j\.status==='working'\?'In progress':'Needs attention'/);
 });
