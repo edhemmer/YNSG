@@ -1,5 +1,5 @@
 {
-  "observedOn": "2026-10-26",
+  "observedOn": "2026-10-27",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
   "sourceBranch": "codex/customer-accounts-request-buttons-20261026",
   "sourceCommit": "7b32f0638686ecc40d7e9e14d1f35df81027f831",
@@ -419,6 +419,11 @@
       "file": "20261026180000_field_agent_resolution.sql",
       "historyVersion": "20261026155050",
       "name": "field_agent_resolution"
+    },
+    {
+      "file": "20261027190000_accept_all_customer_cities.sql",
+      "historyVersion": "20261027135639",
+      "name": "accept_all_customer_cities"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
