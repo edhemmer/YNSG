@@ -1,4 +1,3 @@
-import {postalCodesForCity} from '../site/city-postal-codes.js';
 import {websiteGuard,websiteRequest} from '../lib/website-guard.js';
 import {appointmentSelection} from '../lib/appointment-window.js';
 import { randomUUID } from 'node:crypto';
