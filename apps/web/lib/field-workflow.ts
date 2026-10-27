@@ -20,5 +20,5 @@ export function fieldWorkflow(request:InboxRequest,quotes:LinkedQuote[],jobs:Lin
   return Number.isFinite(start)&&Number.isFinite(end)&&end>start&&Number.isFinite(version.duration_minutes)&&version.duration_minutes>0&&(end-start)/60000>=version.duration_minutes;
  });
  const job=pending.find(j=>j.status==='working')||pending.find(j=>j.status==='paused')||approved||null;
- return {kind:job?.status==='working'?'working' as const:job?.status==='paused'?'paused' as const:'ready' as const,label:job?.status==='working'?'Work in progress':job?.status==='paused'?'Work paused':'Ready to work',next,job};
+ return {kind:job?.status==='working'?'working' as const:job?.status==='paused'?'paused' as const:job?'ready' as const:'review' as const,label:job?.status==='working'?'Work in progress':job?.status==='paused'?'Work paused':job?'Ready to work':'Review saved job details',next,job};
 }
