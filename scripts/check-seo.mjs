@@ -55,6 +55,9 @@ for(const [slug,document] of pages){
   const destination=new URL(anchor.href,url);if(destination.origin!==WEBSITE_ORIGIN)continue;
   const target=slugFor(destination.pathname),targetPage=pages.get(target);linkCount++;
   if(targetPage){
+   // Every crawlable page link should resolve to the same URL published in our sitemap.
+   // Avoid splitting discovery signals across /service and /service/ variants.
+   assert.equal(destination.pathname,new URL(canonicalUrl(target)).pathname,context+': non-canonical internal page link '+anchor.getAttribute('href'));
    destinations.add(target);
    if(destination.hash)assert.ok(targetPage.getElementById(decodeURIComponent(destination.hash.slice(1))),context+': broken fragment '+anchor.getAttribute('href'));
   }else{
