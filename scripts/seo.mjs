@@ -5,9 +5,9 @@ export const canonicalUrl=slug=>WEBSITE_ORIGIN+(slug?'/'+slug:'/');
 const titles={
  '':'Home & Yard Help in DeKalb, Sycamore & Cortland',
  services:'Home & Yard Services in DeKalb, Sycamore & Cortland',
- pricing:'Rates & Community Pricing',
- about:'About Our Local Home & Yard Service',
- request:'Request a Home or Yard Service Appointment',
+ pricing:'Home & Yard Rates in DeKalb, IL',
+ about:'About Our DeKalb Area Home & Yard Service',
+ request:'Request Home & Yard Service in DeKalb, IL',
  'service-area':'DeKalb, Sycamore & Cortland Service Area',
  'handyman-dekalb-il':'Small Handyman Jobs in DeKalb, IL',
  'lawn-mowing-dekalb-il':'Lawn Mowing in DeKalb, IL',
