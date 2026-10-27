@@ -9,3 +9,9 @@ test('Today contains one operational queue without marketing, metrics or stacked
 test('field queue retains direct job opening, routes and invoices',()=>{
  assert.match(s,/onOpen\(next.request\)/);assert.match(s,/onNavigate\('Today'\)/);assert.match(s,/onNavigate\('Money'\)/);
 });
+
+test('Today offers direct navigation and does not imply that opening a paused job resumes a timer',()=>{
+ assert.match(s,/navigationUrl\(next\.address\)/);
+ assert.match(s,/Review paused job/);
+ assert.match(s,/aria-label=\{'Directions to '\+next\.name\}/);
+});
