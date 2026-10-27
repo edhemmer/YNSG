@@ -29,8 +29,19 @@ test('owner field cards distinguish paused jobs from actual work-in-progress',()
 });
 
 test('field job status quick filters preserve all jobs and backend pagination',()=>{
- assert.match(owner,/statusFilter===\x27all\x27\|\|j\.status===statusFilter/);
+ assert.match(owner,/status:statusFilter/);
+ assert.match(owner,/setPage\(0\);setStatusFilter\(value\)/);
  assert.match(owner,/aria-pressed=\{statusFilter===value\}/);
- assert.match(owner,/Use All or go to the next page/);
+ assert.match(owner,/Choose All to see other jobs/);
  assert.match(owner,/data\.hasMore\|\|page>0/);
+});
+
+test('job filters apply before database pagination and retain owner authorization',()=>{
+ const read=readFileSync('apps/web/lib/owner-work-read.ts','utf8');
+ const route=readFileSync('apps/web/app/api/owner-work/route.ts','utf8');
+ assert.match(read,/status==='all'\?query\.in/);
+ assert.match(read,/query\.eq\('status',status\)/);
+ assert.match(read,/\.range\(page\*20,page\*20\+20\)/);
+ assert.match(read,/OWNER_ACCESS_REQUIRED/);
+ assert.match(route,/readOwnerWork\(db,org,user\.id,page,status\)/);
 });
