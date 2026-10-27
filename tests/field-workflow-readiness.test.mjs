@@ -127,3 +127,12 @@ test('payment step presents a saved outstanding balance rather than an invented 
  assert.match(source,/All saved invoices show no remaining balance/);
  assert.match(source,/Review the verified invoice details before recording/);
 });
+
+test('missing authorized job does not present a misleading ready-to-start action',()=>{
+ const source=readFileSync('apps/web/lib/field-workflow.ts','utf8');
+ const ui=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/job\?'ready' as const:'review' as const/);
+ assert.match(source,/Review saved job details/);
+ assert.match(ui,/task\.kind==='review'&&/);
+ assert.match(ui,/Review saved request/);
+});
