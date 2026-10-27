@@ -9,8 +9,9 @@
   <div class="booking-actions" data-stage-controls hidden><button class="button button-dark" type="button" id="booking-services-next">Choose a time <span aria-hidden="true">→</span></button></div>
  </section>
  <section class="booking-stage appointment-panel" data-stage="2" aria-labelledby="time-heading">
-  <h2 id="time-heading" tabindex="-1">When works for you?</h2><p class="field-note">Choosing a time is optional. You can send your request now, and we’ll contact you to arrange a visit. Times are Central Time.</p><div class="calendar-secondary"><button type="button" class="button button-dark" id="calendar-clear">Let YNSG arrange a time <span aria-hidden="true">→</span></button></div>
+  <h2 id="time-heading" tabindex="-1">When works for you?</h2><p class="field-note">Choosing a time is optional. You can send your request now, and we’ll contact you to arrange a visit. Times are Central Time.</p>
   <fieldset class="form-field appointment-picker" id="appointment-picker"><legend class="sr-only">Available appointment times</legend>
+   <div class="calendar-secondary"><button type="button" class="button button-dark" id="calendar-clear">Let YNSG arrange a time <span aria-hidden="true">→</span></button></div>
    <div class="appointment-modes"><label><input type="radio" name="visitMode" value="once" checked> One visit</label><label><input type="radio" name="visitMode" value="weekly"> Repeat weekly</label></div><p id="recurrence-note" class="field-note" hidden>Pick the first visit within 30 days. We’ll review the same day and time each week for 12 months with you.</p>
    <h3 class="appointment-next-title">Next available dates</h3><div id="appointment-quick-dates" class="appointment-quick-dates" role="group" aria-label="Next available appointment dates"></div>
    <p id="calendar-status" role="status" aria-live="polite">Checking open times…</p><h3 id="appointment-times-heading" class="appointment-times-heading">Choose a date to see times</h3><div id="appointment-times" class="appointment-times" role="group" aria-label="Open appointment times"></div><p id="appointment-selection" role="status" aria-live="polite"></p>
