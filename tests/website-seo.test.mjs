@@ -49,3 +49,19 @@ test('public city ZIP guidance agrees with the intake choices and local titles c
  for(const city of serviceCities){for(const zip of postalCodesForCity(city))assert.ok(html.includes(`${city}, Illinois ${zip}`));for(const slug of ['','services'])assert.ok(seo(slug,'Page','Description').title.includes(city));}
  assert.ok(html.includes('a ZIP code alone does not confirm service availability'));
 });
+
+test('search landing pages give customers distinct, specific guidance rather than keyword-only pages',async()=>{
+ const home=await readFile(new URL('../site/pages/home.html',import.meta.url),'utf8');
+ const handyman=await readFile(new URL('../site/pages/handyman-dekalb-il.html',import.meta.url),'utf8');
+ const lawn=await readFile(new URL('../site/pages/lawn-mowing-dekalb-il.html',import.meta.url),'utf8');
+ const leaves=await readFile(new URL('../site/pages/leaf-cleanup-dekalb-il.html',import.meta.url),'utf8');
+ assert.match(home,/Handyman, lawn care &amp; yard help in DeKalb/);
+ assert.match(handyman,/What does a small handyman visit cost\?/);
+ assert.match(lawn,/How much does lawn mowing cost\?/);
+ assert.match(leaves,/What happens to the leaves\?/);
+ for(const html of [handyman,lawn,leaves]){
+  assert.match(html,/href="\/pricing\/"/);
+  assert.match(html,/href="\/request\/"/);
+ }
+ assert.match(seo('', 'Page','Description').title,/Handyman & Lawn Care in DeKalb/);
+});
