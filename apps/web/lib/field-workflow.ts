@@ -7,7 +7,7 @@ export function fieldWorkflow(request:InboxRequest,quotes:LinkedQuote[],jobs:Lin
  if(next.step===0)return {kind:'closed' as const,label:'Request closed',next,job:null};
  if(next.action==='schedule')return {kind:'confirm' as const,label:'Confirm appointment',next,job:null};
  if(next.step<=3)return {kind:'agreement' as const,label:'Agree on work & price',next,job:null};
- if(next.step===5)return {kind:'invoice' as const,label:'Review & issue invoice',next,job:pending.find(j=>j.status==='completed')||null};
+ if(next.step===5){const completed=pending.find(j=>j.status==='completed')||null;return completed?{kind:'invoice' as const,label:'Review & issue invoice',next,job:completed}:{kind:'review' as const,label:'Review saved job details',next,job:null};}
  if(next.step===6)return {kind:'payment' as const,label:'Record money received',next,job:null};
  if(next.step===7)return {kind:'settled' as const,label:'Closed out',next,job:null};
  const approved=pending.find(j=>{
