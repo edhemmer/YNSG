@@ -47,7 +47,8 @@ test('public city ZIP guidance agrees with the intake choices and local titles c
  const {postalCodesForCity}=await import('../site/city-postal-codes.js');
  const html=await readFile(new URL('../site/pages/service-area.html',import.meta.url),'utf8');
  for(const city of serviceCities){for(const zip of postalCodesForCity(city))assert.ok(html.includes(`${city}, Illinois ${zip}`));for(const slug of ['','services'])assert.ok(seo(slug,'Page','Description').title.includes(city));}
- assert.ok(html.includes('a ZIP code alone does not confirm service availability'));
+ assert.ok(html.includes('A location outside our preferred service radius will never automatically reject your inquiry.'));
+ assert.ok(html.includes('Enter your city, five-digit ZIP code and street address.'));
 });
 
 test('search landing pages give customers distinct, specific guidance rather than keyword-only pages',async()=>{
