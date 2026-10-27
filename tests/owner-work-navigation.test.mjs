@@ -27,3 +27,10 @@ test('owner field cards distinguish paused jobs from actual work-in-progress',()
  assert.match(owner,/j\.status==='paused'\?'Resume job'/);
  assert.match(owner,/j\.status==='working'\?'In progress':'Needs attention'/);
 });
+
+test('field job status quick filters preserve all jobs and backend pagination',()=>{
+ assert.match(owner,/statusFilter===\x27all\x27\|\|j\.status===statusFilter/);
+ assert.match(owner,/aria-pressed=\{statusFilter===value\}/);
+ assert.match(owner,/Use All or go to the next page/);
+ assert.match(owner,/data\.hasMore\|\|page>0/);
+});
