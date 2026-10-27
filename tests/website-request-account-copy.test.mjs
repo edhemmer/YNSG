@@ -25,3 +25,13 @@ test('customer-facing pages do not abbreviate the request action or promise an u
  assert.match(page,/confirmed only after we approve it/);
  assert.match(readFileSync(new URL('../site/pages/home.html',import.meta.url),'utf8'),/No account needed to request service/);
 });
+
+test('public booking messaging and SEO snippets reflect review before approval',()=>{
+ const build=readFileSync(new URL('../scripts/build.mjs',import.meta.url),'utf8');
+ const home=readFileSync(new URL('../site/pages/home.html',import.meta.url),'utf8');
+ assert.match(page,/contact you to discuss the work, price and available times/);
+ assert.match(page,/confirmed only after we approve it/);
+ assert.match(home,/review your request and contact you/);
+ assert.match(build,/confirm appointments after approval/);
+ assert.doesNotMatch(build,/We will confirm scope, cost and timing/);
+});
