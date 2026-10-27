@@ -119,3 +119,11 @@ test('payment shortcut prefers an invoice with a recorded outstanding balance',(
  assert.match(source,/creditTotal\(i\.credits\)>0/);
  assert.match(source,/paymentInvoices\[0\]\?\.id\|\|invoices\[0\]\?\.id/);
 });
+
+test('payment step presents a saved outstanding balance rather than an invented receipt',()=>{
+ const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/const totalOutstanding=paymentInvoices\.reduce/);
+ assert.match(source,/money\(totalOutstanding\)/);
+ assert.match(source,/All saved invoices show no remaining balance/);
+ assert.match(source,/Review the verified invoice details before recording/);
+});
