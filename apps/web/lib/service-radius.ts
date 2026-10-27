@@ -1,5 +1,5 @@
-/** Advisory straight-line distance from DeKalb's approximate center. No intake decisions. */
-export const RADIUS_CENTER={latitude:41.92944,longitude:-88.75833,label:'DeKalb city center (provisional)'};
+/** Advisory straight-line distance from the approximate 60115 area. No intake decisions. */
+export const RADIUS_CENTER={latitude:41.92944,longitude:-88.75833,label:'Operating ZIP 60115 (approximate center)'};
 export const PREFERRED_RADIUS_MILES=15;
 export function radiusAssessment(latitude:number,longitude:number){
  if(!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180)return {status:'needs_review' as const,miles:null};
