@@ -91,3 +91,12 @@ test('a previously invoiced approved job cannot redirect a second completed job 
  assert.equal(next.step,5);
  assert.equal(fieldWorkflow(withoutVisit,[quote,{...quote,id:'q2'}],[invoiced,completed],[oldInvoice]).kind,'invoice');
 });
+
+test('one field screen exposes request-to-payment progress with a single saved-state stage',()=>{
+ const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/aria-label="Job progress"/);
+ assert.match(source,/aria-current=\{task\.kind==='confirm'/);
+ assert.match(source,/aria-current=\{task\.kind==='payment'/);
+ assert.match(source,/navigationUrl\(submissionAddress\(request\.original_submission\)\)/);
+ assert.doesNotMatch(source,/href=\{navigationUrl\(submissionAddress\(request\.original_submission\)\)\|\|undefined\}/);
+});
