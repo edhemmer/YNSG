@@ -50,7 +50,7 @@ try{
   for(const width of (process.argv.includes('--interactions-only')?[]:[320,375,390,430,768,1366]))for(const theme of ['light','dark'])for(const state of ['new','proposal','retained','confirmed','working','completed','issued','paid','declined','canceled']){
    const {page,writes}=await mount(state,width,theme,'detail',engine);
    await layout(page,`${engine} ${width} ${theme} ${state}`);
-   if(['new','proposal','retained'].includes(state)){
+   if(['new','proposal'].includes(state)){
     assert.equal(await page.getByRole('button',{name:'Confirm appointment',exact:true}).count(),1);
     assert.equal(await page.getByRole('button',{name:'Decline request',exact:true}).count(),1);
     assert.equal(await page.locator('.scheduled-invoice,.linked-records,.workflow-strip').count(),0);
@@ -67,7 +67,8 @@ try{
   // Jobs entry obeys the same saved milestones and has a direct decline route.
   for(const width of [320,390,768])for(const state of ['new','retained','confirmed','working','completed','issued','paid','canceled']){
    const {page}=await mount(state,width,'light','work');await page.getByRole('heading',{name:'Morgan Synthetic Neighbor'}).waitFor();await layout(page,engine+' workflow '+width+' '+state);
-   if(['new','retained'].includes(state)){assert.equal(await page.getByRole('button',{name:/Start work timer|Save work|Approve and issue invoice|Record received payment/}).count(),0);await page.getByRole('button',{name:'Decline request',exact:true}).click();await page.locator('.decline-fields select').last().waitFor();}
+   if(state==='new'){assert.equal(await page.getByRole('button',{name:/Start work timer|Save work|Approve and issue invoice|Record received payment/}).count(),0);await page.getByRole('button',{name:'Decline request',exact:true}).click();await page.locator('.decline-fields select').last().waitFor();}
+    if(state==='retained'){assert.equal(await page.getByRole('button',{name:'Decline request',exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'Confirm appointment',exact:true}).count(),0);}
    if(['issued','paid'].includes(state)){for(const summary of await page.locator('.field-job details:not([open]) > summary').all())if(await summary.isVisible())await summary.click();await layout(page,engine+' expanded workflow '+width+' '+state);}
    await page.close();
   }
