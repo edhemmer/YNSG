@@ -94,3 +94,10 @@ test('homepage primary service cards link directly to indexable local service pa
   assert.match(html,new RegExp('<a class="home-service" href="/'+slug+'/">'),slug+' card must lead to the relevant service page');
  }
 });
+
+test('service-area page accepts inquiries outside the primary towns',async()=>{
+ const page=await readFile(new URL('../site/pages/service-area.html',import.meta.url),'utf8');
+ assert.match(page,/15-mile preferred operating area/);
+ assert.match(page,/outside our preferred service radius will never automatically reject your inquiry/);
+ assert.match(page,/Enter your city, five-digit ZIP code/);
+});
