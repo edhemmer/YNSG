@@ -22,3 +22,9 @@ test('Today puts field visits ahead of invoice-only work without hiding invoice 
  assert.match(s,/remainingWork\.map\(j=>/);
  assert.match(s,/remainingWork\.length>0/);
 });
+
+test('Today presents owner decisions as an explicit queue and never mistakes loaded subset for an empty business',()=>{
+ assert.match(s,/Requests needing a decision/);
+ assert.match(s,/data\.requests\?\.total/);
+ assert.match(s,/No requests needing a decision in the loaded queue/);
+});
