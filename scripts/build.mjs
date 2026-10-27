@@ -60,7 +60,7 @@ for(const [slug,[title,description]] of Object.entries(pages)){
   body=body.replaceAll('{{FORM}}',form);
   const path=slug?join(output,slug):output;
   await mkdir(path,{recursive:true});
-  await writeFile(join(path,'index.html'),standardizeRequestButtons(layout(slug,title,description,body)).replace(/href="\/([a-z-]+)\/(?=[?"])/g,'href="/$1'));
+  await writeFile(join(path,'index.html'),standardizeRequestButtons(layout(slug,title,description,body)).replace(/href="\/([a-z-]+)\/(?=[?#"])/g,'href="/$1'));
 }
 await writeFile(join(output,'robots.txt'),'User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: https://www.yourneighborhoodserviceguy.com/sitemap.xml\n');
 await writeFile(join(output,'sitemap.xml'),`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${Object.keys(pages).map(slug=>`<url><loc>${canonicalUrl(slug)}</loc></url>`).join('')}</urlset>`);
