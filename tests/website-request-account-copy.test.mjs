@@ -11,7 +11,7 @@ test('service request clearly allows guest use and labels optional customer acco
  assert.doesNotMatch(page,/continue below as a guest|Call or text/);
 });
 test('contact option matches actual phone action and visual grouping',()=>{
- assert.match(page,/Rather call\?/);
+ assert.match(page,/Have a question\?/);
  assert.match(page,/href="tel:\+17706302094"/);
  assert.match(css,/request-side-group\+\.request-side-group/);
 });
