@@ -28,3 +28,9 @@ test('Today presents owner decisions as an explicit queue and never mistakes loa
  assert.match(s,/data\.requests\?\.total/);
  assert.match(s,/No requests needing a decision in the loaded queue/);
 });
+
+test('Today displays new customer decisions before secondary work backlog',()=>{
+ const decisions=s.indexOf('aria-label="Requests awaiting a decision"');
+ const later=s.indexOf('aria-label="Remaining work"');
+ assert.ok(decisions>0&&later>decisions,'Owner review must be visible above expanded backlog');
+});
