@@ -11,6 +11,10 @@ export function prepareFieldBrief(request:InboxRequest,quotes:LinkedQuote[],jobs
  const paused=jobs.filter(j=>j.status==='paused').length;
  const notes:string[]=[];
  if(request.original_submission.description?.trim())notes.push('Read the customer instructions before agreeing to scope or beginning work.');
+ if(!request.original_submission.street?.trim()||!request.original_submission.city?.trim())notes.push('Confirm the full service address before planning travel or scheduling.');
+ if(tasks.length>3)notes.push('This request includes '+tasks.length+' jobs; review the entire list before confirming scope and time.');
+ if(requestTasks(request.original_submission).some(t=>/mulch|material pickup/i.test((t.task||'')+' '+(t.service||''))))notes.push('Confirm supplier, materials payment, pickup location and travel time before agreeing to a mulch or materials run.');
+ if(requestTasks(request.original_submission).some(t=>/pressure wash|concrete wash/i.test((t.task||'')+' '+(t.service||''))))notes.push('Verify customer-supplied outdoor water, surface suitability and drainage before pressure washing.');
  if(!visit&&pendingProposal)notes.push('A proposed appointment still needs an explicit scheduling decision.');
  if(visit&&quotes.length===0)notes.push('Prepare the estimate and record customer agreement before starting work.');
  if(working)notes.push('Work is in progress; verify recorded time and materials before completion.');
