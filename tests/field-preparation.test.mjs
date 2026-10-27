@@ -31,3 +31,15 @@ test('field view displays one automated saved-state instruction without automati
  assert.match(source,/prepared\.notes\[0\]/);
  assert.doesNotMatch(source,/prepared\.notes\.map/);
 });
+
+test('field preparation identifies high-impact operational checks without authorizing action',()=>{
+ const multi={...request,original_submission:{...request.original_submission,city:'',services:[{service:'Yard & garden',task:'Bulk or bagged mulch pickup, delivery & spreading'},{service:'Concrete pressure washing',task:'Concrete patio'},{service:'Home',task:'Assembly'},{service:'Yard',task:'Leaf cleanup'}]}};
+ const before=JSON.stringify(multi);
+ const brief=prepareFieldBrief(multi,[],[],[]);
+ assert.ok(brief.notes.some(n=>n.includes('full service address')));
+ assert.ok(brief.notes.some(n=>n.includes('4 jobs')));
+ assert.ok(brief.notes.some(n=>n.includes('supplier')));
+ assert.ok(brief.notes.some(n=>n.includes('outdoor water')));
+ assert.equal(brief.hasConfirmedVisit,false);
+ assert.equal(JSON.stringify(multi),before);
+});
