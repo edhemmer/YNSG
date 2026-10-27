@@ -136,3 +136,12 @@ test('missing authorized job does not present a misleading ready-to-start action
  assert.match(ui,/task\.kind==='review'&&/);
  assert.match(ui,/Review saved request/);
 });
+
+test('invoice stage cannot suggest issuance without an authoritative completed uninvoiced job',()=>{
+ const source=readFileSync('apps/web/lib/field-workflow.ts','utf8');
+ const ui=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/if\(next\.step===5\)\{const completed=pending\.find/);
+ assert.match(source,/completed\?\{kind:'invoice' as const/);
+ assert.match(source,/\{kind:'review' as const,label:'Review saved job details'/);
+ assert.match(ui,/The next action cannot be verified from the saved job records/);
+});
