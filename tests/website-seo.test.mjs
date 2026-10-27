@@ -108,4 +108,6 @@ test('customers can request service without choosing a calendar time',async()=>{
  assert.match(html,/Choosing a time is optional/);
  assert.match(html,/id="calendar-clear">Let YNSG arrange a time/);
  assert.equal((html.match(/id="calendar-clear"/g)||[]).length,1);
+ const picker=html.slice(html.indexOf('id="appointment-picker"'),html.indexOf('</fieldset>',html.indexOf('id="appointment-picker"')));
+ assert.match(picker,/id="calendar-clear"/,'Calendar-free action must remain within picker used by interactive JavaScript');
 });
