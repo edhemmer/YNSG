@@ -25,6 +25,11 @@ export default function RequestDetail({organization,requestId,timezone,canManage
  const [data,setData]=useState<InboxData|null>(null),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[unknown,setUnknown]=useState(false),[reload,setReload]=useState(0);
  const frozen=useRef<{path:string;body:string}|null>(null),sending=useRef(false);
  const [loading,setLoading]=useState(true);
+ const [radius,setRadius]=useState<{status:'nearby'|'outside_preferred'|'needs_review';miles:number|null;center:string;radiusMiles:number}|null>(null);
+ useEffect(()=>{const controller=new AbortController();setRadius(null);
+  void sessionFetch('/api/service-radius?'+new URLSearchParams({organization,request:requestId}),{cache:'no-store',signal:controller.signal}).then(async response=>{if(!response.ok)throw Error('UNAVAILABLE');const result=await response.json();if(!controller.signal.aborted&&['nearby','outside_preferred','needs_review'].includes(result.status))setRadius(result);}).catch(()=>{if(!controller.signal.aborted)setRadius({status:'needs_review',miles:null,center:'Operating ZIP 60115 (approximate center)',radiusMiles:15});});
+  return()=>controller.abort();
+ },[organization,requestId]);
  useBlockedEntry('request-action:'+organization+':'+requestId,busy||unknown);
  const [panel,setPanel]=useState<'overview'|'schedule'|'decline'|'reschedule'|'cancel'>(initialPanel),[appointment,setAppointment]=useState<string|null|undefined>(undefined);
  useEffect(()=>{const el=dialog.current,returnFocus=document.activeElement;el?.showModal();return()=>{el?.close();if(returnFocus instanceof HTMLElement&&returnFocus.isConnected)returnFocus.focus();};},[]);
@@ -102,6 +107,8 @@ export default function RequestDetail({organization,requestId,timezone,canManage
    {!data&&!error&&<div className="loading" role="status">Opening the complete request…</div>}
    {data&&!request&&<div className="empty-state"><h3>Request unavailable</h3><p>This request may belong to another business or no longer be available to your account.</p></div>}
    {request&&submission&&<>
+     <div className="note" aria-label="Service radius advisory"><strong>Service-area advisory</strong><p>{!radius?'Checking distance from operating ZIP 60115…':radius.status==='nearby'?'Approximately '+radius.miles+' straight-line miles from operating ZIP 60115 — within preferred 15-mile radius.':radius.status==='outside_preferred'?'Approximately '+radius.miles+' straight-line miles from operating ZIP 60115 — outside preferred radius; review travel before agreeing.':'Distance could not be verified; review address and travel manually.'} Every legitimate request stays available for owner review. This advisory never declines a lead.</p></div>
+
      {data.preferences.filter(p=>p.request_id===requestId).map(p=><div className="note" key={p.id}><strong>Customer requested another time</strong><p>{p.preferred_local_start?.replace('T',' at ')} {p.preferred_local_start&&`(${p.timezone})`}</p><details><summary>Customer’s message</summary><p>{p.note}</p></details><small>Current visit remains booked.</small></div>)}
      <section className="detail-section"><div className="section-heading"><h3>Appointment</h3></div>
       {active.length?active.map(a=><AppointmentSummary key={a.id} visit={a} timezone={timezone}/>):<div className="empty-inline"><Icon name="calendar"/><div><small>{requestTiming(request,timezone).label}</small><p>{requestTiming(request,timezone).text}</p></div></div>}
