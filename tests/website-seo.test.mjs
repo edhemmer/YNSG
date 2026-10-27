@@ -102,3 +102,10 @@ test('service-area page accepts inquiries outside the primary towns',async()=>{
  assert.match(page,/outside our preferred service radius will never automatically reject your inquiry/);
  assert.match(page,/Enter your city, five-digit ZIP code/);
 });
+
+test('customers can request service without choosing a calendar time',async()=>{
+ const html=await readFile(new URL('../site/pages/form.html',import.meta.url),'utf8');
+ assert.match(html,/Choosing a time is optional/);
+ assert.match(html,/id="calendar-clear">Let YNSG arrange a time/);
+ assert.equal((html.match(/id="calendar-clear"/g)||[]).length,1);
+});
