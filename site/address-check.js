@@ -24,11 +24,11 @@ export function addressCheck(form,transport=fetch){
    const message=document.createElement('p');message.textContent=data.status==='multiple'?'More than one street match. Choose the correct address, or keep your entry.':'Street match found. Please review it, including any apartment or unit.';result.append(message);
    for(const candidate of data.candidates){
     if(typeof candidate.street!=='string'||candidate.street.length>200||typeof candidate.city!=='string'||candidate.state!=='IL')continue;
-    const supported=[...city.options].find(o=>o.value.toLowerCase()===candidate.city.toLowerCase());
+    const supported=city.tagName==='SELECT'?[...city.options].find(o=>o.value.toLowerCase()===candidate.city.toLowerCase()):true;
     const line=document.createElement('p');line.textContent=[candidate.street,candidate.city,candidate.state,candidate.postalCode].filter(Boolean).join(', ');result.append(line);
     if(!supported)continue;
     const use=document.createElement('button');use.type='button';use.className='booking-text-button';use.textContent='Use this street address';
-    use.addEventListener('click',()=>{if(locked()||snapshot()!==original)return;street.value=candidate.street;city.value=supported.value;street.dispatchEvent(new Event('input',{bubbles:true}));city.dispatchEvent(new Event('change',{bubbles:true}));if(postal&&[...postal.options].some(o=>o.value===candidate.postalCode)){postal.value=candidate.postalCode;postal.dispatchEvent(new Event('change',{bubbles:true}));}result.textContent='Street address updated. Please verify your apartment or unit, if any.';});result.append(use);
+    use.addEventListener('click',()=>{if(locked()||snapshot()!==original)return;street.value=candidate.street;city.value=supported.value;street.dispatchEvent(new Event('input',{bubbles:true}));city.dispatchEvent(new Event('change',{bubbles:true}));if(postal&&(postal.tagName!=='SELECT'||[...postal.options].some(o=>o.value===candidate.postalCode))){postal.value=candidate.postalCode;postal.dispatchEvent(new Event('change',{bubbles:true}));}result.textContent='Street address updated. Please verify your apartment or unit, if any.';});result.append(use);
    }
   }catch{if(current===generation&&snapshot()===original&&!locked())result.textContent='The address check is unavailable. You can keep your entry and continue.';}
   finally{clearTimeout(timeout);if(current===generation){check.disabled=locked();check.textContent='Check address';controller=null;}}
