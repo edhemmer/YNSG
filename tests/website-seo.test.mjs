@@ -65,3 +65,10 @@ test('search landing pages give customers distinct, specific guidance rather tha
  }
  assert.match(seo('', 'Page','Description').title,/Handyman & Lawn Care in DeKalb/);
 });
+
+test('main service categories link directly to detailed local landing pages',async()=>{
+ const html=await readFile(new URL('../site/pages/services.html',import.meta.url),'utf8');
+ for(const slug of ['handyman-dekalb-il','lawn-mowing-dekalb-il','leaf-cleanup-dekalb-il','mulch-yard-cleanup-dekalb-il','snow-removal-dekalb-il','concrete-pressure-washing-dekalb-il']){
+  assert.ok(html.includes('href="/'+slug+'/"'),'Missing specific service link: '+slug);
+ }
+});
