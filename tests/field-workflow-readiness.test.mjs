@@ -101,3 +101,14 @@ test('one field screen exposes request-to-payment progress with a single saved-s
  assert.match(source,/navigationUrl\(submissionAddress\(request\.original_submission\)\)/);
  assert.doesNotMatch(source,/href=\{navigationUrl\(submissionAddress\(request\.original_submission\)\)\|\|undefined\}/);
 });
+
+test('the single field screen links invoice and payment decisions to their existing authoritative forms',()=>{
+ const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/task\.kind==='invoice'&&j&&/);
+ assert.match(source,/href="#field-invoice-draft"/);
+ assert.match(source,/id="field-invoice-draft"/);
+ assert.match(source,/task\.kind==='payment'&&/);
+ assert.match(source,/href="#field-payment-record"/);
+ assert.match(source,/id="field-payment-record"/);
+ assert.match(source,/Record only money actually received/);
+});
