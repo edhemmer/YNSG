@@ -72,3 +72,17 @@ test('main service categories link directly to detailed local landing pages',asy
   assert.ok(html.includes('href="/'+slug+'/"'),'Missing specific service link: '+slug);
  }
 });
+
+test('seasonal local service pages answer project-specific customer questions',async()=>{
+ const expectations=[
+  ['snow-removal-dekalb-il','What to know before requesting snow clearing'],
+  ['mulch-yard-cleanup-dekalb-il','Preparing for mulch delivery and spreading'],
+  ['concrete-pressure-washing-dekalb-il','Is your concrete suitable for pressure washing?']
+ ];
+ for(const [slug,heading] of expectations){
+  const html=await readFile(new URL('../site/pages/'+slug+'.html',import.meta.url),'utf8');
+  assert.ok(html.includes(heading),slug+' missing practical project guidance');
+  assert.ok(html.includes('href="/request/"'),slug+' missing appointment request');
+  assert.ok(html.includes('href="/pricing/"'),slug+' missing pricing link');
+ }
+});
