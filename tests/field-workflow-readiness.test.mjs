@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {serviceNextStep} from '../apps/web/lib/service-workflow.ts';
 import {fieldWorkflow} from '../apps/web/lib/field-workflow.ts';
 const request={id:'10000000-0000-4000-8000-000000000001',status:'reviewing',appointments:[{status:'reserved',id:'v1',job_id:'j1',start_at:'2026-10-30T14:00:00Z',arrival_at:'2026-10-30T14:00:00Z',end_at:'2026-10-30T16:00:00Z'}]};
