@@ -110,7 +110,7 @@ test('the single field screen links invoice and payment decisions to their exist
  assert.match(source,/task\.kind==='payment'&&/);
  assert.match(source,/href="#field-payment-record"/);
  assert.match(source,/id=\{i\.id===paymentTarget\?'field-payment-record':undefined\}/);
- assert.match(source,/Record only money actually received/);
+ assert.match(source,/Review the verified invoice details before recording/);
 });
 
 test('payment shortcut prefers an invoice with a recorded outstanding balance',()=>{
