@@ -15,3 +15,13 @@ test('contact option matches actual phone action and visual grouping',()=>{
  assert.match(page,/href="tel:\+17706302094"/);
  assert.match(css,/request-side-group\+\.request-side-group/);
 });
+
+test('customer-facing pages do not abbreviate the request action or promise an unapproved booking',()=>{
+ const paths=['home','about','pricing','request'];
+ for(const name of paths){
+  const body=readFileSync(new URL('../site/pages/'+name+'.html',import.meta.url),'utf8');
+  assert.doesNotMatch(body,/Request service appt(?:\\s|<)/i);
+ }
+ assert.match(page,/confirmed only after we approve it/);
+ assert.match(readFileSync(new URL('../site/pages/home.html',import.meta.url),'utf8'),/No account needed to request service/);
+});
