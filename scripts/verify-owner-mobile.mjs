@@ -68,7 +68,7 @@ try{
   for(const width of [320,390,768])for(const state of ['new','retained','confirmed','working','completed','issued','paid','canceled']){
    const {page}=await mount(state,width,'light','work');await page.getByRole('heading',{name:'Morgan Synthetic Neighbor'}).waitFor();await layout(page,engine+' workflow '+width+' '+state);
    if(state==='new'){assert.equal(await page.getByRole('button',{name:/Start work timer|Save work|Approve and issue invoice|Record received payment/}).count(),0);await page.getByRole('button',{name:'Decline request',exact:true}).click();await page.locator('.decline-fields select').last().waitFor();}
-    if(state==='retained'){assert.equal(await page.getByRole('button',{name:'Decline request',exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'Confirm appointment',exact:true}).count(),0);assert.match(await page.locator('[aria-label="Current field action"]').innerText(),/Record money received|Record the payment received/);}
+    if(state==='retained'){assert.equal(await page.getByRole('button',{name:'Decline request',exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'Confirm appointment',exact:true}).count(),0);assert.match(await page.locator('[aria-label="Current field action"]').innerText(),/Review payments/);assert.equal(await page.getByRole('link',{name:'Review payments'}).count(),1);}
    if(['issued','paid'].includes(state)){for(const summary of await page.locator('.field-job details:not([open]) > summary').all())if(await summary.isVisible())await summary.click();await layout(page,engine+' expanded workflow '+width+' '+state);}
    await page.close();
   }
