@@ -158,3 +158,10 @@ test('saved payment overview explicitly requires an invoice refresh before recor
  assert.match(source,/Based on saved records\. Open an invoice to refresh and verify the latest balance/);
  assert.match(source,/paymentBalanceNote/);
 });
+
+test('multiple outstanding invoices have distinct direct review links',()=>{
+ const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/paymentInvoices\.length>1&&<ul/);
+ assert.match(source,/href=\{i\.id===paymentTarget\?"#field-payment-record":"#field-payment-"\+i\.id\}/);
+ assert.match(source,/id=\{i\.id===paymentTarget\?'field-payment-record':'field-payment-'\+i\.id\}/);
+});
