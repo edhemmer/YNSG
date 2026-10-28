@@ -193,5 +193,6 @@ test('agreement evidence disables repeated submits while a decision is pending',
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
  assert.match(source,/if\(attempted\|\|blocked\)return;setAttempted\(true\)/);
  assert.match(source,/fieldset disabled=\{blocked\|\|attempted\}/);
- assert.match(source,/else setAttempted\(false\)/);
+ assert.match(source,/else setNeedsReview\(true\)/);
+ assert.match(source,/Review saved agreement/);
 });
