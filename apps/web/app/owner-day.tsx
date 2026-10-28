@@ -5,14 +5,15 @@ import {publicError} from '../lib/public-errors';
 import {ownerDayResponse,ownerDayLabel,ownerStopDirections,ownerStopCall,type OwnerDay} from '../lib/owner-day';
 import Icon from './crm-icons';
 export default function OwnerDay({organization,revision,onNavigate,onOpen}:{organization:string;revision:number;onNavigate:(section:string)=>void;onOpen:(requestId:string)=>void}){
- const [data,setData]=useState<OwnerDay|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
- useEffect(()=>{let live=true,inFlight=false;const controller=new AbortController();setData(null);setError('');
-  async function read(){if(inFlight)return;inFlight=true;try{const r=await sessionFetch('/api/owner-day?'+new URLSearchParams({organization}),{cache:'no-store',signal:controller.signal});const d=await r.json();if(!r.ok)throw Error(d.error);if(live){setData(ownerDayResponse.parse(d));setError('');}}catch(e){if(live&&!controller.signal.aborted){setData(null);setError(publicError(e));}}finally{inFlight=false;}}
+ const [saved,setSaved]=useState<{organization:string;data:OwnerDay}|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
+ useEffect(()=>{let live=true,inFlight=false;const controller=new AbortController();setSaved(null);setError('');
+  async function read(){if(inFlight)return;inFlight=true;try{const r=await sessionFetch('/api/owner-day?'+new URLSearchParams({organization}),{cache:'no-store',signal:controller.signal});const d=await r.json();if(!r.ok)throw Error(d.error);if(live){setSaved({organization,data:ownerDayResponse.parse(d)});setError('');}}catch(e){if(live&&!controller.signal.aborted){setError(publicError(e));}}finally{inFlight=false;}}
   void read();const refresh=()=>{if(document.visibilityState==='visible')void read();};const timer=setInterval(refresh,30000);document.addEventListener('visibilitychange',refresh);
   return()=>{live=false;controller.abort();clearInterval(timer);document.removeEventListener('visibilitychange',refresh);};
  },[organization,revision,retry]);
+ const data=saved?.organization===organization?saved.data:null;
  return <section className="card owner-day" aria-labelledby="owner-day-heading"><div className="section-heading"><div><p className="eyebrow">Your next stops</p><h2 id="owner-day-heading">Today & upcoming</h2></div><div className="owner-day-heading-actions"><button type="button" className="secondary" onClick={()=>setRetry(n=>n+1)}>Refresh</button><button type="button" className="secondary" onClick={()=>onNavigate('Calendar')}><Icon name="calendar"/>Calendar</button></div></div>
-  {error?<div role="alert"><p className="error">Appointments could not load. {error}</p><button className="secondary" onClick={()=>setRetry(n=>n+1)}>Try again</button></div>:!data?<p role="status">Loading your confirmed appointments…</p>:<>
+  {error&&<div role="alert"><p className="error">{data?'Could not refresh appointments. Last loaded stops are shown; check current status before traveling. ':'Appointments could not load. '}{error}</p><button type="button" className="secondary" onClick={()=>setRetry(n=>n+1)}>Try again</button></div>}{!data?<p role="status">Loading your confirmed appointments…</p>:<>
    {!data.calls.length&&<p>No confirmed appointments ahead. Review new requests or open Calendar to choose a time.</p>}
    <div className="owner-stop-list">{data.calls.slice(0,1).map((c,i)=>{const format=(value:string,options:Intl.DateTimeFormatOptions)=>new Intl.DateTimeFormat('en-US',{timeZone:data.timezone,...options}).format(new Date(value));return <article className={'owner-stop '+(i===0?'owner-stop-next':'')} key={c.id}>
     <p className="eyebrow">{i===0?'Next stop · ':''}{ownerDayLabel(c,data.timezone)}</p><h3>{c.name}</h3>
