@@ -124,7 +124,7 @@ test('payment step presents a saved outstanding balance rather than an invented 
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
  assert.match(source,/const totalOutstanding=paymentInvoices\.reduce/);
  assert.match(source,/money\(totalOutstanding\)/);
- assert.match(source,/All saved invoices show no remaining balance/);
+ assert.match(source,/Saved records show no remaining balance/);
  assert.match(source,/Review the verified invoice details before recording/);
 });
 
@@ -171,4 +171,9 @@ test('payment workflow prioritizes outstanding invoices without discarding paid 
  assert.match(source,/const paymentSections=invoices\.filter/);
  assert.match(source,/payment'\?\[\.\.\.paymentSections,\.\.\.invoices\.filter/);
  assert.match(source,/!paymentSections\.some\(p=>p\.id===i\.id\)/);
+});
+
+test('payment-stage balance discrepancy calls for fresh verification rather than claiming settlement',()=>{
+ const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/Saved records show no remaining balance; refresh invoice details to resolve the discrepancy/);
 });
