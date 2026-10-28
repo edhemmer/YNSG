@@ -165,3 +165,10 @@ test('multiple outstanding invoices have distinct direct review links',()=>{
  assert.match(source,/href=\{i\.id===paymentTarget\?"#field-payment-record":"#field-payment-"\+i\.id\}/);
  assert.match(source,/id=\{i\.id===paymentTarget\?'field-payment-record':'field-payment-'\+i\.id\}/);
 });
+
+test('payment workflow prioritizes outstanding invoices without discarding paid invoice history',()=>{
+ const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/const paymentSections=invoices\.filter/);
+ assert.match(source,/payment'\?\[\.\.\.paymentSections,\.\.\.invoices\.filter/);
+ assert.match(source,/!paymentSections\.some\(p=>p\.id===i\.id\)/);
+});
