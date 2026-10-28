@@ -196,3 +196,9 @@ test('agreement evidence disables repeated submits while a decision is pending',
  assert.match(source,/else setNeedsReview\(true\)/);
  assert.match(source,/Review saved agreement/);
 });
+
+test('uncertain customer approval remains locked pending authoritative review',()=>{
+ const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/if\(attempted\|\|blocked\|\|needsReview\)return/);
+ assert.match(source,/Do not submit again until its status is confirmed/);
+});
