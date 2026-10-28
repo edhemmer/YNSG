@@ -188,3 +188,10 @@ test('customer agreement quick wording stays editable and requires an explicit o
  assert.match(source,/disabled=\{evidence\.trim\(\)\.length<10\}/);
  assert.match(source,/Record customer agreement/);
 });
+
+test('agreement evidence disables repeated submits while a decision is pending',()=>{
+ const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/if\(attempted\|\|blocked\)return;setAttempted\(true\)/);
+ assert.match(source,/fieldset disabled=\{blocked\|\|attempted\}/);
+ assert.match(source,/else setAttempted\(false\)/);
+});
