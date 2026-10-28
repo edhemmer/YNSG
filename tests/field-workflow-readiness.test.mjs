@@ -202,3 +202,12 @@ test('uncertain customer approval remains locked pending authoritative review',(
  assert.match(source,/if\(attempted\|\|blocked\|\|needsReview\)return/);
  assert.match(source,/Do not submit again until its status is confirmed/);
 });
+
+test('changing estimate version invalidates open customer agreement approval',()=>{
+ const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/const \[draftVersion\]=useState\(quote\.current_version\)/);
+ assert.match(source,/if\(attempted\|\|blocked\|\|needsReview\|\|versionChanged\)return/);
+ assert.match(source,/version:draftVersion/);
+ assert.match(source,/Review updated estimate/);
+ assert.match(source,/fieldset disabled=\{blocked\|\|attempted\|\|versionChanged\}/);
+});
