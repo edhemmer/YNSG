@@ -57,7 +57,7 @@ test('search landing pages provide specific guidance without imposing handyman-f
  const handyman=await readFile(new URL('../site/pages/handyman-dekalb-il.html',import.meta.url),'utf8');
  const lawn=await readFile(new URL('../site/pages/lawn-mowing-dekalb-il.html',import.meta.url),'utf8');
  const leaves=await readFile(new URL('../site/pages/leaf-cleanup-dekalb-il.html',import.meta.url),'utf8');
- assert.match(home,/Services for your home and yard/);
+ assert.match(home,/Home and yard services/);
  assert.match(handyman,/What does a small handyman visit cost\\?/);
  assert.match(lawn,/How much does lawn mowing cost\\?/);
  assert.match(leaves,/What happens to the leaves\\?/);
@@ -99,9 +99,9 @@ test('homepage primary service cards link directly to indexable local service pa
 
 test('service-area page accepts inquiries outside the primary towns',async()=>{
  const page=await readFile(new URL('../site/pages/service-area.html',import.meta.url),'utf8');
- assert.match(page,/15-mile preferred operating area/);
- assert.match(page,/outside our preferred service radius will never automatically reject your inquiry/);
- assert.match(page,/Enter your city, five-digit ZIP code/);
+ assert.match(page,/Our primary service area is Sycamore, DeKalb and Cortland/);
+ assert.match(page,/we’ll confirm whether we can serve it/);
+ assert.match(page,/Enter your address when requesting an appointment/);
 });
 
 test('customers can request service without choosing a calendar time',async()=>{
