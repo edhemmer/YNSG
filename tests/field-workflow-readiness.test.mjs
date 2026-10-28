@@ -109,7 +109,7 @@ test('the single field screen links invoice and payment decisions to their exist
  assert.match(source,/id="field-invoice-draft"/);
  assert.match(source,/task\.kind==='payment'&&/);
  assert.match(source,/href="#field-payment-record"/);
- assert.match(source,/id=\{i\.id===paymentTarget\?'field-payment-record':undefined\}/);
+ assert.match(source,/id=\{i\.id===paymentTarget\?'field-payment-record':'field-payment-'\+i\.id\}/);
  assert.match(source,/Review the verified invoice details before recording/);
 });
 
@@ -191,7 +191,7 @@ test('customer agreement quick wording stays editable and requires an explicit o
 
 test('agreement evidence disables repeated submits while a decision is pending',()=>{
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
- assert.match(source,/if\(attempted\|\|blocked\)return;setAttempted\(true\)/);
+ assert.match(source,/if\(attempted\|\|blocked\|\|needsReview\|\|versionChanged\)return;setAttempted\(true\)/);
  assert.match(source,/fieldset disabled=\{blocked\|\|attempted\}/);
  assert.match(source,/else setNeedsReview\(true\)/);
  assert.match(source,/Review saved agreement/);
@@ -199,7 +199,7 @@ test('agreement evidence disables repeated submits while a decision is pending',
 
 test('uncertain customer approval remains locked pending authoritative review',()=>{
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
- assert.match(source,/if\(attempted\|\|blocked\|\|needsReview\)return/);
+ assert.match(source,/if\(attempted\|\|blocked\|\|needsReview\|\|versionChanged\)return/);
  assert.match(source,/Do not submit again until its status is confirmed/);
 });
 
