@@ -21,5 +21,13 @@ export function prepareFieldBrief(request:InboxRequest,quotes:LinkedQuote[],jobs
  if(paused)notes.push('Paused work must be resumed or reviewed before recording completion.');
  if(invoices.length&&workflow.balance>0)notes.push('Outstanding balance remains. Record only money actually received.');
  if(workflow.settled)notes.push('Saved invoices and confirmed receipts show no remaining balance.');
- return {next:workflow.next.title,phase:workflow.phase,services:tasks.slice(0,3),extraServices:Math.max(0,tasks.length-3),notes,hasConfirmedVisit:Boolean(visit),requiresOwnerDecision:!workflow.settled};
+ // Prepared administrative checklist. Suggestions are read-only: no customer communication,
+ // schedule approval, invoice issuance or receipt is inferred from this assessment.
+ const preparedActions:{label:string;ownerApproval:boolean}[]=[];
+ if(!visit&&pendingProposal)preparedActions.push({label:'Review proposed appointment and travel window',ownerApproval:true});
+ if(!request.original_submission.street?.trim()||!request.original_submission.city?.trim())preparedActions.push({label:'Verify missing service address before dispatch',ownerApproval:true});
+ if(visit&&!quotes.some(q=>q.status==='accepted'))preparedActions.push({label:'Prepare scope and estimate for customer approval',ownerApproval:true});
+ if(jobs.some(j=>j.status==='completed'&&!invoices.some(i=>i.job_id===j.id)))preparedActions.push({label:'Prepare charges for invoice review',ownerApproval:true});
+ if(invoices.length&&workflow.balance>0)preparedActions.push({label:'Review outstanding invoices and verified receipts',ownerApproval:true});
+ return {next:workflow.next.title,phase:workflow.phase,services:tasks.slice(0,3),extraServices:Math.max(0,tasks.length-3),notes,preparedActions,hasConfirmedVisit:Boolean(visit),requiresOwnerDecision:!workflow.settled};
 }
