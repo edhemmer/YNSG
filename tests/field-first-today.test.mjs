@@ -42,3 +42,9 @@ test('Today keeps field actions available during periodic background updates',()
  assert.match(s,/setRefreshing\(false\);firstRead=false/);
  assert.match(s,/aria-busy=\{refreshing\}/);
 });
+
+test('Today never hides an explicit review decision merely because a job or reserved visit is linked',()=>{
+ assert.match(s,/const pending=\(data\?\.requests\?\.requests\|\|\[\]\)\.filter\(r=>!\['declined','canceled'\]\.includes\(r\.status\)\)/);
+ assert.doesNotMatch(s,/!used\.has\(r\.id\)/);
+ assert.doesNotMatch(s,/!r\.appointments\.some\(a=>a\.status==='reserved'\)/);
+});
