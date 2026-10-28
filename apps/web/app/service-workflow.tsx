@@ -49,6 +49,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
  const scopePreview=scopeCharacters.slice(0,240).join('');
  const paymentInvoices=invoices.filter(i=>i.total_cents-i.payments.reduce((sum,p)=>sum+p.cents,0)-creditTotal(i.credits)>0);
  const paymentTarget=paymentInvoices[0]?.id||invoices[0]?.id;
+ const paymentSections=invoices.filter(i=>i.id===paymentTarget||paymentInvoices.some(unpaid=>unpaid.id===i.id));
  const totalOutstanding=paymentInvoices.reduce((total,i)=>total+Math.max(0,i.total_cents-i.payments.reduce((sum,p)=>sum+p.cents,0)-creditTotal(i.credits)),0);
  const paymentBalanceNote='Based on saved records. Open an invoice to refresh and verify the latest balance before recording payment.';
  return <section className="card service-workflow field-job" aria-label={'Service workflow for '+request.original_submission.name}>
