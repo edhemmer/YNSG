@@ -58,6 +58,19 @@ test('field desk deduplicates active work, scheduled visit and request; opens ex
  const reads=[];const h=await mount(async(path,init)=>{assert.equal(init.method,undefined);reads.push(path);return Response.json(path.startsWith('/api/owner-day')?day:path.startsWith('/api/owner-work')?work:{total:1,hasMore:false,requests:[scheduled]});});
  try{const node=document.querySelector('#root');assert.equal(node.querySelectorAll('h2').length,2);assert.equal(node.textContent.split(request.original_submission.name).length-1,2);assert.equal(node.querySelectorAll('[aria-label="Requests awaiting a decision"] .field-queue-row').length,1);assert.doesNotMatch(node.textContent,/Marketing|Your next move|Business overview|Ready for your next stop/);assert.equal(reads.length,3);assert.ok(reads.every(p=>!p.includes('business-snapshot')));await act(async()=>[...node.querySelectorAll('button')].find(b=>b.textContent.startsWith('Continue job')).click());assert.equal(h.opened(),request.id);}finally{await h.close();}
 });
+test('two separate jobs for one request remain independently visible in Today',async()=>{
+ const other={...work.items[0],job:id(33),status:'completed'};
+ const both={...work,total:2,items:[...work.items,other]};
+ const h=await mount(async path=>Response.json(path.startsWith('/api/owner-day')?{...day,calls:[]}:path.startsWith('/api/owner-work')?both:{total:0,hasMore:false,requests:[]}));
+ try{
+  const node=document.querySelector('#root');
+  assert.equal(node.querySelectorAll('[aria-label="Current job"]').length,1);
+  assert.equal(node.querySelectorAll('[aria-label="Remaining work"] .field-queue-row').length,1);
+  assert.match(node.querySelector('[aria-label="Remaining work"]').textContent,/Prepare invoice/);
+  await act(async()=>node.querySelector('[aria-label="Remaining work"] .field-queue-row').click());
+  assert.equal(h.opened(),request.id);
+ }finally{await h.close();}
+});
 test('partial queue failure keeps independently verified work, identifies missing appointments and exposes retry',async()=>{
  const h=await mount(async path=>path.startsWith('/api/owner-day')?new Response('{}',{status:503}):Response.json(path.startsWith('/api/owner-work')?work:{total:0,hasMore:false,requests:[]}));try{const node=document.querySelector('#root');assert.match(node.textContent,/Appointments could not refresh/);assert.match(node.textContent,/Synthetic field customer/);assert.ok([...node.querySelectorAll('button')].some(b=>b.textContent==='Retry queue'));}finally{await h.close();}
 });
