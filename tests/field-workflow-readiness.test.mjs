@@ -152,3 +152,9 @@ test('payment and settlement never appear without an authoritative invoice',()=>
  assert.match(source,/next\.step===7\)return invoices\.length\?/);
  assert.match(source,/kind:'review' as const,label:'Review saved job details'/);
 });
+
+test('saved payment overview explicitly requires an invoice refresh before recording payment',()=>{
+ const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/Based on saved records\. Open an invoice to refresh and verify the latest balance/);
+ assert.match(source,/paymentBalanceNote/);
+});
