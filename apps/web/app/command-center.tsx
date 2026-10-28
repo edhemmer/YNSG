@@ -32,8 +32,10 @@ export default function CommandCenter({organization,timezone,revision,onOpen,onN
  },[organization,revision,retry]);
  const data=stored?.organization===organization?stored.value:null;
  const work=[...(data?.work?.items||[])].sort((a,b)=>({working:0,paused:1,completed:2}[a.status]-{working:0,paused:1,completed:2}[b.status]));
- const used=new Set(work.map(j=>j.request));
- const stops=(data?.day?.calls||[]).filter(c=>{if(used.has(c.requestId))return false;used.add(c.requestId);return true;});
+ // Only an actively running/paused job replaces a visit card; completed uninvoiced work must not hide a later appointment.
+ const activeRequestIds=new Set(work.filter(j=>j.status==='working'||j.status==='paused').map(j=>j.request));
+ const seenVisits=new Set<string>();
+ const stops=(data?.day?.calls||[]).filter(c=>{if(activeRequestIds.has(c.requestId)||seenVisits.has(c.id))return false;seenVisits.add(c.id);return true;});
  // The review feed is an independent owner-action queue: a linked job or reserved appointment must not hide a separate decision.
  const pending=(data?.requests?.requests||[]).filter(r=>!['declined','canceled'].includes(r.status));
  // Multiple legitimate jobs can share one service request. Deduplicate the exact job only, not the customer request.
