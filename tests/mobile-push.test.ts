@@ -25,7 +25,7 @@ test('Apple provider JWT is signed with P-256 and accepted is distinct from actu
  const keys=generateKeyPairSync('ec',{namedCurve:'prime256v1'}),pem=keys.privateKey.export({type:'pkcs8',format:'pem'}).toString();
  const jwt=appleProviderToken('ABCDE12345','FGHIJ67890',pem,1791979200000),parts=jwt.split('.');assert.equal(JSON.parse(Buffer.from(parts[1]!,'base64url').toString()).iat,1791979200);
  assert.ok(verify('sha256',Buffer.from(parts[0]+'.'+parts[1]),{key:keys.publicKey,dsaEncoding:'ieee-p1363'},Buffer.from(parts[2]!,'base64url')));
- assert.deepEqual(classifyAppleResponse(200,''),{state:'accepted',code:'apns_accepted',disable:false});assert.equal(classifyAppleResponse(410,'{"reason":"Unregistered"}').disable,true);assert.equal(classifyAppleResponse(429,'{"reason":"TooManyRequests"}').state,'rejected');
+ assert.deepEqual(classifyAppleResponse(200,''),{state:'accepted',code:'apns_accepted',disable:false});assert.equal(classifyAppleResponse(410,'{"reason":"Unregistered"}').disable,true);assert.equal(classifyAppleResponse(429,'{"reason":"TooManyRequests"}').state,'unknown');assert.equal(classifyAppleResponse(503,'').state,'unknown');assert.equal(classifyAppleResponse(500,'').disable,false);
 });
 test('disabled provider makes no APNs connection',async()=>{
  assert.equal(pushConfigured({}),false);assert.deepEqual(await sendApplePush({id,token:'a'.repeat(64),environment:'sandbox',kind:'new_request',organization:org,object:id,sound:false},{}),{state:'rejected',code:'push_configuration_mismatch',disable:false});
