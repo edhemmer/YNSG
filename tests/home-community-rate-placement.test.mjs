@@ -4,8 +4,9 @@ import {readFileSync} from 'node:fs';
 
 test('homepage publishes clear hourly terms and links to complete pricing',()=>{
  const home=readFileSync('site/pages/home.html','utf8');
- assert.doesNotMatch(home,/Community Rate|\$45\/hour|\$60\/hour|two-hour minimum/i);
- assert.match(home,/confirm the price with you before scheduling/);
+ assert.match(home,/\$60 with a two-hour minimum/);
+ assert.match(home,/\$45 Community Rate/);
+ assert.ok(home.includes('href="/pricing/"'));
  assert.match(home,/>Request service appointment(?:\s|<)/);
  const build=readFileSync('scripts/build.mjs','utf8');
  assert.doesNotMatch(build,/nav-request-short[^>]*>Request appt</);
