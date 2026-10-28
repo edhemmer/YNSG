@@ -17,7 +17,7 @@ test('Today offers direct navigation and does not imply that opening a paused jo
 });
 
 test('Today puts field visits ahead of invoice-only work without hiding invoice backlog',()=>{
- assert.match(s,/const next=activeWork\|\|\(!stops\.length\?shownWork\[0\]:null\)/);
+ assert.match(s,/const next=activeWork\|\|\(!stops\.length&&!pending\.length\?shownWork\[0\]:null\)/);
  assert.match(s,/const remainingWork=shownWork\.filter/);
  assert.match(s,/remainingWork\.map\(j=>/);
  assert.match(s,/remainingWork\.length>0/);
@@ -71,4 +71,10 @@ test('Today makes a pending customer decision the main action when there is no j
  assert.match(s,/pending\.length\?<section className="field-current card" aria-label="Next request decision">/);
  assert.match(s,/onOpen\(pending\[0\]!\.id\)/);
  assert.match(s,/No unfinished work, upcoming appointments, or requests requiring a decision in the loaded queue/);
+});
+
+test('an open customer decision outranks invoice-only work when no active visit is underway',()=>{
+ assert.match(s,/const next=activeWork\|\|\(!stops\.length&&!pending\.length\?shownWork\[0\]:null\)/);
+ assert.match(s,/const remainingWork=shownWork\.filter/);
+ assert.match(s,/pending\.length\?<section className="field-current card" aria-label="Next request decision"/);
 });
