@@ -9,7 +9,7 @@ const titles={
  about:'About Our DeKalb Area Home & Yard Service',
  request:'Request Home & Yard Service in DeKalb, IL',
  'service-area':'DeKalb, Sycamore & Cortland Service Area',
- 'handyman-dekalb-il':'Handyman Help in DeKalb, Sycamore & Cortland',
+ 'handyman-dekalb-il':'Handyman Services in DeKalb, IL | Sycamore & Cortland',
  'lawn-mowing-dekalb-il':'Lawn Mowing in DeKalb, IL',
  'leaf-cleanup-dekalb-il':'Leaf Cleanup in DeKalb, IL',
  'snow-removal-dekalb-il':'Residential Snow Removal in DeKalb, IL',
