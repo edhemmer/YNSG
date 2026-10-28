@@ -169,8 +169,9 @@ test('multiple outstanding invoices have distinct direct review links',()=>{
 test('payment workflow prioritizes outstanding invoices without discarding paid invoice history',()=>{
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
  assert.match(source,/const paymentSections=invoices\.filter/);
- assert.match(source,/payment'\?\[\.\.\.paymentSections,\.\.\.invoices\.filter/);
+ assert.match(source,/const orderedInvoices=\[\.\.\.paymentSections,\.\.\.invoices\.filter/);
  assert.match(source,/!paymentSections\.some\(p=>p\.id===i\.id\)/);
+ assert.match(source,/task.kind==='payment'\?orderedInvoices:invoices/);
 });
 
 test('payment-stage balance discrepancy calls for fresh verification rather than claiming settlement',()=>{
