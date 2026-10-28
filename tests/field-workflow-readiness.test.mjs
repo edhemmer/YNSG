@@ -211,3 +211,9 @@ test('changing estimate version invalidates open customer agreement approval',()
  assert.match(source,/Review updated estimate/);
  assert.match(source,/fieldset disabled=\{blocked\|\|attempted\|\|versionChanged\}/);
 });
+
+test('revised quote creates a fresh agreement draft rather than carrying earlier evidence',()=>{
+ const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/CustomerAgreement key=\{q\.id\+":"\+q\.current_version\}/);
+ assert.match(source,/version:draftVersion/);
+});
