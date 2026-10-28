@@ -26,7 +26,7 @@ test('homepage service cards open local landing pages rather than booking',()=>{
  const services=readFileSync('site/pages/services.html','utf8');
  const slugs=['handyman-dekalb-il','lawn-mowing-dekalb-il','mulch-yard-cleanup-dekalb-il','snow-removal-dekalb-il','concrete-pressure-washing-dekalb-il'];
  for(const slug of slugs) assert.match(home,new RegExp('class="home-service" href="/'+slug+'/"'));
- assert.match(home,/class="home-service" href="\/services\/#something-else"/);
+ assert.match(home,/class="home-service" href="\/leaf-cleanup-dekalb-il\/"/);
  assert.doesNotMatch(home,/class="home-service" href="\/request\//);
  assert.match(services,/<article id="something-else">/);
 });
