@@ -78,3 +78,9 @@ test('an open customer decision outranks invoice-only work when no active visit 
  assert.match(s,/const remainingWork=shownWork\.filter/);
  assert.match(s,/pending\.length\?<section className="field-current card" aria-label="Next request decision"/);
 });
+
+test('Today preserves the first upcoming visit in the secondary queue when active work owns primary card',()=>{
+ assert.match(s,/stops\.filter\(c=>c\.id!==nextStop\?\.id\)\.map\(c=>/);
+ assert.match(s,/stops\.some\(c=>c\.id!==nextStop\?\.id\)/);
+ assert.doesNotMatch(s,/stops\.slice\(nextStop\?1:0\)/);
+});
