@@ -40,7 +40,7 @@ export default function CommandCenter({organization,timezone,revision,onOpen,onN
  const pending=(data?.requests?.requests||[]).filter(r=>!['declined','canceled'].includes(r.status));
  // Multiple legitimate jobs can share one service request. Deduplicate the exact job only, not the customer request.
  const shownWork=work.filter((j,i)=>work.findIndex(other=>other.job===j.job)===i);
- const activeWork=shownWork.find(j=>j.status==='working'||j.status==='paused');
+ const activeWork=shownWork.find(j=>j.status==='working')||shownWork.find(j=>j.status==='paused');
  const next=activeWork||(!stops.length&&!pending.length?shownWork[0]:null),nextStop=!next?stops[0]:null;
  // A running job may replace the same visit in the main card, but a separate upcoming visit remains in the queue.
  const remainingWork=shownWork.filter(j=>j.job!==next?.job);
