@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 const s=readFileSync('apps/web/app/command-center.tsx','utf8');
 test('Today contains one operational queue without marketing, metrics or stacked assistants',()=>{
  assert.match(s,/aria-label="Field work queue"/);assert.doesNotMatch(s,/MarketingDrafts|BusinessBrief|metric-grid|Business overview/);
- assert.match(s,/const activeWork=shownWork\.find/);assert.match(s,/used\.has\(c.requestId\)/);
+ assert.match(s,/const activeWork=shownWork\.find/);assert.match(s,/activeRequestIds\.has\(c.requestId\)/);
 });
 test('field queue retains direct job opening, routes and invoices',()=>{
  assert.match(s,/onOpen\(next.request\)/);assert.match(s,/onNavigate\('Today'\)/);assert.match(s,/onNavigate\('Money'\)/);
@@ -54,4 +54,10 @@ test('Today preserves separate active and completed jobs tied to the same reques
  assert.doesNotMatch(s,/work\.findIndex\(other=>other\.request===j\.request\)/);
  assert.match(s,/foundWork\.map\(j=><button[^\n]+key=\{j\.job\}/);
  assert.match(s,/remainingWork\.map\(j=><button[^\n]+key=\{j\.job\}/);
+});
+
+test('completed uninvoiced jobs do not hide future distinct visits',()=>{
+ assert.match(s,/work\.filter\(j=>j\.status==='working'\|\|j\.status==='paused'\)/);
+ assert.match(s,/seenVisits\.has\(c\.id\)/);
+ assert.doesNotMatch(s,/new Set\(work\.map\(j=>j\.request\)\)/);
 });
