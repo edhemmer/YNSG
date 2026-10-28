@@ -217,3 +217,8 @@ test('revised quote creates a fresh agreement draft rather than carrying earlier
  assert.match(source,/CustomerAgreement key=\{q\.id\+":"\+q\.current_version\}/);
  assert.match(source,/version:draftVersion/);
 });
+
+test('unsaved agreement tracking is scoped to its estimate version',()=>{
+ const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/useUnsavedEntry\('agreement-evidence:'\+quote\.id\+':'\+draftVersion,dirty\)/);
+});
