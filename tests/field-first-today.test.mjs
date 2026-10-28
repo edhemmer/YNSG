@@ -61,3 +61,8 @@ test('completed uninvoiced jobs do not hide future distinct visits',()=>{
  assert.match(s,/seenVisits\.has\(c\.id\)/);
  assert.doesNotMatch(s,/new Set\(work\.map\(j=>j\.request\)\)/);
 });
+
+test('Today selects the chronological next arrival despite unordered route responses',()=>{
+ assert.match(s,/const stops=\[\.\.\.\(data\?\.day\?\.calls\|\|\[\]\)\]\.sort\(\(a,b\)=>Date\.parse\(a\.arrivalAt\)-Date\.parse\(b\.arrivalAt\)\)/);
+ assert.match(s,/nextStop=!next\?stops\[0\]:null/);
+});
