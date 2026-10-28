@@ -34,7 +34,8 @@ export default function CommandCenter({organization,timezone,revision,onOpen,onN
  const work=[...(data?.work?.items||[])].sort((a,b)=>({working:0,paused:1,completed:2}[a.status]-{working:0,paused:1,completed:2}[b.status]));
  const used=new Set(work.map(j=>j.request));
  const stops=(data?.day?.calls||[]).filter(c=>{if(used.has(c.requestId))return false;used.add(c.requestId);return true;});
- const pending=(data?.requests?.requests||[]).filter(r=>!used.has(r.id)&&!['declined','canceled'].includes(r.status)&&!r.appointments.some(a=>a.status==='reserved'));
+ // The review feed is an independent owner-action queue: a linked job or reserved appointment must not hide a separate decision.
+ const pending=(data?.requests?.requests||[]).filter(r=>!['declined','canceled'].includes(r.status));
  const shownWork=work.filter((j,i)=>work.findIndex(other=>other.request===j.request)===i);
  const activeWork=shownWork.find(j=>j.status==='working'||j.status==='paused');
  const next=activeWork||(!stops.length?shownWork[0]:null),nextStop=!next?stops[0]:null;
