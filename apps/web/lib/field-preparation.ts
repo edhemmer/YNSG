@@ -23,11 +23,11 @@ export function prepareFieldBrief(request:InboxRequest,quotes:LinkedQuote[],jobs
  if(workflow.settled)notes.push('Saved invoices and confirmed receipts show no remaining balance.');
  // Prepared administrative checklist. Suggestions are read-only: no customer communication,
  // schedule approval, invoice issuance or receipt is inferred from this assessment.
- const preparedActions:{label:string;ownerApproval:boolean}[]=[];
- if(!visit&&pendingProposal)preparedActions.push({label:'Review proposed appointment and travel window',ownerApproval:true});
- if(!request.original_submission.street?.trim()||!request.original_submission.city?.trim())preparedActions.push({label:'Verify missing service address before dispatch',ownerApproval:true});
- if(visit&&!quotes.some(q=>q.status==='accepted'))preparedActions.push({label:'Prepare scope and estimate for customer approval',ownerApproval:true});
- if(jobs.some(j=>j.status==='completed'&&!invoices.some(i=>i.job_id===j.id)))preparedActions.push({label:'Prepare charges for invoice review',ownerApproval:true});
- if(invoices.length&&workflow.balance>0)preparedActions.push({label:'Review outstanding invoices and verified receipts',ownerApproval:true});
+ const preparedActions:{label:string;ownerApproval:boolean;action:'schedule'|'review'|'invoice'|'payment'}[]=[];
+ if(!visit&&pendingProposal)preparedActions.push({label:'Review proposed appointment and travel window',ownerApproval:true,action:'schedule'});
+ if(!request.original_submission.street?.trim()||!request.original_submission.city?.trim())preparedActions.push({label:'Verify missing service address before dispatch',ownerApproval:true,action:'review'});
+ if(visit&&!quotes.some(q=>q.status==='accepted'))preparedActions.push({label:'Prepare scope and estimate for customer approval',ownerApproval:true,action:'review'});
+ if(jobs.some(j=>j.status==='completed'&&!invoices.some(i=>i.job_id===j.id)))preparedActions.push({label:'Prepare charges for invoice review',ownerApproval:true,action:'invoice'});
+ if(invoices.length&&workflow.balance>0)preparedActions.push({label:'Review outstanding invoices and verified receipts',ownerApproval:true,action:'payment'});
  return {next:workflow.next.title,phase:workflow.phase,services:tasks.slice(0,3),extraServices:Math.max(0,tasks.length-3),notes,preparedActions,hasConfirmedVisit:Boolean(visit),requiresOwnerDecision:!workflow.settled};
 }
