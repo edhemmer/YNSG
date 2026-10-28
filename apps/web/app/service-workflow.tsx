@@ -110,7 +110,7 @@ function CustomerAgreement({quote,blocked,onReview,submit}:{quote:LinkedQuote;bl
  const [attempted,setAttempted]=useState(false),[needsReview,setNeedsReview]=useState(false);
  const [draftVersion]=useState(quote.current_version);
  const versionChanged=draftVersion!==quote.current_version;
- useUnsavedEntry('agreement-evidence:'+quote.id,dirty);
+ useUnsavedEntry('agreement-evidence:'+quote.id+':'+draftVersion,dirty);
  return <form onChangeCapture={()=>setDirty(true)} onSubmit={e=>{e.preventDefault();if(attempted||blocked||needsReview||versionChanged)return;setAttempted(true);void submit({command:'ApproveQuote',id:quote.id,version:draftVersion,evidence:new FormData(e.currentTarget).get('evidence')}).then(result=>{if((result as {ok?:boolean}|undefined)?.ok)setDirty(false);else setNeedsReview(true);}).catch(()=>setNeedsReview(true));}}>
  {versionChanged&&<div className="note" role="alert">The saved estimate version changed while this agreement was open. Review the updated scope and price before recording customer approval. <button type="button" className="secondary" onClick={onReview}>Review updated estimate</button></div>}
  {needsReview&&<div className="note" role="alert"><p>The agreement result could not be confirmed. Review the saved request to determine whether approval was recorded. Do not submit again until its status is confirmed.</p><button type="button" className="secondary" onClick={onReview}>Review saved agreement</button></div>}
