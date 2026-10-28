@@ -247,3 +247,14 @@ test('AI-first administrative preparation remains read-only and requires owner a
  assert.match(view,/Prepared administrative actions/);
  assert.match(view,/not completed AI actions/);
 });
+
+test('prepared administrative tasks open existing review workflows without executing writes',()=>{
+ const prep=readFileSync('apps/web/lib/field-preparation.ts','utf8');
+ const ui=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(prep,/action:'schedule'/);
+ assert.match(prep,/action:'invoice'/);
+ assert.match(prep,/action:'payment'/);
+ assert.match(ui,/if\(action\.action==='schedule'\)openSchedule\(\)/);
+ assert.match(ui,/action\.action==='invoice'\)document\.getElementById\('field-invoice-draft'\)/);
+ assert.match(ui,/action\.action==='payment'\)document\.getElementById\('field-payment-record'\)/);
+});
