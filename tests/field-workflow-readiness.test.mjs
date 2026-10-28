@@ -192,7 +192,7 @@ test('customer agreement quick wording stays editable and requires an explicit o
 test('agreement evidence disables repeated submits while a decision is pending',()=>{
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
  assert.match(source,/if\(attempted\|\|blocked\|\|needsReview\|\|versionChanged\)return;setAttempted\(true\)/);
- assert.match(source,/fieldset disabled=\{blocked\|\|attempted\}/);
+ assert.match(source,/fieldset disabled=\{blocked\|\|attempted\|\|versionChanged\}/);
  assert.match(source,/else setNeedsReview\(true\)/);
  assert.match(source,/Review saved agreement/);
 });
@@ -221,4 +221,11 @@ test('revised quote creates a fresh agreement draft rather than carrying earlier
 test('unsaved agreement tracking is scoped to its estimate version',()=>{
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
  assert.match(source,/useUnsavedEntry\('agreement-evidence:'\+quote\.id\+':'\+draftVersion,dirty\)/);
+});
+
+test('agreement cannot be recorded when its current quote version is absent',()=>{
+ const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/q.status==='sent'&&!v&&<div className="note" role="alert">/);
+ assert.match(source,/q.status==='sent'&&v&&<CustomerAgreement/);
+ assert.match(source,/Do not record customer approval until the scope and price have been recovered/);
 });
