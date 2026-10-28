@@ -66,3 +66,9 @@ test('Today selects the chronological next arrival despite unordered route respo
  assert.match(s,/const stops=\[\.\.\.\(data\?\.day\?\.calls\|\|\[\]\)\]\.sort\(\(a,b\)=>Date\.parse\(a\.arrivalAt\)-Date\.parse\(b\.arrivalAt\)\)/);
  assert.match(s,/nextStop=!next\?stops\[0\]:null/);
 });
+
+test('Today makes a pending customer decision the main action when there is no job or visit',()=>{
+ assert.match(s,/pending\.length\?<section className="field-current card" aria-label="Next request decision">/);
+ assert.match(s,/onOpen\(pending\[0\]!\.id\)/);
+ assert.match(s,/No unfinished work, upcoming appointments, or requests requiring a decision in the loaded queue/);
+});
