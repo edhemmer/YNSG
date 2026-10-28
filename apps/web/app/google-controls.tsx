@@ -86,6 +86,15 @@ export default function GoogleControls({
   },[organization,view,loadCalendars]);
 
   useEffect(() => {
+    // Check connection state when returning to the CRM and while this screen stays open.
+    // No token or private customer data is exposed to the browser.
+    const refresh=()=>{if(document.visibilityState==='visible')void load();};
+    const interval=window.setInterval(refresh,120000);
+    window.addEventListener('focus',refresh);
+    document.addEventListener('visibilitychange',refresh);
+    return ()=>{window.clearInterval(interval);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh);};
+  },[load]);
+  useEffect(() => {
  // Capture ref containers so teardown invalidates the latest in-flight generation.
  const teardownGeneration=generation;
 
@@ -199,7 +208,7 @@ export default function GoogleControls({
       ) : (
         <>
           <p><strong>{connection.health==='reconnect_required'?'Google reconnection required':'Google account connected'}</strong> · {connection.email}</p>
-          {connection.health==='reconnect_required'&&<div role="alert"><p>Google authorization has expired or been revoked. Website appointment times and Gmail sending are unavailable.</p><p>Open “Disconnect Google” below, disconnect this account, then press “Connect Google” and sign in to the same Google account. Choose your existing business calendar again and send the Gmail test.</p></div>}
+          {connection.health!=='healthy'&&<div role="alert"><p><strong>Google Calendar needs attention ({connection.health}).</strong> Calendar syncing may be paused. If Google asks for authorization, reconnect from this screen. The last connection check did not confirm Google Calendar access. Keep using the CRM's saved schedule while this is resolved.</p><p>Open “Disconnect Google” below, disconnect this account, then press “Connect Google” and sign in to the same Google account. Choose your existing business calendar again and send the Gmail test.</p></div>}
           {view !== "email" && <>
             <p>Automatic calendar updates: <strong>{calendarSyncEnabled&&connection.calendarId?'enabled':'paused'}</strong>.</p>
             <p>{connection.calendarId ? "Business calendar: " + (calendars.find(c => c.id === connection.calendarId)?.summary || "Saved calendar") : "Choose an existing calendar or create a separate one for your business."}</p>
