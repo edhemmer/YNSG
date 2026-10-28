@@ -48,3 +48,10 @@ test('Today never hides an explicit review decision merely because a job or rese
  assert.doesNotMatch(s,/!used\.has\(r\.id\)/);
  assert.doesNotMatch(s,/!r\.appointments\.some\(a=>a\.status==='reserved'\)/);
 });
+
+test('Today preserves separate active and completed jobs tied to the same request',()=>{
+ assert.match(s,/const shownWork=work\.filter\(\(j,i\)=>work\.findIndex\(other=>other\.job===j\.job\)===i\)/);
+ assert.doesNotMatch(s,/work\.findIndex\(other=>other\.request===j\.request\)/);
+ assert.match(s,/foundWork\.map\(j=><button[^\n]+key=\{j\.job\}/);
+ assert.match(s,/remainingWork\.map\(j=><button[^\n]+key=\{j\.job\}/);
+});
