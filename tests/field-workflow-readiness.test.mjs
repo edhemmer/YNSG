@@ -229,3 +229,11 @@ test('agreement cannot be recorded when its current quote version is absent',()=
  assert.match(source,/q.status==='sent'&&v&&<CustomerAgreement/);
  assert.match(source,/Do not record customer approval until the scope and price have been recovered/);
 });
+
+test('Finish work brings the existing completion form into view without creating a second action flow',()=>{
+ const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/const workRecordRef=useRef<HTMLDivElement\|null>\(null\)/);
+ assert.match(source,/if\(workRecordOpen&&workRecordRef\.current\)/);
+ assert.match(source,/workRecordRef\.current\.scrollIntoView\?/);
+ assert.match(source,/ref=\{workRecordRef\} tabIndex=\{-1\} hidden=\{working&&!workRecordOpen\}/);
+});
