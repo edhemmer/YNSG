@@ -36,7 +36,8 @@ export default function CommandCenter({organization,timezone,revision,onOpen,onN
  const stops=(data?.day?.calls||[]).filter(c=>{if(used.has(c.requestId))return false;used.add(c.requestId);return true;});
  // The review feed is an independent owner-action queue: a linked job or reserved appointment must not hide a separate decision.
  const pending=(data?.requests?.requests||[]).filter(r=>!['declined','canceled'].includes(r.status));
- const shownWork=work.filter((j,i)=>work.findIndex(other=>other.request===j.request)===i);
+ // Multiple legitimate jobs can share one service request. Deduplicate the exact job only, not the customer request.
+ const shownWork=work.filter((j,i)=>work.findIndex(other=>other.job===j.job)===i);
  const activeWork=shownWork.find(j=>j.status==='working'||j.status==='paused');
  const next=activeWork||(!stops.length?shownWork[0]:null),nextStop=!next?stops[0]:null;
  const remainingWork=shownWork.filter(j=>j.job!==next?.job);
