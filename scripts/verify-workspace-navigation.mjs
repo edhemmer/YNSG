@@ -118,8 +118,8 @@ try{
    assert.equal(await page.locator('.marketing-assistant,.metric-grid,.business-brief').count(),0);assert.equal(reads.filter(p=>p.startsWith('/api/business-snapshot')).length,0);assert.equal(await page.locator('.field-desk h2').filter({hasText:'Morgan Synthetic Neighbor'}).count(),1);
    await layout(page,engine+' field desk '+width+' '+theme);if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-field-desk.png',fullPage:true});
    await page.getByLabel('Find in your work queue').fill('morgan assembly');
-   await page.getByRole('status').filter({hasText:'1 match in the loaded queue'}).waitFor();
-   assert.equal(await page.locator('[aria-label="Matching work"] .field-queue-row').count(),1);
+   await page.getByRole('status').filter({hasText:'2 matches in the loaded queue'}).waitFor();
+   assert.equal(await page.locator('[aria-label="Matching work"] .field-queue-row').count(),2);
    await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' finder 200% '+width+' '+theme);
    await page.getByLabel('Find in your work queue').fill('no matching customer');await page.getByRole('status').filter({hasText:'0 matches'}).waitFor();
    await page.getByRole('button',{name:'Clear',exact:true}).click();await page.getByRole('button',{name:'Continue job',exact:true}).waitFor();
