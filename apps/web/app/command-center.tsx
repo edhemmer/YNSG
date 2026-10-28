@@ -41,7 +41,7 @@ export default function CommandCenter({organization,timezone,revision,onOpen,onN
  // Multiple legitimate jobs can share one service request. Deduplicate the exact job only, not the customer request.
  const shownWork=work.filter((j,i)=>work.findIndex(other=>other.job===j.job)===i);
  const activeWork=shownWork.find(j=>j.status==='working'||j.status==='paused');
- const next=activeWork||(!stops.length?shownWork[0]:null),nextStop=!next?stops[0]:null;
+ const next=activeWork||(!stops.length&&!pending.length?shownWork[0]:null),nextStop=!next?stops[0]:null;
  const remainingWork=shownWork.filter(j=>j.job!==next?.job);
  const searching=query.trim().length>0;
  const foundWork=shownWork.filter(j=>fieldSearchMatches(query,[j.name,j.address,...j.tasks,j.status,j.status==='completed'?'invoice':'']));
