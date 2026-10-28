@@ -28,7 +28,7 @@ await cp(join(source,'appointment-hold.js'),join(output,'appointment-hold.js'));
 await cp(join(root,'lib','appointment-window.js'),join(output,'appointment-window.js'));
 const form = await readFile(join(source,'pages','form.html'),'utf8');
 const pages = {
-  '': ['Home & Yard Services in Sycamore, DeKalb & Nearby', 'Residential lawn mowing, seasonal yard cleanup, mulch, small home repairs and other home and yard services near Sycamore and DeKalb, Illinois. Requests are reviewed before appointments are confirmed.', 'home'],
+  '': ['Home & Yard Services in Sycamore, DeKalb & Nearby', 'Lawn mowing, yard cleanup, mulch, small home repairs and seasonal services near Sycamore, DeKalb and Cortland, IL. Request an appointment online.', 'home'],
   services: ['Home & Yard Services', 'Lawn care, yard and garden help, concrete pressure washing, residential snow clearing and small jobs around the home in DeKalb, Sycamore and Cortland.', 'services'],
   'service-area': ['Home & Yard Help in DeKalb, Sycamore & Cortland', 'Local home and yard services in DeKalb, Sycamore and Cortland, Illinois. Check our service area, appointment hours and how to request a visit.', 'service-area'],
   pricing: ['Pricing & Community Rate', 'Home and yard help in DeKalb, Sycamore and Cortland, IL: $60/hour standard or $45/hour Community Rate, with a two-hour minimum. Lawn, snow and concrete washing priced separately.', 'pricing'],
