@@ -62,8 +62,8 @@ test('search landing pages provide specific guidance without imposing handyman-f
  assert.match(lawn,/How much does lawn mowing cost\\?/);
  assert.match(leaves,/What happens to the leaves\\?/);
  for(const html of [handyman,lawn,leaves]){
-  assert.match(html,/href="\\/pricing\\/"/);
-  assert.match(html,/href="\\/request\\/"/);
+  assert.ok(html.includes('href="/pricing/"'));
+  assert.ok(html.includes('href="/request/"'));
  }
  assert.match(seo('', 'Page','Description').title,/Home & Yard Services/);
 });
