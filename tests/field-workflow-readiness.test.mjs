@@ -178,3 +178,13 @@ test('payment-stage balance discrepancy calls for fresh verification rather than
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
  assert.match(source,/Saved records show no remaining balance; refresh invoice details to resolve the discrepancy/);
 });
+
+test('customer agreement quick wording stays editable and requires an explicit owner save',()=>{
+ const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(source,/Agreed by phone/);
+ assert.match(source,/Agreed in person/);
+ assert.match(source,/Choose wording only after the customer has actually agreed/);
+ assert.match(source,/value=\{evidence\} onChange/);
+ assert.match(source,/disabled=\{evidence\.trim\(\)\.length<10\}/);
+ assert.match(source,/Record customer agreement/);
+});
