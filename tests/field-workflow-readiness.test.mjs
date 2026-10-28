@@ -237,3 +237,13 @@ test('Finish work brings the existing completion form into view without creating
  assert.match(source,/workRecordRef\.current\.scrollIntoView\?/);
  assert.match(source,/ref=\{workRecordRef\} tabIndex=\{-1\} hidden=\{working&&!workRecordOpen\}/);
 });
+
+test('AI-first administrative preparation remains read-only and requires owner approvals',()=>{
+ const prep=readFileSync('apps/web/lib/field-preparation.ts','utf8');
+ const view=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(prep,/const preparedActions:/);
+ assert.match(prep,/ownerApproval:true/);
+ assert.match(prep,/Prepare charges for invoice review/);
+ assert.match(view,/Prepared administrative actions/);
+ assert.match(view,/not completed AI actions/);
+});
