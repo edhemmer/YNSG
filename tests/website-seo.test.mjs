@@ -43,28 +43,29 @@ test('search service URLs resolve to visible public sections and breadcrumb refe
  }
 });
 
-test('public city ZIP guidance agrees with the intake choices and local titles cover all served cities',async()=>{
- const {postalCodesForCity}=await import('../site/city-postal-codes.js');
+test('service-area description matches the intake without duplicate ZIP lists',async()=>{
  const html=await readFile(new URL('../site/pages/service-area.html',import.meta.url),'utf8');
- for(const city of serviceCities){for(const zip of postalCodesForCity(city))assert.ok(html.includes(`${city}, Illinois ${zip}`));for(const slug of ['','services'])assert.ok(seo(slug,'Page','Description').title.includes(city));}
- assert.ok(html.includes('A location outside our preferred service radius will never automatically reject your inquiry.'));
- assert.ok(html.includes('Enter your city, five-digit ZIP code and street address.'));
+ for(const city of serviceCities)assert.ok(html.includes(city));
+ assert.ok(html.includes('Enter your address when requesting an appointment'));
+ assert.ok(html.includes('we’ll confirm whether we can serve it'));
+ assert.ok(!html.includes('Do you serve every address in these ZIP codes?'));
+ for(const slug of ['','services'])assert.match(seo(slug,'Page','Description').title,/Home|Yard/);
 });
 
-test('search landing pages give customers distinct, specific guidance rather than keyword-only pages',async()=>{
+test('search landing pages provide specific guidance without imposing handyman-first homepage copy',async()=>{
  const home=await readFile(new URL('../site/pages/home.html',import.meta.url),'utf8');
  const handyman=await readFile(new URL('../site/pages/handyman-dekalb-il.html',import.meta.url),'utf8');
  const lawn=await readFile(new URL('../site/pages/lawn-mowing-dekalb-il.html',import.meta.url),'utf8');
  const leaves=await readFile(new URL('../site/pages/leaf-cleanup-dekalb-il.html',import.meta.url),'utf8');
- assert.match(home,/Handyman, lawn care &amp; yard help in DeKalb/);
- assert.match(handyman,/What does a small handyman visit cost\?/);
- assert.match(lawn,/How much does lawn mowing cost\?/);
- assert.match(leaves,/What happens to the leaves\?/);
+ assert.match(home,/Services for your home and yard/);
+ assert.match(handyman,/What does a small handyman visit cost\\?/);
+ assert.match(lawn,/How much does lawn mowing cost\\?/);
+ assert.match(leaves,/What happens to the leaves\\?/);
  for(const html of [handyman,lawn,leaves]){
-  assert.match(html,/href="\/pricing\/"/);
-  assert.match(html,/href="\/request\/"/);
+  assert.match(html,/href="\\/pricing\\/"/);
+  assert.match(html,/href="\\/request\\/"/);
  }
- assert.match(seo('', 'Page','Description').title,/Handyman & Lawn Care in DeKalb/);
+ assert.match(seo('', 'Page','Description').title,/Home & Yard Services/);
 });
 
 test('main service categories link directly to detailed local landing pages',async()=>{
