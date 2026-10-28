@@ -88,3 +88,11 @@ test('Today preserves the first upcoming visit in the secondary queue when activ
 test('running work outranks paused work in the primary Today card',()=>{
  assert.match(s,/const activeWork=shownWork\.find\(j=>j\.status==='working'\)\|\|shownWork\.find\(j=>j\.status==='paused'\)/);
 });
+
+test('field search clearly distinguishes jobs, appointments and independent decisions for the same customer',()=>{
+ assert.match(s,/const matchingKinds=\[/);
+ assert.match(s,/matchingKinds\?' · '\+matchingKinds/);
+ assert.match(s,/Invoice needed · Job/);
+ assert.match(s,/Appointment · \{time\(c\.arrivalAt\)\}/);
+ assert.match(s,/Decision needed/);
+});
