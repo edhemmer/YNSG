@@ -14,6 +14,9 @@ export function appleProviderToken(team:string,keyId:string,pem:string,now=Date.
 }
 export function classifyAppleResponse(status:number,body:string):PushOutcome{
  if(status===200)return {state:'accepted',code:'apns_accepted',disable:false};
+ // Provider throttling and outages are not permanent device rejection.
+ // Preserve an uncertain outcome for queue reconciliation rather than losing the alert.
+ if(status===429||status>=500||status===0)return {state:'unknown',code:'apns_transient_unconfirmed',disable:false};
  let reason='apns_rejected';try{const value=JSON.parse(body)?.reason;if(typeof value==='string'&&/^[A-Za-z]{1,80}$/.test(value))reason=value;}catch{}
  return {state:'rejected',code:reason,disable:status===410||['BadDeviceToken','DeviceTokenNotForTopic','Unregistered'].includes(reason)};
 }
