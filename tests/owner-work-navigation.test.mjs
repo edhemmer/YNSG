@@ -33,7 +33,8 @@ test('field job status quick filters preserve all jobs and backend pagination',(
  assert.match(owner,/setPage\(0\);setStatusFilter\(value\)/);
  assert.match(owner,/aria-pressed=\{statusFilter===value\}/);
  assert.match(owner,/Choose All to see other jobs/);
- assert.match(owner,/data\.hasMore\|\|page>0/);
+ assert.match(owner,/visible\.hasMore\|\|page>0/);
+ assert.match(owner,/snapshotKey===organization\+':'\+page\+':'\+statusFilter/);
 });
 
 test('job filters apply before database pagination and retain owner authorization',()=>{
