@@ -106,8 +106,8 @@ function WorkflowQuoteForm({request,busy,submit,organization,canLink}:{request:I
 }
 
 function CustomerAgreement({quote,blocked,submit}:{quote:LinkedQuote;blocked:boolean;submit:(value:Record<string,unknown>)=>Promise<unknown>}){
- const [dirty,setDirty]=useState(false);
+ const [dirty,setDirty]=useState(false),[evidence,setEvidence]=useState('');
  useUnsavedEntry('agreement-evidence:'+quote.id,dirty);
  return <form onChangeCapture={()=>setDirty(true)} onSubmit={e=>{e.preventDefault();void submit({command:'ApproveQuote',id:quote.id,version:quote.current_version,evidence:new FormData(e.currentTarget).get('evidence')}).then(result=>{if((result as {ok?:boolean}|undefined)?.ok)setDirty(false);});}}>
- <fieldset disabled={blocked}><label>How did the customer agree to this work and amount?<textarea name="evidence" required minLength={10} maxLength={2000} placeholder="For example: customer agreed by phone today to the listed work and amount."/></label><button>Record customer agreement</button></fieldset></form>;
+ <fieldset disabled={blocked}><p className="tiny">Choose wording only after the customer has actually agreed to the saved scope and price. Review or edit it before saving.</p><div className="field-command-actions"><button type="button" className="secondary" onClick={()=>{setEvidence("Customer confirmed by phone that they accept the saved work and price.");setDirty(true);}}>Agreed by phone</button><button type="button" className="secondary" onClick={()=>{setEvidence("Customer confirmed in person that they accept the saved work and price.");setDirty(true);}}>Agreed in person</button></div><label>How did the customer agree to this work and amount?<textarea name="evidence" required minLength={10} maxLength={2000} value={evidence} onChange={e=>{setEvidence(e.target.value);setDirty(true);}} placeholder="Record what the customer actually agreed to."/></label><button disabled={evidence.trim().length<10}>Record customer agreement</button></fieldset></form>;
 }
