@@ -14,7 +14,7 @@ export default function OwnerWork({organization,revision,onOpen}:{organization:s
  },[organization,revision,page,statusFilter,retry]);
  const visible=data&&snapshotKey===organization+':'+page+':'+statusFilter?data:null;
  return <section className="card owner-jobs-compact" aria-label="Unfinished jobs">
- <header className="owner-jobs-heading"><p>{visible?visible.total+' unfinished '+(visible.total===1?'job':'jobs'):'Unfinished work'}</p></header>
+ <header className="owner-jobs-heading"><p>{visible?visible.total+' unfinished '+(visible.total===1?'job':'jobs'):'Unfinished work'}</p><button type="button" className="secondary" disabled={refreshing} aria-label="Refresh current jobs" onClick={()=>setRetry(n=>n+1)}>{refreshing?'Refreshing…':'Refresh jobs'}</button></header>
  {error&&<div role="alert"><p className="error">{visible?'Could not refresh jobs; showing the last saved view. ':'Could not load jobs. '}{error}</p><button type="button" className="secondary" onClick={()=>setRetry(n=>n+1)}>Retry jobs</button></div>}{!visible?<p role="status">Loading jobs…</p>:<>
  {refreshing&&<span className="tiny" role="status">Checking current job status…</span>}
  <div className="owner-job-filters" role="group" aria-label="Filter unfinished jobs">{([["all","All"],["working","In progress"],["paused","Paused"],["completed","Needs invoice"]] as const).map(([value,label])=><button key={value} type="button" className={statusFilter===value?"button":"secondary"} aria-pressed={statusFilter===value} onClick={()=>{setPage(0);setStatusFilter(value);}}>{label}</button>)}</div>
