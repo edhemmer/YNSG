@@ -3,7 +3,7 @@ export const brand='Your Neighborhood Service Guy';
 export const serviceCities=['DeKalb','Sycamore','Cortland'];
 export const canonicalUrl=slug=>WEBSITE_ORIGIN+(slug?'/'+slug:'/');
 const titles={
- '':'Handyman & Lawn Care in DeKalb, Sycamore & Cortland',
+ '':'Home & Yard Services | Sycamore, DeKalb & Nearby',
  services:'Home & Yard Services in DeKalb, Sycamore & Cortland',
  pricing:'Home & Yard Rates in DeKalb, IL',
  about:'About Our DeKalb Area Home & Yard Service',
