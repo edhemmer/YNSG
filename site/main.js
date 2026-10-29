@@ -69,7 +69,7 @@ if(form){
       const count=[...selected.values()].filter(item=>item.service===service).length;
       group.querySelector('.category-count').textContent=count ? `${count} selected` : '';
     }
-    form.querySelector('#service-count').textContent=selected.size ? `${selected.size} ${selected.size===1?'job':'jobs'} selected.` : 'No jobs selected yet.';
+    form.querySelector('#service-count').textContent=selected.size ? `${selected.size} ${selected.size===1?'job':'jobs'} selected.` : 'No jobs selected yet. Open a category above to choose what you need.';
     description.required = [...selected.values()].some(x=>x.service === 'Something else');
     form.querySelector('label[for="description"] .optional').textContent=description.required?'Required for another job':'Optional';
     description.minLength = description.required ? 10 : 0;
