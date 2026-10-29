@@ -398,3 +398,11 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
 .service-icon{display:inline-block;flex:0 0 28px;width:28px;height:28px;color:var(--forest,#315941)}
 .home-services .home-service h3 .service-icon{flex-basis:25px;width:25px;height:25px}
 @media(max-width:590px){.detail-list article h2 .service-icon{flex-basis:24px;width:24px;height:24px}}
+
+/* Service exploration and appointment request are separate, fully clickable actions. */
+.home-service-grid > .home-service-card { min-width:0; display:flex; flex-direction:column; border:1px solid #ced9d0; border-radius:16px; overflow:hidden; background:#fff; }
+.home-service-grid .home-service-card > .home-service { flex:1; width:100%; border:0; border-radius:0; box-shadow:none; }
+.home-service-grid .home-service-book {display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 20px; min-height:48px; border-top:1px solid #d5ded6; color:var(--forest);font-size:1rem;font-weight:700;text-decoration:underline;text-underline-offset:3px;}
+.home-service-grid .home-service-card:focus-within {outline:2px solid var(--forest);outline-offset:3px}
+.home-service-grid .home-service-card > a:hover {background:#eef5ec;}
+@media(max-width:590px){.home-service-grid > .home-service-card{border-radius:0;border:0;border-bottom:1px solid #d7e0d6}.home-service-grid .home-service-book{padding:12px 16px;}}
