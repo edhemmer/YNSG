@@ -28,7 +28,16 @@ export function bookingJourney({form,services,requestData}){
   message.textContent='';show(Math.min(3,step+1));refresh();
  }
  progress.hidden=false;form.dataset.guidedBooking='true';form.noValidate=true;form.querySelectorAll('[data-stage-controls]').forEach(s=>s.hidden=false);
- form.querySelector('#booking-services-next').addEventListener('click',advance);nextTime.addEventListener('click',advance);
+ form.querySelector('#booking-services-next').addEventListener('click',advance);
+ form.querySelector('#booking-skip-time').addEventListener('click',()=>{
+  if(locked())return;
+  if(!services().length){message.textContent='Choose at least one job to continue.';form.querySelector('#service-count').focus();return;}
+  const description=form.querySelector('#description');if(!description.checkValidity()){description.reportValidity();return;}
+  // No slot is reserved; the owner will contact the customer to arrange a visit.
+  if(form.dataset.appointmentStart){message.textContent='You already selected a time. Go to the time step to change it.';show(2);return;}
+  arrange=true;hadTime=false;message.textContent='';show(3);refresh();
+ });
+ nextTime.addEventListener('click',advance);
  progress.querySelectorAll('[data-booking-step]').forEach(b=>b.addEventListener('click',()=>{if(!locked()&&Number(b.dataset.bookingStep)<=step){message.textContent='';show(Number(b.dataset.bookingStep));refresh();}}));
  form.querySelectorAll('[data-booking-back]').forEach(b=>b.addEventListener('click',()=>{if(!locked()){message.textContent='';show(Number(b.dataset.bookingBack));refresh();}}));
  form.querySelector('#calendar-clear').addEventListener('click',()=>{if(locked())return;arrange=true;hadTime=false;show(3);});
