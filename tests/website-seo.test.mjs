@@ -93,7 +93,7 @@ test('homepage primary service cards link directly to indexable local service pa
  const html=await readFile(new URL('../site/pages/home.html',import.meta.url),'utf8');
  const urls=['handyman-dekalb-il','lawn-mowing-dekalb-il','mulch-yard-cleanup-dekalb-il','snow-removal-dekalb-il','concrete-pressure-washing-dekalb-il'];
  for(const slug of urls){
-  assert.match(html,new RegExp('<a class="home-service" href="/'+slug+'/">'),slug+' card must lead to the relevant service page');
+  assert.match(html,new RegExp('<a class="home-service" href="/'+slug+'/"(?:\\s|>)'),slug+' card must lead to the relevant service page');
  }
 });
 
