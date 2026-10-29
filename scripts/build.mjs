@@ -31,7 +31,7 @@ const pages = {
   '': ['Home & Yard Services in Sycamore, DeKalb & Nearby', 'Lawn mowing, yard cleanup, mulch, small home repairs and seasonal services near Sycamore, DeKalb and Cortland, IL. Request an appointment online.', 'home'],
   services: ['Home & Yard Services', 'Lawn care, yard and garden help, concrete pressure washing, residential snow clearing and small jobs around the home in DeKalb, Sycamore and Cortland.', 'services'],
   'service-area': ['Home & Yard Help in DeKalb, Sycamore & Cortland', 'Local home and yard services in DeKalb, Sycamore and Cortland, Illinois. Check our service area, appointment hours and how to request a visit.', 'service-area'],
-  pricing: ['Pricing & Community Rate', 'Home and yard help in DeKalb, Sycamore and Cortland, IL: $60/hour standard or $45/hour Community Rate, with a two-hour minimum. Lawn, snow and concrete washing priced separately.', 'pricing'],
+  pricing: ['Pricing & Community Rate', 'Home and yard labor starts at $60/hour, or $45/hour for eligible community-rate neighbors, with a two-hour minimum. See other service rates.', 'pricing'],
   about: ['About Your Neighborhood Service Guy', 'Meet the owner of Your Neighborhood Service Guy, serving DeKalb, Sycamore and Cortland, IL with small home jobs, lawn and seasonal yard services.', 'about'],
   request: ['Request a Service Appointment', 'Request home or yard service in DeKalb, Sycamore or Cortland, IL. No account needed. We review your request and confirm appointments after approval.', 'request'],
   'handyman-dekalb-il': ['Handyman Help in DeKalb, Sycamore & Cortland', 'Local handyman help in DeKalb, Sycamore and Cortland, IL. Furniture assembly, small drywall repairs and household setup within our safety limits.', 'handyman-dekalb-il'],
