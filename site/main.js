@@ -143,6 +143,9 @@ if(form){
     const community=form.querySelector(`input[name=communityRate][value="${data.communityRate==='Yes'?'Yes':'No'}"]`);community.checked=true;
     selected.clear();
     for(const item of data.services){if(item&&Object.hasOwn(tasks,item.service)&&tasks[item.service].includes(item.task)&&selected.size<15){selected.set(key(item.service,item.task),{service:item.service,task:item.task});categoryGroups.get(item.service).open=true;}}
+    // A deep-linked service is additive to an unfinished draft, not a replacement.
+    // A pending send is immutable until its original outcome has been reconciled.
+    if(recovered.kind==='draft' && params.has('service'))choose(params.get('service') || '',params.get('task') || '');
     refresh();draftNote.hidden=false;
     if(recovered.kind==='pending'){
       pendingSubmission={data,editable:editableControls()};form.dataset.deliveryUnknown='true';lockControls(pendingSubmission.editable);
