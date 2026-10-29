@@ -392,3 +392,9 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
   }
   .home-section-heading { flex-wrap: wrap; }
 }
+
+/* Consistent visual service cues; keep hero photos and existing card grid unchanged. */
+.home-services .home-service h3,.detail-list article h2{display:flex;align-items:center;gap:12px;min-width:0;flex-wrap:wrap}
+.service-icon{display:inline-block;flex:0 0 28px;width:28px;height:28px;color:var(--forest,#315941)}
+.home-services .home-service h3 .service-icon{flex-basis:25px;width:25px;height:25px}
+@media(max-width:590px){.detail-list article h2 .service-icon{flex-basis:24px;width:24px;height:24px}}
