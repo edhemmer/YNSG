@@ -335,3 +335,30 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
   }
   .premium-hero .hero-local { margin-bottom: 12px; }
 }
+
+/* Homepage service cards: HTML has exactly two children (copy + arrow).
+   Reserve no phantom icon column; keep readable copy at every breakpoint. */
+.home-services .home-service {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px;
+  column-gap: 16px;
+  align-items: center;
+}
+.home-services .home-service .service-copy {
+  display: block;
+  min-width: 0;
+  width: auto;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+.home-services .home-service .service-arrow {
+  grid-column: 2;
+  justify-self: end;
+  align-self: center;
+}
+@media (max-width: 590px) {
+  .home-services .home-service {
+    grid-template-columns: minmax(0, 1fr) 20px;
+    column-gap: 12px;
+  }
+}
