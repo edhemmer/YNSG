@@ -29,7 +29,7 @@ await cp(join(root,'lib','appointment-window.js'),join(output,'appointment-windo
 const form = await readFile(join(source,'pages','form.html'),'utf8');
 const pages = {
   '': ['Home & Yard Services in Sycamore, DeKalb & Nearby', 'Lawn mowing, yard cleanup, mulch, small home repairs and seasonal services near Sycamore, DeKalb and Cortland, IL. Request an appointment online.', 'home'],
-  services: ['Home & Yard Services', 'Lawn mowing, yard care, furniture assembly, light moving and small household cleanouts in DeKalb, Sycamore and Cortland, Illinois.', 'services'],
+  services: ['Home & Yard Services', 'Lawn mowing, yard care, furniture assembly and small household cleanouts in DeKalb, Sycamore and Cortland, Illinois.', 'services'],
   'service-area': ['Home & Yard Help in DeKalb, Sycamore & Cortland', 'Local home and yard services in DeKalb, Sycamore and Cortland, Illinois. Check our service area, appointment hours and how to request a visit.', 'service-area'],
   pricing: ['Pricing & Community Rate', 'Home and yard labor starts at $60/hour, or $45/hour for eligible community-rate neighbors, with a two-hour minimum. See other service rates.', 'pricing'],
   about: ['About Your Neighborhood Service Guy', 'Meet the owner of Your Neighborhood Service Guy, serving DeKalb, Sycamore and Cortland, IL with small home jobs, lawn and seasonal yard services.', 'about'],
