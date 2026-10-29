@@ -10,7 +10,11 @@ export default function OwnerWork({organization,revision,onOpen}:{organization:s
  const [snapshotKey,setSnapshotKey]=useState(''),[refreshing,setRefreshing]=useState(false);const [page,setPage]=useState(0),[statusFilter,setStatusFilter]=useState<'all'|'working'|'paused'|'completed'>('all'),[data,setData]=useState<OwnerWork|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
  useEffect(()=>{let live=true,inFlight=false;const controller=new AbortController();setError('');
   async function read(){if(inFlight)return;inFlight=true;setRefreshing(true);try{const r=await sessionFetch('/api/owner-work?'+new URLSearchParams({organization,page:String(page),status:statusFilter}),{cache:'no-store',signal:controller.signal});const d=await r.json();if(!r.ok)throw Error(d.error);if(live){setData(ownerWorkResponse.parse(d));setSnapshotKey(organization+':'+page+':'+statusFilter);setError('');}}catch(e){if(live&&!controller.signal.aborted){setError(publicError(e));}}finally{inFlight=false;if(live)setRefreshing(false);}}
-  void read();const timer=setInterval(()=>{if(document.visibilityState==='visible')void read();},30000);return()=>{live=false;controller.abort();clearInterval(timer);};
+  void read();const timer=setInterval(()=>{if(document.visibilityState==='visible')void read();},30000);
+  // Returning from directions or another app should show the latest job state promptly.
+  const onReturn=()=>{if(document.visibilityState==='visible')void read();};
+  document.addEventListener('visibilitychange',onReturn);
+  return()=>{live=false;controller.abort();clearInterval(timer);document.removeEventListener('visibilitychange',onReturn);};
  },[organization,revision,page,statusFilter,retry]);
  const visible=data&&snapshotKey===organization+':'+page+':'+statusFilter?data:null;
  return <section className="card owner-jobs-compact" aria-label="Unfinished jobs">
