@@ -184,7 +184,7 @@
         "WEB-03",
         "WEB-04"
       ],
-      "nextAction": "Verify the source-backed outdoor weather review under #36: explicit Census street-range review, canonical visit/version/owner rechecks, complete NWS hourly/active-alert evidence, freshness/outage/SSRF boundaries and owner-only scheduling review entry point. No automatic weather changes/messages or paid/model activation. Actual provider/device and route/reminder acceptance remain separate.",
+      "nextAction": "Verify the source-backed outdoor weather review under #36: explicit Census street-range review, canonical visit/version/owner rechecks, complete NWS hourly/active-alert evidence, freshness/outage/SSRF boundaries and owner-only scheduling review entry point. No automatic weather changes/messages or paid/model activation. Actual provider/device and route/reminder acceptance remain separate. October 25 day-route enhancement exposes all 12 bounded loaded visits with local date/time, address and direct job/call/directions actions; company-scoped reads and 15-second timeout prevent stale-company display and indefinite loading. Require exact-head release/browser/PostgreSQL verification and actual device acceptance.",
       "acceptance": "Next action comes from saved records; citations/current revisions; proposals cannot approve/book/charge/send; injection and provider outage cannot bypass authority; optional AI disabled without approved provider/budget.",
       "requiredEvidence": "Scenario tests for incomplete records, stale data, prohibited commands, no provider and recovery.",
       "evidence": []
