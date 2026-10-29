@@ -8,7 +8,7 @@ import {navigationUrl} from '../lib/day-plan';
 const directionsFor=(address:string)=>navigationUrl(address);
 export default function OwnerWork({organization,revision,onOpen}:{organization:string;revision:number;onOpen:(requestId:string)=>void}){
  const [snapshotKey,setSnapshotKey]=useState(''),[refreshing,setRefreshing]=useState(false);const [page,setPage]=useState(0),[statusFilter,setStatusFilter]=useState<'all'|'working'|'paused'|'completed'>('all'),[data,setData]=useState<OwnerWork|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
- useEffect(()=>{let live=true,inFlight=false;const controller=new AbortController();setData(null);setSnapshotKey('');setError('');
+ useEffect(()=>{let live=true,inFlight=false;const controller=new AbortController();setError('');
   async function read(){if(inFlight)return;inFlight=true;setRefreshing(true);try{const r=await sessionFetch('/api/owner-work?'+new URLSearchParams({organization,page:String(page),status:statusFilter}),{cache:'no-store',signal:controller.signal});const d=await r.json();if(!r.ok)throw Error(d.error);if(live){setData(ownerWorkResponse.parse(d));setSnapshotKey(organization+':'+page+':'+statusFilter);setError('');}}catch(e){if(live&&!controller.signal.aborted){setError(publicError(e));}}finally{inFlight=false;if(live)setRefreshing(false);}}
   void read();const timer=setInterval(()=>{if(document.visibilityState==='visible')void read();},30000);return()=>{live=false;controller.abort();clearInterval(timer);};
  },[organization,revision,page,statusFilter,retry]);
