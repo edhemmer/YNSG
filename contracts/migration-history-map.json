@@ -1,8 +1,8 @@
 {
   "observedOn": "2026-10-30",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
-  "sourceBranch": "codex/customer-accounts-request-buttons-20261026",
-  "sourceCommit": "31f89c3e7c5f9a4006786e5bdb8e15904bd9d2e5",
+  "sourceBranch": "codex/service-page-experience",
+  "sourceCommit": "3e8ee2929755f48f7e4abde553577013af652039",
   "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
   "repositoryMigrations": [
     {
@@ -429,6 +429,11 @@
       "file": "20261030090000_customer_service_history.sql",
       "name": "customer_service_history",
       "historyVersion": "20261030134345"
+    },
+    {
+      "file": "20261030180000_task_time_learning.sql",
+      "name": "task_time_learning",
+      "historyVersion": "20261030191815"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [

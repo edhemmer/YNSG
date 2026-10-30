@@ -193,7 +193,7 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.95fr) minm
  .premium-hero .hero-buttons{grid-row:4}.premium-hero .hero-lead{grid-row:5}.premium-hero .hero-foot{grid-row:6}
  .neighbor-slide figcaption{font-size:1.05rem;padding:14px 16px 6px;min-height:66px}
  .carousel-controls{padding:0 8px 8px}.carousel-controls button{width:44px;min-width:44px}
- .mobile-rail a{gap:6px}.mobile-rail a:first-child{flex-basis:88px;flex-direction:column;font-size:.85rem}.mobile-rail a:last-child{gap:6px;font-size:.94rem}.mobile-rail .ui-icon{width:20px;height:20px}
+ .mobile-rail a{gap:6px}.mobile-rail a:first-child{flex-basis:88px;flex-direction:column;font-size:.875rem}.mobile-rail a:last-child{gap:6px;font-size:.94rem}.mobile-rail .ui-icon{width:20px;height:20px}
 }
 @media(max-width:590px){
  .home-service{grid-template-columns:38px minmax(0,1fr) 18px;gap:10px}.home-service .service-symbol{display:grid;width:38px;height:38px}.service-symbol svg{width:24px;height:24px}
@@ -238,10 +238,10 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
 .site-header .brand img{display:block;width:78px;max-width:30%;height:auto;flex-shrink:0}
 .site-header .brand-identity{display:flex;flex-direction:column;gap:2px;min-width:0;color:var(--navy);line-height:1.13}
 .site-header .brand-identity strong{font-size:16px;letter-spacing:-.015em;font-weight:800}
-.site-header .brand-identity small{font-size:12px;font-weight:700;color:var(--forest);letter-spacing:.025em}
+.site-header .brand-identity small{font-size:14px;font-weight:700;color:var(--forest);letter-spacing:.025em}
 @media(max-width:1100px){.site-header .brand{width:235px;gap:7px}.site-header .brand img{width:65px}.site-header .brand-identity strong{font-size:14px}}
 @media(max-width:850px){.site-header .brand{width:auto;max-width:calc(100% - 100px);gap:9px}.site-header .brand img{width:68px}.site-header .brand-identity strong{font-size:clamp(13px,3.8vw,17px)}}
-@media(max-width:390px){.site-header .brand{max-width:100%;gap:7px}.site-header .brand img{width:58px}.site-header .brand-identity strong{font-size:13px}.site-header .brand-identity small{font-size:11px}}
+@media(max-width:390px){.site-header .brand{max-width:100%;gap:7px}.site-header .brand img{width:58px}.site-header .brand-identity strong{font-size:14px}.site-header .brand-identity small{font-size:14px}}
 
 /* Header hierarchy: brand first, booking call-to-action second. */
 @media(max-width:850px){.site-header .nav-mobile a[href="/request/"],.site-header .nav-mobile a[href="/request"]{background:#f3f6f2;color:var(--navy);border:1px solid #c1d0c5}}
@@ -256,7 +256,7 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
  .site-header .brand-identity{min-width:0;flex:1}
  .site-header .brand-identity strong{font-size:clamp(16px,4vw,19px);line-height:1.13;letter-spacing:-.02em}
  .site-header .brand-identity strong br{display:none}
- .site-header .brand-identity small{font-size:12px}
+ .site-header .brand-identity small{font-size:14px}
  .site-header .header-actions,.site-header .nav-desktop{display:none!important}
  .site-header .nav-mobile{display:grid;grid-column:1;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;width:100%;margin:0;min-width:0}
  .site-header .nav-mobile>a{display:flex;justify-content:center;align-items:center;min-width:0;min-height:40px;padding:7px 3px;border:0;border-radius:5px;font-size:clamp(12px,3vw,14px);font-weight:650;line-height:1.2;text-align:center;overflow-wrap:normal;white-space:normal}
@@ -264,7 +264,7 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
  .mobile-rail{display:none!important}
  .site-footer{padding-bottom:0}
 }
-@media(max-width:390px){.site-header .brand img{width:57px;flex-basis:57px}.site-header .brand-identity strong{font-size:15px}.site-header .nav-mobile>a{font-size:12px}}
+@media(max-width:390px){.site-header .brand img{width:57px;flex-basis:57px}.site-header .brand-identity strong{font-size:15px}.site-header .nav-mobile>a{font-size:14px}}
 
 /* Approved identity: display the ORIGINAL full brand logo, not a reconstructed text lockup. */
 .site-header .brand{display:flex;align-items:center;width:228px;min-width:0;max-width:100%;flex-shrink:0}
@@ -431,7 +431,7 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
 .service-picker-assurance{padding-top:1rem;border-top:1px solid #cbd8ca}
 @media(max-width:1150px){.service-explorer .home-service-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:850px){.service-explorer{grid-template-columns:minmax(0,1fr)}.service-request-panel{max-width:100%}}
-@media(max-width:590px){.service-explorer .home-service-grid{grid-template-columns:minmax(0,1fr)}.service-explorer .home-service-card{border:1px solid #ced9d0;border-radius:12px}.service-benefits li{font-size:.85rem}}
+@media(max-width:590px){.service-explorer .home-service-grid{grid-template-columns:minmax(0,1fr)}.service-explorer .home-service-card{border:1px solid #ced9d0;border-radius:12px}.service-benefits li{font-size:.875rem}}
 
 .home-service-card .service-arrow{font-size:.9rem;font-weight:700;margin-top:auto;align-self:flex-start;margin-left:1rem;text-decoration:underline;text-underline-offset:3px}
 

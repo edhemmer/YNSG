@@ -1,3 +1,4 @@
+import {choicesFromUrl,readServiceSelection,saveServiceSelection,clearServiceSelection} from './service-selection.js';
 import {serviceCatalog} from './service-catalog.js';
 import {cityPostalPicker} from './city-postal-codes.js';
 import {deliverRequest} from './request-delivery.js';
@@ -41,6 +42,7 @@ if(form){
   const description = form.querySelector('#description');
   const message = form.querySelector('#form-message');
   const selected = new Map();
+  let tabStorage;try{tabStorage=sessionStorage;}catch{}
   const key = (service, task) => `${service}::${task}`;
   const refresh = () => {
     list.replaceChildren();
@@ -68,6 +70,7 @@ if(form){
     form.querySelector('label[for="description"] .optional').textContent=description.required?'Required for another job':'Optional';
     description.minLength = description.required ? 10 : 0;
     description.placeholder = description.required ? 'Tell us what you need done.' : 'A short note is fine.';
+    form.dispatchEvent(new CustomEvent('request-services-changed'));
     form.querySelector('#water-note').hidden = ![...selected.values()].some(x=>x.service === 'Concrete pressure washing');
   };
   const names={'Help around the home':'Home jobs','Lawn care':'Lawn care','Yard & garden':'Yard & garden','Snow clearing':'Snow clearing','Concrete pressure washing':'Concrete pressure washing','Something else':'Something else'};
@@ -108,9 +111,8 @@ if(form){
   refresh();
   const params=new URLSearchParams(location.search);
   function chooseLinkedJobs(){
-    for(const encoded of params.getAll('job').slice(0,15)){
-      try{const item=JSON.parse(encoded);if(item&&typeof item.service==='string'&&typeof item.task==='string'&&Object.hasOwn(tasks,item.service)&&tasks[item.service].includes(item.task))choose(item.service,item.task);}catch{/* Ignore malformed URL choices. */}
-    }
+    const choices=params.has('job')?choicesFromUrl(params):readServiceSelection(tabStorage);
+    for(const item of choices)choose(item.service,item.task);
   }
   choose(params.get('service') || '',params.get('task') || '');
   chooseLinkedJobs();
@@ -127,7 +129,6 @@ if(form){
     setTimeout(()=>categoryGroups.get(link.dataset.service)?.querySelector('summary').focus({preventScroll:true}),350);
   }));
   let requestKey='', requestFingerprint='',sending=false,pendingSubmission=null;
-  let tabStorage;try{tabStorage=sessionStorage;}catch{}
   const recovery=requestRecovery(tabStorage),recovered=recovery.read();
   const draftNote=form.querySelector('#draft-note'),clearDraft=form.querySelector('#clear-draft');
   cityPostalPicker(form);
@@ -137,6 +138,7 @@ if(form){
     const data=Object.fromEntries(new FormData(form));
     const draft=Object.fromEntries(contactFields.map(name=>[name,data[name]||'']));
     draft.communityRate=data.communityRate||'No';draft.services=[...selected.values()];
+    saveServiceSelection(tabStorage,draft.services);
     if(recovery.saveDraft(draft)){draftNote.hidden=false;clearDraft.hidden=false;}
   }
   const editableControls=()=>[...form.querySelectorAll('input,textarea,select,button,summary')].map(element=>({element,disabled:element.disabled,tabIndex:element.tabIndex}));
@@ -163,11 +165,12 @@ if(form){
   form.addEventListener('input',saveDraft);form.addEventListener('change',saveDraft);
   clearDraft.addEventListener('click',()=>{
     if(pendingSubmission||sending)return;
-    recovery.clear();form.reset();selected.clear();refresh();form.dispatchEvent(new CustomEvent('appointment-conflict'));
+    recovery.clear();clearServiceSelection(tabStorage);form.reset();selected.clear();refresh();form.dispatchEvent(new CustomEvent('appointment-conflict'));
     draftNote.hidden=true;clearDraft.hidden=true;message.textContent='Saved details cleared. You can start a new request.';form.querySelector('#service-heading').focus();
   });
 
-  const journey=bookingJourney({form,services:()=>[...selected.values()],requestData:()=>pendingSubmission?.data||Object.fromEntries(new FormData(form))});
+  const journey=bookingJourney({form,resumeSelected:selected.size>0,services:()=>[...selected.values()],requestData:()=>pendingSubmission?.data||Object.fromEntries(new FormData(form))});
+  if(selected.size&&!pendingSubmission){const hero=document.querySelector('.booking-hero');if(hero){hero.querySelector('h1').textContent='Continue your service request';hero.querySelector('p:not(.overline)').textContent=journey.currentStep()===2?'Your jobs are selected. Choose a preferred time or have us arrange one, then add your details.':'Your jobs are selected. Add a short note about the other work so we can review it with you.';}}
   addressCheck(form);
   form.addEventListener('submit',async event=>{
     event.preventDefault();
@@ -202,7 +205,7 @@ if(form){
     let refreshCalendar=false;
     try{
       await deliverRequest(data);
-      recovery.clear();
+      recovery.clear();clearServiceSelection(tabStorage);
       form.dataset.deliveryUnknown='false';
       form.hidden=true;
       const success=document.querySelector('#form-success');

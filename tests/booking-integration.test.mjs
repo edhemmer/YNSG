@@ -1,3 +1,4 @@
+import {choicesFromUrl,readServiceSelection,saveServiceSelection,clearServiceSelection} from '../site/service-selection.js';
 import {serviceCatalog} from '../site/service-catalog.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,10 +12,11 @@ import {bookingJourney} from '../site/booking-journey.js';
 import {requestRecovery} from '../site/request-recovery.js';
 const html=readFileSync(new URL('../site/pages/form.html',import.meta.url),'utf8');
 const source=readFileSync(new URL('../site/main.js',import.meta.url),'utf8').replace(/^import .*;\r?\n/gm,'');
-function harness(outcomes=[],query='',saved=null){
+function harness(outcomes=[],query='',saved=null,pickerJobs=[]){
  const dom=new JSDOM(html,{url:'https://example.invalid/request'+query}),w=dom.window,form=w.document.querySelector('form'),bodies=[];
+ if(pickerJobs.length)saveServiceSelection(w.sessionStorage,pickerJobs);
  if(saved){const recovery=requestRecovery(w.sessionStorage);assert.equal(saved.kind==='pending'?recovery.savePending(saved.data):recovery.saveDraft(saved.data),true);}
- runInNewContext(source,{document:w.document,window:w,location:w.location,sessionStorage:w.sessionStorage,FormData:w.FormData,CustomEvent:w.CustomEvent,Event:w.Event,URLSearchParams,crypto:webcrypto,serviceCatalog,cityPostalPicker,addressCheck,bookingJourney,requestRecovery,matchMedia:()=>({matches:true}),deliverRequest:async data=>{bodies.push(JSON.stringify(data));const result=outcomes.shift();if(result instanceof Error)throw result;return {id:'11111111-1111-4111-8111-111111111111'};}});
+ runInNewContext(source,{document:w.document,window:w,location:w.location,sessionStorage:w.sessionStorage,FormData:w.FormData,CustomEvent:w.CustomEvent,Event:w.Event,URLSearchParams,crypto:webcrypto,choicesFromUrl,readServiceSelection,saveServiceSelection,clearServiceSelection,serviceCatalog,cityPostalPicker,addressCheck,bookingJourney,requestRecovery,matchMedia:()=>({matches:true}),deliverRequest:async data=>{bodies.push(JSON.stringify(data));const result=outcomes.shift();if(result instanceof Error)throw result;return {id:'11111111-1111-4111-8111-111111111111'};}});
  const click=s=>form.querySelector(s).click(),stage=()=>Number(form.querySelector('[data-stage]:not([hidden])').dataset.stage);
  return {dom,w,form,bodies,click,stage,choose:()=>click('.service-option input'),details:()=>{for(const [id,value] of Object.entries({name:'Synthetic customer',phone:'5550100999',email:'synthetic@example.invalid',street:'100 Synthetic Street',city:'DeKalb',postalCode:'60115'})){form.querySelector('#'+id).value=value;if(id==='city')form.querySelector('#city').dispatchEvent(new w.Event('change',{bubbles:true}));}},submit:async()=>{form.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await new Promise(resolve=>setImmediate(resolve));}};
 }
@@ -23,7 +25,7 @@ test('real service selection and guide preserve an identical request through unc
  // The picker dispatches this after explicitly clearing any previous hold.
  h.click('#calendar-clear');h.form.dispatchEvent(new h.w.CustomEvent('appointment-selection-changed'));h.details();await h.submit();
  assert.equal(h.bodies.length,1);assert.equal(h.form.dataset.deliveryUnknown,'true');assert.equal(h.form.querySelector('#name').disabled,true);assert.equal(h.form.querySelector('button[type=submit]').disabled,false);
- h.click('[data-booking-back="2"]');assert.equal(h.stage(),3);await h.submit();assert.equal(h.bodies[1],h.bodies[0]);assert.equal(h.form.hidden,true);assert.equal(h.w.document.querySelector('#form-success').hidden,false);
+ h.click('[data-booking-back="2"]');assert.equal(h.stage(),3);await h.submit();assert.equal(h.bodies[1],h.bodies[0]);assert.equal(h.form.hidden,true);assert.deepEqual(readServiceSelection(h.w.sessionStorage),[]);assert.equal(h.w.document.querySelector('#form-success').hidden,false);
  const body=JSON.parse(h.bodies[0]);assert.equal(body.services.length,1);assert.equal(body.appointmentSelection.start,null);assert.equal(body.appointmentHold,null);h.dom.window.close();
 });
 test('clearing saved details returns to services and final send validates required customer details',async()=>{
@@ -50,11 +52,22 @@ test('homepage categories open exact groups without selecting unrequested jobs',
 });
 
 test('exact homepage jobs arrive selected, reject invalid tasks and remain one request',()=>{
- const query=new URLSearchParams();query.append('job',JSON.stringify({service:'Lawn care',task:'Mowing'}));query.append('job',JSON.stringify({service:'Help around the home',task:'Furniture assembly'}));query.append('job',JSON.stringify({service:'Lawn care',task:'Invented task'}));query.append('job','broken');const h=harness([], '?'+query);assert.equal(h.form.querySelectorAll('.service-option input:checked').length,2);assert.match(h.form.querySelector('#selected-service-list').textContent,/Furniture assembly/);h.click('#booking-skip-time');assert.equal(h.stage(),3);assert.match(h.form.querySelector('#booking-summary').textContent,/2 jobs/);h.dom.window.close();
+ const query=new URLSearchParams();query.append('job',JSON.stringify({service:'Lawn care',task:'Mowing'}));query.append('job',JSON.stringify({service:'Help around the home',task:'Furniture assembly'}));query.append('job',JSON.stringify({service:'Lawn care',task:'Invented task'}));query.append('job','broken');const h=harness([], '?'+query);assert.equal(h.form.querySelectorAll('.service-option input:checked').length,2);assert.match(h.form.querySelector('#selected-service-list').textContent,/Furniture assembly/);assert.equal(h.stage(),2);assert.match(h.form.querySelector('#time-heading').textContent,/Step 2/);h.click('#calendar-clear');assert.equal(h.stage(),3);assert.match(h.form.querySelector('#booking-summary').textContent,/2 jobs/);h.dom.window.close();
 });
 
 test('job handoff merges drafts but cannot alter an uncertain submission',()=>{
  const data={description:'Saved work',name:'Synthetic',phone:'5550100999',email:'synthetic@example.invalid',street:'100 Synthetic Street',city:'DeKalb',postalCode:'60115',communityRate:'No',services:[{service:'Lawn care',task:'Mowing'}],requestKey:'11111111-1111-4111-8111-111111111111'};
  const query='?'+new URLSearchParams({job:JSON.stringify({service:'Help around the home',task:'Furniture assembly'})});
  for(const kind of ['draft','pending']){const h=harness([],query,{kind,data});assert.equal(h.form.querySelectorAll('.service-option input:checked').length,kind==='draft'?2:1);if(kind==='pending'){assert.equal(h.form.dataset.deliveryUnknown,'true');assert.equal(h.form.querySelector('#name').disabled,true);assert.doesNotMatch(h.form.querySelector('#selected-service-list').textContent,/Furniture assembly/);}h.dom.window.close();}
+});
+
+test('browser selections reach the main request and clearing details clears browsing choices',()=>{
+ const jobs=[{service:'Lawn care',task:'Leaf management'}],h=harness([], '',null,jobs);assert.equal(h.form.querySelectorAll('.service-option input:checked').length,1);h.details();h.form.querySelector('#name').dispatchEvent(new h.w.Event('input',{bubbles:true}));assert.equal(readServiceSelection(h.w.sessionStorage).length,1);h.click('#clear-draft');assert.deepEqual(readServiceSelection(h.w.sessionStorage),[]);h.dom.window.close();
+});
+
+test('sidebar handoff continues at time, edits jobs deliberately and keeps the optional note with final details',()=>{
+ const h=harness([], '?'+new URLSearchParams({job:JSON.stringify({service:'Lawn care',task:'Mowing'})}));assert.equal(h.stage(),2);assert.equal(h.form.querySelector('[data-booking-step="2"]').getAttribute('aria-current'),'step');assert.equal(h.form.querySelector('[data-booking-step="1"] span').textContent,'✓');assert.equal(h.form.querySelector('#booking-summary').hidden,false);assert.match(h.form.querySelector('#booking-summary').textContent,/Your selected jobs/);h.click('.booking-edit-jobs');assert.equal(h.stage(),1);assert.equal(h.form.querySelectorAll('.service-option input:checked').length,1);h.click('#booking-services-next');assert.equal(h.stage(),2);h.click('#calendar-clear');assert.equal(h.stage(),3);assert.ok(h.form.querySelector('[data-stage="3"]').contains(h.form.querySelector('#description')));h.dom.window.close();
+});
+test('preselected Something else asks only for its missing note, with an explicit route to edit jobs',()=>{
+ const h=harness([], '?'+new URLSearchParams({job:JSON.stringify({service:'Something else',task:'Describe below'})}));assert.equal(h.stage(),1);assert.equal(h.form.querySelector('#service-picker').hidden,true);assert.match(h.form.querySelector('#service-heading').textContent,/note about/);h.form.querySelector('#description').value='A small job to review together.';h.click('#booking-services-next');assert.equal(h.stage(),2);h.click('.booking-edit-jobs');assert.equal(h.form.querySelector('#service-picker').hidden,false);h.dom.window.close();
 });

@@ -30,7 +30,7 @@
     },
     {
       "id": "leaf-cleanup",
-      "title": "YNSG seasonal leaf cleanup and bagging",
+      "title": "YNSG seasonal leaf management",
       "alt": "Rake and gathered autumn leaves on a residential lawn.",
       "creator": "Your Neighborhood Service Guy — HOME & YARD",
       "rights": "© 2026 Your Neighborhood Service Guy. All rights reserved where applicable. AI-generated service illustration. Reuse requires permission; metadata does not establish exclusive rights in AI-generated content.",
@@ -150,6 +150,31 @@
           "height": 256,
           "size_bytes": 27976,
           "sha256": "389856f6a0be7676e8f4a62c4f55d2a37934e06054466933ab790915b5e6189d"
+        }
+      ]
+    },
+    {
+      "id": "cleanout",
+      "title": "YNSG cleanout trailer",
+      "alt": "YNSG’s black tandem-axle trailer with tow tongue and coupler; photograph digitally edited.",
+      "creator": "Your Neighborhood Service Guy — HOME & YARD",
+      "rights": "Owner-supplied equipment photograph with AI-edited setting and reconstructed towing assembly. Reuse requires permission.",
+      "generated_artwork": false,
+      "edited_background": true,
+      "variants": [
+        {
+          "filename": "ynsg-cleanout-trailer-v2-960.webp",
+          "width": 960,
+          "height": 540,
+          "size_bytes": 149502,
+          "sha256": "89573da4ffd6715009a2d376844661d66c20d24765a6ed3a340e4d6dc78136a1"
+        },
+        {
+          "filename": "ynsg-cleanout-trailer-v2-640.webp",
+          "width": 640,
+          "height": 360,
+          "size_bytes": 75484,
+          "sha256": "f889fda2d85d00e55680d7bad5791819baa35318fcf5c0fb17f20d2c725e0f9d"
         }
       ]
     }

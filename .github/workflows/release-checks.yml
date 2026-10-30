@@ -56,8 +56,10 @@ jobs:
             sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/apt-mirrors.txt
           fi
           pnpm exec playwright install --with-deps --only-shell chromium webkit
-      - name: Verify rendered public masthead and booking layouts
-        run: node scripts/verify-public-layout.mjs
+      - name: Verify public layouts and workflow text readability
+        run: |
+          node scripts/verify-public-layout.mjs
+          node scripts/verify-readability.mjs
       - name: Verify authentication through HTTP routes and real browser forms
         run: node scripts/verify-native-auth.mjs --browsers
       - name: Verify customer registration, own profile, request and account history

@@ -2,15 +2,8 @@ import {websiteGuard,websiteRequest} from '../lib/website-guard.js';
 import {appointmentSelection} from '../lib/appointment-window.js';
 import { randomUUID } from 'node:crypto';
 import { saveCrmRequest, IntakeFailure } from '../lib/public-intake.js';
-const services = new Set(['Lawn care','Yard & garden','Snow clearing','Help around the home','Concrete pressure washing','Something else']);
-const tasks = {
-  'Help around the home':['Furniture assembly','Shelving and organizing','Household product setup','Lightweight hanging','Small drywall patch','Moving manageable items','Several small jobs'],
-  'Lawn care':['Mowing','Trimming and edging','Mow, trim and blow-off','Leaf management','Recurring lawn care'],
-  'Yard & garden':['Pulling weeds by hand','Bulk or bagged mulch pickup, delivery & spreading','Spreading mulch','Planting small bushes','Planting flowers','Small bush trimming','Garden-bed cleanup','Moving yard materials'],
-  'Snow clearing':['Residential driveway','Sidewalks and walkways','Accessible entry','Driveway and walks'],
-  'Concrete pressure washing':['Concrete driveway','Concrete walks','Concrete patio'],
-  'Something else':['Describe below']
-};
+import {serviceCatalog as tasks} from '../site/service-catalog.js';
+const services = new Set(Object.keys(tasks));
 // Do not filter genuine inquiries by town: travel eligibility is an owner decision.
 const fail = (res,status,error) => res.status(status).json({error});
 const clean = (value,max) => typeof value === 'string' ? value.trim().slice(0,max+1) : '';

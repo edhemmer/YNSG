@@ -1,3 +1,4 @@
+import {verifyTaskTimeRaces} from './verify-task-time-races.mjs';
 import {verifyAccountDeletionRaces} from './verify-account-deletion-races.mjs';
 import {captureRecovery,snapshotDatabase} from './capture-recovery.mjs';
 import {verifyCustomerFileRestore} from './verify-customer-file-restore.mjs';
@@ -158,3 +159,4 @@ const capturedManifest=JSON.parse(await readFile(join(capturedDirectory,'verifie
 assert.equal(reconcileRecoveryCatalog(capturedCatalog,capturedManifest).verified,files.length);
 assert.deepEqual(JSON.parse((await sql(snapshotSql,'ynsg_capture')).trim()),before);
 console.log('PASS: source capture exports one live read-only snapshot; concurrent later write excluded from dump, all original files and financial records restored');
+await verifyTaskTimeRaces(sql);
