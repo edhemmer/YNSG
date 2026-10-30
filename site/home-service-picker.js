@@ -8,7 +8,7 @@ export function homeServicePicker(doc){
  const legend=doc.createElement('legend');legend.textContent='Choose your jobs';fieldset.append(legend);
  const status=doc.createElement('p');status.setAttribute('role','status');status.className='service-picker-status';
  const review=doc.createElement('ul');review.className='service-picker-selection';review.setAttribute('aria-label','Jobs in your request');
- fieldset.after(status,review);
+ fieldset.before(status,review);
  const submit=form.querySelector('button[type=submit]');
  function refresh(){
   review.replaceChildren();

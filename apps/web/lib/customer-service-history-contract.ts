@@ -1,0 +1,5 @@
+import {z} from 'zod';
+export const serviceHistoryQuery=z.object({organization:z.uuid(),customer:z.uuid().optional(),query:z.string().trim().max(100).regex(/^[^\x00-\x1f\x7f<>]*$/).default(''),page:z.coerce.number().int().min(0).max(10000).default(0)}).strict();
+const count=z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),stamp=z.iso.datetime({offset:true});
+export const serviceHistory=z.object({items:z.array(z.object({customerId:z.uuid(),name:z.string(),archived:z.boolean(),requestCount:count,generatedVisits:count,firstRequestedAt:stamp.nullable(),lastRequestedAt:stamp.nullable(),categories:z.array(z.object({service:z.string().max(80),requestCount:count,lastRequestedAt:stamp}).strict()).max(200),services:z.array(z.object({service:z.string().max(80),task:z.string().max(120),requestCount:count,lastRequestedAt:stamp}).strict()).max(200),servicesMore:z.boolean()}).strict()).max(20),page:count,hasMore:z.boolean(),matchingCustomers:count,unlinkedRequests:count,linkedRequests:count,generatedVisits:count,checkedAt:stamp}).strict();
+export type ServiceHistory=z.infer<typeof serviceHistory>;

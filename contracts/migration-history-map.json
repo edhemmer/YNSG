@@ -1,8 +1,8 @@
 {
-  "observedOn": "2026-10-27",
+  "observedOn": "2026-10-30",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
   "sourceBranch": "codex/customer-accounts-request-buttons-20261026",
-  "sourceCommit": "7b32f0638686ecc40d7e9e14d1f35df81027f831",
+  "sourceCommit": "31f89c3e7c5f9a4006786e5bdb8e15904bd9d2e5",
   "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
   "repositoryMigrations": [
     {
@@ -424,6 +424,11 @@
       "file": "20261027190000_accept_all_customer_cities.sql",
       "historyVersion": "20261027135639",
       "name": "accept_all_customer_cities"
+    },
+    {
+      "file": "20261030090000_customer_service_history.sql",
+      "name": "customer_service_history",
+      "historyVersion": "20261030134345"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
