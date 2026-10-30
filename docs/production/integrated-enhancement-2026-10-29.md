@@ -1,6 +1,6 @@
 # Integrated enhancement contract — October 29, 2026
 
-Authority: owner's Master Ultra-Premium Product Enhancement & Integration Directive. Baseline: production source 5e41586, plus preserved day-route candidate. This supersedes isolated-patch delivery for this assignment: one integrated candidate, no whole-product completion claim from tests alone. Existing brand, hero, services, contacts, pricing, permissions, commands, customer data and integrations are retained. Free-only provider constraint continues.
+Authority: owner's Master Ultra-Premium Product Enhancement & Integration Directive. Baseline: production source 5e41586. This supersedes isolated-patch delivery for this assignment: one integrated candidate, no whole-product completion claim from tests alone. Existing brand, hero, services, contacts, pricing, permissions, commands, customer data and integrations are retained. Free-only provider constraint continues.
 
 ## Inventory and classifications
 
@@ -38,4 +38,4 @@ Trace every code change to these rows and existing WEB gates. Preserve latest pr
 
 Six supplied photographic service panels now link to existing detail and booking routes. The responsive desktop gallery has a compact category picker; its GET handoff opens selected groups without choosing jobs or sending a request. Actual job selection, optional time, contact validation and uncertain-send recovery remain in the canonical request flow. Both public and repeat-account requests import one shared service catalog; final review lists every chosen job. Original hero and logo remain unchanged. No new paid service or database migration.
 
-The obsolete standalone OwnerDay patch was removed from this candidate: current production renders DailyCallSheet on Day routes. Local full suite initially passed 1,010 of 1,025 tests; 14 failures require POSIX file modes/symlinks, and one stale structural route assertion belonged to the now-excluded patch. Twelve focused booking/navigation tests passed before exclusion. Final browser, Linux release and PostgreSQL CI are still required.
+The obsolete standalone OwnerDay patch was removed from this candidate: current production renders DailyCallSheet on Day routes. Local full suite initially passed 1,010 of 1,025 tests; 14 failures require POSIX file modes/symlinks, and one stale structural route assertion belonged to the now-excluded patch. Twelve focused booking/navigation tests pass after exclusion. Final browser, Linux release and PostgreSQL CI are still required.
