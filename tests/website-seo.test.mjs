@@ -60,7 +60,9 @@ test('search landing pages provide specific guidance without imposing handyman-f
  assert.match(home,/Home and yard services/);
  assert.match(handyman,/What does a small handyman visit cost\\?/);
  assert.match(lawn,/How much does lawn mowing cost\\?/);
- assert.match(leaves,/What happens to the leaves\\?/);
+ assert.match(leaves,/<h1>Leaf management/);
+ assert.match(leaves,/discuss the approach, timing and cost/);
+ assert.doesNotMatch(leaves,/gather and bag|gathering and bagging|hauling and disposal must/i);
  for(const html of [handyman,lawn,leaves]){
   assert.ok(html.includes('href="/pricing/"'));
   assert.ok(html.includes('href="/request/"'));
