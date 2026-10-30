@@ -40,8 +40,9 @@ test('combined booking review names each selected job from the shared catalog be
  const review=h.form.querySelector('#booking-summary');assert.equal(review.querySelectorAll('li').length,2);assert.match(review.textContent,/Help around the home: Furniture assembly/);assert.match(review.textContent,/Lawn care: Mowing/);assert.match(review.textContent,/One combined request/);h.details();await h.submit();assert.equal(h.bodies.length,1);const body=JSON.parse(h.bodies[0]);assert.equal(body.services.length,2);for(const item of body.services)assert.ok(serviceCatalog[item.service].includes(item.task));h.dom.window.close();
 });
 
-test('homepage categories open exact groups without selecting unrequested jobs',()=>{
+test('homepage categories open exact groups without selecting unrequested jobs',async()=>{
  const h=harness([], '?category=Lawn+care&category=Help+around+the+home&category=Invalid');
+ await new Promise(resolve=>h.w.setTimeout(resolve,0));
  assert.equal(h.form.querySelectorAll('.request-category[open]').length,2);
  assert.equal(h.form.querySelectorAll('.service-option input:checked').length,0);
  h.click('#booking-services-next');assert.equal(h.stage(),1);assert.equal(h.bodies.length,0);h.dom.window.close();

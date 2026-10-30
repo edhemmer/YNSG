@@ -80,7 +80,7 @@ if(form){
     const count=document.createElement('span');count.className='category-count';count.textContent='';
     const action=document.createElement('span');action.className='category-action';action.textContent='View jobs';
     heading.append(title,count,action);
-    group.addEventListener('toggle',()=>{action.textContent=group.open?'Hide jobs':'View jobs';if(group.open){for(const other of categoryGroups.values())if(other!==group)other.open=false;}});
+    group.addEventListener('toggle',()=>{action.textContent=group.open?'Hide jobs':'View jobs';});
     const choices=document.createElement('div');choices.className='request-category-jobs';
     for(const task of jobs){
       const label=document.createElement('label');label.className='service-option';
