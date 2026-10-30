@@ -1,3 +1,4 @@
+import {verifyTaskTimeRaces} from './verify-task-time-races.mjs';
 import {verifyAccountDeletionRaces} from './verify-account-deletion-races.mjs';
 import {captureRecovery,snapshotDatabase} from './capture-recovery.mjs';
 import {verifyCustomerFileRestore} from './verify-customer-file-restore.mjs';
@@ -24,6 +25,7 @@ const bootstrap=testSource.match(/await db\.exec\(`([\s\S]*?)`\);/)?.[1];assert.
 await sql(bootstrap);
 for(const path of (await readdir('supabase/migrations')).filter(p=>p.endsWith('.sql')).sort())await sql(await readFile('supabase/migrations/'+path,'utf8'));
 const foundation=await readFile('tests/foundation.sql','utf8'),prefix=foundation.split('set local role service_role;')[0];
+await verifyTaskTimeRaces(sql);
 await sql(foundation);
 const fixtures=[...new Set([...testSource.matchAll(/readFile\('tests\/([^']+\.sql)'/g)].map(m=>m[1]))].filter(p=>!['foundation.sql','service-lifecycle.sql','approved-work-window.sql','recurring-series.sql','atomic-owner-visit.sql','mobile-notifications.sql'].includes(p));
 for(const file of fixtures){await sql(prefix+await readFile('tests/'+file,'utf8'));console.log('PASS: native PostgreSQL '+file);}

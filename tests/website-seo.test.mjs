@@ -65,7 +65,7 @@ test('search landing pages provide specific guidance without imposing handyman-f
  assert.doesNotMatch(leaves,/gather and bag|gathering and bagging|hauling and disposal must/i);
  for(const html of [handyman,lawn,leaves]){
   assert.ok(html.includes('href="/pricing/"'));
-  assert.ok(html.includes('href="/request/"'));
+  assert.match(html,/href="\/request\/(?:\?[^"]*)?"/);
  }
  assert.match(seo('', 'Page','Description').title,/Home & Yard Services/);
 });
@@ -86,7 +86,7 @@ test('seasonal local service pages answer project-specific customer questions',a
  for(const [slug,heading] of expectations){
   const html=await readFile(new URL('../site/pages/'+slug+'.html',import.meta.url),'utf8');
   assert.ok(html.includes(heading),slug+' missing practical project guidance');
-  assert.ok(html.includes('href="/request/"'),slug+' missing appointment request');
+  assert.match(html,/href="\/request\/(?:\?[^"]*)?"/,slug+' missing appointment request');
   assert.ok(html.includes('href="/pricing/"'),slug+' missing pricing link');
  }
 });

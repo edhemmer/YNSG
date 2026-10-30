@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { seo, WEBSITE_ORIGIN, canonicalUrl, localServicePages } from '../scripts/seo.mjs';
 
 test('each local landing page describes its own primary service with the same verified provider and geography', () => {
-  assert.equal(Object.keys(localServicePages).length,6);
+  assert.equal(Object.keys(localServicePages).length,7);
   for(const slug of Object.keys(localServicePages)){
     const graph=JSON.parse(seo(slug,'Service','Service details').schema)['@graph'];
     const page=graph.find(node=>node['@type']==='WebPage');

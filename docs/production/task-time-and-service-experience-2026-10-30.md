@@ -1,0 +1,42 @@
+# Service experience and reviewed task learning
+
+Candidate branch: `codex/service-page-experience`, based on production 599440bf97c58fc42b13b1e02b49609b9e74dc6e. This is an incremental WEB-02 / owner-work / reporting improvement, not whole-product acceptance.
+
+## Customer outcome
+
+Seven photographic service panels lead to matching responsive service pages, natural local descriptions, practical preparation notes, compact FAQs and a relevant job picker. The new cleanout page covers manageable garage/basement/storage-area work, preserves published safety limits, and says “Disposal fees may apply.” Door hardware and customer-supplied smart lock installation are request choices under Small home jobs. Compatibility, existing doors and licensing/permit limits are reviewed; no hardwiring or emergency lockout offer.
+
+The trailer is owner-supplied equipment, with garage, dollies and chocks removed using image editing. The setting is disclosed as digitally edited. No invented truck photograph or completed customer job is represented as real. Responsive derivatives and provenance are in `site/assets/services/`.
+
+Selected jobs persist across service browsing in tab storage for up to 24 hours, without contact information. Continue opens **Time (Step 2)** with a selected-job summary and deliberate Edit jobs control. Optional notes move to Details; Something else asks only for its required missing note. A pending uncertain request retains its frozen payload. Confirmation still requires the existing durable submission receipt.
+
+## Owner process
+
+1. Agree scope and price using the existing quote/approval workflow. Start the whole visit using the existing Start work control.
+2. Under **Time each job**, add a requested task that is actually in the approved work and enter its estimated minutes. Estimates can be corrected with a reason before timing begins. Starting work locks the planned baseline.
+3. Tap Start task. Starting another task in the same visit closes the previous interval and opens the new one atomically at the same database timestamp. There is one active task per operator per company, and one operator on each active task. Another active visit must be stopped first.
+4. Pause task for interruptions; Finish task when its work is done. Pausing/completing/canceling the whole visit also stops task timers. Returning to a paused visit does not assume which task resumed. The owner explicitly resumes it.
+5. Review stopped intervals. Accept actual times or correct them with a reason. Original timestamps and before/after review evidence are retained. A zero-length reviewed interval can explicitly record an accidental timer with no actual work; it contributes no time and is excluded from suggestions. Corrections cannot overlap another task for that operator, extend into the future or exceed 24 hours. A forgotten overnight timer can be corrected down to the actual interval. Long-running timers display an alert; closed intervals stay out of results until reviewed.
+6. Record and issue the invoice deliberately through the existing workflow. Task time never changes an invoice, minimum, rate, tax or agreement. After issue, optionally assign the invoice’s **gross labor** among its tasks; the sum cannot exceed the issued labor ledger credit. Taxes, materials, disposal and payments are excluded. Allocation corrections are audited.
+7. Open **Monthly results** from any task panel. Review the queue of stopped/running timers before using results. It presents up to 30 affected visits at once, with an explicit remainder notice. Open the timer panel directly from that queue.
+
+No software can reconstruct a forgotten click with certainty. The system preserves evidence and requires review rather than silently treating an overnight timer as accurate work. Actual owner/device acceptance is still required.
+
+## Authority and recovery
+
+The new bounded `/api/task-time` contract is generated into owner OpenAPI from executable Zod schemas. GET returns either a job workspace or one month; responses are private/no-store and verified before display. POST requires same-origin, an authenticated session and current owner/admin authority. Private tables have RLS, no client write grants and tenant-composite foreign keys. Narrow public security-invoker wrappers call guarded private commands.
+
+Commands require the approved job and exact job/task revisions, company serialization and actor/input-bound receipts. The browser persists an immutable action before POST. Lost responses keep that body/key frozen across reload. A retry verifies the same task, action, key and next revision. A revoked permission does not erase an earlier unknown action. A storage failure blocks new timer actions rather than pretending recoverability. Same-visit task switches share a timestamp and do not create another whole-visit `work_session`. Whole-visit triggers close task intervals on pause/completion/cancellation; those intervals still require review.
+
+SQL migration `20261030180000_task_time_learning.sql` adds task plans, sessions, append-only review evidence and command/read functions. It also adds only YNSG’s new Cleanout & removal intake catalog entry in `review` compliance; it does not approve new work, republish unrelated settings or rewrite historical requests. Public, returning-customer and server intake use the shared task catalog. Existing customer service-demand reporting automatically includes the new retained choices; no marketing consent or campaign sending is inferred.
+
+## Measurement definitions
+
+- **Reviewed task hours:** owner-verified effective intervals clipped to the company’s local month boundaries, including timezone/DST conversion. Work crossing midnight/month end is split correctly. Visit overhead may remain outside task evidence.
+- **Completed-task comparison:** finished tasks whose last reviewed interval ends in the month, with all intervals reviewed, compared against the locked estimated total. Canceled visits and incomplete/unreviewed task records are excluded from suggestions.
+- **Issued labor:** original gross labor ledger credits on invoices issued in the month. Allocation follows that same issue-month cohort, independently of work dates. Unallocated labor is explicit. This is not cash collected, net revenue, profit or the invoice total. Existing financial reports remain authoritative for receipts and credits.
+- **Suggestion:** monthly median of complete reviewed task durations, rounded up to five minutes, displayed only after five reviewed samples. Counts are visible below that threshold. This free deterministic calculation is a supervised proposal; it does not activate an external AI provider or change a price menu. Similar job labels can still conceal differences in size, quantity, access and conditions, so the owner must review those factors before adopting an allowance. A future AI layer can propose from this evidence with the same permission and approval boundaries.
+
+## Verification and release gates
+
+Local full suite: 1,028 passing / 14 existing Windows POSIX backup/symlink failures; Linux CI is required without suppressions. Type/lint/contracts, offline SQL and production dependency audit pass. Local focused customer tests pass; 162 Chromium layouts pass across 320/390/768/1366 widths, light/dark and 200% text, with zero external writes. Task UI tests cover a lost response, unmount/reload, exact retry, permission denial and mismatched receipts. SQL fixtures verify planned 120 minutes versus actual 80 minutes, planned 150 versus actual 192, month clipping, raw evidence retention, revocation and no automatic invoice or visit-clock creation. Native PostgreSQL CI adds simultaneous switches/replays and overlapping-correction races. Linux full release checks and both-engine browser checks remain mandatory; Windows cannot provide POSIX backup/symlink permission evidence. Migration/history verification, deployment SHA and live read-only checks must be recorded before describing this candidate as shipped. Device usability, real work accuracy and whole-product gates remain separate.
