@@ -37,3 +37,5 @@ export function homeServicePicker(doc){
  const next=submit.nextElementSibling;if(next)next.textContent='Next: review your jobs, choose a time if you like, and add your details.';
  refresh();
 }
+
+if(typeof document!=='undefined')homeServicePicker(document);

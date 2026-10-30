@@ -51,7 +51,7 @@ const pages = {
 const nav = [['services','Services'],['pricing','Pricing'],['about','About']];
 function layout(slug, title, description, body){
   const meta=seo(slug,title,description);
-  const scripts=slug==='request'?'<script src="/main.js" type="module"></script><script src="/appointment-picker.js" type="module"></script>':slug===''?'<script src="/neighbor-carousel.js" type="module"></script>':'<script src="/public-ui.js" type="module"></script>';
+  const scripts=slug==='request'?'<script src="/main.js" type="module"></script><script src="/appointment-picker.js" type="module"></script>':slug===''?'<script src="/neighbor-carousel.js" type="module"></script><script src="/home-service-picker.js" type="module"></script>':'<script src="/public-ui.js" type="module"></script>';
   const preload=slug===''?'<link rel="preload" as="image" type="image/webp" href="/assets/neighbors-seniors-brand-v3-1280.webp" imagesrcset="/assets/neighbors-seniors-brand-v3-640.webp 640w, /assets/neighbors-seniors-brand-v3-1280.webp 1280w" imagesizes="(max-width:850px) calc(100vw - 36px), 740px" fetchpriority="high">':'';
   const canonical = canonicalUrl(slug);
   const links = nav.map(([path,label])=>`<a href="/${path}/"${slug===path?' aria-current="page"':''}>${icon(path)}${label}</a>`).join('')+'<a href="https://yourneighborhoodserviceguy.app/account">Customer sign in</a>';

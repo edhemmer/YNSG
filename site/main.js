@@ -1,4 +1,3 @@
-import {homeServicePicker} from './home-service-picker.js';
 import {serviceCatalog} from './service-catalog.js';
 import {cityPostalPicker} from './city-postal-codes.js';
 import {deliverRequest} from './request-delivery.js';
@@ -32,7 +31,6 @@ function newRequestKey(){
   const value=[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');
   return `${value.slice(0,8)}-${value.slice(8,12)}-${value.slice(12,16)}-${value.slice(16,20)}-${value.slice(20)}`;
 }
-if(document.querySelector('.service-request-panel'))homeServicePicker(document);
 const form = document.querySelector('#request-form');
 if(form){
   const groups = form.querySelector('#service-groups');
