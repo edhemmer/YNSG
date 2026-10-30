@@ -1,0 +1,17 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {JSDOM} from 'jsdom';
+const dom=new JSDOM('<div id="root"></div>',{url:'https://example.invalid/owner'});for(const name of ['window','document','HTMLElement','Event','MouseEvent'])globalThis[name]=dom.window[name];Object.defineProperty(globalThis,'navigator',{value:dom.window.navigator,configurable:true});globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+const require=createRequire(new URL('../apps/web/package.json',import.meta.url)),React=require('react');globalThis.React=React;const {createRoot}=require('react-dom/client'),{act}=React;
+const {default:Insights}=await import('../apps/web/app/customer-service-insights.tsx');
+const org='20000000-0000-4000-8000-000000000001',customer='30000000-0000-4000-8000-000000000001',node=document.querySelector('#root');
+const report={items:[{customerId:customer,name:'Synthetic neighbor',archived:false,requestCount:26,generatedVisits:3,firstRequestedAt:'2026-01-01T12:00:00Z',lastRequestedAt:'2026-10-29T12:00:00Z',categories:[{service:'Lawn care',requestCount:26,lastRequestedAt:'2026-10-29T12:00:00Z'}],services:[{service:'Lawn care',task:'Leaf management',requestCount:26,lastRequestedAt:'2026-10-29T12:00:00Z'}],servicesMore:false}],page:0,hasMore:false,matchingCustomers:1,unlinkedRequests:2,linkedRequests:26,generatedVisits:3,checkedAt:'2026-10-30T12:00:00Z'},tick=()=>new Promise(r=>setImmediate(r)),response=()=>new Response(JSON.stringify(report));
+test('customer insights recover failed reads, show request/visit distinctions and open exact customer without mutations',async()=>{
+ let failed=true,opened='';const calls=[];globalThis.fetch=async(url,init)=>{calls.push({url,init});if(failed){failed=false;return new Response('{}',{status:503});}return response();};const root=createRoot(node);
+ try{await act(async()=>{root.render(React.createElement(Insights,{organization:org,timezone:'America/Chicago',onCustomer:id=>{opened=id;}}));await tick();});assert.match(node.textContent,/could not be verified/);await act(async()=>{[...node.querySelectorAll('button')].find(b=>b.textContent==='Retry service history').click();await tick();});assert.match(node.textContent,/26 customer requests/);assert.match(node.textContent,/3 generated recurring visits/);assert.match(node.textContent,/2 guest requests await customer linking/);assert.match(node.textContent,/Leaf management/);await act(async()=>[...node.querySelectorAll('button')].find(b=>b.textContent==='Open customer record').click());assert.equal(opened,customer);assert.ok(calls.every(c=>!c.init.method));}finally{await act(async()=>root.unmount());}
+});
+test('changing company hides the old report and ignores its late response',async()=>{
+ const pending=[];globalThis.fetch=async()=>new Promise(resolve=>pending.push(resolve));const root=createRoot(node);
+ try{await act(async()=>root.render(React.createElement(Insights,{organization:org,timezone:'America/Chicago'})));await act(async()=>root.render(React.createElement(Insights,{organization:'20000000-0000-4000-8000-000000000002',timezone:'America/Chicago'})));await act(async()=>{pending[0](response());await tick();});assert.doesNotMatch(node.textContent,/Synthetic neighbor/);assert.match(node.textContent,/Loading saved/);await act(async()=>{pending[1](new Response(JSON.stringify({...report,items:[],matchingCustomers:0})));await tick();});assert.match(node.textContent,/No customers match/);}finally{await act(async()=>root.unmount());}
+});

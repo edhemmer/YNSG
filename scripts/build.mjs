@@ -38,7 +38,7 @@ const pages = {
   request: ['Request a Service Appointment', 'Request home or yard service in DeKalb, Sycamore or Cortland, IL. No account needed. We review your request and confirm appointments after approval.', 'request'],
   'handyman-dekalb-il': ['Handyman Help in DeKalb, Sycamore & Cortland', 'Local handyman help in DeKalb, Sycamore and Cortland, IL. Furniture assembly, small drywall repairs and household setup within our safety limits.', 'handyman-dekalb-il'],
   'lawn-mowing-dekalb-il': ['Lawn Mowing in DeKalb, IL', 'Residential lawn mowing, trimming and edging in DeKalb, Sycamore and Cortland. One-time and recurring lawn care requests.', 'lawn-mowing-dekalb-il'],
-  'leaf-cleanup-dekalb-il': ['Leaf Cleanup in DeKalb, IL', 'Residential fall leaf cleanup, leaf gathering and bagging in DeKalb, Sycamore and Cortland, Illinois.', 'leaf-cleanup-dekalb-il'],
+  'leaf-cleanup-dekalb-il': ['Leaf Management in DeKalb, IL', 'Residential leaf management in DeKalb, Sycamore and Cortland, Illinois. Tell us about your seasonal leaf needs.', 'leaf-cleanup-dekalb-il'],
   'snow-removal-dekalb-il': ['Residential Snow Removal in DeKalb, IL', 'Residential driveway, sidewalk and entryway snow clearing in DeKalb, Sycamore and Cortland, Illinois.', 'snow-removal-dekalb-il'],
   'mulch-yard-cleanup-dekalb-il': ['Mulch & Yard Cleanup in DeKalb, IL', 'Mulch spreading, hand weeding and small garden-bed cleanup in DeKalb, Sycamore and Cortland, Illinois.', 'mulch-yard-cleanup-dekalb-il'],
   'concrete-pressure-washing-dekalb-il': ['Concrete Pressure Washing in DeKalb, IL', 'Ground-level concrete driveway, walkway and patio pressure washing in DeKalb, Sycamore and Cortland, Illinois.', 'concrete-pressure-washing-dekalb-il'],
