@@ -37,7 +37,7 @@ select pg_temp.assert_true(not has_function_privilege('anon','public.owner_custo
 update public.memberships set revoked_at=now() where organization_id='20000000-0000-4000-8000-000000000001' and user_id='00000000-0000-4000-8000-000000000001';
 set local role authenticated;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
-do $begin begin perform public.owner_customer_service_history('20000000-0000-4000-8000-000000000001');raise exception 'TEST FAILED revoked owner';exception when insufficient_privilege then null;end;end$;
+do $$begin begin perform public.owner_customer_service_history('20000000-0000-4000-8000-000000000001');raise exception 'TEST FAILED revoked owner';exception when insufficient_privilege then null;end;end$$;
 reset role;
 select pg_temp.assert_true((select count(*)=25 from public.service_requests where original_submission->'services'->1->>'task'='Leaf cleanup'),'reporting does not rewrite retained submissions');
 rollback;
