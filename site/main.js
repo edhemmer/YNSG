@@ -107,7 +107,13 @@ if(form){
   };
   refresh();
   const params=new URLSearchParams(location.search);
+  function chooseLinkedJobs(){
+    for(const encoded of params.getAll('job').slice(0,15)){
+      try{const item=JSON.parse(encoded);if(item&&typeof item.service==='string'&&typeof item.task==='string'&&Object.hasOwn(tasks,item.service)&&tasks[item.service].includes(item.task))choose(item.service,item.task);}catch{/* Ignore malformed URL choices. */}
+    }
+  }
   choose(params.get('service') || '',params.get('task') || '');
+  chooseLinkedJobs();
   // Category hints open choices without inventing a job or consent.
   for(const category of params.getAll('category').slice(0,6)){
     if(categoryGroups.has(category))categoryGroups.get(category).open=true;
@@ -143,7 +149,7 @@ if(form){
     for(const item of data.services){if(item&&Object.hasOwn(tasks,item.service)&&tasks[item.service].includes(item.task)&&selected.size<15){selected.set(key(item.service,item.task),{service:item.service,task:item.task});categoryGroups.get(item.service).open=true;}}
     // A deep-linked service is additive to an unfinished draft, not a replacement.
     // A pending send is immutable until its original outcome has been reconciled.
-    if(recovered.kind==='draft' && params.has('service'))choose(params.get('service') || '',params.get('task') || '');
+    if(recovered.kind==='draft'){if(params.has('service'))choose(params.get('service') || '',params.get('task') || '');chooseLinkedJobs();}
     refresh();draftNote.hidden=false;
     if(recovered.kind==='pending'){
       pendingSubmission={data,editable:editableControls()};form.dataset.deliveryUnknown='true';lockControls(pendingSubmission.editable);

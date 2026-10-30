@@ -17,6 +17,7 @@ await cp(join(source,'request-button.css'),join(output,'request-button.css'));
 await cp(join(source,'franchise.css'), join(output,'franchise.css'));
 await cp(join(source,'main.js'), join(output,'main.js'));
 await cp(join(source,'service-catalog.js'),join(output,'service-catalog.js'));
+await cp(join(source,'home-service-picker.js'),join(output,'home-service-picker.js'));
 await cp(join(source,'booking-journey.js'),join(output,'booking-journey.js'));
 await cp(join(source,'address-check.js'),join(output,'address-check.js'));
 await cp(join(source,'city-postal-codes.js'),join(output,'city-postal-codes.js'));
@@ -50,7 +51,7 @@ const pages = {
 const nav = [['services','Services'],['pricing','Pricing'],['about','About']];
 function layout(slug, title, description, body){
   const meta=seo(slug,title,description);
-  const scripts=slug==='request'?'<script src="/main.js" type="module"></script><script src="/appointment-picker.js" type="module"></script>':slug===''?'<script src="/neighbor-carousel.js" type="module"></script>':'<script src="/public-ui.js" type="module"></script>';
+  const scripts=slug==='request'?'<script src="/main.js" type="module"></script><script src="/appointment-picker.js" type="module"></script>':slug===''?'<script src="/neighbor-carousel.js" type="module"></script><script src="/home-service-picker.js" type="module"></script>':'<script src="/public-ui.js" type="module"></script>';
   const preload=slug===''?'<link rel="preload" as="image" type="image/webp" href="/assets/neighbors-seniors-brand-v3-1280.webp" imagesrcset="/assets/neighbors-seniors-brand-v3-640.webp 640w, /assets/neighbors-seniors-brand-v3-1280.webp 1280w" imagesizes="(max-width:850px) calc(100vw - 36px), 740px" fetchpriority="high">':'';
   const canonical = canonicalUrl(slug);
   const links = nav.map(([path,label])=>`<a href="/${path}/"${slug===path?' aria-current="page"':''}>${icon(path)}${label}</a>`).join('')+'<a href="https://yourneighborhoodserviceguy.app/account">Customer sign in</a>';
