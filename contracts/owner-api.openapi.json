@@ -7155,6 +7155,11 @@
                     {
                       "type": "object",
                       "properties": {
+                        "organization": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
                         "actor": {
                           "type": "string",
                           "format": "uuid",
@@ -7309,6 +7314,7 @@
                         }
                       },
                       "required": [
+                        "organization",
                         "actor",
                         "job",
                         "jobRevision",
@@ -7321,6 +7327,11 @@
                     {
                       "type": "object",
                       "properties": {
+                        "organization": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
                         "month": {
                           "type": "string"
                         },
@@ -7454,6 +7465,7 @@
                         }
                       },
                       "required": [
+                        "organization",
                         "month",
                         "timezone",
                         "checkedAt",
@@ -7524,6 +7536,11 @@
                     "result": {
                       "type": "object",
                       "properties": {
+                        "organization": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
                         "key": {
                           "type": "string"
                         },
@@ -7555,6 +7572,7 @@
                         }
                       },
                       "required": [
+                        "organization",
                         "key",
                         "job",
                         "task",

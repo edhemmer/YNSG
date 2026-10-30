@@ -107,7 +107,7 @@ begin
   update private.job_task_plans set revision=revision+1 where organization_id=p_org and id=t.id returning * into t;
  end if;
  insert into public.audit_events(organization_id,actor_id,action,object_id,object_revision,correlation_id) values(p_org,auth.uid(),'task_time.'||a,t.id,t.revision,gen_random_uuid());
- r:=jsonb_build_object('key',k,'job',j.id,'task',t.id,'revision',t.revision,'action',a);
+ r:=jsonb_build_object('organization',p_org,'key',k,'job',j.id,'task',t.id,'revision',t.revision,'action',a);
  insert into private.command_receipts values(p_org,'TaskTime',k,f,r,now());return r;
 end $$;
 
@@ -128,7 +128,7 @@ begin
  if p_job is not null then
   select * into j from public.jobs where organization_id=p_org and id=p_job;if not found then raise exception 'NOT_FOUND';end if;
   select coalesce(jsonb_agg(jsonb_build_object('id',t.id,'revision',t.revision,'service',t.service,'name',t.name,'plannedMinutes',t.planned_minutes,'finishedAt',t.finished_at,'allocatedCents',t.allocated_cents,'sessions',coalesce((select jsonb_agg(jsonb_build_object('id',s.id,'startedAt',s.started_at,'endedAt',s.ended_at,'reviewedStart',s.reviewed_start,'reviewedEnd',s.reviewed_end,'reason',s.reason,'reviewed',s.reviewed_start is not null) order by s.started_at,s.id) from private.job_task_sessions s where s.organization_id=p_org and s.task_id=t.id),'[]')) order by t.service,t.name,t.id),'[]') into items from private.job_task_plans t where t.organization_id=p_org and t.job_id=p_job;
-  return jsonb_build_object('actor',auth.uid(),'job',j.id,'jobRevision',j.revision,'status',j.status,'checkedAt',now(),'tasks',items);
+  return jsonb_build_object('organization',p_org,'actor',auth.uid(),'job',j.id,'jobRevision',j.revision,'status',j.status,'checkedAt',now(),'tasks',items);
  end if;
  if p_month !~ '^20[2-9][0-9]-(0[1-9]|1[0-2])$' then raise exception 'VALIDATION';end if;
  select timezone into zone from public.organizations where id=p_org;
@@ -150,7 +150,7 @@ begin
  select j3.id job_id,j3.revision,jsonb_agg(distinct t3.name) names from public.jobs j3 join private.job_task_plans t3 on t3.organization_id=j3.organization_id and t3.job_id=j3.id
  where j3.organization_id=p_org and exists(select 1 from private.job_task_sessions s3 where s3.organization_id=p_org and s3.task_id=t3.id and s3.reviewed_start is null and (s3.ended_at is null or (s3.started_at<hi and s3.ended_at>lo)))
  group by j3.id,j3.revision order by j3.id limit 31) q;
- result:=jsonb_build_object('reviewJobs',case when jsonb_array_length(queue)>30 then queue-30 else queue end,'reviewJobsMore',jsonb_array_length(queue)>30,'month',p_month,'timezone',zone,'checkedAt',now(),'grossLaborCents',gross,'unallocatedCents',greatest(0,gross-allocated),'unreviewedSessions',(select count(*) from private.job_task_sessions where organization_id=p_org and reviewed_start is null and ended_at is not null and started_at<hi and ended_at>lo),'activeSessions',(select count(*) from private.job_task_sessions where organization_id=p_org and ended_at is null),'items',case when jsonb_array_length(items)>500 then items-500 else items end,'more',jsonb_array_length(items)>500);return result;
+ result:=jsonb_build_object('organization',p_org,'reviewJobs',case when jsonb_array_length(queue)>30 then queue-30 else queue end,'reviewJobsMore',jsonb_array_length(queue)>30,'month',p_month,'timezone',zone,'checkedAt',now(),'grossLaborCents',gross,'unallocatedCents',greatest(0,gross-allocated),'unreviewedSessions',(select count(*) from private.job_task_sessions where organization_id=p_org and reviewed_start is null and ended_at is not null and started_at<hi and ended_at>lo),'activeSessions',(select count(*) from private.job_task_sessions where organization_id=p_org and ended_at is null),'items',case when jsonb_array_length(items)>500 then items-500 else items end,'more',jsonb_array_length(items)>500);return result;
 end $$;
 create function public.task_time_command(p_org uuid,p_data jsonb) returns jsonb language sql security invoker set search_path='' as $$select private.task_time_command(p_org,p_data)$$;
 create function public.owner_task_time(p_org uuid,p_job uuid default null,p_month text default null) returns jsonb language sql security invoker set search_path='' as $$select private.owner_task_time(p_org,p_job,p_month)$$;
