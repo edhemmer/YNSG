@@ -35,7 +35,7 @@ try{
    assert.ok(await page.locator('a[href="https://yourneighborhoodserviceguy.app/account"]').count(),'Customer sign in is discoverable');
    assert.ok(await page.locator('a[href="https://yourneighborhoodserviceguy.app/account?mode=signup"]').count(),'Customer registration is discoverable');
    if(path==='/'){
-    assert.equal(await page.locator('.home-service-card').count(),6);for(const img of await page.locator('.service-panel-image').all()){await img.scrollIntoViewIfNeeded();await img.evaluate(el=>el.decode());assert.ok(await img.evaluate(el=>el.complete&&el.naturalWidth>0));}
+    assert.equal(await page.locator('.home-service-card').count(),6);for(const img of await page.locator('.service-panel-image').all()){await img.scrollIntoViewIfNeeded();await page.waitForFunction(el=>el.complete&&el.naturalWidth>0,await img.elementHandle());assert.ok(await img.evaluate(el=>el.complete&&el.naturalWidth>0));}
     if([390,1366].includes(width)&&theme==='light'&&!largeText)await page.locator('.home-services').screenshot({path:output+'/'+engine+'-service-panels-'+width+'.png'});
    }
    if(width===390&&theme==='light'&&!largeText)await page.screenshot({path:output+'/'+engine+(path==='/'?'-home':path.replaceAll('/','-'))+'.png',fullPage:false});
