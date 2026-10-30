@@ -17,6 +17,7 @@ await cp(join(source,'request-button.css'),join(output,'request-button.css'));
 await cp(join(source,'franchise.css'), join(output,'franchise.css'));
 await cp(join(source,'main.js'), join(output,'main.js'));
 await cp(join(source,'service-catalog.js'),join(output,'service-catalog.js'));
+await cp(join(source,'home-service-picker.js'),join(output,'home-service-picker.js'));
 await cp(join(source,'booking-journey.js'),join(output,'booking-journey.js'));
 await cp(join(source,'address-check.js'),join(output,'address-check.js'));
 await cp(join(source,'city-postal-codes.js'),join(output,'city-postal-codes.js'));
