@@ -25,7 +25,6 @@ const bootstrap=testSource.match(/await db\.exec\(`([\s\S]*?)`\);/)?.[1];assert.
 await sql(bootstrap);
 for(const path of (await readdir('supabase/migrations')).filter(p=>p.endsWith('.sql')).sort())await sql(await readFile('supabase/migrations/'+path,'utf8'));
 const foundation=await readFile('tests/foundation.sql','utf8'),prefix=foundation.split('set local role service_role;')[0];
-await verifyTaskTimeRaces(sql);
 await sql(foundation);
 const fixtures=[...new Set([...testSource.matchAll(/readFile\('tests\/([^']+\.sql)'/g)].map(m=>m[1]))].filter(p=>!['foundation.sql','service-lifecycle.sql','approved-work-window.sql','recurring-series.sql','atomic-owner-visit.sql','mobile-notifications.sql'].includes(p));
 for(const file of fixtures){await sql(prefix+await readFile('tests/'+file,'utf8'));console.log('PASS: native PostgreSQL '+file);}
@@ -160,3 +159,4 @@ const capturedManifest=JSON.parse(await readFile(join(capturedDirectory,'verifie
 assert.equal(reconcileRecoveryCatalog(capturedCatalog,capturedManifest).verified,files.length);
 assert.deepEqual(JSON.parse((await sql(snapshotSql,'ynsg_capture')).trim()),before);
 console.log('PASS: source capture exports one live read-only snapshot; concurrent later write excluded from dump, all original files and financial records restored');
+await verifyTaskTimeRaces(sql);
