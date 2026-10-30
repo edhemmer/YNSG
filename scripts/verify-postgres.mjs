@@ -1,3 +1,5 @@
+import {withNetworkCatalog} from './sql-fixture-catalog.mjs';
+import {verifyOwnerNetworkRaces} from './verify-owner-network-races.mjs';
 import {verifyTaskTimeRaces} from './verify-task-time-races.mjs';
 import {verifyAccountDeletionRaces} from './verify-account-deletion-races.mjs';
 import {captureRecovery,snapshotDatabase} from './capture-recovery.mjs';
@@ -27,7 +29,7 @@ for(const path of (await readdir('supabase/migrations')).filter(p=>p.endsWith('.
 const foundation=await readFile('tests/foundation.sql','utf8'),prefix=foundation.split('set local role service_role;')[0];
 await sql(foundation);
 const fixtures=[...new Set([...testSource.matchAll(/readFile\('tests\/([^']+\.sql)'/g)].map(m=>m[1]))].filter(p=>!['foundation.sql','service-lifecycle.sql','approved-work-window.sql','recurring-series.sql','atomic-owner-visit.sql','mobile-notifications.sql'].includes(p));
-for(const file of fixtures){await sql(prefix+await readFile('tests/'+file,'utf8'));console.log('PASS: native PostgreSQL '+file);}
+for(const file of fixtures){await sql(prefix+await withNetworkCatalog(await readFile('tests/'+file,'utf8')));console.log('PASS: native PostgreSQL '+file);}
 const marker="set local role service_role;\nselect set_config('request.jwt.claims','{\"role\":\"service_role\"}',true);\nselect public.website_slot_hold('20000000-0000-4000-8000-000000000001','select','70000000-0000-4000-8000-000000000006'";
 const booking=(await readFile('tests/independent-calendar.sql','utf8')).split(marker)[0];assert.ok(!booking.includes('rollback;'),'Booking fixture split changed');
 await sql(prefix+booking+await readFile('tests/approved-work-window.sql','utf8'));
@@ -160,3 +162,4 @@ assert.equal(reconcileRecoveryCatalog(capturedCatalog,capturedManifest).verified
 assert.deepEqual(JSON.parse((await sql(snapshotSql,'ynsg_capture')).trim()),before);
 console.log('PASS: source capture exports one live read-only snapshot; concurrent later write excluded from dump, all original files and financial records restored');
 await verifyTaskTimeRaces(sql);
+await verifyOwnerNetworkRaces(sql);

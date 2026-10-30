@@ -24,7 +24,7 @@ import UnforeseenJobReview from './unforeseen-job-review';
 import {hiddenConditionPreflight} from '../lib/unforeseen-job-cost';
 type Job=LinkedJob;
 const money=(n:number)=>(n/100).toLocaleString('en-US',{style:'currency',currency:'USD'});
-export default function ServiceWorkflow({organization,request,quotes,jobs,invoices,timezone,canManage,canQuote,canWork,busy,onBusy,onReview,act,fieldAction,onChanged,onCustomer}:{organization:string;request:InboxRequest;quotes:LinkedQuote[];jobs:Job[];invoices:LinkedInvoice[];timezone:string;canManage:boolean;canQuote:boolean;canWork:boolean;busy:boolean;onBusy:(v:boolean)=>void;onReview:()=>void;act:(value:Record<string,unknown>)=>Promise<unknown>;fieldAction:(job:Job,action:'start'|'pause'|'resume')=>Promise<void>;onChanged:()=>void;onCustomer?:(id:string)=>void}){
+export default function ServiceWorkflow({organization,request,quotes,jobs,invoices,timezone,canManage,canQuote,canWork,busy,onBusy,onReview,act,fieldAction,onChanged,onCustomer,onNetwork}:{organization:string;request:InboxRequest;quotes:LinkedQuote[];jobs:Job[];invoices:LinkedInvoice[];timezone:string;canManage:boolean;canQuote:boolean;canWork:boolean;busy:boolean;onBusy:(v:boolean)=>void;onReview:()=>void;act:(value:Record<string,unknown>)=>Promise<unknown>;fieldAction:(job:Job,action:'start'|'pause'|'resume')=>Promise<void>;onChanged:()=>void;onCustomer?:(id:string)=>void;onNetwork?:(tasks:string[])=>void}){
  const task=fieldWorkflow(request,quotes,jobs,invoices),{canLeave}=useEntrySafety();
  const prepared=prepareFieldBrief(request,quotes,jobs,invoices);
  const [scheduleOpen,setScheduleOpen]=useState(false),[declineOpen,setDeclineOpen]=useState(false),[workRecordOpen,setWorkRecordOpen]=useState(false);
@@ -76,6 +76,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
    {task.kind==='settled'&&<p role="status">All work is invoiced. Confirmed receipts and credits settle the balance. History is saved below.</p>}
    {task.kind==='closed'&&<p>The saved request and its history are retained.</p>}
   </section>
+  {canManage&&onNetwork&&<p><button type="button" className="secondary" disabled={blocked} onClick={()=>onNetwork([request.original_submission.service||"",...(request.original_submission.services||[]).map(s=>s.task)])}>Outside your scope? Find a referral</button></p>}
   {proposal&&confirmedVisit&&canManage&&<div className="note"><p>A different appointment time was requested. The confirmed visit stays booked.</p><button type="button" className="secondary" disabled={blocked} onClick={openSchedule}>Review requested time change</button></div>}
   {scheduleOpen&&<SchedulingReviewPanel key={proposal?.id||request.id} organization={organization} requestId={request.id} appointmentId={proposal?.id||null} initialExpanded initialStart={request.original_submission.preferredTime} onBusy={busyFor('schedule')} completed={()=>{setScheduleOpen(false);onChanged();}}/>}
   {task.kind==='agreement'&&<section className="workflow-section"><h3>Scope & price</h3>

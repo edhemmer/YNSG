@@ -466,5 +466,11 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": []
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261030210629_owner_network.sql",
+      "name": "owner_network",
+      "status": "not_applied_to_connected_supabase"
+    }
+  ]
 }

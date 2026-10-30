@@ -1,3 +1,4 @@
+import {withNetworkCatalog} from '../scripts/sql-fixture-catalog.mjs';
 import { PGlite } from '@electric-sql/pglite';
 import { btree_gist } from '@electric-sql/pglite/contrib/btree_gist';
 import {readFile,readdir} from 'node:fs/promises';
@@ -19,6 +20,7 @@ try {
  grant select,insert on storage.objects to authenticated;`);
  for(const f of (await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')).sort())await db.exec(await readFile(`supabase/migrations/${f}`,'utf8'));
  const foundation=await readFile('tests/foundation.sql','utf8');
+ await db.exec(foundation.split('set local role service_role;')[0]+await withNetworkCatalog(await readFile('tests/owner-network.sql','utf8')));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/task-time.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/customer-service-history.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/account-deletion.sql','utf8'));
