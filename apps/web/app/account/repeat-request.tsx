@@ -1,4 +1,5 @@
 "use client";
+import {serviceCatalog} from '../../../../site/service-catalog.js';
 import {postalCodesForCity} from '../../../../site/city-postal-codes.js';
 import { publicError } from "../../lib/public-errors";
 import {useEffect,useRef,useState} from 'react';
@@ -7,14 +8,7 @@ import {repeatRequest} from '../../../../packages/contracts/customer-intake';
 import {parseRepeatContext,contactForProperty,type RepeatContext} from '../../lib/repeat-request-context';
 import {useBlockedEntry,useUnsavedEntry} from '../entry-safety';
 type Context=RepeatContext;
-const jobs:Record<string,string[]>={
- 'Help around the home':['Furniture assembly','Shelving and organizing','Household product setup','Lightweight hanging','Small drywall patch','Moving manageable items','Several small jobs'],
- 'Lawn care':['Mowing','Trimming and edging','Mow, trim and blow-off','Leaf management','Recurring lawn care'],
- 'Yard & garden':['Pulling weeds by hand','Bulk or bagged mulch pickup, delivery & spreading','Spreading mulch','Planting small bushes','Planting flowers','Small bush trimming','Garden-bed cleanup','Moving yard materials'],
- 'Snow clearing':['Residential driveway','Sidewalks and walkways','Accessible entry','Driveway and walks'],
- 'Concrete pressure washing':['Concrete driveway','Concrete walks','Concrete patio'],
- 'Something else':['Describe below']
-};
+const jobs:Record<string,string[]>=serviceCatalog;
 export default function RepeatRequest({organization,onSaved}:{organization:string;onSaved:()=>void}){
  const [contextRefresh,setContextRefresh]=useState(0);
  const [postalCode,setPostalCode]=useState('');

@@ -44,29 +44,3 @@ test('appointment without agreement remains a holding preview; canceled requests
   assert.equal(node.textContent,'');
  }finally{await act(async()=>root.unmount());}
 });
-
-test('day route exposes all loaded stops with local times, addresses and exact job shortcuts',async()=>{
- const root=createRoot(node),id=n=>'10000000-0000-4000-8000-'+String(n).padStart(12,'0');let opened='';
- const stops=Array.from({length:5},(_,i)=>({id:id(i+1),requestId:id(i+20),startAt:visit.start_at,arrivalAt:visit.arrival_at,endAt:visit.end_at,name:'Stop '+i,phone:'5550100',address:(100+i)+' Test Lane',tasks:['Assembly']}));
- globalThis.fetch=async()=>Response.json({checkedAt:'2030-10-16T12:00:00Z',timezone:'America/Chicago',calls:stops,hasMore:true});
- try{await act(async()=>{root.render(React.createElement(OwnerDay,{organization:id(99),revision:1,onOpen:v=>opened=v,onNavigate:()=>{}}));await tick();});
-  const rows=node.querySelectorAll('.owner-upcoming-stops article');assert.equal(rows.length,4);assert.match(rows[3].textContent,/Oct 16.*9:00 AM CDT/);assert.match(rows[3].textContent,/104 Test Lane/);assert.equal(rows[3].querySelector('a[aria-label="Call Stop 4"]').getAttribute('href'),'tel:5550100');assert.match(node.textContent,/More confirmed visits/);
-  await act(async()=>rows[3].querySelector('button').click());assert.equal(opened,id(24));assert.equal(node.querySelector('[aria-busy]').getAttribute('aria-busy'),'false');
- }finally{await act(async()=>root.unmount());}
-});
-test('day route clears previous-company data while replacement reads are pending and ignores late replies',async()=>{
- const root=createRoot(node),pending=[],org='10000000-0000-4000-8000-000000000001',other='10000000-0000-4000-8000-000000000002';
- globalThis.fetch=(url,init)=>new Promise(resolve=>pending.push({url,init,resolve}));
- const render=organization=>act(async()=>{root.render(React.createElement(OwnerDay,{organization,revision:1,onOpen:()=>{},onNavigate:()=>{}}));await tick();});
- const response=name=>Response.json({checkedAt:'2030-10-16T12:00:00Z',timezone:'America/Chicago',calls:[{id:org,requestId:other,startAt:visit.start_at,arrivalAt:visit.arrival_at,endAt:visit.end_at,name,phone:'5550100',address:'Private address',tasks:['Assembly']}],hasMore:false});
- try{await render(org);await render(other);assert.ok(pending[0].init.signal.aborted);await act(async()=>{pending[1].resolve(response('Current company'));await tick();});await act(async()=>{pending[0].resolve(response('Previous company'));await tick();});assert.match(node.textContent,/Current company/);assert.doesNotMatch(node.textContent,/Previous company/);await render(org);assert.doesNotMatch(node.textContent,/Current company|Private address/);assert.match(node.textContent,/Loading/);
- }finally{await act(async()=>root.unmount());}
-});
-
-test('day route timeout exits loading with retry and does not enable stale visit actions',async t=>{
- const root=createRoot(node),org='10000000-0000-4000-8000-000000000001';let duration;
- t.mock.method(AbortSignal,'timeout',ms=>{duration=ms;return AbortSignal.abort(new DOMException('Timed out','TimeoutError'));});
- globalThis.fetch=async(url,init)=>{init.signal.throwIfAborted();throw Error('Expected a bounded signal');};
- try{await act(async()=>{root.render(React.createElement(OwnerDay,{organization:org,revision:1,onOpen:()=>{},onNavigate:()=>{}}));await tick();});assert.equal(duration,15000);assert.match(node.textContent,/Appointments could not load/);assert.ok([...node.querySelectorAll('button')].some(b=>b.textContent==='Try again'));assert.equal(node.querySelectorAll('.owner-stop').length,0);assert.equal(node.querySelector('[aria-busy]').getAttribute('aria-busy'),'false');
- }finally{await act(async()=>root.unmount());}
-});

@@ -10,7 +10,12 @@ export function bookingJourney({form,services,requestData}){
   const selected=Boolean(form.dataset.appointmentStart&&form.dataset.appointmentHoldToken);
   if(selected)arrange=false;
   nextTime.disabled=locked()||(!selected&&!arrange);
-  const data=requestData(),jobs=services();summary.textContent=(jobs.length===1?jobs[0].task||jobs[0].service:jobs.length+' jobs')+' · '+(data.preferredTime||'We’ll arrange a time with you');
+  const data=requestData(),jobs=services(),doc=form.ownerDocument;
+  const heading=doc.createElement('strong');heading.textContent='Your request · '+jobs.length+' '+(jobs.length===1?'job':'jobs');
+  const list=doc.createElement('ul');for(const job of jobs){const item=doc.createElement('li');item.textContent=job.service+': '+(job.task||'Details to review');list.append(item);}
+  const time=doc.createElement('p');time.textContent=data.preferredTime?'Requested time: '+data.preferredTime:'We’ll arrange a time with you';
+  const note=doc.createElement('p');note.className='tiny';note.textContent='One combined request. We’ll confirm the work, price and appointment with you.';
+  summary.replaceChildren(heading,list,time,note);
   if(hadTime&&!selected&&!arrange&&step===3&&!locked()){show(2);message.textContent='Please choose a time again, or ask us to arrange one.';}
   hadTime=selected;
  }

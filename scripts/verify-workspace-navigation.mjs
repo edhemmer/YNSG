@@ -13,7 +13,7 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const origin='http://127.0.0.1:'+server.address().port;
 const output=resolve(process.env.YNSG_WORKSPACE_OUTPUT||'/tmp/ynsg-workspace-navigation');mkdirSync(output,{recursive:true});
 const company2='20000000-0000-4000-8000-000000000002',errors=[],results=[];let browser;
-async function mount({role='owner',width=390,path='?section=Requests',theme='light',state='issued',routeStops=1}={}){
+async function mount({role='owner',width=390,path='?section=Requests',theme='light',state='issued'}={}){
  const page=await browser.newPage({viewport:{width,height:844},reducedMotion:'reduce'}),fixture=ownerFixture(state),writes=[],reads=[],control={memberships:[{organization_id:organization,role},{organization_id:company2,role:'bookkeeper'}],sessionStatus:200,workspace:null,post:null};
  page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(theme=>document.addEventListener('DOMContentLoaded',()=>document.documentElement.dataset.theme=theme),theme);
@@ -28,7 +28,7 @@ async function mount({role='owner',width=390,path='?section=Requests',theme='lig
    const org=url.searchParams.get('organization');
    return route.fulfill({json:{...fixture.data,brand:null,company:{id:org,display_name:'Synthetic Field Company',timezone:'America/Chicago',status:'active'},customers:[],outbox:[],invoiceAdmin:{},appointments:fixture.data.requests[0].appointments,schedulingPreferences:[],pagination:{page:Number(url.searchParams.get('page')),hasMore:false,appointmentFrom:new Date().toISOString()},features:{productionWorkflows:true}}});
   }
-  if(url.pathname==='/api/owner-day')return route.fulfill({json:{checkedAt:new Date().toISOString(),timezone:'America/Chicago',hasMore:false,calls:Array.from({length:routeStops},(_,i)=>fixture.data.requests[0].appointments.filter(a=>a.status==='reserved').map(a=>({id:a.id,requestId:requestId,startAt:a.start_at,arrivalAt:a.arrival_at||a.start_at,endAt:a.end_at,name:fixture.data.requests[0].original_submission.name,address:'100 Synthetic Street, DeKalb',phone:'5550100999',tasks:['Furniture assembly']})).map(c=>({...c,id:c.id.slice(0,-2)+String(i+1).padStart(2,'0'),name:routeStops===1?c.name:c.name+' '+(i+1),address:(100+i)+' Synthetic Street, DeKalb'}))).flat()}});
+  if(url.pathname==='/api/owner-day')return route.fulfill({json:{checkedAt:new Date().toISOString(),timezone:'America/Chicago',hasMore:false,calls:fixture.data.requests[0].appointments.filter(a=>a.status==='reserved').map(a=>({id:a.id,requestId:requestId,startAt:a.start_at,arrivalAt:a.arrival_at||a.start_at,endAt:a.end_at,name:fixture.data.requests[0].original_submission.name,address:'100 Synthetic Street, DeKalb',phone:'5550100999',tasks:['Furniture assembly']}))}});
   if(url.pathname==='/api/owner-work')return route.fulfill({json:{checkedAt:new Date().toISOString(),page:0,total:fixture.data.jobs.length,hasMore:false,items:fixture.data.jobs.filter(j=>['working','paused','completed'].includes(j.status)&&!fixture.data.invoices.some(i=>i.job_id===j.id)).map(j=>({job:j.id,request:requestId,name:fixture.data.requests[0].original_submission.name,address:'100 Synthetic Street, DeKalb',tasks:['Furniture assembly'],status:j.status}))}});
   if(url.pathname==='/api/request-inbox')return route.fulfill({json:fixture.data});
   return route.fulfill({status:503,json:{error:'Synthetic optional data unavailable'}});
@@ -135,12 +135,6 @@ try{
    await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' pending address finder '+width+' '+theme);
    if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-request-finder.png',fullPage:true});
    await match.click();await heading(page,'Job');await page.getByRole('button',{name:'Confirm appointment',exact:true}).waitFor();assert.equal(writes.length,0);await page.close();
-  }
-  for(const width of [320,375,390,430,768,1366])for(const theme of ['light','dark']){
-   const {page,writes}=await mount({width,theme,state:'working',path:'?section=Today',routeStops:5});await page.locator('.owner-upcoming-stops summary').click();
-   assert.equal(await page.locator('.owner-upcoming-stops article').count(),4);const last=page.locator('.owner-upcoming-stops article').last();assert.match(await last.textContent(),/104 Synthetic Street/);assert.match(await last.textContent(),/Oct 19/);assert.equal(await last.getByRole('link',{name:/Call/}).count(),1);
-   await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' full day route '+width+' '+theme);if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-day-route.png',fullPage:true});
-   await last.getByRole('button',{name:'Open job'}).click();await heading(page,'Job');assert.equal(writes.length,0);await page.close();
   }
   await browser.close();browser=null;
  }

@@ -1,7 +1,0 @@
-# Complete loaded day route
-
-WEB-09 / WEB-10 / #162. Day route loaded up to twelve confirmed visits but displayed only three; later stops omitted arrival time and address. Retain the prominent next stop and a collapsed compact list of every remaining loaded stop. Each row shows business-timezone arrival date/time, address, service, exact-job navigation and explicit call/directions actions. More visits remain discoverable through Calendar when the bounded response reports hasMore. This is the saved chronological schedule, not a claimed optimized driving route.
-
-Refresh is visibly busy, duplicate manual refresh is disabled, and reads time out after fifteen seconds with retry available. Loaded data/errors are keyed by company so a company change cannot render another company's route; aborted/late responses cannot restore it. Failed refresh removes unreliable data. No extra background services, model calls, paid dependencies, scheduling mutations or migrations.
-
-Pass/fail: show a fifth loaded stop and its full arrival/address; open its exact request; preserve original next-stop pickup distinction; unsafe phone/address links remain absent; company switch/late response cannot leak data; error/retry remain usable. Synthetic component tests and full-shell six-width, both-theme, enlarged-text cases cover these flows. Required release and PostgreSQL CI plus exact deployment SHA/read-only smoke precede release handoff. Physical-device acceptance and broader product gates remain open.

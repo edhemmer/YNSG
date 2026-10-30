@@ -3,12 +3,12 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import {readFile,readdir,mkdir,writeFile} from 'node:fs/promises';
-import {resolve,extname} from 'node:path';
+import {resolve,extname,sep} from 'node:path';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url),{chromium,webkit}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const root=resolve('dist'),output=resolve(process.env.YNSG_PUBLIC_OUTPUT||'/tmp/ynsg-public-review');await mkdir(output,{recursive:true});
 const server=http.createServer(async(req,res)=>{
- try{const pathname=new URL(req.url,'http://127.0.0.1').pathname;let file=resolve(root,'.'+pathname);if(file!==root&&!file.startsWith(root+'/'))throw Error('PATH');if(!extname(file))file=resolve(file,'index.html');
+ try{const pathname=new URL(req.url,'http://127.0.0.1').pathname;let file=resolve(root,'.'+pathname);if(file!==root&&!file.startsWith(root+sep))throw Error('PATH');if(!extname(file))file=resolve(file,'index.html');
   const bytes=await readFile(file);res.setHeader('Content-Type',({'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml'})[extname(file)]||'application/octet-stream');res.end(bytes);
  }catch{res.statusCode=404;res.end('Not found');}
 });
@@ -34,11 +34,20 @@ try{
    assert.equal(new Set(buttons.map(b=>b.height)).size,1,'Request buttons must agree on height within the viewport');
    assert.ok(await page.locator('a[href="https://yourneighborhoodserviceguy.app/account"]').count(),'Customer sign in is discoverable');
    assert.ok(await page.locator('a[href="https://yourneighborhoodserviceguy.app/account?mode=signup"]').count(),'Customer registration is discoverable');
+   if(path==='/'){
+    assert.equal(await page.locator('.home-service-card').count(),6);for(const img of await page.locator('.service-panel-image').all()){await img.scrollIntoViewIfNeeded();await img.evaluate(el=>el.decode());assert.ok(await img.evaluate(el=>el.complete&&el.naturalWidth>0));}
+    if([390,1366].includes(width)&&theme==='light'&&!largeText)await page.locator('.home-services').screenshot({path:output+'/'+engine+'-service-panels-'+width+'.png'});
+   }
    if(width===390&&theme==='light'&&!largeText)await page.screenshot({path:output+'/'+engine+(path==='/'?'-home':path.replaceAll('/','-'))+'.png',fullPage:false});
    const primary=page.locator('a.service-request-button:visible').first();await primary.focus();assert.equal(await primary.evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(16, 40, 60)','Keyboard focus preserves request color');await primary.hover();await page.waitForFunction(el=>getComputedStyle(el).backgroundColor==='rgb(49, 88, 66)',await primary.elementHandle());assert.equal(await primary.evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(49, 88, 66)','Every request hover uses forest');
    await primary.click();await page.waitForURL(origin+'/request');await page.locator('#request-form').waitFor({state:'attached'});
    results.push({engine,width,path,theme,largeText:Boolean(largeText),buttons,...state});await page.close();
   }
+  const flow=await browser.newPage({viewport:{width:390,height:844}});let sent=0;await flow.route('**/*',route=>{const req=route.request(),url=new URL(req.url());if(req.method()!=='GET'){sent++;return route.abort();}if(url.origin!==origin)return route.abort();if(url.pathname.startsWith('/api/'))return route.fulfill({status:503,json:{error:'Synthetic provider unavailable'}});return route.continue();});
+  await flow.goto(origin+'/');const links=await flow.locator('.home-service-book').evaluateAll(els=>els.map(e=>e.getAttribute('href')));
+  for(const href of links){await flow.goto(origin+href);await flow.locator('.request-category[open]').waitFor();const task=new URL(href,origin).searchParams.get('task');if(task)assert.ok(await flow.locator('#selected-service-list').getByText(new RegExp(task)).count());assert.equal(await flow.locator('#request-form').count(),1);}
+  await flow.goto(origin+'/');await flow.locator('input[name="category"][value="Lawn care"]').check();await flow.locator('input[name="category"][value="Help around the home"]').check();await flow.getByRole('button',{name:'Continue request'}).click();await flow.waitForURL(url=>url.searchParams.getAll('category').length===2);await flow.locator('.request-category[open]').nth(1).waitFor();assert.equal(await flow.locator('.request-category[open]').count(),2);assert.equal(await flow.locator('#selected-service-list li').count(),0,'Category choices must not invent specific jobs');
+  assert.equal(sent,0);await flow.close();
   await browser.close();browser=null;
  }
  assert.deepEqual(errors,[]);await writeFile(output+'/results.json',JSON.stringify({cases:results.length,results,externalActions:0,uncaughtErrors:errors},null,2));console.log('PASS: '+results.length+' built homepage/booking/local-service masthead and responsive checks; synthetic failures only.');
