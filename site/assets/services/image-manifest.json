@@ -1,0 +1,157 @@
+{
+  "site": "https://www.yourneighborhoodserviceguy.com",
+  "copyright_notice": "© 2026 Your Neighborhood Service Guy. All rights reserved where applicable. AI-generated service illustration. Reuse requires permission; metadata does not establish exclusive rights in AI-generated content.",
+  "notice": "Metadata can be stripped and does not prevent copying. Do not present AI illustrations as real job photos.",
+  "images": [
+    {
+      "id": "lawn-mowing",
+      "title": "YNSG lawn mowing service in DeKalb, Sycamore and Cortland",
+      "alt": "Lawn mower on a residential lawn, illustrating lawn mowing and trimming services.",
+      "creator": "Your Neighborhood Service Guy — HOME & YARD",
+      "rights": "© 2026 Your Neighborhood Service Guy. All rights reserved where applicable. AI-generated service illustration. Reuse requires permission; metadata does not establish exclusive rights in AI-generated content.",
+      "generated_artwork": true,
+      "shirt_branding_review": "No shirt branding visible; may be used as illustrative artwork",
+      "variants": [
+        {
+          "filename": "ynsg-lawn-mowing-960.webp",
+          "width": 960,
+          "height": 384,
+          "size_bytes": 60494,
+          "sha256": "6728dc120a55b134260a06f53919fa3c7eb2124d6303b3842191150532d90f09"
+        },
+        {
+          "filename": "ynsg-lawn-mowing-640.webp",
+          "width": 640,
+          "height": 256,
+          "size_bytes": 38070,
+          "sha256": "0bdfd72dd156d1a673cfaa0e66e6eb9eb062bba045bf94e2de01ea427f917e7e"
+        }
+      ]
+    },
+    {
+      "id": "leaf-cleanup",
+      "title": "YNSG seasonal leaf cleanup and bagging",
+      "alt": "Rake and gathered autumn leaves on a residential lawn.",
+      "creator": "Your Neighborhood Service Guy — HOME & YARD",
+      "rights": "© 2026 Your Neighborhood Service Guy. All rights reserved where applicable. AI-generated service illustration. Reuse requires permission; metadata does not establish exclusive rights in AI-generated content.",
+      "generated_artwork": true,
+      "shirt_branding_review": "No shirt branding visible; may be used as illustrative artwork",
+      "variants": [
+        {
+          "filename": "ynsg-leaf-cleanup-960.webp",
+          "width": 960,
+          "height": 384,
+          "size_bytes": 66968,
+          "sha256": "17072b41ec6a7bc180ebbffc7647f8bb71b5704f8f285de1597ba4febaa000a2"
+        },
+        {
+          "filename": "ynsg-leaf-cleanup-640.webp",
+          "width": 640,
+          "height": 256,
+          "size_bytes": 40346,
+          "sha256": "9b7f94ee1635a076227e2fd4010268c21e1ea3f9979d119e3f68fddc3c1dbf75"
+        }
+      ]
+    },
+    {
+      "id": "yard-garden",
+      "title": "YNSG mulch, planting and garden-bed cleanup",
+      "alt": "Neatly mulched residential garden bed with flowers and shrubs.",
+      "creator": "Your Neighborhood Service Guy — HOME & YARD",
+      "rights": "© 2026 Your Neighborhood Service Guy. All rights reserved where applicable. AI-generated service illustration. Reuse requires permission; metadata does not establish exclusive rights in AI-generated content.",
+      "generated_artwork": true,
+      "shirt_branding_review": "No shirt branding visible; may be used as illustrative artwork",
+      "variants": [
+        {
+          "filename": "ynsg-yard-garden-960.webp",
+          "width": 960,
+          "height": 384,
+          "size_bytes": 83798,
+          "sha256": "c7afa77d6cabf56e9205edbc27d82abd22e9057988f4d65b2e8d007838dfed0f"
+        },
+        {
+          "filename": "ynsg-yard-garden-640.webp",
+          "width": 640,
+          "height": 256,
+          "size_bytes": 51110,
+          "sha256": "256475854353bbe3c786aef7a4d11656c2054d1375247a798ccf46d383066ee4"
+        }
+      ]
+    },
+    {
+      "id": "small-home-jobs",
+      "title": "YNSG small home jobs and furniture assembly",
+      "alt": "Person using a cordless drill to install a shelf bracket in a home.",
+      "creator": "Your Neighborhood Service Guy — HOME & YARD",
+      "rights": "© 2026 Your Neighborhood Service Guy. All rights reserved where applicable. AI-generated service illustration. Reuse requires permission; metadata does not establish exclusive rights in AI-generated content.",
+      "generated_artwork": true,
+      "shirt_branding_review": "Corrected against original site logo; hands and drill placement corrected October 29. Built-in image editing used.",
+      "variants": [
+        {
+          "filename": "ynsg-small-home-jobs-v2-960.webp",
+          "width": 960,
+          "height": 384,
+          "size_bytes": 38728,
+          "sha256": "8711622260417729c72e2344d19de1b9257b688d0f1196c03df98356011608f4"
+        },
+        {
+          "filename": "ynsg-small-home-jobs-v2-640.webp",
+          "width": 640,
+          "height": 256,
+          "size_bytes": 21714,
+          "sha256": "a58ad4e0f1bbfae98d76caeb590acf4c9b46cb287c658c478b676391fe2412f7"
+        }
+      ]
+    },
+    {
+      "id": "snow-clearing",
+      "title": "YNSG small residential snow clearing",
+      "alt": "Shoveled residential walkway after snowfall.",
+      "creator": "Your Neighborhood Service Guy — HOME & YARD",
+      "rights": "© 2026 Your Neighborhood Service Guy. All rights reserved where applicable. AI-generated service illustration. Reuse requires permission; metadata does not establish exclusive rights in AI-generated content.",
+      "generated_artwork": true,
+      "shirt_branding_review": "No shirt branding visible; may be used as illustrative artwork",
+      "variants": [
+        {
+          "filename": "ynsg-snow-clearing-960.webp",
+          "width": 960,
+          "height": 384,
+          "size_bytes": 40944,
+          "sha256": "202d629124fff795a3a0b137a2fc83eba6974f8df1f77443d27560a6ecf8161f"
+        },
+        {
+          "filename": "ynsg-snow-clearing-640.webp",
+          "width": 640,
+          "height": 256,
+          "size_bytes": 25658,
+          "sha256": "fc62d40e120807e76c9308bb40877fe6029df2e52f38df85a226324df69647a6"
+        }
+      ]
+    },
+    {
+      "id": "concrete-washing",
+      "title": "YNSG ground-level concrete pressure washing",
+      "alt": "Pressure-washing wand cleaning an outdoor concrete walkway.",
+      "creator": "Your Neighborhood Service Guy — HOME & YARD",
+      "rights": "© 2026 Your Neighborhood Service Guy. All rights reserved where applicable. AI-generated service illustration. Reuse requires permission; metadata does not establish exclusive rights in AI-generated content.",
+      "generated_artwork": true,
+      "shirt_branding_review": "No shirt branding visible; may be used as illustrative artwork",
+      "variants": [
+        {
+          "filename": "ynsg-concrete-washing-960.webp",
+          "width": 960,
+          "height": 384,
+          "size_bytes": 47630,
+          "sha256": "533ec385639fcc7d5ed625b9530a4508ce7a03cf94fcd26fcaa91b6fb2fd6138"
+        },
+        {
+          "filename": "ynsg-concrete-washing-640.webp",
+          "width": 640,
+          "height": 256,
+          "size_bytes": 27976,
+          "sha256": "389856f6a0be7676e8f4a62c4f55d2a37934e06054466933ab790915b5e6189d"
+        }
+      ]
+    }
+  ]
+}

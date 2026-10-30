@@ -1,3 +1,4 @@
+import {serviceCatalog} from './service-catalog.js';
 import {cityPostalPicker} from './city-postal-codes.js';
 import {deliverRequest} from './request-delivery.js';
 import {requestRecovery} from './request-recovery.js';
@@ -21,14 +22,7 @@ function requestErrorMessage(error){
   return approved.has(message)?message:'We could not confirm that your request was sent. Try again with the same details, or call or text 770-630-2094.';
 }
 // End public error helper.
-const tasks = {
-  'Help around the home':['Furniture assembly','Shelving and organizing','Household product setup','Lightweight hanging','Small drywall patch','Moving manageable items','Several small jobs'],
-  'Lawn care':['Mowing','Trimming and edging','Mow, trim and blow-off','Leaf management','Recurring lawn care'],
-  'Yard & garden':['Pulling weeds by hand','Bulk or bagged mulch pickup, delivery & spreading','Spreading mulch','Planting small bushes','Planting flowers','Small bush trimming','Garden-bed cleanup','Moving yard materials'],
-  'Snow clearing':['Residential driveway','Sidewalks and walkways','Accessible entry','Driveway and walks'],
-  'Concrete pressure washing':['Concrete driveway','Concrete walks','Concrete patio'],
-  'Something else':['Describe below']
-};
+const tasks = serviceCatalog;
 // getRandomValues supports older iPhone browsers that do not yet expose randomUUID.
 function newRequestKey(){
   if(typeof crypto.randomUUID==='function')return crypto.randomUUID();
@@ -86,7 +80,7 @@ if(form){
     const count=document.createElement('span');count.className='category-count';count.textContent='';
     const action=document.createElement('span');action.className='category-action';action.textContent='View jobs';
     heading.append(title,count,action);
-    group.addEventListener('toggle',()=>{action.textContent=group.open?'Hide jobs':'View jobs';if(group.open){for(const other of categoryGroups.values())if(other!==group)other.open=false;}});
+    group.addEventListener('toggle',()=>{action.textContent=group.open?'Hide jobs':'View jobs';});
     const choices=document.createElement('div');choices.className='request-category-jobs';
     for(const task of jobs){
       const label=document.createElement('label');label.className='service-option';
@@ -114,6 +108,10 @@ if(form){
   refresh();
   const params=new URLSearchParams(location.search);
   choose(params.get('service') || '',params.get('task') || '');
+  // Category hints open choices without inventing a job or consent.
+  for(const category of params.getAll('category').slice(0,6)){
+    if(categoryGroups.has(category))categoryGroups.get(category).open=true;
+  }
   document.querySelectorAll('[data-service]').forEach(link=>link.addEventListener('click',event=>{
     const section=document.querySelector('#request');
     if(!section) return;
