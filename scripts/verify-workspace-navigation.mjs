@@ -117,20 +117,20 @@ try{
    const {page,reads,writes}=await mount({width,theme,state:'working',path:'?section=Dashboard'});await heading(page,'Today');await page.getByRole('button',{name:'Continue job',exact:true}).waitFor();
    assert.equal(await page.locator('.marketing-assistant,.metric-grid,.business-brief').count(),0);assert.equal(reads.filter(p=>p.startsWith('/api/business-snapshot')).length,0);assert.equal(await page.locator('.field-desk h2').filter({hasText:'Morgan Synthetic Neighbor'}).count(),1);
    await layout(page,engine+' field desk '+width+' '+theme);if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-field-desk.png',fullPage:true});
-   await page.getByLabel('Find in your work queue').fill('morgan assembly');
+   await page.locator('.field-search-disclosure>summary').click();assert.equal(await page.locator('.field-search-disclosure[open]').count(),1);await page.getByLabel('Search loaded jobs, visits and requests').fill('morgan assembly');
    await page.getByRole('status').filter({hasText:'2 matches in the loaded queue'}).waitFor();
    assert.equal(await page.locator('[aria-label="Matching work"] .field-queue-row').count(),2);
    await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' finder 200% '+width+' '+theme);
-   await page.getByLabel('Find in your work queue').fill('no matching customer');await page.getByRole('status').filter({hasText:'0 matches'}).waitFor();
+   await page.getByLabel('Search loaded jobs, visits and requests').fill('no matching customer');await page.getByRole('status').filter({hasText:'0 matches'}).waitFor();
    await page.getByRole('button',{name:'Clear',exact:true}).click();await page.getByRole('button',{name:'Continue job',exact:true}).waitFor();
    await page.addStyleTag({content:'html{font-size:16px!important}'});
-   await page.getByLabel('Find in your work queue').fill('morgan assembly');
+   await page.getByLabel('Search loaded jobs, visits and requests').fill('morgan assembly');
    await page.locator('[aria-label="Matching work"] .field-queue-row').filter({hasText:'Working job'}).click();await heading(page,'Job');assert.equal(await page.locator('.mobile-workflow-steps').count(),0);assert.equal(await page.locator('.field-job .field-job-service').count(),1);const brief=page.getByRole('region',{name:'Agreed work brief'});await brief.waitFor();assert.match(await brief.textContent(),/Assemble a small bookcase/);assert.match(await brief.textContent(),/Labor estimate/);await layout(page,engine+' one field job '+width+' '+theme);await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' agreed work 200% '+width+' '+theme);await page.addStyleTag({content:'html{font-size:16px!important}'});if(width===390&&theme==='light')await page.locator('.field-job').screenshot({path:output+'/'+engine+'-field-job.png'});
    await go(page,'Marketing');await heading(page,'Marketing');await page.locator('.marketing-assistant').waitFor();assert.equal(await page.locator('.field-desk,.field-job').count(),0);assert.equal(writes.length,0);await page.close();
   }
   for(const width of [320,375,390,430,768,1366])for(const theme of ['light','dark']){
    const {page,writes}=await mount({width,theme,state:'new',path:'?section=Dashboard'});await heading(page,'Today');
-   await page.getByLabel('Find in your work queue').fill('fictional dekalb reviewing');
+   await page.locator('.field-search-disclosure>summary').click();await page.getByLabel('Search loaded jobs, visits and requests').fill('fictional dekalb reviewing');
    const match=page.locator('[aria-label="Matching work"] .field-queue-row');await match.waitFor();assert.match(await match.textContent(),/100 Fictional Lane.*DeKalb/);
    await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' pending address finder '+width+' '+theme);
    if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-request-finder.png',fullPage:true});
