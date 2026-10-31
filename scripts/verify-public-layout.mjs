@@ -16,7 +16,7 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.
 try{
  for(const engine of (process.argv.includes('--chromium-only')?['chromium']:['chromium','webkit'])){
   browser=await(engine==='webkit'?webkit:chromium).launch({headless:true,...(engine==='chromium'&&process.env.YNSG_CHROMIUM_EXECUTABLE?{executablePath:process.env.YNSG_CHROMIUM_EXECUTABLE}:{})});
-  const paths=['/',...(await readdir(root,{withFileTypes:true})).filter(e=>e.isDirectory()&&e.name!=='assets').map(e=>'/'+e.name)];
+  const paths=process.argv.includes('--home-only')?['/']:['/',...(await readdir(root,{withFileTypes:true})).filter(e=>e.isDirectory()&&e.name!=='assets').map(e=>'/'+e.name)];
   const cases=[320,390,768,1366].flatMap(width=>paths.flatMap(path=>['light','dark'].map(theme=>({width,path,theme}))));
   cases.push(...paths.map(path=>({width:390,path,theme:'light',largeText:true})));
   for(const {width,path,theme,largeText} of cases.filter(c=>!process.argv.includes('--large-only')||c.largeText)){

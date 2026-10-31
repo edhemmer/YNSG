@@ -11,3 +11,5 @@
 
 .home-service-card-cleanout .service-copy small{display:block;margin-top:.6rem}.home-service-card-cleanout .service-panel-image{object-fit:contain;background:#eef1e9}
 @media(min-width:1151px){.service-explorer .home-service-grid{grid-template-columns:repeat(6,minmax(0,1fr))}.service-explorer .home-service-card{grid-column:span 2}.service-explorer .home-service-card:nth-last-child(2):nth-child(3n+1){grid-column:2/span 2}.service-explorer .home-service-card:last-child:nth-child(3n+2){grid-column:4/span 2}}
+
+.home-services .service-explorer .home-service h3{flex-wrap:nowrap;align-items:flex-start}
