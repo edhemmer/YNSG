@@ -14,6 +14,7 @@ const titles={
  'lawn-mowing-dekalb-il':'Lawn Mowing in DeKalb, IL',
  'leaf-cleanup-dekalb-il':'Leaf Management in DeKalb, IL',
  'snow-removal-dekalb-il':'Residential Snow Removal in DeKalb, IL',
+ 'mulch-delivery-spreading-dekalb-il':'Mulch Pickup, Delivery & Spreading in DeKalb, IL',
  'mulch-yard-cleanup-dekalb-il':'Mulch & Yard Cleanup in DeKalb, IL',
  'concrete-pressure-washing-dekalb-il':'Concrete Pressure Washing in DeKalb, IL',
 };
@@ -24,6 +25,7 @@ export const localServicePages={
  'lawn-mowing-dekalb-il':{name:'Residential lawn mowing',description:'One-time or recurring residential mowing, trimming, edging and blowing clippings off finished surfaces.'},
  'leaf-cleanup-dekalb-il':{name:'Leaf management',description:'Seasonal leaf management for residential yards and outdoor areas. The approach, timing and cost are reviewed with the customer.'},
  'snow-removal-dekalb-il':{name:'Residential snow removal',description:'Driveway, sidewalk and entry snow clearing with hand shovels or a walk-behind snow blower. No salt, deicer or commercial plowing.'},
+ 'mulch-delivery-spreading-dekalb-il':{name:'Mulch pickup, delivery and spreading',description:'Arranged bulk or bagged mulch pickup, delivery and spreading, or spreading material already at home. Customers prepay the supplier for arranged pickup.'},
  'mulch-yard-cleanup-dekalb-il':{name:'Mulch spreading and garden-bed cleanup',description:'Mulch spreading, hand weeding and small garden-bed jobs. Customers prepay the supplier for arranged mulch pickup.'},
  'concrete-pressure-washing-dekalb-il':{name:'Concrete pressure washing',description:'Ground-level residential concrete driveway, walkway and patio washing with customer-supplied accessible outdoor water.'},
 };

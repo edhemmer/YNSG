@@ -88,7 +88,7 @@ try{
    await page.waitForFunction(()=>document.querySelector('select[name="visitTime"]').options.length>1);
    const option=await page.locator('select[name="visitTime"] option').nth(1).getAttribute('value');await page.locator('select[name="visitTime"]').selectOption(option);
    controls.post=(route,req,url)=>{assert.equal(url.pathname,'/api/scheduling-review');fixture.data.requests[0].appointments=ownerFixture('confirmed').data.requests[0].appointments;return route.fulfill({json:{ok:true,result:{id:visitId,status:'reserved',revision:3},delivery:null}});};
-   await page.getByRole('button',{name:'Schedule appointment',exact:true}).click();await page.getByRole('button',{name:'Manage visit',exact:true}).waitFor();assert.equal(writes.length,1);assert.equal(JSON.parse(writes[0].body).confirmImmediately,true);await page.close();
+   await page.getByRole('button',{name:'Schedule appointment',exact:true}).click();await page.getByRole('button',{name:'Prepare work & price',exact:true}).waitFor();assert.equal(writes.length,1);assert.equal(JSON.parse(writes[0].body).confirmImmediately,true);assert.equal(await page.getByLabel('Service radius advisory').count(),0);await page.getByRole('button',{name:'Prepare work & price',exact:true}).click();await page.getByRole('link',{name:'Review work & customer approval',exact:true}).click();await page.locator('#field-customer-agreement').waitFor();assert.equal(writes.length,1);await page.close();
   }
   {
    const {page,writes}=await mount('proposal');await page.getByRole('button',{name:'Choose another time',exact:true}).click();await page.locator('.decline-fields select').last().selectOption('time');assert.equal(writes.length,0);await layout(page,engine+' alternate-time approval');await page.close();

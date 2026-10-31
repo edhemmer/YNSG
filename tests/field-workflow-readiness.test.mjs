@@ -183,7 +183,7 @@ test('customer agreement quick wording stays editable and requires an explicit o
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
  assert.match(source,/Agreed by phone/);
  assert.match(source,/Agreed in person/);
- assert.match(source,/Choose wording only after the customer has actually agreed/);
+ assert.match(source,/confirm that the customer agrees to the work and price shown above/);
  assert.match(source,/value=\{evidence\} onChange/);
  assert.match(source,/disabled=\{evidence\.trim\(\)\.length<10\}/);
  assert.match(source,/Record customer agreement/);
@@ -245,7 +245,7 @@ test('AI-first administrative preparation remains read-only and requires owner a
  assert.match(prep,/ownerApproval:true/);
  assert.match(prep,/Prepare charges for invoice review/);
  assert.match(view,/Prepared administrative actions/);
- assert.match(view,/not completed AI actions/);
+ assert.match(view,/Review each item before saving/);
 });
 
 test('prepared administrative tasks open existing review workflows without executing writes',()=>{
