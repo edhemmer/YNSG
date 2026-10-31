@@ -6,5 +6,6 @@ export const serviceCatalog = {
   'Snow clearing':['Residential driveway','Sidewalks and walkways','Accessible entry','Driveway and walks'],
   'Concrete pressure washing':['Concrete driveway','Concrete walks','Concrete patio'],
   'Cleanout & removal':['Garage cleanout','Basement cleanout','Storage-area cleanout','Manageable household item removal'],
+  'Farm hand services':['Spring planting support','Fall harvest support','General farm labor','Seasonal farm cleanup','Other farm help'],
   'Something else':['Describe below']
 };
