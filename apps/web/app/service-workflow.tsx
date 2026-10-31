@@ -1,5 +1,5 @@
 'use client';
-import {makeCompanionContext,type CompanionContext} from '../lib/job-companion';
+import {makeCompanionContext,supportTaskLabels,type CompanionContext} from '../lib/job-companion';
 import {useState,useRef,useEffect} from 'react';
 import {creditTotal} from '../lib/invoice-credit-contract';
 import {submissionAddress,requestTasks,requestTiming,visitState,type InboxRequest,type LinkedQuote,type LinkedJob,type LinkedInvoice} from '../lib/request-inbox';
@@ -77,7 +77,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
    {task.kind==='settled'&&<p role="status">All work is invoiced. Confirmed receipts and credits settle the balance. History is saved below.</p>}
    {task.kind==='closed'&&<p>The saved request and its history are retained.</p>}
   </section>
-  {canManage&&onNetwork&&<p><button type="button" className="secondary" disabled={blocked} onClick={()=>onNetwork(requestTasks(request.original_submission).map(item=>item.task||item.service),makeCompanionContext({request:request.id,customer:request.original_submission.name,phase:task.kind,next:task.next.title,company:companyName,email:request.original_submission.email}),'learn')}>Help with this job</button></p>}
+  {canManage&&onNetwork&&<p><button type="button" className="secondary" disabled={blocked} onClick={()=>onNetwork(supportTaskLabels(requestTasks(request.original_submission)),makeCompanionContext({request:request.id,customer:request.original_submission.name,phase:task.kind,next:task.next.title,company:companyName,email:request.original_submission.email}),'learn')}>Help with this job</button></p>}
   {proposal&&confirmedVisit&&canManage&&<div className="note"><p>A different appointment time was requested. The confirmed visit stays booked.</p><button type="button" className="secondary" disabled={blocked} onClick={openSchedule}>Review requested time change</button></div>}
   {scheduleOpen&&<SchedulingReviewPanel key={proposal?.id||request.id} organization={organization} requestId={request.id} appointmentId={proposal?.id||null} initialExpanded initialStart={request.original_submission.preferredTime} onBusy={busyFor('schedule')} completed={()=>{setScheduleOpen(false);onChanged();}}/>}
   {task.kind==='agreement'&&<section className="workflow-section"><h3>Scope & price</h3>

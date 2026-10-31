@@ -1,4 +1,5 @@
 import {z} from 'zod';
+import {servicePreparationForWork} from './service-preparation.ts';
 import {preflightForWork,allTrainingTopics} from './owner-job-standards.ts';
 import {referralText,publicReferral,type PublicReferral} from './owner-network-recovery.ts';
 const line=(max:number)=>z.string().trim().max(max).regex(/^[^\x00-\x1f\x7f]*$/);
@@ -9,6 +10,7 @@ export const updateIntents=[['next','Discuss next steps'],['photo','Ask for a ph
 export type UpdateIntent=typeof updateIntents[number][0];
 const clean=(value:string,max:number)=>value.replace(/[\x00-\x1f\x7f]+/g,' ').replace(/\s+/g,' ').trim().slice(0,max);
 export function makeCompanionContext(input:{request:string;customer:string;phase:CompanionContext['phase'];next:string;company?:string;email?:string}){const email=z.email().max(254).safeParse(input.email?.trim());return companionContext.parse({request:input.request,customer:clean(input.customer,160),phase:input.phase,next:clean(input.next,180),company:clean(input.company||'Your service team',160),email:email.success?email.data:''});}
+export function supportTaskLabels(items:{service:string;task?:string}[]){return items.map(item=>item.task&&item.task!==item.service?item.task+' · '+item.service:item.task||item.service);}
 export function companionTasks(tasks:string[]){const seen=new Set<string>();return tasks.map(t=>clean(t,160)).filter(t=>{const key=t.toLocaleLowerCase('en-US');if(!t||seen.has(key))return false;seen.add(key);return true;}).slice(0,20);}
 export function taskGuidance(tasks:string[]){
  return companionTasks(tasks).map(task=>{const preflight=preflightForWork('',task);return {task,preflight,topic:preflight?allTrainingTopics.find(topic=>topic.id===preflight.topicId)||null:null};});
@@ -27,8 +29,9 @@ const nextWording:Record<CompanionContext['phase'],string>={
 };
 /** Local proposal only: no promise of availability, automatic approval, prices,
  * completed work, receipt or delivery. The owner reviews every copied update. */
-export function customerUpdate(context:CompanionContext,intent:UpdateIntent,referral:PublicReferral|null=null){
- const c=companionContext.parse(context),name=c.customer||'there';
- const text=intent==='next'?nextWording[c.phase]:intent==='photo'?'A photo of the area or item would help us review the next step. If it’s convenient, could you send one, along with anything you’d like us to know?':intent==='access'?'Is there anything we should know about access, parking, pets or items that need to be moved? A little preparation helps the visit go smoothly.':referral?'If you’d like to contact a specialist, here are their details:\n\n'+referralText(publicReferral(referral))+'\n\nPlease check the scope, availability and pricing directly with them.':'If you’d like to contact a specialist, I can share contact details for you to review. Please check the scope, availability and pricing directly with them.';
+export function customerUpdate(context:CompanionContext,intent:UpdateIntent,referral:PublicReferral|null=null,task=''){
+ const c=companionContext.parse(context),name=c.customer||'there',preparation=servicePreparationForWork('',task);
+ const photo=preparation?'If it’s convenient, could you send a photo of the area or items? It would also help to know:\n\n'+preparation.customerQuestions.map(question=>'• '+question).join('\n'):'A photo of the area or item would help us review the next step. If it’s convenient, could you send one, along with anything you’d like us to know?';
+ const text=intent==='next'?nextWording[c.phase]:intent==='photo'?photo:intent==='access'?'Is there anything we should know about access, parking, pets or items that need to be moved? A little preparation helps the visit go smoothly.':referral?'If you’d like to contact a specialist, here are their details:\n\n'+referralText(publicReferral(referral))+'\n\nPlease check the scope, availability and pricing directly with them.':'If you’d like to contact a specialist, I can share contact details for you to review. Please check the scope, availability and pricing directly with them.';
  return {subject:'About your service request',body:`Hi ${name},\n\n${text}\n\nThank you,\n${c.company}`};
 }

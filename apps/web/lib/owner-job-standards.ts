@@ -1,3 +1,4 @@
+import {servicePreparationForWork,servicePreparationTopics,unsupportedPreparationTask} from './service-preparation.ts';
 import {z} from 'zod';
 
 export const taskStandard=z.object({
@@ -61,6 +62,8 @@ export function drywallRepairGuide(holeDiameterInches:number){
 }
 export type FieldPreflight={topicId:string;title:string;questions:string[];tools:string[];stop:string};
 export function preflightForWork(service:string,task:string):FieldPreflight|null{
+ if(unsupportedPreparationTask(service,task))return null;
+ const preparation=servicePreparationForWork(service,task);if(preparation)return {topicId:preparation.id,title:preparation.title,questions:preparation.questions,tools:preparation.tools,stop:preparation.stop};
  const name=(service+' '+task).toLowerCase();
  if(/shelf|shelving|bracket/.test(name))return {topicId:'shelf-anchors',title:'Shelf installation preflight',questions:['What is the shelf and loaded weight?','Is the wall drywall, plaster, masonry or another material?','Are suitable anchors/studs and safe drilling clear?'],tools:['Stud finder','Level','Compatible brackets/anchors','Drill and bits'],stop:'Do not assume drywall anchors are suitable for a heavy load or unverified substrate.'};
  if(/picture|photo frame|artwork|mirror/.test(name))return {topicId:'hang-artwork',title:'Wall-hanging preflight',questions:['What is the object weight and hanging hardware?','Where are studs or suitable wall anchors?','Is there a safe area free of known utilities?'],tools:['Tape','Level','Stud finder','Rated hangers'],stop:'Heavy mirrors and valuables require separate scope and handling review.'};
@@ -84,7 +87,7 @@ export const trainingTopics=[
  {id:'miter-cuts-video',title:'Video: make more accurate miter cuts',source:'This Old House — illustrated tutorial and video',url:'https://www.thisoldhouse.com/woodworking/how-to-cut-miters',safety:'Confirm saw model, blade guard, work holding and personal protective equipment before using any tutorial.'},
  {id:'caulking-video',title:'Video: remove and replace bathtub caulk',source:'Ask This Old House — tutorial and video',url:'https://www.thisoldhouse.com/bathrooms/how-to-caulk-around-a-bathtub',safety:'Confirm material compatibility, mold/water damage, sealant label and cure time; demonstrated timing is not universal.'},
 ] as const;
-export const allTrainingTopics=[...trainingTopics,...verifiedHandymanSources] as const;
+export const allTrainingTopics=[...trainingTopics,...verifiedHandymanSources,...servicePreparationTopics] as const;
 export const examplePlanningStandards:TaskStandard[]=ownerTaskStandards.parse([
  {service:'Lawn care',task:'Mow, trim and blow-off',plannedMinutes:60,typicalMinutes:45,difficulty:'routine',setupMinutes:10,pickupMinutes:0,notes:'Example only; slope, acreage, obstacles and access change the time.'},
  {service:'Yard & garden',task:'Pulling weeds by hand',plannedMinutes:120,typicalMinutes:120,difficulty:'variable',setupMinutes:15,pickupMinutes:0,notes:'Measure beds and weed density before committing.'},

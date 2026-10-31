@@ -1,9 +1,11 @@
 'use client';
 import {useId,useMemo,useState} from 'react';
+import {servicePreparations} from '../lib/service-preparation';
 import {taskGuidance} from '../lib/job-companion';
 import {estimateVisit,examplePlanningStandards,allTrainingTopics,reviewTaskTime,flatTrimMiterSetting,drywallRepairGuide,type TaskStandard} from '../lib/owner-job-standards';
 
 const lessonDetails:Record<string,{steps:string[];tools:string[];stop:string}>={
+ ...Object.fromEntries(servicePreparations.map(p=>[p.id,{steps:p.steps,tools:p.tools,stop:p.stop}])),
  'cutting-angles':{
   steps:['Inspect the existing corner, trim profile, orientation and wall irregularities.','Measure the actual included angle or use two straight, equal-width reference boards to bisect an irregular corner.','For equal miters divide the included angle by two, then convert correctly to the saw’s setting; mark reference faces to avoid flipped cuts.','Make a sacrificial test joint and adjust before cutting finished stock.'],
   tools:['Angle finder or sliding bevel','Square and tape measure','Pencil and equal-width reference boards','Scrap test stock','Clamps and guarded miter saw'],
@@ -63,9 +65,9 @@ const lessonGuidance:Record<string,{where:string;when:string;tip:string;attribut
  'remove-caulk':{where:'A surface confirmed compatible with the removal tool and cleaner.',when:'Once the cause of the failed joint and any water intrusion has been addressed.',tip:'A plastic scraper is often less likely to damage acrylic than a metal blade.',attribution:'Practical trade tip; verify surface compatibility'},
  'apply-caulk':{where:'A clean, dry joint with the correct sealant chosen for its materials.',when:'After removing failed caulk and allowing the surface to dry fully.',tip:'A small nozzle opening makes a neat bead easier to control; do not skip the cure time.',attribution:'Practical trade tip; verify product label'}
 };
-export default function OwnerLearningToolkit({onNetwork,organization,tasks=[]}:{onNetwork?:(tasks:string[])=>void;organization?:string;tasks?:string[]}={}){
+export default function OwnerLearningToolkit({onNetwork,organization,tasks=[],initialTask,onTaskChange}:{onNetwork?:(tasks:string[])=>void;organization?:string;tasks?:string[];initialTask?:string;onTaskChange?:(task:string)=>void}={}){
  const heading=useId(),guidance=taskGuidance(tasks);
- const [focus,setFocus]=useState(()=>guidance.findIndex(g=>g.topic)!==-1?guidance.findIndex(g=>g.topic):0),[topicQuery,setTopicQuery]=useState('');
+ const [focus,setFocus]=useState(()=>guidance.some(g=>g.task===initialTask)?guidance.findIndex(g=>g.task===initialTask):guidance.findIndex(g=>g.topic)!==-1?guidance.findIndex(g=>g.topic):0),[topicQuery,setTopicQuery]=useState('');
  const focused=guidance[focus];
  const [libraryOpen,setLibraryOpen]=useState(()=>tasks.length>0&&!focused?.topic);
  const [service,setService]=useState(examplePlanningStandards[0]!.service+'::'+examplePlanningStandards[0]!.task);
@@ -85,7 +87,7 @@ export default function OwnerLearningToolkit({onNetwork,organization,tasks=[]}:{
  return <section className="card owner-learning" aria-labelledby={heading}>
   <h2 id={heading}>{tasks.length?'Prepare this task':'Field guide & job planner'}</h2>
   <p>{tasks.length?'Start with these checks. Use the steps and source below when you need more detail.':'Prepare the task, check the reference, and decide what you can confidently take on. Follow current manufacturer instructions and your approved scope.'}</p>
-  {guidance.length>0&&<section className="companion-task-guide" aria-label="Guidance for this job"><label>Task on this request<select aria-label="Task on this request" value={focus} onChange={e=>{const i=Number(e.target.value);setFocus(i);setTopic(guidance[i]?.topic?.id||'');setLibraryOpen(!guidance[i]?.topic);setTopicQuery('');}}>{guidance.map((g,i)=><option key={g.task} value={i}>{g.task}</option>)}</select></label>{focused?.preflight?<><h3>{focused.preflight.title}</h3><h4>Check before you begin</h4><ul>{focused.preflight.questions.map(q=><li key={q}>{q}</li>)}</ul><p><strong>Have ready:</strong> {focused.preflight.tools.join(' · ')}</p><p className="note"><strong>Pause or refer:</strong> {focused.preflight.stop}</p></>:<p>No matching task guide yet. Search the library below or find a specialist in Owner network. A general guide does not approve this work.</p>}</section>}
+  {guidance.length>0&&<section className="companion-task-guide" aria-label="Guidance for this job"><label>Task on this request<select aria-label="Task on this request" value={focus} onChange={e=>{const i=Number(e.target.value);setFocus(i);onTaskChange?.(guidance[i]?.task||'');setTopic(guidance[i]?.topic?.id||'');setLibraryOpen(!guidance[i]?.topic);setTopicQuery('');}}>{guidance.map((g,i)=><option key={g.task} value={i}>{g.task}</option>)}</select></label>{focused?.preflight?<><h3>{focused.preflight.title}</h3><h4>Check before you begin</h4><ul>{focused.preflight.questions.map(q=><li key={q}>{q}</li>)}</ul><p><strong>Have ready:</strong> {focused.preflight.tools.join(' · ')}</p><p className="note"><strong>Pause or refer:</strong> {focused.preflight.stop}</p></>:<p>No matching task guide yet. Search the library below or find a specialist in Owner network. A general guide does not approve this work.</p>}</section>}
   {onNetwork&&!tasks.length&&<aside className="note"><strong>Choose the right next step.</strong><p>Use the guide to prepare work within your skills and approved scope. For a specialist, find someone in your private network.</p><button type="button" className="secondary" onClick={()=>onNetwork(focused?[focused.task]:[rule.task,...(selected?[selected.title]:[])])}>Find a referral for this task</button>{organization&&<p><a target="_blank" rel="noopener noreferrer" href={"/task-time?"+new URLSearchParams({organization})}>Review actual job time &amp; improve your next estimate ↗</a></p>}</aside>}
   <details open={libraryOpen} onToggle={e=>setLibraryOpen(e.currentTarget.open)}><summary>{tasks.length?selected?'Steps & source for this task':'Find a task guide':'Trade learning library'}</summary>
    <label>Find a guide<input type="search" aria-label="Find a guide" value={topicQuery} maxLength={100} placeholder="Try locks, shelves or drywall" onChange={e=>{setTopicQuery(e.target.value);setTopic('');setLibraryOpen(true);}}/></label>
