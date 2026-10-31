@@ -45,6 +45,7 @@ const CalendarConnections=dynamic(()=>import('./calendar-connections'),{loading:
 const SchedulingReadiness=dynamic(()=>import('./scheduling-readiness'),{loading:PanelLoading});
 const CompanySettingsPanel=dynamic(()=>import('./company-settings'),{loading:PanelLoading});
 const CustomerServiceInsights=dynamic(()=>import('./customer-service-insights'),{loading:PanelLoading});
+const EmailTemplateLibrary=dynamic(()=>import('./request-reply-draft'),{loading:PanelLoading});
 const MarketingDrafts=dynamic(()=>import('./marketing-drafts'),{loading:PanelLoading});
 const OwnerLearningToolkit=dynamic(()=>import('./owner-learning-toolkit'),{loading:PanelLoading});
 const OwnerNetwork=dynamic(()=>import('./owner-network'),{loading:PanelLoading});
@@ -504,7 +505,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
                     {section === "Calendar" && ['owner','admin'].includes(role||'') && <>
                       <div className="calendar-inbox-link"><div><strong>New requests start in your inbox.</strong><span>Review proposed times here; schedule requests without a time from Requests.</span></div><button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/>Open requests</button></div><MonthCalendar key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest}/>
                     </>}
-                    {section === 'Marketing'&&['owner','admin'].includes(role||'')&&<><CustomerServiceInsights key={'insights:'+org} organization={org} timezone={data.company.timezone} onCustomer={openCustomer}/><MarketingDrafts key={org} organization={org}/></>}
+                    {section === 'Marketing'&&['owner','admin'].includes(role||'')&&<><CustomerServiceInsights key={'insights:'+org} organization={org} timezone={data.company.timezone} onCustomer={openCustomer}/><EmailTemplateLibrary key={'email-library:'+org} organization={org} name="" email="" marketing/><MarketingDrafts key={org} organization={org}/></>}
                     {section === "Learning" && ['owner','admin'].includes(role||'') && <OwnerLearningToolkit organization={org} onNetwork={openSupport}/>}
                     {section === "Settings" && ['owner','admin'].includes(role||'') && <>
                       <CalendarConnections key={"calendar-"+org} organization={org}/><details><summary>Optional Google calendar export</summary><GoogleControls key={org} organization={org} view="settings"/></details>

@@ -114,3 +114,6 @@ test('customers can request service without choosing a calendar time',async()=>{
  const picker=html.slice(html.indexOf('id="appointment-picker"'),html.indexOf('</fieldset>',html.indexOf('id="appointment-picker"')));
  assert.match(picker,/id="calendar-clear"/,'Calendar-free action must remain within picker used by interactive JavaScript');
 });
+
+
+test('mulch has a distinct discoverable page while garden care stays in Yard & garden',async()=>{const home=await readFile(new URL('../site/pages/home.html',import.meta.url),'utf8'),mulch=await readFile(new URL('../site/pages/mulch-delivery-spreading-dekalb-il.html',import.meta.url),'utf8');assert.equal((home.match(/<article class="home-service-card/g)||[]).length,8);assert.match(home,/href="\/mulch-delivery-spreading-dekalb-il\/"/);assert.match(home,/Hand weeding, small planting, bush trimming and garden-bed cleanup/);assert.match(mulch,/Supplier-prepaid materials are not billed again/);assert.match(mulch,/one combined two-hour minimum/);assert.match(mulch,/href="\/mulch-yard-cleanup-dekalb-il\/"/);});
