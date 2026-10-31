@@ -35,7 +35,7 @@ try{
    assert.ok(await page.locator('a[href="https://yourneighborhoodserviceguy.app/account"]').count(),'Customer sign in is discoverable');
    assert.ok(await page.locator('a[href="https://yourneighborhoodserviceguy.app/account?mode=signup"]').count(),'Customer registration is discoverable');
    if(await page.locator('.service-detail-image img').count()){
-    const img=page.locator('.service-detail-image img');await page.waitForFunction(el=>el.complete&&el.naturalWidth>0,await img.elementHandle());const src=await img.getAttribute('src');assert.equal(await page.locator('meta[property="og:image"]').getAttribute('content'),'https://www.yourneighborhoodserviceguy.com'+src);assert.equal(await page.locator('.service-related-grid a').count(),3);
+    const img=page.locator('.service-detail-image img');await page.waitForFunction(el=>el.complete&&el.naturalWidth>0,await img.elementHandle());const src=await img.getAttribute('src');assert.equal(await page.locator('meta[property="og:image"]').getAttribute('content'),'https://www.yourneighborhoodserviceguy.com'+src);if(path==='/farm-hand-dekalb-il')assert.equal(await page.locator('.service-related-grid a').count(),0,'Farm hand has its own focused service/request page');else assert.equal(await page.locator('.service-related-grid a').count(),3,'Standard detail pages have three related services');
     if([390,1366].includes(width)&&theme==='light'&&!largeText)await page.locator('main').screenshot({path:output+'/'+engine+path.replaceAll('/','-')+'-experience-'+width+'.png'});
    }
    if(path==='/'){
