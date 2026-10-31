@@ -25,11 +25,11 @@ export function bookingJourney({form,services,requestData,resumeSelected=false})
   if(fingerprint!==lastReview){lastReview=fingerprint;
   const heading=doc.createElement('strong');heading.textContent=(step===2?'Your selected jobs · ':'Your request · ')+jobs.length+' '+(jobs.length===1?'job':'jobs');
   const list=doc.createElement('ul');for(const job of jobs){const item=doc.createElement('li');item.textContent=job.service+': '+(job.task||'Details to review');list.append(item);}
-  const time=doc.createElement('p');time.textContent=step===2&&!selected&&!arrange?'Choose a preferred time below, or let us arrange one.':data.preferredTime?'Requested time: '+data.preferredTime:'We’ll arrange a time with you';
+  const time=doc.createElement('p');time.textContent=farmDay()?'Farm hand day: we’ll contact you to arrange the requested date, hours and scope.':step===2&&!selected&&!arrange?'Choose a preferred time below, or let us arrange one.':data.preferredTime?'Requested time: '+data.preferredTime:'We’ll arrange a time with you';
   const note=doc.createElement('p');note.className='tiny';note.textContent=step===2?'Nothing is sent until you press Send appointment request.':'One combined request. We’ll confirm the work, price and appointment with you.';
   const edit=doc.createElement('button');edit.type='button';edit.className='booking-text-button booking-edit-jobs';edit.textContent='Edit jobs';edit.disabled=locked();edit.addEventListener('click',()=>{if(!locked()){noteOnly=false;show(1);refresh();}});
   summary.replaceChildren(heading,list,edit,time,note);}
-  if(hadTime&&!selected&&!arrange&&step===3&&!locked()){show(2);message.textContent='Please choose a time again, or ask us to arrange one.';}
+  if(hadTime&&!selected&&!arrange&&step===3&&!locked()&&!farmDay()){show(2);message.textContent='Please choose a time again, or ask us to arrange one.';}
   hadTime=selected;
  }
  function show(value,focus=true){
