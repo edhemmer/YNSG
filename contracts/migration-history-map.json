@@ -1,8 +1,8 @@
 {
   "observedOn": "2026-10-30",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
-  "sourceBranch": "codex/service-page-experience",
-  "sourceCommit": "3e8ee2929755f48f7e4abde553577013af652039",
+  "sourceBranch": "codex/owner-network-20261030",
+  "sourceCommit": "c4fcbb58dea81c0cd0439c2ab8a19c1f1311618c",
   "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
   "repositoryMigrations": [
     {
@@ -434,6 +434,11 @@
       "file": "20261030180000_task_time_learning.sql",
       "name": "task_time_learning",
       "historyVersion": "20261030191815"
+    },
+    {
+      "file": "20261030210629_owner_network.sql",
+      "name": "owner_network",
+      "historyVersion": "20261031020533"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -466,11 +471,5 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": [
-    {
-      "file": "20261030210629_owner_network.sql",
-      "name": "owner_network",
-      "status": "not_applied_to_connected_supabase"
-    }
-  ]
+  "pendingUnappliedMigrations": []
 }
