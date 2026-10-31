@@ -18,7 +18,7 @@ export default function OwnerNetworkLookup({organization,tasks,context,initialVi
  useEffect(()=>{setMounted(true);},[]);
  useEffect(()=>{if(!mounted)return;const prior=document.activeElement,el=dialog.current;el?.showModal();return()=>{el?.close();if(prior instanceof HTMLElement&&prior.isConnected)prior.focus();};},[mounted]);
  function close(){const a=activity.current;if(a.busy||a.unknown)return;if((a.dirty||draft.dirty)&&!window.confirm('Discard the unsaved contact or customer-update changes and return to your job?'))return;onClose();}
- function switchView(next:View){const a=activity.current;if(a.busy||a.unknown)return false;if(a.dirty&&!window.confirm('Discard the unsaved contact changes and switch tools?'))return false;activity.current={dirty:false,busy:false,unknown:false};setActivityState(activity.current);setView(next);return true;}
+ function switchView(next:View){if(next===view)return true;const a=activity.current;if(a.busy||a.unknown)return false;if(a.dirty&&!window.confirm('Discard the unsaved contact changes and switch tools?'))return false;activity.current={dirty:false,busy:false,unknown:false};setActivityState(activity.current);setView(next);return true;}
  function chooseIntent(intent:UpdateIntent,force=false){if(!context)return;if(draft.dirty&&!force&&!window.confirm('Replace your current edits with this starting draft?'))return;setDraft({intent,...customerUpdate(context,intent,referral),dirty:true});}
  function chooseReferral(contact:PublicReferral){if(!context)return;if(draft.dirty&&!window.confirm('Replace the current update with this referral draft?'))return;if(!switchView('update'))return;setReferral(contact);setDraft({intent:'referral',...customerUpdate(context,'referral',contact),dirty:true});}
  if(!mounted)return null;
