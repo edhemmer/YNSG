@@ -48,6 +48,7 @@ const pages = {
   'mulch-delivery-spreading-dekalb-il': ['Mulch Pickup, Delivery & Spreading in DeKalb, IL', 'Arrange mulch pickup, delivery and spreading in DeKalb, Sycamore or Cortland. Have mulch at home already? Request spreading help and keep yard jobs together.', 'mulch-delivery-spreading-dekalb-il'],
   'mulch-yard-cleanup-dekalb-il': ['Mulch & Yard Cleanup in DeKalb, IL', 'A little help for your outdoor list: mulch, hand weeding, small planting and garden-bed cleanup in DeKalb, Sycamore and Cortland.', 'mulch-yard-cleanup-dekalb-il'],
   'concrete-pressure-washing-dekalb-il': ['Concrete Pressure Washing in DeKalb, IL', 'A fresh look for your driveway, walks or patio. Request ground-level concrete washing in DeKalb, Sycamore or Cortland, with a surface review.', 'concrete-pressure-washing-dekalb-il'],
+  'farm-hand-dekalb-il': ['Farm Hand Services in DeKalb, Sycamore & Nearby', 'Need an extra hand for spring planting, fall harvest or other farm work? One farm hand for $300 per day, up to 10 hours, subject to scope and availability.', 'farm-hand-dekalb-il'],
   franchise: ['Franchise Opportunity', 'Explore a neighborhood service franchise with cloud technology, AI-supported administration, local marketing support and a proposed protected territory.', 'franchise'],
   privacy: ['Privacy Notice', 'How Your Neighborhood Service Guy handles information submitted through the website.', 'privacy'],
   terms: ['Website Terms', 'Terms for using the Your Neighborhood Service Guy website and request form.', 'terms'],
