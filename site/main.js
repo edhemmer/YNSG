@@ -73,7 +73,7 @@ if(form){
     form.dispatchEvent(new CustomEvent('request-services-changed'));
     form.querySelector('#water-note').hidden = ![...selected.values()].some(x=>x.service === 'Concrete pressure washing');
   };
-  const names={'Help around the home':'Home jobs','Lawn care':'Lawn care','Yard & garden':'Yard & garden','Snow clearing':'Snow clearing','Concrete pressure washing':'Concrete pressure washing','Something else':'Something else'};
+  const names={'Help around the home':'Home jobs','Lawn care':'Lawn care','Yard & garden':'Yard & garden','Snow clearing':'Snow clearing','Concrete pressure washing':'Concrete pressure washing','Farm hand services':'Farm hand services','Something else':'Something else'};
   for(const [service,jobs] of Object.entries(tasks)){
     const group=document.createElement('details');
     group.className='request-category';
