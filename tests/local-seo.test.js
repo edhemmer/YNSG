@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { seo, WEBSITE_ORIGIN, canonicalUrl, localServicePages } from '../scripts/seo.mjs';
 
 test('each local landing page describes its own primary service with the same verified provider and geography', () => {
-  assert.equal(Object.keys(localServicePages).length,8);
+  assert.equal(Object.keys(localServicePages).length,9);
   for(const slug of Object.keys(localServicePages)){
     const graph=JSON.parse(seo(slug,'Service','Service details').schema)['@graph'];
     const page=graph.find(node=>node['@type']==='WebPage');
@@ -39,7 +39,7 @@ test('Local business identity and geography are consistent across indexable page
 test('Service schema follows approved service restrictions and has distinct identifiers', () => {
   const graph = JSON.parse(seo('services', 'Services', 'Home services').schema)['@graph'];
   const services = graph.filter(node => node['@type'] === 'Service');
-  assert.equal(services.length, 5);
+  assert.equal(services.length, 6);
   assert.equal(new Set(services.map(service => service['@id'])).size, services.length);
   for (const service of services) {
     assert.equal(service.provider['@id'], WEBSITE_ORIGIN + '/#business');
@@ -49,4 +49,5 @@ test('Service schema follows approved service restrictions and has distinct iden
   }
   assert.match(services.find(service => service.name === 'Residential snow clearing').description, /No salt, deicer or commercial plowing/);
   assert.match(services.find(service => service.name === 'Concrete pressure washing').description, /customer supplies accessible outdoor water/);
+  assert.match(services.find(service => service.name === 'Farm hand services').description, /\$300 day rate for up to ten hours/);
 });
