@@ -13,3 +13,6 @@ export function verifyNetworkReceipt(value:unknown,p:Pick<PendingNetwork,'organi
 // evidence and attachment URLs can never leak into the customer-ready copy.
 export function referralText(c:Pick<NetworkContact,'name'|'businessName'|'phone'|'alternatePhone'|'email'|'website'>){return [c.name,c.businessName&&c.businessName!==c.name?c.businessName:'',c.phone,c.alternatePhone?'Alternate: '+c.alternatePhone:'',c.email,c.website].filter(Boolean).join('\n');}
 export function networkPhoneUri(value:string){const extension=/[x#]\s*(\d+)\s*$/i.exec(value),main=extension?value.slice(0,extension.index):value;return 'tel:'+(main.trim().startsWith('+')?'+':'')+main.replace(/\D/g,'')+(extension?';ext='+extension[1]:'');}
+
+export type PublicReferral=Pick<NetworkContact,'name'|'businessName'|'phone'|'alternatePhone'|'email'|'website'>;
+export const publicReferral=(c:PublicReferral):PublicReferral=>({name:c.name,businessName:c.businessName,phone:c.phone,alternatePhone:c.alternatePhone,email:c.email,website:c.website});

@@ -1,4 +1,6 @@
 'use client';
+import {makeCompanionContext,type CompanionContext} from '../lib/job-companion';
+import {fieldWorkflow} from '../lib/field-workflow';
 import {submissionAddress} from '../lib/request-inbox';
 import AppointmentSummary from './appointment-summary';
 import {serviceTone} from '../lib/month-calendar';
@@ -18,8 +20,8 @@ import RecurringVisits from './recurring-visits';
 import RelationshipNotes from './relationship-notes';
 import {ownerRequestNextStep} from '../lib/service-workflow';
 import {useBlockedEntry,useEntrySafety} from './entry-safety';
-type Props={onNetwork?:(tasks:string[])=>void;organization:string;requestId:string;timezone:string;canManage:boolean;onClose:()=>void;onChanged:()=>void;onWork:(requestId:string)=>void;initialPanel?:'overview'|'decline'|'schedule'};
-export default function RequestDetail({organization,requestId,timezone,canManage,onClose,onChanged,onWork,onNetwork,initialPanel='overview'}:Props){
+type Props={onNetwork?:(tasks:string[],context?:CompanionContext,initialView?:'learn'|'refer')=>void;companyName?:string;organization:string;requestId:string;timezone:string;canManage:boolean;onClose:()=>void;onChanged:()=>void;onWork:(requestId:string)=>void;initialPanel?:'overview'|'decline'|'schedule'};
+export default function RequestDetail({organization,requestId,timezone,canManage,onClose,onChanged,onWork,onNetwork,companyName,initialPanel='overview'}:Props){
  const {canLeave}=useEntrySafety();
  const dialog=useRef<HTMLDialogElement>(null),keys=useRef(new Map<string,string>());
  const [data,setData]=useState<InboxData|null>(null),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[unknown,setUnknown]=useState(false),[reload,setReload]=useState(0);
@@ -101,7 +103,7 @@ export default function RequestDetail({organization,requestId,timezone,canManage
   if(await command('/api/appointment-cancel',{id:confirmed.id,revision:confirmed.revision,reason})) {setPanel('overview');setMessage('Appointment canceled. The time is available again. The request and financial history are kept; the customer update is queued.');}
  }
  return <dialog className="request-dialog" ref={dialog} aria-labelledby="request-detail-title" onCancel={e=>{e.preventDefault();if(busy||unknown)return;close();}}>
-  {canManage&&onNetwork&&<p><button className="secondary" disabled={busy||unknown} onClick={()=>onNetwork(submission?[submission.service||"",...(submission.services||[]).map(s=>s.task)]:[])}>Find a referral</button></p>}
+  {canManage&&onNetwork&&<p><button className="secondary" disabled={busy||unknown} onClick={()=>{if(!request||!submission||!data)return;const next=fieldWorkflow(request,data.quotes,data.jobs,data.invoices);onNetwork(requestTasks(submission).map(item=>item.task||item.service),makeCompanionContext({request:request.id,customer:submission.name,phase:next.kind,next:next.next.title,company:companyName,email:submission.email}));}}>Find a referral</button></p>}
   <header className="detail-top"><div><p className="eyebrow">Service request</p><h2 id="request-detail-title">{submission?.name||'Loading request…'}</h2>{stage&&<span className={'status-pill tone-'+stage.tone}>{stage.label}</span>}</div><button className="icon-button secondary" type="button" aria-label="Close request" disabled={busy||unknown} onClick={close}><Icon name="close"/></button></header>
   <div className="detail-body" aria-busy={loading}>
    {error&&<div className="error note" role="alert"><p>{error}</p>{data&&!unknown&&<button type="button" className="secondary" disabled={busy||loading} onClick={()=>setReload(n=>n+1)}>Refresh request</button>}</div>}{unknown&&<div className="note" role="group" aria-label="Unconfirmed owner action"><p>The previous action might already be saved. Do not make a new decision until this result is confirmed.</p><button type="button" disabled={busy} onClick={()=>void sendFrozenCommand()}>Check saved action result</button></div>}{message&&<p className="note" role="status">{message}</p>}

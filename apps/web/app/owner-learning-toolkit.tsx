@@ -1,5 +1,6 @@
 'use client';
-import {useMemo,useState} from 'react';
+import {useId,useMemo,useState} from 'react';
+import {taskGuidance} from '../lib/job-companion';
 import {estimateVisit,examplePlanningStandards,allTrainingTopics,reviewTaskTime,flatTrimMiterSetting,drywallRepairGuide,type TaskStandard} from '../lib/owner-job-standards';
 
 const lessonDetails:Record<string,{steps:string[];tools:string[];stop:string}>={
@@ -62,11 +63,15 @@ const lessonGuidance:Record<string,{where:string;when:string;tip:string;attribut
  'remove-caulk':{where:'A surface confirmed compatible with the removal tool and cleaner.',when:'Once the cause of the failed joint and any water intrusion has been addressed.',tip:'A plastic scraper is often less likely to damage acrylic than a metal blade.',attribution:'Practical trade tip; verify surface compatibility'},
  'apply-caulk':{where:'A clean, dry joint with the correct sealant chosen for its materials.',when:'After removing failed caulk and allowing the surface to dry fully.',tip:'A small nozzle opening makes a neat bead easier to control; do not skip the cure time.',attribution:'Practical trade tip; verify product label'}
 };
-export default function OwnerLearningToolkit({onNetwork,organization}:{onNetwork?:(tasks:string[])=>void;organization?:string}={}){
+export default function OwnerLearningToolkit({onNetwork,organization,tasks=[]}:{onNetwork?:(tasks:string[])=>void;organization?:string;tasks?:string[]}={}){
+ const heading=useId(),guidance=taskGuidance(tasks);
+ const [focus,setFocus]=useState(()=>guidance.findIndex(g=>g.topic)!==-1?guidance.findIndex(g=>g.topic):0),[topicQuery,setTopicQuery]=useState('');
+ const focused=guidance[focus];
+ const [libraryOpen,setLibraryOpen]=useState(()=>tasks.length>0&&!focused?.topic);
  const [service,setService]=useState(examplePlanningStandards[0]!.service+'::'+examplePlanningStandards[0]!.task);
  const [minutes,setMinutes]=useState(60);
  const [factor,setFactor]=useState(1);
- const [topic,setTopic]=useState<string>(allTrainingTopics[0]!.id);
+ const [topic,setTopic]=useState<string>(()=>focused?.topic?.id||(tasks.length?'':allTrainingTopics[0]!.id));
  const [actual,setActual]=useState(120),[diagnostic,setDiagnostic]=useState(20);
  const [corner,setCorner]=useState(90),[hole,setHole]=useState(1);
  const rule=examplePlanningStandards.find(x=>x.service+'::'+x.task===service)??examplePlanningStandards[0]!;
@@ -74,13 +79,29 @@ export default function OwnerLearningToolkit({onNetwork,organization}:{onNetwork
   const work:TaskStandard={...rule,plannedMinutes:minutes,typicalMinutes:Math.min(rule.typicalMinutes,minutes)};
   return estimateVisit([{service:work.service,task:work.task,sizeFactor:factor}],[work],30);
  },[rule,minutes,factor]);
- const selected=allTrainingTopics.find(t=>t.id===topic)??allTrainingTopics[0]!;
- const lesson=lessonDetails[selected.id]!;
- return <section className="card" aria-labelledby="learning-heading">
-  <h2 id="learning-heading">Field guide & job planner</h2>
-  <p>Practical preparation, sourced trade references, and a planning worksheet. References are not a guarantee of results and don't approve held services.</p>
-  {onNetwork&&<aside className="note"><strong>Choose the right next step.</strong><p>Use the guide to prepare work within your skills and approved scope. For a specialist, find someone in your private network.</p><button type="button" className="secondary" onClick={()=>onNetwork([rule.task,selected.title])}>Find a referral for this task</button>{organization&&<p><a target="_blank" rel="noopener noreferrer" href={"/task-time?"+new URLSearchParams({organization})}>Review actual job time &amp; improve your next estimate ↗</a></p>}</aside>}
-  <details open><summary>Estimate time before accepting a job</summary>
+ const selected=allTrainingTopics.find(t=>t.id===topic)||null;
+ const topics=allTrainingTopics.filter(t=>(t.title+' '+t.source).toLowerCase().includes(topicQuery.trim().toLowerCase()));
+ const lesson=selected?lessonDetails[selected.id]!:null;
+ return <section className="card owner-learning" aria-labelledby={heading}>
+  <h2 id={heading}>{tasks.length?'Prepare this task':'Field guide & job planner'}</h2>
+  <p>{tasks.length?'Start with these checks. Use the steps and source below when you need more detail.':'Prepare the task, check the reference, and decide what you can confidently take on. Follow current manufacturer instructions and your approved scope.'}</p>
+  {guidance.length>0&&<section className="companion-task-guide" aria-label="Guidance for this job"><label>Task on this request<select aria-label="Task on this request" value={focus} onChange={e=>{const i=Number(e.target.value);setFocus(i);setTopic(guidance[i]?.topic?.id||'');setLibraryOpen(!guidance[i]?.topic);setTopicQuery('');}}>{guidance.map((g,i)=><option key={g.task} value={i}>{g.task}</option>)}</select></label>{focused?.preflight?<><h3>{focused.preflight.title}</h3><h4>Check before you begin</h4><ul>{focused.preflight.questions.map(q=><li key={q}>{q}</li>)}</ul><p><strong>Have ready:</strong> {focused.preflight.tools.join(' · ')}</p><p className="note"><strong>Pause or refer:</strong> {focused.preflight.stop}</p></>:<p>No matching task guide yet. Search the library below or find a specialist in Owner network. A general guide does not approve this work.</p>}</section>}
+  {onNetwork&&!tasks.length&&<aside className="note"><strong>Choose the right next step.</strong><p>Use the guide to prepare work within your skills and approved scope. For a specialist, find someone in your private network.</p><button type="button" className="secondary" onClick={()=>onNetwork(focused?[focused.task]:[rule.task,...(selected?[selected.title]:[])])}>Find a referral for this task</button>{organization&&<p><a target="_blank" rel="noopener noreferrer" href={"/task-time?"+new URLSearchParams({organization})}>Review actual job time &amp; improve your next estimate ↗</a></p>}</aside>}
+  <details open={libraryOpen} onToggle={e=>setLibraryOpen(e.currentTarget.open)}><summary>{tasks.length?selected?'Steps & source for this task':'Find a task guide':'Trade learning library'}</summary>
+   <label>Find a guide<input type="search" aria-label="Find a guide" value={topicQuery} maxLength={100} placeholder="Try locks, shelves or drywall" onChange={e=>{setTopicQuery(e.target.value);setTopic('');setLibraryOpen(true);}}/></label>
+   <label>Topic<select aria-label="Guide topic" value={topic} onChange={e=>{setTopic(e.target.value);setLibraryOpen(true);}}><option value="">Choose a guide</option>{topics.map(t=><option key={t.id} value={t.id}>{t.title}</option>)}</select></label>
+   {!topics.length&&<p role="status">No guides match that search. Try another word or use Owner network.</p>}
+   {selected&&lesson&&<><h3>{selected.title}</h3>{("checkedOn" in selected)&&<p className="tiny">Reference checked: {selected.checkedOn}. Verify current manufacturer instructions before starting.</p>}<p><strong>Before starting:</strong> {selected.safety}</p>
+   <p className="note"><strong>Training reference, not a certified procedure.</strong> Identify the exact equipment/model and read its current manufacturer instructions first. These notes do not expand YNSG's approved services.</p>
+   {lessonGuidance[selected.id]&&<div className="account-card"><p><strong>Where this applies:</strong> {lessonGuidance[selected.id].where}</p><p><strong>When to use it:</strong> {lessonGuidance[selected.id].when}</p></div>}
+   <h4>Before you start</h4><p>Confirm the model, customer permission, actual materials and your ability to use the tools safely. Stop when anything differs from the reference.</p>
+   <h4>Step-by-step field checklist</h4><ol>{lesson.steps.map((s,i)=><li key={s}><strong>Step {i+1}.</strong> {s}</li>)}</ol>
+   <div className="account-card" role="note"><h4>Watch out — stop and reassess</h4><p>{lesson.stop}</p></div>
+   {lessonGuidance[selected.id]&&<div className="account-card" role="note"><h4>Pro tip</h4><p>{lessonGuidance[selected.id].tip}</p><small>{lessonGuidance[selected.id].attribution}</small></div>}
+   <h4>Useful tools and materials</h4><ul>{lesson.tools.map(s=><li key={s}>{s}</li>)}</ul>
+   <p><a href={selected.url} target="_blank" rel="noopener noreferrer">Read the {selected.source} reference ↗</a></p></>}
+  </details>
+  <details open={!tasks.length}><summary>Estimate time before accepting a job</summary>
    <p>This worksheet is temporary; it does not save company settings, book time or create a customer charge. Examples must be adjusted for the actual property and your skill level.</p>
    <label>Job type<select value={service} onChange={e=>{setService(e.target.value);const next=examplePlanningStandards.find(x=>x.service+'::'+x.task===e.target.value);if(next)setMinutes(next.plannedMinutes);}}>
     {examplePlanningStandards.map(item=><option key={item.service+'::'+item.task} value={item.service+'::'+item.task}>{item.service} — {item.task}</option>)}
@@ -110,18 +131,6 @@ export default function OwnerLearningToolkit({onNetwork,organization}:{onNetwork
     return 'Actual versus planned: '+(result.differenceMinutes>=0?'+':'')+result.differenceMinutes+' minutes ('+(result.variancePercent>=0?'+':'')+result.variancePercent+'%). Diagnosis used '+result.diagnosisSharePercent+'% of the job. '+result.nextAction;
    })()}</p>}
   </details>
-  <details><summary>Trade learning library</summary>
-   <label>Topic<select value={topic} onChange={e=>setTopic(e.target.value)}>{allTrainingTopics.map(t=><option key={t.id} value={t.id}>{t.title}</option>)}</select></label>
-   <h3>{selected.title}</h3>{("checkedOn" in selected)&&<p className="tiny">Reference checked: {selected.checkedOn}. Verify current manufacturer instructions before starting.</p>}<p><strong>Before starting:</strong> {selected.safety}</p>
-   <p className="note"><strong>Training reference, not a certified procedure.</strong> Identify the exact equipment/model and read its current manufacturer instructions first. These notes do not expand YNSG's approved services.</p>
-   {lessonGuidance[selected.id]&&<div className="account-card"><p><strong>Where this applies:</strong> {lessonGuidance[selected.id].where}</p><p><strong>When to use it:</strong> {lessonGuidance[selected.id].when}</p></div>}
-   <h4>Before you start</h4><p>Confirm the model, customer permission, actual materials and your ability to use the tools safely. Stop when anything differs from the reference.</p>
-   <h4>Step-by-step field checklist</h4><ol>{lesson.steps.map((s,i)=><li key={s}><strong>Step {i+1}.</strong> {s}</li>)}</ol>
-   <div className="account-card" role="note"><h4>Watch out — stop and reassess</h4><p>{lesson.stop}</p></div>
-   {lessonGuidance[selected.id]&&<div className="account-card" role="note"><h4>Pro tip</h4><p>{lessonGuidance[selected.id].tip}</p><small>{lessonGuidance[selected.id].attribution}</small></div>}
-   <h4>Useful tools and materials</h4><ul>{lesson.tools.map(s=><li key={s}>{s}</li>)}</ul>
-   <p><strong>Stop / refer:</strong> {lesson.stop}</p>
-   <p><a href={selected.url} target="_blank" rel="noopener noreferrer">Read the {selected.source} reference ↗</a></p>
-  </details>
+
  </section>;
 }
