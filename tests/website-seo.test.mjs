@@ -138,3 +138,20 @@ test('farm hand has a distinct daily-rate page, service panel and full-day arran
  const graph=JSON.parse(seo('farm-hand-dekalb-il','Farm Hand','Seasonal farm labor').schema)['@graph'];
  assert.ok(graph.some(node=>node['@type']==='Service'&&node.url===canonicalUrl('farm-hand-dekalb-il')));
 });
+
+test('farm photo panel matches uniform service cards and farm price stays at page bottom',async()=>{
+ const [home,farm,styles]=await Promise.all([
+  readFile(new URL('../site/pages/home.html',import.meta.url),'utf8'),
+  readFile(new URL('../site/pages/farm-hand-dekalb-il.html',import.meta.url),'utf8'),
+  readFile(new URL('../site/service-experience.css',import.meta.url),'utf8')
+ ]);
+ const card=home.slice(home.indexOf('home-service-card home-service-card-farm'),home.indexOf('</article>',home.indexOf('home-service-card home-service-card-farm')));
+ assert.match(card,/ynsg-farm-hand-midwest\\.webp/);
+ assert.doesNotMatch(card,/\\$300|day rate|up to 10 hours/i);
+ assert.match(farm,/ynsg-farm-hand-midwest\\.webp/);
+ assert.equal((farm.match(/\\$300/g)||[]).length,1);
+ assert.ok(farm.indexOf('farm-day-pricing')>farm.indexOf('service-area-note'));
+ assert.match(farm,/Multi-day rates can be negotiated/);
+ assert.match(styles,/grid-auto-rows:1fr/);
+ assert.match(styles,/service-panel-image\\{display:block;width:100%;height:auto;aspect-ratio:5\\/2/);
+});
