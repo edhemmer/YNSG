@@ -1,4 +1,5 @@
 'use client';
+import {makeCompanionContext,type CompanionContext} from '../lib/job-companion';
 import {useState,useRef,useEffect} from 'react';
 import {creditTotal} from '../lib/invoice-credit-contract';
 import {submissionAddress,requestTasks,requestTiming,visitState,type InboxRequest,type LinkedQuote,type LinkedJob,type LinkedInvoice} from '../lib/request-inbox';
@@ -24,7 +25,7 @@ import UnforeseenJobReview from './unforeseen-job-review';
 import {hiddenConditionPreflight} from '../lib/unforeseen-job-cost';
 type Job=LinkedJob;
 const money=(n:number)=>(n/100).toLocaleString('en-US',{style:'currency',currency:'USD'});
-export default function ServiceWorkflow({organization,request,quotes,jobs,invoices,timezone,canManage,canQuote,canWork,busy,onBusy,onReview,act,fieldAction,onChanged,onCustomer,onNetwork}:{organization:string;request:InboxRequest;quotes:LinkedQuote[];jobs:Job[];invoices:LinkedInvoice[];timezone:string;canManage:boolean;canQuote:boolean;canWork:boolean;busy:boolean;onBusy:(v:boolean)=>void;onReview:()=>void;act:(value:Record<string,unknown>)=>Promise<unknown>;fieldAction:(job:Job,action:'start'|'pause'|'resume')=>Promise<void>;onChanged:()=>void;onCustomer?:(id:string)=>void;onNetwork?:(tasks:string[])=>void}){
+export default function ServiceWorkflow({organization,request,quotes,jobs,invoices,timezone,canManage,canQuote,canWork,busy,onBusy,onReview,act,fieldAction,onChanged,onCustomer,onNetwork,companyName}:{organization:string;request:InboxRequest;quotes:LinkedQuote[];jobs:Job[];invoices:LinkedInvoice[];timezone:string;canManage:boolean;canQuote:boolean;canWork:boolean;busy:boolean;onBusy:(v:boolean)=>void;onReview:()=>void;act:(value:Record<string,unknown>)=>Promise<unknown>;fieldAction:(job:Job,action:'start'|'pause'|'resume')=>Promise<void>;onChanged:()=>void;onCustomer?:(id:string)=>void;onNetwork?:(tasks:string[],context?:CompanionContext,initialView?:'learn'|'refer')=>void;companyName?:string}){
  const task=fieldWorkflow(request,quotes,jobs,invoices),{canLeave}=useEntrySafety();
  const prepared=prepareFieldBrief(request,quotes,jobs,invoices);
  const [scheduleOpen,setScheduleOpen]=useState(false),[declineOpen,setDeclineOpen]=useState(false),[workRecordOpen,setWorkRecordOpen]=useState(false);
@@ -76,7 +77,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
    {task.kind==='settled'&&<p role="status">All work is invoiced. Confirmed receipts and credits settle the balance. History is saved below.</p>}
    {task.kind==='closed'&&<p>The saved request and its history are retained.</p>}
   </section>
-  {canManage&&onNetwork&&<p><button type="button" className="secondary" disabled={blocked} onClick={()=>onNetwork([request.original_submission.service||"",...(request.original_submission.services||[]).map(s=>s.task)])}>Outside your scope? Find a referral</button></p>}
+  {canManage&&onNetwork&&<p><button type="button" className="secondary" disabled={blocked} onClick={()=>onNetwork(requestTasks(request.original_submission).map(item=>item.task||item.service),makeCompanionContext({request:request.id,customer:request.original_submission.name,phase:task.kind,next:task.next.title,company:companyName,email:request.original_submission.email}),'learn')}>Help with this job</button></p>}
   {proposal&&confirmedVisit&&canManage&&<div className="note"><p>A different appointment time was requested. The confirmed visit stays booked.</p><button type="button" className="secondary" disabled={blocked} onClick={openSchedule}>Review requested time change</button></div>}
   {scheduleOpen&&<SchedulingReviewPanel key={proposal?.id||request.id} organization={organization} requestId={request.id} appointmentId={proposal?.id||null} initialExpanded initialStart={request.original_submission.preferredTime} onBusy={busyFor('schedule')} completed={()=>{setScheduleOpen(false);onChanged();}}/>}
   {task.kind==='agreement'&&<section className="workflow-section"><h3>Scope & price</h3>
@@ -97,7 +98,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
    {canManage&&(working||task.kind==='ready')&&<details className="workflow-supporting"><summary>Extra work or unexpected conditions</summary><OnSiteExtraReview/><UnforeseenJobReview/></details>}
   </details>
   <details className="workflow-history"><summary>Request history & agreements</summary><button type="button" className="secondary" disabled={blocked} onClick={onReview}>Open full request</button>{quotes.map(q=><p key={q.id}>Scope & price: {q.status.replaceAll('_',' ')} · {q.quote_versions.find(v=>v.version===q.current_version)?.scope}</p>)}{invoices.map(i=><p key={i.id}>Invoice {invoiceNumber(i.number)} · {money(i.total_cents)} · received {money(i.payments.reduce((sum,p)=>sum+p.cents,0))} · credits {money(creditTotal(i.credits))}</p>)}</details>
-  {declineOpen&&<RequestDetail organization={organization} requestId={request.id} timezone={timezone} canManage={canManage} initialPanel="decline" onClose={()=>setDeclineOpen(false)} onChanged={onChanged} onWork={()=>{setDeclineOpen(false);onChanged();}}/>}
+  {declineOpen&&<RequestDetail onNetwork={onNetwork} companyName={companyName} organization={organization} requestId={request.id} timezone={timezone} canManage={canManage} initialPanel="decline" onClose={()=>setDeclineOpen(false)} onChanged={onChanged} onWork={()=>{setDeclineOpen(false);onChanged();}}/>}
  </section>;
 }
 function WorkflowQuoteForm({request,busy,submit,organization,canLink}:{request:InboxRequest;busy:boolean;submit:(value:Record<string,unknown>)=>Promise<unknown>;organization:string;canLink:boolean}){

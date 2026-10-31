@@ -1,4 +1,5 @@
-"use client";
+'use client';
+import type {CompanionContext} from '../lib/job-companion';
 import dynamic from 'next/dynamic';
 import DeferredTool from './deferred-tool';
 
@@ -175,7 +176,8 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
   const [accessRevision,setAccessRevision]=useState(0);
   const [isMobile,setIsMobile]=useState(false);
   useEffect(()=>{const query=window.matchMedia('(max-width:760px)');const change=()=>setIsMobile(query.matches);change();query.addEventListener('change',change);return()=>query.removeEventListener('change',change);},[]);
-  const [networkTasks,setNetworkTasks]=useState<string[]|null>(null);
+  const [networkSupport,setNetworkSupport]=useState<{organization:string;tasks:string[];context?:CompanionContext;initialView?:'learn'|'refer'}|null>(null);
+  const openSupport=(tasks:string[],context?:CompanionContext,initialView:'learn'|'refer'='refer')=>setNetworkSupport({organization:org,tasks,context,initialView});
   const [activeRequest,setActiveRequest]=useState<string|null>(null);
   const [mobileNav,setMobileNav]=useState(false);
   const [workRequest,setWorkRequest]=useState<string|null>(null);
@@ -192,7 +194,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
   function applyDestination(route:WorkspaceRoute){
     // Invalidate outgoing reads synchronously, before the next render/effect.
     reloadSequence.current++;
-    setOrg(route.organization);setPage(0);setSection(route.section);
+    setNetworkSupport(null);setOrg(route.organization);setPage(0);setSection(route.section);
     setWorkRequest(route.section==='Work'?route.request:null);
     setActiveRequest(route.section==='Requests'?route.request:null);
     setCustomerFocus(route.customer);setMobileNav(false);setMessage('');
@@ -251,7 +253,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
       const member=s.memberships.find((m:Membership)=>m.organization_id===current.org);
       const priorRole=current.session?.memberships.find(m=>m.organization_id===current.org)?.role;
       if(!sameIdentity||priorRole!==member?.role){
-        reloadSequence.current++;setData(null);setAccessRevision(v=>v+1);
+        setNetworkSupport(null);reloadSequence.current++;setData(null);setAccessRevision(v=>v+1);
       }
       setSession(s);
       if(first||!sameIdentity||!member||!workspaceSectionAllowed(current.section,member.role)){
@@ -268,7 +270,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
     } catch (e) {
       if(sequence!==sessionSequence.current)return;
       if(e instanceof SessionApiError&&e.status===401){
-        reloadSequence.current++;initialWorkspaceChosen.current=false;setSession(null);setOrg('');setData(null);setActiveRequest(null);setWorkRequest(null);setCustomerFocus(null);setSessionUnavailable(false);
+        reloadSequence.current++;initialWorkspaceChosen.current=false;setSession(null);setNetworkSupport(null);setOrg('');setData(null);setActiveRequest(null);setWorkRequest(null);setCustomerFocus(null);setSessionUnavailable(false);
       }else{
         setSessionUnavailable(true);setError('We could not check your saved sign-in. Try again when your connection is available; you do not need another email.');
       }
@@ -298,7 +300,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
       if (sequence === reloadSequence.current && currentWorkspace.current.org===selected) setData(next);
     } catch (e) {
       if (sequence === reloadSequence.current) {
-        if(e instanceof SessionApiError&&[401,403].includes(e.status))setData(null);
+        if(e instanceof SessionApiError&&[401,403].includes(e.status)){setData(null);setNetworkSupport(null);}
         setError('Saved records could not be refreshed. Your open entries are kept unless company access has ended. '+publicError(e));
       }
     }
@@ -416,7 +418,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
         <nav aria-label="Workspace"><p className="nav-group-label">Workflow</p>{primarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span>{s.key==='Requests'&&data.requests.some(r=>r.status==='submitted')&&<i className="nav-attention" aria-label="New requests"/>}</button>)}<details className="sidebar-more" open={secondarySections.some(s=>s.key===section)}><summary><Icon name="settings"/><span>Office & tools</span></summary>{secondarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span></button>)}</details></nav>
         <div className="sidebar-footer"><span className="sidebar-profile">{session.email.slice(0,2).toUpperCase()}</span><div><strong>{role==='owner'?'Business owner':'Team workspace'}</strong><small>{session.email}</small></div></div>
       </aside>}
-      {session&&<header className="crm-topbar"><div className="topbar-context"><span className="context-dot"/><strong>{data?.company.display_name||'Service workspace'}</strong></div><div className="topbar-actions"><ThemeToggle/>{['owner','admin'].includes(role||'')&&<button className="icon-button secondary" aria-label="Activity and messages" onClick={()=>navigate('Activity')}><Icon name="bell"/></button>}<button className="icon-button secondary" aria-label="Sign out" onClick={async()=>{if(pending||invoiceBusy||!canLeave())return;if(!window.confirm('Sign out of your workspace?'))return;try{sessionSequence.current++;await api('/api/session',{action:'logout'});sessionSequence.current++;initialWorkspaceChosen.current=false;setSession(null);setSessionUnavailable(false);reloadSequence.current++;retryKeys.current.clear();setData(null);setOrg('');setActiveRequest(null);setWorkRequest(null);setCustomerFocus(null);}catch(e){setError(publicError(e));}}}><Icon name="logout"/></button></div></header>}
+      {session&&<header className="crm-topbar"><div className="topbar-context"><span className="context-dot"/><strong>{data?.company.display_name||'Service workspace'}</strong></div><div className="topbar-actions"><ThemeToggle/>{['owner','admin'].includes(role||'')&&<button className="icon-button secondary" aria-label="Activity and messages" onClick={()=>navigate('Activity')}><Icon name="bell"/></button>}<button className="icon-button secondary" aria-label="Sign out" onClick={async()=>{if(pending||invoiceBusy||!canLeave())return;if(!window.confirm('Sign out of your workspace?'))return;try{sessionSequence.current++;await api('/api/session',{action:'logout'});sessionSequence.current++;initialWorkspaceChosen.current=false;setSession(null);setNetworkSupport(null);setSessionUnavailable(false);reloadSequence.current++;retryKeys.current.clear();setData(null);setOrg('');setActiveRequest(null);setWorkRequest(null);setCustomerFocus(null);}catch(e){setError(publicError(e));}}}><Icon name="logout"/></button></div></header>}
       {session&&data&&<nav className="crm-mobile-dock" aria-label="Quick workspace navigation">{primarySections.filter(s=>['Dashboard','Requests','Work'].includes(s.key)&&canSeeSection(s)).map(s=><button key={s.key} aria-label={s.label} type="button" aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span>{s.key==='Requests'&&data.requests.some(r=>r.status==='submitted')&&<i className="dock-attention" aria-label="New requests"/>}</button>)}<button type="button" aria-label="More workspace tools" aria-expanded={mobileNav} aria-current={!['Dashboard','Requests','Work'].includes(section)?'page':undefined} onClick={()=>setMobileNav(v=>!v)}><Icon name="menu"/><span>More</span></button></nav>}
       <main className={`shell${session?' workspace-main':''}`} id="main">
 
@@ -503,7 +505,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
                       <div className="calendar-inbox-link"><div><strong>New requests start in your inbox.</strong><span>Review proposed times here; schedule requests without a time from Requests.</span></div><button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/>Open requests</button></div><MonthCalendar key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest}/>
                     </>}
                     {section === 'Marketing'&&['owner','admin'].includes(role||'')&&<><CustomerServiceInsights key={'insights:'+org} organization={org} timezone={data.company.timezone} onCustomer={openCustomer}/><MarketingDrafts key={org} organization={org}/></>}
-                    {section === "Learning" && ['owner','admin'].includes(role||'') && <OwnerLearningToolkit organization={org} onNetwork={setNetworkTasks}/>}
+                    {section === "Learning" && ['owner','admin'].includes(role||'') && <OwnerLearningToolkit organization={org} onNetwork={openSupport}/>}
                     {section === "Settings" && ['owner','admin'].includes(role||'') && <>
                       <CalendarConnections key={"calendar-"+org} organization={org}/><details><summary>Optional Google calendar export</summary><GoogleControls key={org} organization={org} view="settings"/></details>
                       <OwnerSecurity key={org} organization={org}/>
@@ -521,7 +523,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
                       {!workRequest&&['owner','admin'].includes(role||'')&&<OwnerWork key={org} organization={org} revision={reloadSequence.current} onOpen={openWork}/>}
 
                       {workRequest&&<button type="button" className="secondary" onClick={()=>navigate('Work')}>All jobs</button>}
-                      {role==='technician'?<section className="card"><h2>Work assigned to your company</h2>{data.jobs.map(j=><article className="card" key={j.id}><h3>{data.customers.find(c=>c.id===j.customer_id)?.display_name||'Service call'}</h3><p>{j.status.replaceAll('_',' ')}</p>{data.features?.productionWorkflows&&<div className="actions">{['approved','scheduled','en_route','arrived'].includes(j.status)&&<button disabled={pending} onClick={()=>void fieldAction(j,'start')}>Start work</button>}{j.status==='working'&&<button disabled={pending} onClick={()=>void fieldAction(j,'pause')}>Pause work</button>}{j.status==='paused'&&<button disabled={pending} onClick={()=>void fieldAction(j,'resume')}>Resume work</button>}</div>}<p>The owner reviews completion, invoices and payments.</p></article>)}{!data.jobs.length&&<p>No work on this records page.</p>}</section>:workRequest?data.requests.filter(r=>r.id===workRequest).map(r=><ServiceWorkflow onNetwork={setNetworkTasks} key={r.id} onCustomer={openCustomer} organization={org} request={{...r,appointments:data.appointments.filter(a=>a.request_id===r.id)}} quotes={data.quotes.filter(q=>q.request_id===r.id)} jobs={data.jobs.filter(j=>data.quotes.some(q=>q.id===j.quote_id&&q.request_id===r.id))} invoices={data.invoices.filter(i=>data.jobs.some(j=>j.id===i.job_id&&data.quotes.some(q=>q.id===j.quote_id&&q.request_id===r.id)))} timezone={data.company.timezone} canManage={['owner','admin'].includes(role||'')} canQuote={operational} canWork={Boolean(data.features?.productionWorkflows)&&['owner','admin','technician'].includes(role||'')} busy={pending||invoiceBusy} onBusy={setInvoiceBusy} onReview={()=>setActiveRequest(r.id)} act={act} fieldAction={fieldAction} onChanged={()=>void refresh()}/>):null}
+                      {role==='technician'?<section className="card"><h2>Work assigned to your company</h2>{data.jobs.map(j=><article className="card" key={j.id}><h3>{data.customers.find(c=>c.id===j.customer_id)?.display_name||'Service call'}</h3><p>{j.status.replaceAll('_',' ')}</p>{data.features?.productionWorkflows&&<div className="actions">{['approved','scheduled','en_route','arrived'].includes(j.status)&&<button disabled={pending} onClick={()=>void fieldAction(j,'start')}>Start work</button>}{j.status==='working'&&<button disabled={pending} onClick={()=>void fieldAction(j,'pause')}>Pause work</button>}{j.status==='paused'&&<button disabled={pending} onClick={()=>void fieldAction(j,'resume')}>Resume work</button>}</div>}<p>The owner reviews completion, invoices and payments.</p></article>)}{!data.jobs.length&&<p>No work on this records page.</p>}</section>:workRequest?data.requests.filter(r=>r.id===workRequest).map(r=><ServiceWorkflow companyName={data.company.display_name} onNetwork={openSupport} key={r.id} onCustomer={openCustomer} organization={org} request={{...r,appointments:data.appointments.filter(a=>a.request_id===r.id)}} quotes={data.quotes.filter(q=>q.request_id===r.id)} jobs={data.jobs.filter(j=>data.quotes.some(q=>q.id===j.quote_id&&q.request_id===r.id))} invoices={data.invoices.filter(i=>data.jobs.some(j=>j.id===i.job_id&&data.quotes.some(q=>q.id===j.quote_id&&q.request_id===r.id)))} timezone={data.company.timezone} canManage={['owner','admin'].includes(role||'')} canQuote={operational} canWork={Boolean(data.features?.productionWorkflows)&&['owner','admin','technician'].includes(role||'')} busy={pending||invoiceBusy} onBusy={setInvoiceBusy} onReview={()=>setActiveRequest(r.id)} act={act} fieldAction={fieldAction} onChanged={()=>void refresh()}/>):null}
                       {role!=='technician'&&workRequest&&!data.requests.some(r=>r.id===workRequest)&&<div className="card" role="alert"><h2>This job could not be opened</h2><p>It may no longer be available to this account. Refresh to check its saved status, or return to Requests.</p><button className="secondary" disabled={pending||invoiceBusy} onClick={()=>void refresh()}>Check saved job</button></div>}
 
                     </>}
@@ -598,8 +600,8 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
           </>
         )}
       </main>
-      {session&&data&&networkTasks&&["owner","admin"].includes(role||"")&&<OwnerNetworkLookup key={org} organization={org} tasks={networkTasks} onClose={()=>setNetworkTasks(null)}/>}
-      {session&&data&&activeRequest&&<RequestDetail onNetwork={setNetworkTasks} key={org+activeRequest} organization={org} requestId={activeRequest} timezone={data.company.timezone} canManage={['owner','admin'].includes(role||'')} onClose={()=>{if(pending||invoiceBusy||!canLeave())return;setActiveRequest(null);const url=new URL(window.location.href);if(section==='Work'&&workRequest)url.searchParams.set('request',workRequest);else url.searchParams.delete('request');historyController.current?.replace(url);}} onChanged={()=>void refresh()} onWork={openWork}/>}
+      {session&&data&&networkSupport&&networkSupport.organization===org&&["owner","admin"].includes(role||"")&&<OwnerNetworkLookup key={org} organization={org} tasks={networkSupport.tasks} context={networkSupport.context} initialView={networkSupport.initialView} onClose={()=>setNetworkSupport(null)}/>}
+      {session&&data&&activeRequest&&<RequestDetail companyName={data.company.display_name} onNetwork={openSupport} key={org+activeRequest} organization={org} requestId={activeRequest} timezone={data.company.timezone} canManage={['owner','admin'].includes(role||'')} onClose={()=>{if(pending||invoiceBusy||!canLeave())return;setActiveRequest(null);const url=new URL(window.location.href);if(section==='Work'&&workRequest)url.searchParams.set('request',workRequest);else url.searchParams.delete('request');historyController.current?.replace(url);}} onChanged={()=>void refresh()} onWork={openWork}/>}
     </div>
   );
 }

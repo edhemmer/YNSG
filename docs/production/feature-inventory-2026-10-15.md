@@ -71,3 +71,7 @@ Issue #32 / WEB-03 now includes strict private list/command/receipt validation, 
 ### October 30 owner network and connected support
 
 Owner/admin referral directory is separate from customers: multi-category contacts, private notes, phone/email/web/social links, owner-attributed firsthand vetting, archived history and immutable private business-card references. Job/request lookup connects to the Field guide without losing work drafts; free task-category rules suggest search starting points. API/SQL/recovery, role/tenant, interrupted-result and readable phone-flow evidence is tracked in [owner-network-2026-10-30.md](owner-network-2026-10-30.md). This expands WEB-09/WEB-10 working scope; actual owner/device acceptance and whole-product gates remain open.
+
+### October 30 connected job companion
+
+WEB-09/WEB-10 follow-up: task-matched existing preflight/source guidance, searchable learning library, phase-aware editable customer updates, selected public-only referral transfer, draft preservation across tools, company-bound support context, nested decline support and explained/deduplicated Today focus. Source: `apps/web/lib/job-companion.ts`, `owner-learning-toolkit.tsx`, `owner-network-lookup.tsx`, `customer-update-draft.tsx` and `command-center.tsx`. Research and verification: [job-companion-2026-10-30.md](job-companion-2026-10-30.md). Free deterministic preparation; canonical business commands and paid-provider settings are unchanged.

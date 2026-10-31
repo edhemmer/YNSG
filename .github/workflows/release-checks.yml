@@ -70,6 +70,8 @@ jobs:
         run: node scripts/verify-workspace-navigation.mjs
       - name: Verify private owner network, support flow and phone readability
         run: node scripts/verify-owner-network.mjs
+      - name: Verify contextual job help and editable customer updates
+        run: node scripts/verify-job-companion.mjs
       - name: Verify customer service-history insights
         run: node scripts/verify-customer-service-insights.mjs
       - name: Verify complete field request-to-receipt journey
