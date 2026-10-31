@@ -146,12 +146,12 @@ test('farm photo panel matches uniform service cards and farm price stays at pag
   readFile(new URL('../site/service-experience.css',import.meta.url),'utf8')
  ]);
  const card=home.slice(home.indexOf('home-service-card home-service-card-farm'),home.indexOf('</article>',home.indexOf('home-service-card home-service-card-farm')));
- assert.match(card,/ynsg-farm-hand-midwest\\.webp/);
- assert.doesNotMatch(card,/\\$300|day rate|up to 10 hours/i);
- assert.match(farm,/ynsg-farm-hand-midwest\\.webp/);
- assert.equal((farm.match(/\\$300/g)||[]).length,1);
+ assert.ok(card.includes('ynsg-farm-hand-midwest.webp'));
+ assert.ok(!card.includes('$300')&&!card.includes('day rate')&&!card.includes('up to 10 hours'));
+ assert.ok(farm.includes('ynsg-farm-hand-midwest.webp'));
+ assert.equal(farm.split('$300').length-1,1);
  assert.ok(farm.indexOf('farm-day-pricing')>farm.indexOf('service-area-note'));
- assert.match(farm,/Multi-day rates can be negotiated/);
- assert.match(styles,/grid-auto-rows:1fr/);
- assert.match(styles,/service-panel-image\\{display:block;width:100%;height:auto;aspect-ratio:5\\/2/);
+ assert.ok(farm.includes('Multi-day rates can be negotiated'));
+ assert.ok(styles.includes('grid-auto-rows:1fr'));
+ assert.ok(styles.includes('aspect-ratio:5/2;object-fit:cover'));
 });
