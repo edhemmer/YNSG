@@ -64,6 +64,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
   <p className="field-job-time"><Icon name="calendar"/><strong>{timing.label}</strong> {timing.text}</p>
   {request.original_submission.description&&<details className="workflow-customer-note" open={task.kind==='confirm'||task.kind==='agreement'}><summary>Customer’s note</summary><p>{request.original_submission.description}</p></details>}
   {decision.unknown&&<div className="note" role="alert"><p>The last field decision is unconfirmed. Its original details are kept; check the saved result before editing or leaving.</p><button type="button" disabled={decision.busy} onClick={()=>void decision.run()}>Check saved field decision</button></div>}
+  {proposal&&confirmedVisit&&canManage&&<div className="note"><p>A different appointment time was requested. The confirmed visit stays booked.</p><button type="button" className="secondary" disabled={blocked} onClick={openSchedule}>Review requested time change</button></div>}
   <section className="field-task" aria-label="Current field action"><h3>{task.label}</h3>
    {task.kind==='confirm'&&<><p>{task.next.detail}</p><div className="field-command-actions"><button type="button" disabled={blocked||!canManage} onClick={openSchedule}>Confirm appointment<Icon name="arrow"/></button>{canManage&&!confirmedVisit&&<button type="button" className="secondary" disabled={blocked} onClick={()=>{if(canLeave())setDeclineOpen(true);}}>Decline request</button>}</div></>}
    {task.kind==='agreement'&&<><p>{task.next.detail}</p><a className="button" href="#field-customer-agreement">Review work &amp; customer approval<Icon name="arrow"/></a></>}
@@ -82,7 +83,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
 </details>
 
   {canManage&&onNetwork&&<p><button type="button" className="secondary" disabled={blocked} onClick={()=>onNetwork(supportTaskLabels(requestTasks(request.original_submission)),makeCompanionContext({request:request.id,customer:request.original_submission.name,phase:task.kind,next:task.next.title,company:companyName,email:request.original_submission.email}),'learn')}>Help with this job</button></p>}
-  {proposal&&confirmedVisit&&canManage&&<div className="note"><p>A different appointment time was requested. The confirmed visit stays booked.</p><button type="button" className="secondary" disabled={blocked} onClick={openSchedule}>Review requested time change</button></div>}
+
   {scheduleOpen&&<SchedulingReviewPanel key={proposal?.id||request.id} organization={organization} requestId={request.id} appointmentId={proposal?.id||null} initialExpanded initialStart={request.original_submission.preferredTime} onBusy={busyFor('schedule')} completed={()=>{setScheduleOpen(false);onChanged();}}/>}
   {task.kind==='agreement'&&<section className="workflow-section" id="field-customer-agreement" tabIndex={-1}><h3>Work, price &amp; customer approval</h3>
    {canManage&&requestTasks(request.original_submission).map((task,i)=>{const review=hiddenConditionPreflight(task.service,task.task);return review&&<details key={i} className="note"><summary>Before quoting {task.task||task.service}: {review.title}</summary>{review.hold&&<p role="alert">Do not promise this work without verified licensing and service scope.</p>}<ul>{review.questions.map(q=><li key={q}>{q}</li>)}</ul></details>;})}
