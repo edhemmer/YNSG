@@ -49,5 +49,5 @@ test('Service schema follows approved service restrictions and has distinct iden
   }
   assert.match(services.find(service => service.name === 'Residential snow clearing').description, /No salt, deicer or commercial plowing/);
   assert.match(services.find(service => service.name === 'Concrete pressure washing').description, /customer supplies accessible outdoor water/);
-  assert.match(services.find(service => service.name === 'Farm hand services').description, /\$300 day rate for up to ten hours/);
+  assert.match(services.find(service => service.name === 'Farm hand services').description, /spring planting preparation, fall harvest support/);
 });
