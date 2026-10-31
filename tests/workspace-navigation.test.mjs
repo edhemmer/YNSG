@@ -39,3 +39,5 @@ test('same screen does not create extra history and replacement retains the hist
  const dom=new JSDOM('',{url:'https://example.invalid/owner?section=Work'}),w=dom.window,history=createWorkspaceHistory(w,()=>true);
  try{history.push(new URL(w.location.href));assert.equal(w.history.length,1);history.replace(new URL('https://example.invalid/owner?section=Money'));assert.equal(w.history.length,1);history.push(new URL('https://example.invalid/owner?section=Calendar'));assert.equal(w.history.length,2);}finally{history.dispose();w.close();}
 });
+
+test('Owner network navigation is owner/admin-only and never borrows customer/request URL identity',()=>{for(const role of ['owner','admin']){const route=readWorkspaceRoute(new URL('https://example.invalid/owner?section=Network&request='+id+'&customer='+id),[{organization_id:org,role}]);assert.equal(route.section,'Network');assert.equal(route.request,null);assert.equal(route.customer,null);}for(const role of ['dispatcher','technician','bookkeeper','support',undefined])assert.equal(workspaceSectionAllowed('Network',role),false);});

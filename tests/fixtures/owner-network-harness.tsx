@@ -1,0 +1,4 @@
+import React,{useState} from 'react';import {createRoot} from 'react-dom/client';import OwnerNetwork from '../../apps/web/app/owner-network';import OwnerNetworkLookup from '../../apps/web/app/owner-network-lookup';import {EntrySafety} from '../../apps/web/app/entry-safety';
+const organization='20000000-0000-4000-8000-000000000001';
+function Harness(){const [lookup,setLookup]=useState(false);return <EntrySafety><main className="company-workspace" style={{padding:'1rem'}}><label>Unfinished job note<textarea defaultValue="Preserve this private job draft"/></label><button onClick={()=>setLookup(true)}>Open support lookup</button><OwnerNetwork organization={organization}/>{lookup&&<OwnerNetworkLookup organization={organization} tasks={['Smart lock installation']} onClose={()=>setLookup(false)}/>}</main></EntrySafety>;}
+createRoot(document.getElementById('root')!).render(<Harness/>);

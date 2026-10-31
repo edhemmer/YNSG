@@ -62,7 +62,7 @@ const lessonGuidance:Record<string,{where:string;when:string;tip:string;attribut
  'remove-caulk':{where:'A surface confirmed compatible with the removal tool and cleaner.',when:'Once the cause of the failed joint and any water intrusion has been addressed.',tip:'A plastic scraper is often less likely to damage acrylic than a metal blade.',attribution:'Practical trade tip; verify surface compatibility'},
  'apply-caulk':{where:'A clean, dry joint with the correct sealant chosen for its materials.',when:'After removing failed caulk and allowing the surface to dry fully.',tip:'A small nozzle opening makes a neat bead easier to control; do not skip the cure time.',attribution:'Practical trade tip; verify product label'}
 };
-export default function OwnerLearningToolkit(){
+export default function OwnerLearningToolkit({onNetwork,organization}:{onNetwork?:(tasks:string[])=>void;organization?:string}={}){
  const [service,setService]=useState(examplePlanningStandards[0]!.service+'::'+examplePlanningStandards[0]!.task);
  const [minutes,setMinutes]=useState(60);
  const [factor,setFactor]=useState(1);
@@ -79,6 +79,7 @@ export default function OwnerLearningToolkit(){
  return <section className="card" aria-labelledby="learning-heading">
   <h2 id="learning-heading">Field guide & job planner</h2>
   <p>Practical preparation, sourced trade references, and a planning worksheet. References are not a guarantee of results and don't approve held services.</p>
+  {onNetwork&&<aside className="note"><strong>Choose the right next step.</strong><p>Use the guide to prepare work within your skills and approved scope. For a specialist, find someone in your private network.</p><button type="button" className="secondary" onClick={()=>onNetwork([rule.task,selected.title])}>Find a referral for this task</button>{organization&&<p><a target="_blank" rel="noopener noreferrer" href={"/task-time?"+new URLSearchParams({organization})}>Review actual job time &amp; improve your next estimate ↗</a></p>}</aside>}
   <details open><summary>Estimate time before accepting a job</summary>
    <p>This worksheet is temporary; it does not save company settings, book time or create a customer charge. Examples must be adjusted for the actual property and your skill level.</p>
    <label>Job type<select value={service} onChange={e=>{setService(e.target.value);const next=examplePlanningStandards.find(x=>x.service+'::'+x.task===e.target.value);if(next)setMinutes(next.plannedMinutes);}}>

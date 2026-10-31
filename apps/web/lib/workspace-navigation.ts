@@ -1,6 +1,6 @@
 export type WorkspaceMembership = { organization_id: string; role: string };
 export type WorkspaceRoute = { organization: string; section: string; request: string | null; customer: string | null };
-const sections = ['Dashboard', 'Requests', 'Calendar', 'Today', 'Customers', 'Work', 'Money', 'Snapshot', 'Marketing', 'Learning', 'Activity', 'Settings'];
+const sections = ['Dashboard', 'Requests', 'Calendar', 'Today', 'Customers', 'Work', 'Money', 'Snapshot', 'Marketing', 'Learning', 'Network', 'Activity', 'Settings'];
 const uuid = /^[a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12}$/i;
 export function workspaceHome(role?: string) {
   return role === 'technician' ? 'Today' : role === 'bookkeeper' ? 'Money' : role === 'dispatcher' ? 'Requests' : 'Dashboard';

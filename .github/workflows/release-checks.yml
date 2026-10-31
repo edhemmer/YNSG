@@ -68,6 +68,8 @@ jobs:
         run: node scripts/verify-owner-mobile.mjs
       - name: Verify workspace history, live permission changes and compact invoices
         run: node scripts/verify-workspace-navigation.mjs
+      - name: Verify private owner network, support flow and phone readability
+        run: node scripts/verify-owner-network.mjs
       - name: Verify customer service-history insights
         run: node scripts/verify-customer-service-insights.mjs
       - name: Verify complete field request-to-receipt journey
