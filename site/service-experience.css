@@ -13,3 +13,13 @@
 @media(min-width:1151px){.service-explorer .home-service-grid{grid-template-columns:repeat(6,minmax(0,1fr))}.service-explorer .home-service-card{grid-column:span 2}.service-explorer .home-service-card:nth-last-child(2):nth-child(3n+1){grid-column:2/span 2}.service-explorer .home-service-card:last-child:nth-child(3n+2){grid-column:4/span 2}}
 
 .home-services .service-explorer .home-service h3{flex-wrap:nowrap;align-items:flex-start}
+
+/* Uniform photo-card footprint and consistent action placement at all breakpoints. */
+.service-explorer .home-service-grid{grid-auto-rows:1fr;align-items:stretch}
+.service-explorer .home-service-card{display:flex;flex-direction:column;min-width:0;height:100%}
+.service-explorer .home-service-card .home-service{display:flex;flex:1 1 auto;flex-direction:column;min-height:0;width:100%}
+.service-explorer .home-service-card .service-panel-image{display:block;width:100%;height:auto;aspect-ratio:5/2;object-fit:cover;flex:none}
+.service-explorer .home-service-card .service-copy{display:flex;flex:1 1 auto;flex-direction:column;min-width:0}
+.service-explorer .home-service-card .service-arrow{margin-top:auto;padding-top:.9rem}
+.service-explorer .home-service-card .home-service-book{flex:none;min-height:56px;display:flex;align-items:center;justify-content:space-between}
+.service-explorer .home-service-card-cleanout .service-panel-image{object-fit:contain;background:#eef1e9}

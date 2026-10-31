@@ -138,3 +138,42 @@ test('farm hand has a distinct daily-rate page, service panel and full-day arran
  const graph=JSON.parse(seo('farm-hand-dekalb-il','Farm Hand','Seasonal farm labor').schema)['@graph'];
  assert.ok(graph.some(node=>node['@type']==='Service'&&node.url===canonicalUrl('farm-hand-dekalb-il')));
 });
+
+test('farm photo panel matches uniform service cards and farm price stays at page bottom',async()=>{
+ const [home,farm,styles]=await Promise.all([
+  readFile(new URL('../site/pages/home.html',import.meta.url),'utf8'),
+  readFile(new URL('../site/pages/farm-hand-dekalb-il.html',import.meta.url),'utf8'),
+  readFile(new URL('../site/service-experience.css',import.meta.url),'utf8')
+ ]);
+ const card=home.slice(home.indexOf('home-service-card home-service-card-farm'),home.indexOf('</article>',home.indexOf('home-service-card home-service-card-farm')));
+ assert.ok(card.includes('ynsg-farm-hand-midwest.webp'));
+ assert.ok(!card.includes('$300')&&!card.includes('day rate')&&!card.includes('up to 10 hours'));
+ assert.ok(farm.includes('ynsg-farm-hand-midwest.webp'));
+ assert.equal(farm.split('$300').length-1,1);
+ assert.ok(farm.indexOf('farm-day-pricing')>farm.indexOf('service-area-note'));
+ assert.ok(farm.includes('Multi-day rates can be negotiated'));
+ assert.ok(styles.includes('grid-auto-rows:1fr'));
+ assert.ok(styles.includes('aspect-ratio:5/2;object-fit:cover'));
+});
+
+test('farm labor SEO is locally relevant and grounded without thin location pages',async()=>{
+ const [build,detail,area]=await Promise.all([
+  readFile(new URL('../scripts/build.mjs',import.meta.url),'utf8'),
+  readFile(new URL('../site/pages/farm-hand-dekalb-il.html',import.meta.url),'utf8'),
+  readFile(new URL('../site/pages/service-area.html',import.meta.url),'utf8')
+ ]);
+ const meta=seo('farm-hand-dekalb-il','Farm Hand','Farm work', {src:'/assets/services/ynsg-farm-hand-midwest.webp',alt:'Midwestern harvest',width:480,height:192});
+ const graph=JSON.parse(meta.schema)['@graph'];
+ const page=graph.find(n=>n['@type']==='WebPage');
+ const service=graph.find(n=>n['@type']==='Service'&&n.url===canonicalUrl('farm-hand-dekalb-il'));
+ assert.match(meta.title,/Farm Hand Services/);
+ assert.ok(service.description.includes('planting')&&service.description.includes('harvest'));
+ assert.ok(service.description.includes('DeKalb')&&service.description.includes('Sycamore'));
+ assert.ok(graph.some(n=>n['@type']==='ImageObject'&&n.contentUrl.endsWith('/ynsg-farm-hand-midwest.webp')));
+ assert.ok(page.primaryImageOfPage);
+ assert.ok(detail.includes('Questions about farm hand help'));
+ assert.ok(detail.includes('href="/service-area/"'));
+ assert.ok(area.includes('href="/farm-hand-dekalb-il/"'));
+ assert.ok(build.includes('const farmMedia='));
+ assert.equal(detail.split('$300').length-1,1);
+});

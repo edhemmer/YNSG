@@ -48,7 +48,7 @@ const pages = {
   'mulch-delivery-spreading-dekalb-il': ['Mulch Pickup, Delivery & Spreading in DeKalb, IL', 'Arrange mulch pickup, delivery and spreading in DeKalb, Sycamore or Cortland. Have mulch at home already? Request spreading help and keep yard jobs together.', 'mulch-delivery-spreading-dekalb-il'],
   'mulch-yard-cleanup-dekalb-il': ['Mulch & Yard Cleanup in DeKalb, IL', 'A little help for your outdoor list: mulch, hand weeding, small planting and garden-bed cleanup in DeKalb, Sycamore and Cortland.', 'mulch-yard-cleanup-dekalb-il'],
   'concrete-pressure-washing-dekalb-il': ['Concrete Pressure Washing in DeKalb, IL', 'A fresh look for your driveway, walks or patio. Request ground-level concrete washing in DeKalb, Sycamore or Cortland, with a surface review.', 'concrete-pressure-washing-dekalb-il'],
-  'farm-hand-dekalb-il': ['Farm Hand Services in DeKalb, Sycamore & Nearby', 'Need an extra hand for spring planting, fall harvest or other farm work? One farm hand for $300 per day, up to 10 hours, subject to scope and availability.', 'farm-hand-dekalb-il'],
+  'farm-hand-dekalb-il': ['Farm Hand Services in DeKalb, Sycamore & Nearby', 'Farm hand services for spring planting, fall harvest support and general farm work in DeKalb, Sycamore, Cortland and nearby Illinois communities.', 'farm-hand-dekalb-il'],
   franchise: ['Franchise Opportunity', 'Explore a neighborhood service franchise with cloud technology, AI-supported administration, local marketing support and a proposed protected territory.', 'franchise'],
   privacy: ['Privacy Notice', 'How Your Neighborhood Service Guy handles information submitted through the website.', 'privacy'],
   terms: ['Website Terms', 'Terms for using the Your Neighborhood Service Guy website and request form.', 'terms'],
@@ -57,8 +57,10 @@ const pages = {
 };
 const nav = [['services','Services'],['pricing','Pricing'],['about','About']];
 function layout(slug, title, description, body){
-  const media=serviceMedia(slug,serviceManifest),meta=seo(slug,title,description,media);
-  const social=media?{src:'https://www.yourneighborhoodserviceguy.com'+media.src,alt:media.alt,width:media.width,height:media.height}:{src:'https://www.yourneighborhoodserviceguy.com/assets/neighbors-social.jpg',alt:'We’re Here to Help. Your Neighborhood Service Guy',width:1280,height:853};
+  const media=serviceMedia(slug,serviceManifest);
+  const farmMedia=slug==='farm-hand-dekalb-il'?{src:'/assets/services/ynsg-farm-hand-midwest.webp',alt:'A Midwestern corn harvest with a combine and farm buildings.',width:480,height:192}:null;
+  const socialMedia=media||farmMedia,meta=seo(slug,title,description,socialMedia);
+  const social=socialMedia?{src:'https://www.yourneighborhoodserviceguy.com'+socialMedia.src,alt:socialMedia.alt,width:socialMedia.width,height:socialMedia.height}:{src:'https://www.yourneighborhoodserviceguy.com/assets/neighbors-social.jpg',alt:'We’re Here to Help. Your Neighborhood Service Guy',width:1280,height:853};
   const scripts=servicePages[slug]?'<script src="/home-service-picker.js" type="module"></script><script src="/public-ui.js" type="module"></script>':slug==='request'?'<script src="/main.js" type="module"></script><script src="/appointment-picker.js" type="module"></script>':slug===''?'<script src="/neighbor-carousel.js" type="module"></script><script src="/home-service-picker.js" type="module"></script>':'<script src="/public-ui.js" type="module"></script>';
   const preload=media?`<link rel="preload" as="image" type="image/webp" href="${media.src}" imagesrcset="${media.small} 640w, ${media.src} 960w" imagesizes="${media.sizes}" fetchpriority="high">`:slug===''?'<link rel="preload" as="image" type="image/webp" href="/assets/neighbors-seniors-brand-v3-1280.webp" imagesrcset="/assets/neighbors-seniors-brand-v3-640.webp 640w, /assets/neighbors-seniors-brand-v3-1280.webp 1280w" imagesizes="(max-width:850px) calc(100vw - 36px), 740px" fetchpriority="high">':'';
   const socialAlt=social.alt.replaceAll('&','&amp;').replaceAll('\"','&quot;').replaceAll('<','&lt;');
