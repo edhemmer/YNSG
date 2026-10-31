@@ -72,6 +72,7 @@ if(form){
     description.placeholder = description.required ? 'Tell us what you need done.' : 'A short note is fine.';
     form.dispatchEvent(new CustomEvent('request-services-changed'));
     form.querySelector('#water-note').hidden = ![...selected.values()].some(x=>x.service === 'Concrete pressure washing');
+    form.querySelector('#farm-day-note').hidden = ![...selected.values()].some(x=>x.service === 'Farm hand services');
   };
   const names={'Help around the home':'Home jobs','Lawn care':'Lawn care','Yard & garden':'Yard & garden','Snow clearing':'Snow clearing','Concrete pressure washing':'Concrete pressure washing','Farm hand services':'Farm hand services','Something else':'Something else'};
   for(const [service,jobs] of Object.entries(tasks)){
