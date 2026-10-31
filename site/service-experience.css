@@ -22,3 +22,4 @@
 .service-explorer .home-service-card .service-copy{display:flex;flex:1 1 auto;flex-direction:column;min-width:0}
 .service-explorer .home-service-card .service-arrow{margin-top:auto;padding-top:.9rem}
 .service-explorer .home-service-card .home-service-book{flex:none;min-height:56px;display:flex;align-items:center;justify-content:space-between}
+.service-explorer .home-service-card-cleanout .service-panel-image{object-fit:contain;background:#eef1e9}
