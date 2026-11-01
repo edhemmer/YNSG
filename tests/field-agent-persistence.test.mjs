@@ -26,7 +26,7 @@ test('owner AI review scans past stale recent proposals with bounded tenant and 
  assert.match(api,/const pageSize=40,maxPages=5/);
  assert.match(api,/\.eq\('organization_id',q\.organization\)\.eq\('status','proposed'\)/);
  assert.match(api,/\.range\(page\*pageSize,\(page\+1\)\*pageSize-1\)/);
- assert.match(api,/record\?\.revision===x\.request_revision/);
+ assert.match(api,/record&&record\.revision===x\.request_revision/);
  assert.match(api,/!\['declined','canceled'\]\.includes\(record\.status\)/);
  assert.match(api,/scanIncomplete=true/);
  assert.match(api,/hasMore:valid\.length>5,scanIncomplete/);
