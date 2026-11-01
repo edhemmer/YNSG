@@ -109,7 +109,7 @@ function template(organization: string): CompanySettings {
       horizonMinutes: 43200,
       pendingLimit: 1,
     },
-    sellerLegalName: "",
+    sellerLegalName: organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" ? "Your Neighborhood Service Guy, LLC" : "",
     sellerVerified: false,
     invoiceTerms: null,
     taxTreatmentVerified: false,
