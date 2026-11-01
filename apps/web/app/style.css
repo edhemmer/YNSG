@@ -342,3 +342,18 @@ html[data-theme=dark] .request-dialog .detail-tabs button{color:#b3c2cd}html[dat
 .field-call-link{display:inline-flex;flex:1 1 130px;align-items:center;justify-content:center;min-height:52px;border:1px solid var(--line);border-radius:9px;padding:10px 14px;text-decoration:none;font-weight:650}
 .field-call-link:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 @media(max-width:600px){.field-desk{gap:.8rem}.field-current{padding:1rem}.field-current-actions>button{flex-basis:100%}.field-call-link{flex-basis:100%}.field-search-disclosure>.field-search{padding:12px}}
+
+
+/* Field owner: current saved-state action leads, optional preparation follows. */
+.field-job .field-task{border:1px solid var(--line);border-radius:.75rem;padding:1rem;background:var(--paper);display:grid;gap:.35rem;min-width:0}
+.field-job .field-task h3{margin:0 0 .25rem;font-size:clamp(1.15rem,2vw,1.35rem)}
+.field-job .field-task button,.field-job .field-task a.button{min-height:52px;display:inline-flex;align-items:center;justify-content:center;gap:.45rem;text-align:center;overflow-wrap:anywhere}
+.field-job .field-task .field-command-actions{align-items:stretch}
+.field-job .field-task .field-command-actions button{flex:1 1 175px}
+.field-job-progress{border:1px solid var(--line);border-radius:.65rem;padding:.2rem .85rem;min-width:0}
+.field-job-progress>summary{font-weight:650}
+.field-job-progress[open]>summary{border-bottom:1px solid var(--line);margin-bottom:.55rem}
+.field-job-progress .field-workflow-stages{padding:.25rem 0}
+.field-job-progress .field-auto-preparation{margin:.55rem 0}
+.field-job .field-task :focus-visible,.field-job-progress>summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+@media(max-width:600px){.field-job .field-task{padding:.85rem}.field-job .field-task .field-command-actions>*{flex:1 1 100%;min-height:52px}.field-job-progress{padding:.2rem .7rem}}

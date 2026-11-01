@@ -67,6 +67,12 @@ try{
   // Jobs entry obeys the same saved milestones and has a direct decline route.
   for(const width of [320,390,768])for(const state of ['new','retained','confirmed','working','completed','issued','paid','canceled']){
    const {page}=await mount(state,width,'light','work');await page.getByRole('heading',{name:'Morgan Synthetic Neighbor'}).waitFor();await layout(page,engine+' workflow '+width+' '+state);
+   const action=page.locator('section[aria-label="Current field action"]'),progress=page.locator('details.field-job-progress');
+   assert.equal(await action.count(),1);
+   assert.equal(await progress.count(),1);
+   assert.equal(await progress.getAttribute('open'),null,'Preparation is optional, not a second screen before the job action');
+   const positions=await page.evaluate(()=>({action:document.querySelector('.field-task')?.getBoundingClientRect().top,progress:document.querySelector('.field-job-progress')?.getBoundingClientRect().top}));
+   assert.ok(Number.isFinite(positions.action)&&Number.isFinite(positions.progress)&&positions.action<positions.progress,'Next job action comes before progress details');
    if(state==='new'){assert.equal(await page.getByRole('button',{name:/Start work timer|Save work|Approve and issue invoice|Record received payment/}).count(),0);await page.getByRole('button',{name:'Decline request',exact:true}).click();await page.locator('.decline-fields select').last().waitFor();}
     if(state==='retained'){assert.equal(await page.getByRole('button',{name:'Decline request',exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'Confirm appointment',exact:true}).count(),0);assert.match(await page.locator('[aria-label="Current field action"]').innerText(),/Review payments/);assert.equal(await page.getByRole('link',{name:'Review payments'}).count(),1);}
    if(['issued','paid'].includes(state)){for(const summary of await page.locator('.field-job details:not([open]) > summary').all())if(await summary.isVisible())await summary.click();await layout(page,engine+' expanded workflow '+width+' '+state);}

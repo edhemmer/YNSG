@@ -125,7 +125,7 @@ test('field brief never labels missing or unaccepted scope as agreed and retains
  for(const qs of [[],[{...quote,status:'sent'}],[{...quote,quote_versions:[]}]])assert.equal(html(scheduled,qs,[{...job,status:'working',approved_version:1}],[]).querySelector('[aria-label="Agreed work brief"]'),null);
  const scope='Preserve approved instructions. '.repeat(30)+'Final condition stays intact.';
  const d=html(scheduled,[{...quote,quote_versions:[{...quote.quote_versions[0],scope}]}],[{...job,approved_version:1}],[]);
- assert.equal(d.querySelector('.field-agreed-scope').textContent,scope);assert.equal(d.querySelector('.field-work-brief details').open,false);assert.equal(Array.from(d.querySelector('.field-job-service').textContent).length,241);assert.deepEqual(actions(d),['Start work']);
+ assert.equal(d.querySelector('.field-agreed-scope').textContent,scope);assert.equal(d.querySelector('.field-work-brief details').open,false);assert.equal(Array.from(d.querySelector('.field-job-service').textContent).length,121);assert.equal(d.querySelector('.field-agreed-scope').textContent,scope,'Full approved scope remains accessible without truncation');assert.deepEqual(actions(d),['Start work']);
  assert.match(d.querySelector('.workflow-customer-note').textContent,/Use side entrance/);
 });
 
