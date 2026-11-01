@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {requestRecovery} from '../site/request-recovery.js';
-const main=readFileSync(new URL('../site/main.js',import.meta.url),'utf8');
+const main=readFileSync(new URL('../site/main.js',import.meta.url),'utf8').replace(/\r\n/g,'\n');
 const source=main.slice(main.indexOf("  let requestKey=''"),main.indexOf('\n}\nconst motion='));
 function harness(outcomes){
  const button={disabled:false,tabIndex:0,firstChild:{textContent:''}},field={disabled:false,tabIndex:0},alreadyDisabled={disabled:true,tabIndex:0},heading={tabIndex:0};

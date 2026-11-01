@@ -419,7 +419,28 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
         <nav aria-label="Workspace"><p className="nav-group-label">Workflow</p>{primarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span>{s.key==='Requests'&&data.requests.some(r=>r.status==='submitted')&&<i className="nav-attention" aria-label="New requests"/>}</button>)}<details className="sidebar-more" open={secondarySections.some(s=>s.key===section)}><summary><Icon name="settings"/><span>Office & tools</span></summary>{secondarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span></button>)}</details></nav>
         <div className="sidebar-footer"><span className="sidebar-profile">{session.email.slice(0,2).toUpperCase()}</span><div><strong>{role==='owner'?'Business owner':'Team workspace'}</strong><small>{session.email}</small></div></div>
       </aside>}
-      {session&&<header className="crm-topbar"><div className="topbar-context"><span className="context-dot"/><strong>{data?.company.display_name||'Service workspace'}</strong></div><div className="topbar-actions"><ThemeToggle/>{['owner','admin'].includes(role||'')&&<button className="icon-button secondary" aria-label="Activity and messages" onClick={()=>navigate('Activity')}><Icon name="bell"/></button>}<button className="icon-button secondary" aria-label="Sign out" onClick={async()=>{if(pending||invoiceBusy||!canLeave())return;if(!window.confirm('Sign out of your workspace?'))return;try{sessionSequence.current++;await api('/api/session',{action:'logout'});sessionSequence.current++;initialWorkspaceChosen.current=false;setSession(null);setNetworkSupport(null);setSessionUnavailable(false);reloadSequence.current++;retryKeys.current.clear();setData(null);setOrg('');setActiveRequest(null);setWorkRequest(null);setCustomerFocus(null);}catch(e){setError(publicError(e));}}}><Icon name="logout"/></button></div></header>}
+      {session&&<header className="crm-topbar"><div className="topbar-context"><span className="context-dot"/>{session.memberships.length>1?(<div className="company-switcher" hidden={session.memberships.length===1}><label htmlFor="company">Switch business</label>
+                <select
+                  id="company"
+                  value={org}
+                  onChange={(e) => {
+                    if(pending||invoiceBusy||!canLeave())return;
+                    const nextOrg=e.target.value;
+                    const member=session.memberships.find(m=>m.organization_id===nextOrg);
+                    if(!member)return;
+                    setData(null);retryKeys.current.clear();
+                    saveDestination({organization:nextOrg,section:workspaceHome(member.role),request:null,customer:null});
+                  }}
+                >
+                  {session.memberships.map((m) => (
+                    <option key={m.organization_id} value={m.organization_id}>
+                      {data?.company.id === m.organization_id
+                        ? data.company.display_name
+                        : `Business ${session.memberships.indexOf(m) + 1}`}{" "}
+                      · {m.role}
+                    </option>
+                  ))}
+                </select></div>):<strong>{data?.company.display_name||'Service workspace'}</strong>}</div><div className="topbar-actions"><ThemeToggle/>{['owner','admin'].includes(role||'')&&<button className="icon-button secondary" aria-label="Activity and messages" onClick={()=>navigate('Activity')}><Icon name="bell"/></button>}<button className="icon-button secondary" aria-label="Sign out" onClick={async()=>{if(pending||invoiceBusy||!canLeave())return;if(!window.confirm('Sign out of your workspace?'))return;try{sessionSequence.current++;await api('/api/session',{action:'logout'});sessionSequence.current++;initialWorkspaceChosen.current=false;setSession(null);setNetworkSupport(null);setSessionUnavailable(false);reloadSequence.current++;retryKeys.current.clear();setData(null);setOrg('');setActiveRequest(null);setWorkRequest(null);setCustomerFocus(null);}catch(e){setError(publicError(e));}}}><Icon name="logout"/></button></div></header>}
       {session&&data&&<nav className="crm-mobile-dock" aria-label="Quick workspace navigation">{primarySections.filter(s=>['Dashboard','Requests','Work'].includes(s.key)&&canSeeSection(s)).map(s=><button key={s.key} aria-label={s.label} type="button" aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span>{s.key==='Requests'&&data.requests.some(r=>r.status==='submitted')&&<i className="dock-attention" aria-label="New requests"/>}</button>)}<button type="button" aria-label="More workspace tools" aria-expanded={mobileNav} aria-current={!['Dashboard','Requests','Work'].includes(section)?'page':undefined} onClick={()=>setMobileNav(v=>!v)}><Icon name="menu"/><span>More</span></button></nav>}
       <main className={`shell${session?' workspace-main':''}`} id="main">
 
@@ -459,28 +480,6 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
               <OwnerSetup onComplete={loadSession}/>
             ) : (
               <>
-                <div className="company-switcher" hidden={session.memberships.length===1}><label htmlFor="company">Switch business</label>
-                <select
-                  id="company"
-                  value={org}
-                  onChange={(e) => {
-                    if(pending||invoiceBusy||!canLeave())return;
-                    const nextOrg=e.target.value;
-                    const member=session.memberships.find(m=>m.organization_id===nextOrg);
-                    if(!member)return;
-                    setData(null);retryKeys.current.clear();
-                    saveDestination({organization:nextOrg,section:workspaceHome(member.role),request:null,customer:null});
-                  }}
-                >
-                  {session.memberships.map((m) => (
-                    <option key={m.organization_id} value={m.organization_id}>
-                      {data?.company.id === m.organization_id
-                        ? data.company.display_name
-                        : `Business ${session.memberships.indexOf(m) + 1}`}{" "}
-                      · {m.role}
-                    </option>
-                  ))}
-                </select></div>
                 {!data && (
                   <div className="card">
                     <h2>Open your workspace</h2>
@@ -500,7 +499,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
 
                     {section==='Dashboard'&&['owner','admin'].includes(role||'')&&<CommandCenter key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest} onNavigate={navigate}/>}
                     {section==='Requests'&&operational&&<RequestInbox fieldMode={['owner','admin'].includes(role||'')} key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest} canManage={['owner','admin'].includes(role||'')}/>}
-                    {section==='Activity'&&['owner','admin'].includes(role||'')&&<NotificationAttention organization={org}/>}
+                    {section==='Activity'&&['owner','admin'].includes(role||'')&&<NotificationAttention key={org} organization={org} timezone={data.company.timezone} onRequest={openWork} onSettings={()=>navigate('Settings')}/>}
                     {section === "Snapshot" && ["owner","admin"].includes(role||"") && <><p><a className="button secondary" href={'/task-time?'+new URLSearchParams({organization:org})}>Task time &amp; monthly job-type results ↗</a></p><BusinessSnapshot key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={navigate}/></>}
                     {section === "Calendar" && ['owner','admin'].includes(role||'') && <>
                       <div className="calendar-inbox-link"><div><strong>New requests start in your inbox.</strong><span>Review proposed times here; schedule requests without a time from Requests.</span></div><button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/>Open requests</button></div><MonthCalendar key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest}/>
@@ -508,7 +507,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
                     {section === 'Marketing'&&['owner','admin'].includes(role||'')&&<><CustomerServiceInsights key={'insights:'+org} organization={org} timezone={data.company.timezone} onCustomer={openCustomer}/><EmailTemplateLibrary key={'email-library:'+org} organization={org} name="" email="" marketing/><MarketingDrafts key={org} organization={org}/></>}
                     {section === "Learning" && ['owner','admin'].includes(role||'') && <OwnerLearningToolkit organization={org} onNetwork={openSupport}/>}
                     {section === "Settings" && ['owner','admin'].includes(role||'') && <>
-                      <CalendarConnections key={"calendar-"+org} organization={org}/><details><summary>Optional Google calendar export</summary><GoogleControls key={org} organization={org} view="settings"/></details>
+                      <CalendarConnections key={"calendar-"+org} organization={org}/><details><summary>Optional Google calendar export</summary><GoogleControls key={org} organization={org} timezone={data.company.timezone} view="settings"/></details>
                       <OwnerSecurity key={org} organization={org}/>
                     </>}
                     {section === "Settings" && ['owner','admin'].includes(role||'') && <MobileNotifications organization={org} timezone={data.company.timezone} onBusy={setInvoiceBusy}/>}

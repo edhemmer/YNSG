@@ -26,11 +26,14 @@ export function notificationName(kind: string): string {
 }
 export type AttentionRecord={id:string;kind:string;status:string;object_id:string;created_at:string;next_attempt_at:string;lease_until:string|null;attempts:number};
 export function notificationAttention(row:AttentionRecord,enabled:boolean,now:number){
+ if(row.status==='accepted')return {label:'Accepted by email service',action:'The email service accepted this message. This does not confirm inbox receipt.'};
+ if(row.status==='suppressed')return {label:'Not sent',action:'This message was skipped by the saved delivery rules. Review the related request before sending a separate message.'};
  if(row.status==='needs_reconciliation')return {label:'Check the delivery result',action:'The send result is uncertain. Check the saved delivery result before sending again. Automatic retries are paused.'};
  if(row.status==='dead_letter')return {label:'Delivery stopped after repeated failures',action:'Review Business email in Settings and check this message before trying again.'};
  if(row.status==='failed')return {label:'Last send failed',action:enabled?'The system may retry when this message is due. If it stays here, check email delivery in Settings.':'Verify Business email and enable notifications in Settings.'};
  if(!enabled)return {label:'Email delivery is paused',action:'Verify Business email and enable notifications in Settings. The saved notification remains queued.'};
  if(row.status==='sending')return {label:'Waiting for the send result',action:row.lease_until&&Date.parse(row.lease_until)<=now?'The send result has not arrived. Check the saved delivery result before taking action. Wait until the result is known before sending again.':'The email service is processing this message. Wait for its result.'};
  if(row.status==='leased')return {label:'Preparing the message',action:row.lease_until&&Date.parse(row.lease_until)<=now?'Preparation timed out before sending. Check email delivery in Settings.':'The system is preparing this message for delivery.'};
+ if(Date.parse(row.next_attempt_at)>now)return {label:'Scheduled to send',action:'This message is waiting for its scheduled send time.'};
  return {label:'Waiting to send',action:'This message is due. If it stays here, check email delivery in Settings.'};
 }
