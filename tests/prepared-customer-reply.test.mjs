@@ -11,6 +11,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT=true;
 const require=createRequire(new URL('../apps/web/package.json',import.meta.url));
 const React=require('react'),{act}=React,{createRoot}=require('react-dom/client');
 const {default:PreparedCustomerReply}=await import('../apps/web/app/prepared-customer-reply.tsx');
+const {EntrySafety,useEntrySafety}=await import('../apps/web/app/entry-safety.tsx');
 const detail=readFileSync(new URL('../apps/web/app/request-detail.tsx',import.meta.url),'utf8');
 const workflow=readFileSync(new URL('../apps/web/app/service-workflow.tsx',import.meta.url),'utf8');
 
@@ -19,7 +20,7 @@ test('prepared customer reply is editable, review-only and cannot transmit autom
  const copied=[];
  Object.defineProperty(globalThis.navigator,'clipboard',{configurable:true,value:{writeText:async text=>{copied.push(text);}}});
  try{
-  await act(async()=>root.render(React.createElement(PreparedCustomerReply,{recipient:'example@example.invalid',draft:{subject:'Follow-up',body:'No appointment confirmed.',status:'draft',requiresOwnerApproval:true}})));
+  await act(async()=>root.render(React.createElement(EntrySafety,null,React.createElement(PreparedCustomerReply,{requestKey:'synthetic-1',recipient:'example@example.invalid',draft:{subject:'Follow-up',body:'No appointment confirmed.',status:'draft',requiresOwnerApproval:true}}))));
   const box=document.querySelector('.prepared-customer-reply');
   assert.ok(box);
   assert.match(box.textContent,/Not sent/);
@@ -47,4 +48,12 @@ test('scheduling and invoice preparation stay at the canonical decision points',
  assert.match(workflow,/No invoice has been issued by this suggestion/);
  assert.match(workflow,/<InvoiceDraft/);
  assert.match(workflow,/<SchedulingReviewPanel/);
+});
+
+test('prepared draft tracks unsaved edits in the existing owner navigation guard',()=>{
+ const component=readFileSync(new URL('../apps/web/app/prepared-customer-reply.tsx',import.meta.url),'utf8');
+ assert.match(component,/useUnsavedEntry\('prepared-reply:'\+requestKey,edited\)/);
+ assert.match(component,/subject!==draft.subject\|\|body!==draft.body/);
+ assert.match(component,/Edits are not saved/);
+ assert.match(detail,/useEntrySafety\(\)/);
 });
