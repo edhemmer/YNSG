@@ -66,7 +66,7 @@ export async function GET(request:Request){
    const current=ids.length?await storage.from('service_requests').select('id,revision,status').eq('organization_id',q.organization).in('id',ids):{data:[],error:null};
    if(current.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
    const latest=new Map((current.data||[]).map(r=>[r.id,r]));
-   valid.push(...found.data.filter(x=>{const record=latest.get(x.request_id);return record?.revision===x.request_revision&&!['declined','canceled'].includes(record.status);}));
+   valid.push(...found.data.filter(x=>{const record=latest.get(x.request_id);return Boolean(record&&record.revision===x.request_revision&&!['declined','canceled'].includes(record.status));}));
    if(valid.length>5||found.data.length<pageSize)break;
    if(page===maxPages-1)scanIncomplete=true;
   }
