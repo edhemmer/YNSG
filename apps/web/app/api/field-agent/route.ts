@@ -54,12 +54,22 @@ export async function GET(request:Request){
   if(member.error)throw Error('FAILED');
   if(!member.data)return NextResponse.json({error:'Owner access is required.'},{status:403,headers});
   const storage=serverDatabase();
-  const found=await storage.from('field_agent_tasks').select('id,request_id,request_revision,task_kind,title,detail,updated_at').eq('organization_id',q.organization).eq('status','proposed').order('updated_at',{ascending:false}).limit(20);
-  if(found.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
-  const ids=[...new Set((found.data||[]).map(x=>x.request_id))];
-  const current=ids.length?await storage.from('service_requests').select('id,revision,status').eq('organization_id',q.organization).in('id',ids):{data:[],error:null};
-  if(current.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
-  const valid=(found.data||[]).filter(x=>current.data?.some(r=>r.id===x.request_id&&r.revision===x.request_revision&&!['declined','canceled'].includes(r.status)));
-  return NextResponse.json({tasks:valid.slice(0,5),hasMore:valid.length>5,checkedAt:new Date().toISOString()},{headers});
+  // Stale proposals can crowd out valid older decisions. Read bounded pages until
+  // six CURRENT requests are found; never treat an exhausted partial scan as an all-clear.
+  const pageSize=40,maxPages=5;
+  const valid:{id:string;request_id:string;request_revision:number;task_kind:string;title:string;detail:string;updated_at:string}[]=[];
+  let scanIncomplete=false;
+  for(let page=0;page<maxPages;page++){
+   const found=await storage.from('field_agent_tasks').select('id,request_id,request_revision,task_kind,title,detail,updated_at').eq('organization_id',q.organization).eq('status','proposed').order('updated_at',{ascending:false}).order('id').range(page*pageSize,(page+1)*pageSize-1);
+   if(found.error||!found.data)throw Error('AGENT_QUEUE_UNAVAILABLE');
+   const ids=[...new Set(found.data.map(x=>x.request_id))];
+   const current=ids.length?await storage.from('service_requests').select('id,revision,status').eq('organization_id',q.organization).in('id',ids):{data:[],error:null};
+   if(current.error)throw Error('AGENT_QUEUE_UNAVAILABLE');
+   const latest=new Map((current.data||[]).map(r=>[r.id,r]));
+   valid.push(...found.data.filter(x=>{const record=latest.get(x.request_id);return record?.revision===x.request_revision&&!['declined','canceled'].includes(record.status);}));
+   if(valid.length>5||found.data.length<pageSize)break;
+   if(page===maxPages-1)scanIncomplete=true;
+  }
+  return NextResponse.json({tasks:valid.slice(0,5),hasMore:valid.length>5,scanIncomplete,checkedAt:new Date().toISOString()},{headers});
  }catch(e){return failure(e);}
 }
