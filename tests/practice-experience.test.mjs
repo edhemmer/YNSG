@@ -48,7 +48,7 @@ test('practice prevents real calls and unknown operations and reset restores sam
 });
 test('work recording through invoice issue and document uses the real connected components',async()=>{
  const h=await mount();try{
-  await openSample('Sample — Work in progress');await click('Finish work');
+  await openSample('Sample — Work in progress');await click('Review & finish work');
   const minutes=[...node.querySelectorAll('label')].find(l=>l.textContent.trim()==='Actual minutes recorded')?.querySelector('input');assert.ok(minutes);
   await act(async()=>{Object.getOwnPropertyDescriptor(Object.getPrototypeOf(minutes),'value').set.call(minutes,'120');minutes.dispatchEvent(new Event('input',{bubbles:true}));await tick();});
   await act(async()=>{const review=[...node.querySelectorAll('input[type="checkbox"]')].find(c=>c.parentElement.textContent.includes('The work is finished'));assert.ok(review);review.click();await tick();});
