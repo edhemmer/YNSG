@@ -1,6 +1,6 @@
 // Presentation mapping for the service pages; task authority stays in service-catalog.js.
 export const servicePages={
- 'mulch-delivery-spreading-dekalb-il':{name:'Mulch & material help',service:'Yard & garden',task:'Bulk or bagged mulch pickup, delivery & spreading',image:'yard-garden',related:['mulch-yard-cleanup-dekalb-il','leaf-cleanup-dekalb-il','lawn-mowing-dekalb-il']},
+ 'mulch-delivery-spreading-dekalb-il':{name:'Mulch & material help',service:'Yard & garden',task:'Bulk or bagged mulch pickup, delivery & spreading',image:'mulch-material',related:['mulch-yard-cleanup-dekalb-il','leaf-cleanup-dekalb-il','lawn-mowing-dekalb-il']},
  'cleanout-dekalb-il':{name:'Cleanout & removal',service:'Cleanout & removal',task:'',image:'cleanout',related:['handyman-dekalb-il','mulch-yard-cleanup-dekalb-il','leaf-cleanup-dekalb-il']},
  'lawn-mowing-dekalb-il':{name:'Lawn mowing',service:'Lawn care',task:'Mowing',image:'lawn-mowing',related:['leaf-cleanup-dekalb-il','mulch-yard-cleanup-dekalb-il','handyman-dekalb-il']},
  'leaf-cleanup-dekalb-il':{name:'Leaf management',service:'Lawn care',task:'Leaf management',image:'leaf-cleanup',related:['lawn-mowing-dekalb-il','mulch-yard-cleanup-dekalb-il','handyman-dekalb-il']},

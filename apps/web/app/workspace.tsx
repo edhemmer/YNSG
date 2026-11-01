@@ -1,3 +1,5 @@
+import GrowthPlanner from './growth-planner';
+import GoogleConnectionNotice from './google-connection-notice';
 'use client';
 import type {CompanionContext} from '../lib/job-companion';
 import dynamic from 'next/dynamic';
@@ -173,6 +175,8 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
   const [org, setOrg] = useState(""),
     [data, setData] = useState<Data | null>(null),
     [section, setSection] = useState("Dashboard");
+  const [googleSetupOpen,setGoogleSetupOpen]=useState(false);
+  useEffect(()=>{if(section==='Settings'&&googleSetupOpen)document.getElementById('google-setup')?.scrollIntoView({block:'start'});},[section,googleSetupOpen]);
   const [page,setPage]=useState(0);
   const [accessRevision,setAccessRevision]=useState(0);
   const [isMobile,setIsMobile]=useState(false);
@@ -497,17 +501,18 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
                     </div>
                     {(page>0||data.pagination.hasMore)&&(section==='Money'||(section==='Customers'&&!['owner','admin'].includes(role||''))||(section==='Work'&&role==='technician')) && <div className="actions record-pages" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1} · 50 records per page</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>}
 
+                    {['owner','admin'].includes(role||'')&&<GoogleConnectionNotice key={'google-notice:'+org} organization={org} onSetup={()=>{setGoogleSetupOpen(true);navigate('Settings')}}/>}
                     {section==='Dashboard'&&['owner','admin'].includes(role||'')&&<CommandCenter key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest} onNavigate={navigate}/>}
                     {section==='Requests'&&operational&&<RequestInbox fieldMode={['owner','admin'].includes(role||'')} key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest} canManage={['owner','admin'].includes(role||'')}/>}
                     {section==='Activity'&&['owner','admin'].includes(role||'')&&<NotificationAttention key={org} organization={org} timezone={data.company.timezone} onRequest={openWork} onSettings={()=>navigate('Settings')}/>}
-                    {section === "Snapshot" && ["owner","admin"].includes(role||"") && <><p><a className="button secondary" href={'/task-time?'+new URLSearchParams({organization:org})}>Task time &amp; monthly job-type results ↗</a></p><BusinessSnapshot key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={navigate}/></>}
+                    {section === "Snapshot" && ["owner","admin"].includes(role||"") && <><p><a className="button secondary" href={'/task-time?'+new URLSearchParams({organization:org})}>Task time &amp; monthly job-type results ↗</a></p><GrowthPlanner key={'growth:'+org}/><BusinessSnapshot key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={navigate}/></>}
                     {section === "Calendar" && ['owner','admin'].includes(role||'') && <>
                       <div className="calendar-inbox-link"><div><strong>New requests start in your inbox.</strong><span>Review proposed times here; schedule requests without a time from Requests.</span></div><button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/>Open requests</button></div><MonthCalendar key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest}/>
                     </>}
                     {section === 'Marketing'&&['owner','admin'].includes(role||'')&&<><CustomerServiceInsights key={'insights:'+org} organization={org} timezone={data.company.timezone} onCustomer={openCustomer}/><EmailTemplateLibrary key={'email-library:'+org} organization={org} name="" email="" marketing/><MarketingDrafts key={org} organization={org}/></>}
                     {section === "Learning" && ['owner','admin'].includes(role||'') && <OwnerLearningToolkit organization={org} onNetwork={openSupport}/>}
                     {section === "Settings" && ['owner','admin'].includes(role||'') && <>
-                      <CalendarConnections key={"calendar-"+org} organization={org}/><details><summary>Optional Google calendar export</summary><GoogleControls key={org} organization={org} timezone={data.company.timezone} view="settings"/></details>
+                      <CalendarConnections key={"calendar-"+org} organization={org}/><details id="google-setup" open={googleSetupOpen} onToggle={e=>setGoogleSetupOpen(e.currentTarget.open)}><summary>Google Calendar &amp; Gmail setup</summary><GoogleControls key={org} organization={org} timezone={data.company.timezone} view="settings"/></details>
                       <OwnerSecurity key={org} organization={org}/>
                     </>}
                     {section === "Settings" && ['owner','admin'].includes(role||'') && <MobileNotifications organization={org} timezone={data.company.timezone} onBusy={setInvoiceBusy}/>}

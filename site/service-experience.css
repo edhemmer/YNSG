@@ -23,3 +23,5 @@
 .service-explorer .home-service-card .service-arrow{margin-top:auto;padding-top:.9rem}
 .service-explorer .home-service-card .home-service-book{flex:none;min-height:56px;display:flex;align-items:center;justify-content:space-between}
 .service-explorer .home-service-card-cleanout .service-panel-image{object-fit:contain;background:#eef1e9}
+
+.seasonal-note{color:#315842;font-weight:600;max-width:72ch}.detail-list article>span.service-overview-visual{display:grid;align-content:start;gap:10px;min-width:0;padding-top:0}.service-overview-visual img{display:block;width:100%;height:auto;aspect-ratio:2.5;object-fit:cover;border-radius:10px}.service-overview-visual small{font-size:1rem;font-weight:650;color:#315842}.detail-list[data-seasonal-services] article{grid-template-columns:180px minmax(0,1fr);gap:28px}.detail-list[data-seasonal-services] article>div{min-width:0}@media(max-width:590px){.detail-list[data-seasonal-services] article{grid-template-columns:minmax(0,1fr);gap:16px}.detail-list article>span.service-overview-visual{width:150px;gap:6px}.service-overview-visual small{display:none}}
