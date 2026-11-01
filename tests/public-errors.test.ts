@@ -19,5 +19,5 @@ test('public website form filters injected diagnostics but retains reviewed vali
  const safe=runInNewContext(source+'\nrequestErrorMessage;') as (error:unknown)=>string;
  for(const message of ['SyntaxError: invalid JSON','UNAUTHORIZED_DATABASE','<html>proxy trace</html>','provider secret=synthetic'])assert.equal(safe({message}).includes(message),false);
  assert.equal(safe('Please check the required fields and try again.'),'Please check the required fields and try again.');
- assert.match(safe({message:'Failed to fetch'}),/could not confirm/);assert.match(safe(null),/770-630-2094/);
+ assert.match(safe({message:'Failed to fetch'}),/could not confirm/);assert.match(safe(null),/815-680-1775/);
 });
