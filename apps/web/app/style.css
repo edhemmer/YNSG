@@ -376,3 +376,15 @@ html[data-theme=dark] .request-dialog .detail-tabs button{color:#b3c2cd}html[dat
 .prepared-customer-reply-body textarea{min-height:150px;resize:vertical}
 .prepared-customer-reply-body button{min-height:44px;justify-self:start}
 .prepared-customer-reply-body [role=status]{overflow-wrap:anywhere}
+
+
+/* Mobile field triage: one active job, one visible next visit, optional admin detail. */
+.field-next-visit{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--paper)}
+.field-next-visit>div{display:grid;gap:4px;min-width:0}
+.field-next-visit strong{font-size:15px;color:var(--green)}
+.field-next-visit span{font-size:16px;line-height:1.45;overflow-wrap:anywhere}
+.field-next-visit>button{min-height:44px;flex:none;display:inline-flex;align-items:center;gap:8px}
+.field-admin-prep>summary{cursor:pointer;min-height:36px;display:flex;align-items:center;font-weight:700;line-height:1.45}
+.field-admin-prep>p{margin:8px 0 0;line-height:1.5}
+.field-admin-prep:focus-within{outline:2px solid var(--gold);outline-offset:2px}
+@media(max-width:600px){.field-next-visit{align-items:stretch;flex-direction:column}.field-next-visit>button{align-self:stretch;justify-content:space-between}}
