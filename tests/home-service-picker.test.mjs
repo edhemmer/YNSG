@@ -15,7 +15,7 @@ test('category cards expose actual jobs without assuming a task; selection is bo
 test('service detail cards reveal nested other-service group and keep job labels distinct',()=>{
  const detail=html.replace('class="service-request-panel"','class="service-request-panel" data-preferred-service="Lawn care"');
  const {dom,doc}=setup(detail);
- const card=[...doc.querySelectorAll('.home-service-book')].find(link=>link.getAttribute('href')?.includes('Yard%20%26%20garden'));
+ const card=[...doc.querySelectorAll('button.home-service-book')].find(button=>button.dataset.bookingHref?.includes('Yard%20%26%20garden'));
  assert.ok(card,'The yard card must exist');
  card.click();
  const other=doc.querySelector('.picker-other-services');
