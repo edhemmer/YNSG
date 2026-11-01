@@ -13,6 +13,8 @@ import {requestStage,requestTasks,requestTiming,visitState,type InboxData} from 
 import {navigationUrl} from '../lib/day-plan';
 import Icon from './crm-icons';
 import RequestReplyDraft from './request-reply-draft';
+import PreparedCustomerReply from './prepared-customer-reply';
+import {prepareCustomerFollowUp} from '../lib/field-agent-plan';
 import {YNSG_ORGANIZATION} from '../lib/decline-message';
 import {DeclineDecisionFields} from './decline-message-fields';
 import SchedulingReviewPanel from './scheduling-review-panel';
@@ -92,6 +94,7 @@ export default function RequestDetail({organization,requestId,timezone,canManage
  function close(){if(!busy&&!unknown&&canLeave())onClose();}
  function show(nextPanel:typeof panel){if(!busy&&!unknown&&canLeave())setPanel(nextPanel);}
  const next=request?ownerRequestNextStep(request,quotes,jobs,invoices):null;
+ const preparedReply=request&&canManage&&!confirmed&&openRequest?prepareCustomerFollowUp(request):null;
  async function cancelVisit(form:HTMLFormElement){
   if(!confirmed)return;
   const reason=String(new FormData(form).get('reason')||'').trim();
@@ -113,6 +116,7 @@ export default function RequestDetail({organization,requestId,timezone,canManage
       {canManage&&openRequest&&panel==='overview'&&<div className="decision-actions" aria-label="Next request action">
        {!confirmed?<><button type="button" disabled={locked} onClick={()=>void review(proposal?.id||null)}><Icon name="calendar"/>Confirm appointment</button><button type="button" className="danger-ghost" disabled={locked} onClick={()=>setPanel('decline')}>Decline request</button>{proposal&&<button type="button" className="secondary" disabled={locked} onClick={()=>setPanel('reschedule')}>Choose another time</button>}</>:<><button type="button" disabled={locked} onClick={()=>{if(canLeave())onWork(request.id);}}><Icon name={next?.action==='invoice'?'money':'work'}/>{next?.action==='invoice'?'Manage invoice & payment':next?.step===5?'Review work & prepare invoice':next?.step===3?(data.quotes.some(q=>q.status==='sent')?'Review & record approval':'Prepare work & price'):'Open work timer'}</button><button type="button" className="secondary" disabled={locked} onClick={()=>void review(proposal?.id||null)}>{proposal?'Review proposed replacement':'Reschedule appointment'}</button></>}
       </div>}
+      {panel==='overview'&&preparedReply&&submission.email&&<PreparedCustomerReply key={organization+':'+request.id+':'+request.revision} recipient={submission.email} draft={preparedReply} requestKey={organization+':'+request.id+':'+request.revision}/>}
       {canManage&&confirmed&&panel==='overview'&&!jobs.some(j=>['working','paused','completed'].includes(j.status))&&Date.parse(confirmed.end_at)>Date.now()&&<button type="button" className="danger-ghost" disabled={busy} onClick={()=>setPanel('cancel')}>Cancel this appointment</button>}
       {panel==='cancel'&&confirmed&&<form onSubmit={e=>{e.preventDefault();void cancelVisit(e.currentTarget);}} className="decision-form"><h4>Cancel the confirmed appointment</h4><p>This releases the time and stops its future reminders. The service request, agreed scope and financial history are kept. A cancellation email will be queued for the customer.</p><label>Reason for the customer<textarea name="reason" required minLength={2} maxLength={1000} placeholder="Briefly explain why this visit is canceled."/></label><div className="actions"><button className="danger-button" disabled={busy}>{busy?'Canceling…':'Confirm appointment cancellation'}</button><button type="button" className="secondary" disabled={busy} onClick={()=>show('overview')}>Keep the appointment</button></div></form>}
       {panel==='schedule'&&proposal&&<button type="button" className="secondary" disabled={locked} onClick={()=>show('reschedule')}>Choose another time</button>}{panel==='schedule'&&<SchedulingReviewPanel key={appointment||request.id} organization={organization} requestId={request.id} appointmentId={appointment===undefined?proposal?.id||null:appointment} initialExpanded initialStart={submission.preferredTime} onBusy={setBusy} completed={changed}/>}

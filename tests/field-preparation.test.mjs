@@ -43,3 +43,13 @@ test('field preparation identifies high-impact operational checks without author
  assert.equal(brief.hasConfirmedVisit,false);
  assert.equal(JSON.stringify(multi),before);
 });
+
+test('farm hand AI administration prepares the workday review without assuming machinery approval',()=>{
+ const farm={...request,original_submission:{...request.original_submission,services:[{service:'Farm hand services',task:'Fall harvest support'}]}};
+ const original=JSON.stringify(farm);
+ const brief=prepareFieldBrief(farm,[],[],[]);
+ assert.ok(brief.notes.some(note=>note.includes('requested dates and daily hours')));
+ assert.ok(brief.notes.some(note=>note.includes('do not assume machinery operation')));
+ assert.equal(brief.hasConfirmedVisit,false);
+ assert.equal(JSON.stringify(farm),original);
+});
