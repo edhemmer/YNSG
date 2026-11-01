@@ -1,3 +1,4 @@
+import {seasonalCategoryRank} from './seasonal-services.js';
 import {choicesFromUrl,readServiceSelection,saveServiceSelection,clearServiceSelection} from './service-selection.js';
 import {serviceCatalog} from './service-catalog.js';
 import {cityPostalPicker} from './city-postal-codes.js';
@@ -75,7 +76,7 @@ if(form){
     form.querySelector('#farm-day-note').hidden = ![...selected.values()].some(x=>x.service === 'Farm hand services');
   };
   const names={'Help around the home':'Home jobs','Lawn care':'Lawn care','Yard & garden':'Yard & garden','Snow clearing':'Snow clearing','Concrete pressure washing':'Concrete pressure washing','Farm hand services':'Farm hand services','Something else':'Something else'};
-  for(const [service,jobs] of Object.entries(tasks)){
+  for(const [service,jobs] of Object.entries(tasks).sort(([a],[b])=>seasonalCategoryRank(a)-seasonalCategoryRank(b))){
     const group=document.createElement('details');
     group.className='request-category';
     group.open=false;

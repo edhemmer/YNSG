@@ -1,4 +1,6 @@
 "use client";
+import {businessTimestamp} from '../lib/business-time';
+import {routesRecentlyVerified} from '../lib/maps-status';
 import {mailActivationBlocker} from "../lib/mail-activation";
 import { publicError } from "../lib/public-errors";
 import { googleMessages as messages } from "../lib/google-messages";
@@ -18,9 +20,11 @@ type Calendar = { id: string; summary: string; timeZone?: string };
 type CalendarCreation = { status: string; calendarId: string | null; summary: string };
 export default function GoogleControls({
   organization,
+  timezone='UTC',
   view = "email",
 }: {
   organization: string;
+  timezone?: string;
   view?: "calendar" | "email" | "settings";
 }) {
   const [connection, setConnection] = useState<Connection | null>(null),
@@ -207,8 +211,8 @@ export default function GoogleControls({
         </button>
       ) : (
         <>
-          <p><strong>{connection.health==='reconnect_required'?'Google reconnection required':'Google account connected'}</strong> · {connection.email}</p>
-          {connection.health!=='healthy'&&<div role="alert"><p><strong>Google Calendar needs attention ({connection.health}).</strong> Calendar syncing may be paused. If Google asks for authorization, reconnect from this screen. The last connection check did not confirm Google Calendar access. Keep using the CRM's saved schedule while this is resolved.</p><p>{['reconnect_required','google_client_configuration_required','permission_or_api_required'].includes(connection.health)?'Google authorization needs attention. Use Disconnect Google and Connect Google to authorize the same account again, then select your existing calendar.':'Use Check connection below. If the problem persists, review Google access and background synchronization before reconnecting.'}</p></div>}
+          <button type="button" disabled={busy||statusLoading||missing.length>0} onClick={()=>void act('connect')}>Reconnect Google</button><p><strong>{connection.health==='reconnect_required'?'Google reconnection required':'Google account connected'}</strong> · {connection.email}</p>
+          {connection.health!=='healthy'&&<div role="alert"><p><strong>Google Calendar needs attention ({connection.health}).</strong> Calendar syncing may be paused. If Google asks for authorization, reconnect from this screen. The last connection check did not confirm Google Calendar access. Keep using the CRM's saved schedule while this is resolved.</p><p>{['reconnect_required','google_client_configuration_required','permission_or_api_required'].includes(connection.health)?'Google authorization needs attention. Use Reconnect Google to authorize the same account again, then select your existing calendar.':'Use Check connection below. If the problem persists, review Google access and background synchronization before reconnecting.'}</p></div>}
           {view !== "email" && <>
             <p>Automatic calendar updates: <strong>{calendarSyncEnabled&&connection.calendarId?'enabled':'paused'}</strong>.</p>
             <p>{connection.calendarId ? "Business calendar: " + (calendars.find(c => c.id === connection.calendarId)?.summary || "Saved calendar") : "Choose an existing calendar or create a separate one for your business."}</p>
@@ -241,7 +245,7 @@ export default function GoogleControls({
               <p>Review changes made in Google before moving or confirming an appointment.</p>
             </details>
           </>}
-          {view==='settings'&&maps&&<section><h3>Maps & travel times</h3><p>{!maps.keyConfigured?'The Routes API key is not present in this deployment.':maps.connection?.status==='active'?'Google Routes verified. Day routes use scheduled departure times.':maps.connection?.status==='error'?'Google rejected the route check. Review API enablement, key restrictions, billing and quota.':'The Routes key is saved. The background worker is checking it.'}</p><p>Interactive route map: {maps.browserKeyConfigured?'website key configured — map checks access when opened':'website Maps key missing'}.</p>{maps.connection?.last_success_at&&<p>Last successful route check: {new Date(maps.connection.last_success_at).toLocaleString()}.</p>}</section>}
+
           {view !== "calendar" && <>
           <p>
             The test sends one message to the connected Google account, not to a
@@ -281,6 +285,7 @@ export default function GoogleControls({
           </details>
         </>
       )}
+          {view==='settings'&&maps&&<section><h3>Maps & travel times</h3><p>{!maps.keyConfigured?'The Routes API key is not present in this deployment.':routesRecentlyVerified(maps.connection?.status,maps.connection?.last_success_at)?'Google Routes recently verified. Day routes use scheduled departure times.':maps.connection?.status==='active'?'The last route check has expired. Open Settings and refresh Connections & automation before relying on travel estimates.':maps.connection?.status==='error'?'Google rejected the route check. Review API enablement, key restrictions, billing and quota.':'The Routes key is saved. The background worker is checking it.'}</p><p>Interactive route map: {maps.browserKeyConfigured?'website key configured — map checks access when opened':'website Maps key missing'}.</p>{maps.connection?.last_success_at&&<p>Last successful route check: {businessTimestamp(maps.connection.last_success_at,timezone)}.</p>}</section>}
       <button type="button" disabled={busy} onClick={() => void load()}>
         Refresh status
       </button>

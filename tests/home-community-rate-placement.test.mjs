@@ -32,5 +32,5 @@ test('homepage service cards open local landing pages rather than booking',()=>{
  for(const slug of slugs) assert.match(home,new RegExp('class="home-service" href="/'+slug+'/"'));
  assert.match(home,/class="home-service" href="\/leaf-cleanup-dekalb-il\/"/);
  assert.doesNotMatch(home,/class="home-service" href="\/request\//);
- assert.match(services,/<article id="something-else">/);
+ assert.match(services,/<article id="something-else"[^>]*>/);
 });

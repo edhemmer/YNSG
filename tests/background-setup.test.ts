@@ -53,7 +53,9 @@ test('Vault preparation requires a live owner in the deployment company, never a
   const h=(await health()).rows[0]!.health;
   assert.equal(h.workers.find(w=>w.kind==='mail')!.lastOutcome,'success');assert.equal(h.workers.find(w=>w.kind==='calendar')!.lastOutcome,'failed');
   assert.equal(h.workers.find(w=>w.kind==='calendar')!.lastSuccessfulAt,null);assert.deepEqual(h.queue,{needsReview:1,overdue:1,waiting:1});
-  assert.ok(!JSON.stringify(h).includes('w'.repeat(40))&&!JSON.stringify(h).includes('401'));
+  assert.ok(!JSON.stringify(h).includes('w'.repeat(40)));
+  // A timestamp may contain the digits 401; only non-time response values are checked for leaked HTTP status.
+  assert.ok(!JSON.stringify(h,(key,value)=>key.endsWith('At')?null:value).includes('401'));
   assert.equal((await db.query<{allowed:boolean}>("select has_function_privilege('authenticated','public.background_health(uuid,uuid,uuid)','execute') as allowed")).rows[0]!.allowed,false);
   await db.exec("set test.role='authenticated'");await assert.rejects(health());
   await db.exec("set test.role='service_role';update auth.sessions set not_after=now()-interval '1 minute'");await assert.rejects(health());

@@ -29,7 +29,7 @@ test('search service URLs resolve to visible public sections and breadcrumb refe
  const services=await readFile(new URL('../site/pages/services.html',import.meta.url),'utf8');
  for(const slug of ['','services','service-area']){
   const graph=JSON.parse(seo(slug,'Page','Description').schema)['@graph'];
-  const nodes=graph.filter(v=>v['@type']==='Service');assert.equal(nodes.length,6);
+  const nodes=graph.filter(v=>v['@type']==='Service');assert.equal(nodes.length,9);
   for(const service of nodes){
    const destination=new URL(service.url);
    assert.equal(destination.origin,'https://www.yourneighborhoodserviceguy.com');assert.equal(destination.pathname,'/services');

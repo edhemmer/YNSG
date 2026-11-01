@@ -13,13 +13,14 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const origin='http://127.0.0.1:'+server.address().port;
 const output=resolve(process.env.YNSG_WORKSPACE_OUTPUT||'/tmp/ynsg-workspace-navigation');mkdirSync(output,{recursive:true});
 const company2='20000000-0000-4000-8000-000000000002',errors=[],results=[];let browser;
-async function mount({role='owner',width=390,path='?section=Requests',theme='light',state='issued'}={}){
- const page=await browser.newPage({viewport:{width,height:844},reducedMotion:'reduce'}),fixture=ownerFixture(state),writes=[],reads=[],control={memberships:[{organization_id:organization,role},{organization_id:company2,role:'bookkeeper'}],sessionStatus:200,workspace:null,post:null};
+async function mount({role='owner',width=390,path='?section=Requests',theme='light',state='issued',google='healthy'}={}){
+ const page=await browser.newPage({viewport:{width,height:844},reducedMotion:'reduce'}),fixture=ownerFixture(state),writes=[],reads=[],control={memberships:[{organization_id:organization,role},{organization_id:company2,role:'bookkeeper'}],sessionStatus:200,workspace:null,post:null,messageError:false,messageMismatch:false,google};
  page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(theme=>document.addEventListener('DOMContentLoaded',()=>document.documentElement.dataset.theme=theme),theme);
  await page.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url());if(url.origin!==origin)throw Error('External request blocked');
   if(!url.pathname.startsWith('/api/'))return route.continue();
+  if(req.method()==='POST'&&url.pathname==='/api/privacy'&&req.postDataJSON().action==='read')return route.fulfill({status:503,json:{error:'Synthetic privacy read unavailable'}});
   if(req.method()==='POST'){writes.push({path:url.pathname,body:req.postData()});if(control.post)return control.post(route,req,url);return route.fulfill({status:503,json:{error:'Synthetic write unavailable'}});}
   reads.push(url.pathname+url.search);
   if(url.pathname==='/api/session')return route.fulfill({status:control.sessionStatus,json:control.sessionStatus===200?{email:'owner@example.invalid',memberships:control.memberships}:{error:'Sign in required'}});
@@ -30,6 +31,12 @@ async function mount({role='owner',width=390,path='?section=Requests',theme='lig
   }
   if(url.pathname==='/api/owner-day')return route.fulfill({json:{checkedAt:new Date().toISOString(),timezone:'America/Chicago',hasMore:false,calls:fixture.data.requests[0].appointments.filter(a=>a.status==='reserved').map(a=>({id:a.id,requestId:requestId,startAt:a.start_at,arrivalAt:a.arrival_at||a.start_at,endAt:a.end_at,name:fixture.data.requests[0].original_submission.name,address:'100 Synthetic Street, DeKalb',phone:'5550100999',tasks:['Furniture assembly']}))}});
   if(url.pathname==='/api/owner-work')return route.fulfill({json:{checkedAt:new Date().toISOString(),page:0,total:fixture.data.jobs.length,hasMore:false,items:fixture.data.jobs.filter(j=>['working','paused','completed'].includes(j.status)&&!fixture.data.invoices.some(i=>i.job_id===j.id)).map(j=>({job:j.id,request:requestId,name:fixture.data.requests[0].original_submission.name,address:'100 Synthetic Street, DeKalb',tasks:['Furniture assembly'],status:j.status}))}});
+  if(url.pathname==='/api/google')return route.fulfill({json:{missing:[],calendarSyncEnabled:control.google==='healthy',dispatcherEnabled:control.google==='healthy',delivery:null,maps:null,connection:{connected:control.google!=='disconnected',health:control.google,email:null,calendarId:'synthetic-calendar',canCreateCalendar:false,checkedAt:null,gmailTest:'not_tested'}}});
+  if(url.pathname==='/api/notification-attention'){
+   if(control.messageError)return route.fulfill({status:503,json:{error:'Synthetic message read unavailable'}});
+   const view=url.searchParams.get('view'),org=url.searchParams.get('organization');
+   return route.fulfill({json:{organization:control.messageMismatch?company2:org,view,page:Number(url.searchParams.get('page')),total:view==='recent'?2:0,hasMore:false,enabled:true,checkedAt:'2026-11-01T12:00:00Z',records:view==='recent'?['2026-11-01T06:30:00Z','2026-11-01T07:30:00Z'].map((created_at,i)=>({id:'20000000-0000-4000-8000-00000000000'+(i+3),kind:'appointment.confirmation',status:'accepted',object_id:requestId,request_id:requestId,created_at,next_attempt_at:created_at,lease_until:null,attempts:1})):[]}});
+  }
   if(url.pathname==='/api/request-inbox')return route.fulfill({json:fixture.data});
   return route.fulfill({status:503,json:{error:'Synthetic optional data unavailable'}});
  });
@@ -135,6 +142,22 @@ try{
    await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' pending address finder '+width+' '+theme);
    if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-request-finder.png',fullPage:true});
    await match.click();await heading(page,'Job');await page.getByRole('button',{name:'Confirm appointment',exact:true}).waitFor();assert.equal(writes.length,0);await page.close();
+  }
+  for(const width of [320,390,1366])for(const theme of ['light','dark']){
+   const {page,writes,control}=await mount({width,theme,path:'?section=Activity'});await heading(page,'Activity');const activity=page.getByRole('region',{name:'Notification attention'});
+   await activity.getByText('No messages need attention on this page.',{exact:true}).waitFor();await activity.getByRole('button',{name:'Recent messages',exact:true}).click();
+   await activity.getByText('Accepted by email service',{exact:true}).first().waitFor();assert.equal(await activity.locator('article').count(),2);assert.match(await activity.textContent(),/1:30 AM CDT/);assert.match(await activity.textContent(),/1:30 AM CST/);assert.equal(await activity.getByRole('button',{name:'Recent messages'}).getAttribute('aria-pressed'),'true');
+   await layout(page,engine+' message history '+width+' '+theme);await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' message history 200% '+width+' '+theme);await page.addStyleTag({content:'html{font-size:16px!important}'});
+   if(width===390)await page.screenshot({path:output+'/'+engine+'-message-history-'+theme+'.png',fullPage:true});
+   control.messageError=true;await activity.getByRole('button',{name:'Refresh messages'}).click();await activity.getByRole('alert').waitFor();assert.equal(await activity.locator('article').count(),0);
+   control.messageError=false;control.messageMismatch=true;await activity.getByRole('button',{name:'Refresh messages'}).click();await activity.getByRole('status').waitFor({state:'hidden'});await activity.getByRole('alert').waitFor();assert.equal(await activity.locator('article').count(),0);
+   control.messageMismatch=false;await activity.getByRole('button',{name:'Refresh messages'}).click();await activity.locator('article').first().waitFor();await activity.getByRole('button',{name:'Open service request',exact:true}).first().click();await heading(page,'Job');assert.equal(writes.length,0);await page.close();results.push(engine+' message history timezone, scoped validation, retry and job navigation '+width+' '+theme);
+  }
+  {
+   const {page,writes,control}=await mount({path:'?section=Dashboard',google:'disconnected'});const notice=page.getByRole('complementary',{name:'Google connection notice'});await notice.getByText('Reconnect Google',{exact:true}).waitFor();await notice.getByRole('button',{name:'Open Google setup'}).click();await heading(page,'Settings');await page.locator('#google-setup[open]').waitFor();await page.locator('#google-setup').getByRole('button',{name:'Connect Google',exact:true}).waitFor();assert.deepEqual(writes,[]);control.google='healthy';await notice.getByRole('button',{name:'Refresh Google status'}).click();await notice.waitFor({state:'hidden'});await page.close();results.push(engine+' persistent disconnected notice opens actual setup, reconnect control and healthy recovery without writes');
+  }
+  {
+   const {page,writes}=await mount({path:'?section=Snapshot'});const planner=page.locator('.growth-planner');await planner.locator(':scope>summary').click();assert.match(await planner.getByRole('definition').allTextContents().then(x=>x.join(' ')),/70/);await planner.locator('.growth-scale>summary').click();await planner.getByText('Scenario costs and capacity, not a forecast',{exact:true}).waitFor();assert.match(await planner.textContent(),/11 \/ 22/);await planner.getByLabel('Average completed job revenue ($)',{exact:true}).fill('0');await planner.getByRole('status').waitFor();assert.equal(await planner.locator('.growth-scale .growth-results').count(),0);await planner.getByRole('button',{name:'Reset example assumptions'}).click();await planner.locator('.growth-scale .growth-results').waitFor();await page.setViewportSize({width:320,height:844});await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' growth plan 320px 200% text');assert.equal(writes.length,0);await page.close();results.push(engine+' growth assumptions, invalid-input guard and paid crew capacity model');
   }
   await browser.close();browser=null;
  }

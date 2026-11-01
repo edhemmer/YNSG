@@ -12,7 +12,7 @@ test('next saved-state action appears before optional progress, preparation and 
  const timer=job.indexOf('<TaskTimer');
  const finance=job.indexOf('<InvoiceDraft');
  const supporting=job.indexOf('<details className="field-job-details">');
- assert.ok(action>0&&progress>action&&timer>progress&&finance>progress&&supporting>progress);
+ assert.ok(action>0&&progress>action&&timer>action&&timer<progress&&finance>action&&finance<progress&&supporting>progress);
  assert.ok(job.indexOf('workflow-customer-note')<action,'Original customer instructions remain available before the decision');
  assert.ok(job.indexOf('decision.unknown&&')<action,'Unknown outcomes must be visible before another decision');
  assert.ok(job.indexOf('A different appointment time was requested')<action,'A reschedule request is visible before new actions');

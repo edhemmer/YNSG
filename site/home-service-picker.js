@@ -1,3 +1,4 @@
+import {seasonalCategoryRank} from './seasonal-services.js';
 import {choicesFromUrl,readServiceSelection,saveServiceSelection} from './service-selection.js';
 import {serviceCatalog} from './service-catalog.js';
 /** Progressive enhancement: original links and category form work without this module. */
@@ -29,7 +30,7 @@ export function homeServicePicker(doc){
  function toggle(service,task){const id=key(service,task);if(selected.has(id))selected.delete(id);else if(selected.size<15)selected.set(id,{service,task});else{status.textContent='Choose up to 15 jobs. You can describe more on the next screen.';refreshChecks();return;}refresh();}
  function refreshChecks(){for(const [id,input] of checks)input.checked=selected.has(id);}
  const otherServices=doc.createElement('details'),otherTitle=doc.createElement('summary');otherServices.className='picker-other-services';otherTitle.textContent='Add other services';otherServices.append(otherTitle);
- const entries=Object.entries(serviceCatalog).sort(([a],[b])=>Number(b===panel.dataset.preferredService)-Number(a===panel.dataset.preferredService));
+ const entries=Object.entries(serviceCatalog).sort(([a],[b])=>Number(b===panel.dataset.preferredService)-Number(a===panel.dataset.preferredService)||seasonalCategoryRank(a)-seasonalCategoryRank(b));
  for(const [service,available] of entries){
   const tasks=[...available].sort((a,b)=>Number(b===panel.dataset.preferredTask)-Number(a===panel.dataset.preferredTask));
   const group=doc.createElement('details'),summary=doc.createElement('summary');summary.textContent=service==='Help around the home'?'Small home jobs':service;group.append(summary);groups.set(service,group);group.open=service===panel.dataset.preferredService;

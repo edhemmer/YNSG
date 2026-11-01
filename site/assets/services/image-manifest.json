@@ -177,6 +177,31 @@
           "sha256": "f889fda2d85d00e55680d7bad5791819baa35318fcf5c0fb17f20d2c725e0f9d"
         }
       ]
+    },
+    {
+      "id": "mulch-material",
+      "title": "Mulch pickup, delivery and spreading in DeKalb, Sycamore and Cortland",
+      "alt": "Wheelbarrow of finely shredded brown mulch beside a neatly mulched tree bed, illustrating mulch delivery and spreading.",
+      "creator": "Your Neighborhood Service Guy — HOME & YARD",
+      "rights": "© 2026 Your Neighborhood Service Guy. All rights reserved where applicable. AI-generated service illustration. Reuse requires permission; metadata does not establish exclusive rights in AI-generated content.",
+      "generated_artwork": true,
+      "shirt_branding_review": "No people or shirt branding; illustrative artwork",
+      "variants": [
+        {
+          "filename": "ynsg-mulch-material-v3-960.webp",
+          "width": 960,
+          "height": 384,
+          "size_bytes": 122030,
+          "sha256": "7a86b4cb2e985f79414eebfaed8d921506d7027da7d0007837f7e24f0eb81325"
+        },
+        {
+          "filename": "ynsg-mulch-material-v3-640.webp",
+          "width": 640,
+          "height": 256,
+          "size_bytes": 59520,
+          "sha256": "3f1f06e116c4071461aa8b94533127ebacadef8a0a28f3e778e38c4ebd15b4ac"
+        }
+      ]
     }
   ]
 }

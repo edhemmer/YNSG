@@ -43,3 +43,6 @@ test('field preparation identifies high-impact operational checks without author
  assert.equal(brief.hasConfirmedVisit,false);
  assert.equal(JSON.stringify(multi),before);
 });
+
+
+test('address review and agreement preparation have separate destinations',()=>{const confirmed={...request,original_submission:{...request.original_submission,street:''},appointments:[{status:'reserved'}]};const before=JSON.stringify(confirmed);const actions=prepareFieldBrief(confirmed,[],[],[]).preparedActions;assert.ok(actions.some(a=>a.action==='review'&&a.label.includes('address')));assert.ok(actions.some(a=>a.action==='agreement'&&a.label.includes('estimate')));assert.ok(actions.every(a=>a.ownerApproval));assert.equal(JSON.stringify(confirmed),before);});
