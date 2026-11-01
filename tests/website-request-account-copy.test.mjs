@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,readdirSync} from 'node:fs';
 const page=readFileSync(new URL('../site/pages/request.html',import.meta.url),'utf8');
 const css=readFileSync(new URL('../site/booking.css',import.meta.url),'utf8');
 test('service request clearly allows guest use and labels optional customer account',()=>{
@@ -34,4 +34,20 @@ test('public booking messaging and SEO snippets reflect review before approval',
  assert.match(home,/review the details before confirming an appointment/);
  assert.match(build,/confirm appointments after approval/);
  assert.doesNotMatch(build,/We will confirm scope, cost and timing/);
+});
+
+
+test('all published website pages and operational contact fallbacks use the current phone',()=>{
+ const pages=new URL('../site/pages/',import.meta.url);
+ const oldPhone=/770[-.\s]?630[-.\s]?2094|\+?1?7706302094/;
+ for(const file of readdirSync(pages).filter(name=>name.endsWith('.html'))){
+  const body=readFileSync(new URL(file,pages),'utf8');
+  assert.doesNotMatch(body,oldPhone, file+' still contains the retired phone');
+  for(const [,scheme,phone] of body.matchAll(/href="(tel|sms):([^"#?]+)"/g))
+   assert.equal(phone,'+18156801775',file+' has an incorrect '+scheme+' destination');
+ }
+ for(const file of ['../scripts/build.mjs','../site/main.js','../lib/website-availability.js','../lib/public-intake.js','../api/requests.js'])
+  assert.doesNotMatch(readFileSync(new URL(file,import.meta.url),'utf8'),oldPhone,file+' has retired contact details');
+ const hero=readFileSync(new URL('../site/pages/home.html',import.meta.url),'utf8');
+ assert.match(hero,/href="tel:\+18156801775">Press to call 815-680-1775<\/a>/);
 });
