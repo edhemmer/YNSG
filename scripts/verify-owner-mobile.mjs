@@ -73,6 +73,21 @@ try{
    assert.equal(await progress.getAttribute('open'),null,'Preparation is optional, not a second screen before the job action');
    const positions=await page.evaluate(()=>({action:document.querySelector('.field-task')?.getBoundingClientRect().top,progress:document.querySelector('.field-job-progress')?.getBoundingClientRect().top}));
    assert.ok(Number.isFinite(positions.action)&&Number.isFinite(positions.progress)&&positions.action<positions.progress,'Next job action comes before progress details');
+   if(state==='working'||state==='completed'){
+    const completion=page.locator('#field-invoice-draft'),timer=page.locator('.field-task-time');
+    assert.equal(await completion.count(),1,'Saved work form remains in the job workflow');
+    assert.equal(await timer.count(),1,'Task timing stays available');
+    assert.equal(await page.evaluate(()=>Boolean(document.querySelector('#field-invoice-draft')?.compareDocumentPosition(document.querySelector('.field-task-time'))&Node.DOCUMENT_POSITION_FOLLOWING)),true,'Work review precedes supporting task time');
+    if(state==='working'){
+     assert.equal(await completion.isVisible(),false,'While working, completion form stays hidden until requested');
+     await page.getByRole('button',{name:'Review & finish work',exact:true}).click();
+     await completion.waitFor({state:'visible'});
+     assert.equal(await completion.locator('details.mobile-work-record').getAttribute('open'),'','Work form expands directly');
+    }else{
+     assert.equal(await completion.isVisible(),true,'Saved completion opens invoice review');
+     assert.equal(await completion.locator('details.mobile-work-record').getAttribute('open'),'','Invoice review is immediately expanded');
+    }
+   }
    if(state==='new'){assert.equal(await page.getByRole('button',{name:/Start work timer|Save work|Approve and issue invoice|Record received payment/}).count(),0);await page.getByRole('button',{name:'Decline request',exact:true}).click();await page.locator('.decline-fields select').last().waitFor();}
     if(state==='retained'){assert.equal(await page.getByRole('button',{name:'Decline request',exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'Confirm appointment',exact:true}).count(),0);assert.match(await page.locator('[aria-label="Current field action"]').innerText(),/Review payments/);assert.equal(await page.getByRole('link',{name:'Review payments'}).count(),1);}
    if(['issued','paid'].includes(state)){for(const summary of await page.locator('.field-job details:not([open]) > summary').all())if(await summary.isVisible())await summary.click();await layout(page,engine+' expanded workflow '+width+' '+state);}

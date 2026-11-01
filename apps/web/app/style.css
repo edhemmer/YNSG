@@ -357,3 +357,13 @@ html[data-theme=dark] .request-dialog .detail-tabs button{color:#b3c2cd}html[dat
 .field-job-progress .field-auto-preparation{margin:.55rem 0}
 .field-job .field-task :focus-visible,.field-job-progress>summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 @media(max-width:600px){.field-job .field-task{padding:.85rem}.field-job .field-task .field-command-actions>*{flex:1 1 100%;min-height:52px}.field-job-progress{padding:.2rem .7rem}}
+
+
+/* Owner work-to-invoice handoff: reviewed charges precede secondary task-time detail. */
+.field-job .field-work-record{scroll-margin-top:5.5rem;min-width:0}
+.field-job .field-work-record:focus{outline:none}
+.field-job .field-work-record:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.field-job .field-work-record>.mobile-work-record{margin:0;min-width:0}
+.field-job .field-work-record>.mobile-work-record>summary{font-size:1.08rem;line-height:1.4}
+.field-job .field-task-time{border-top:1px solid var(--line);padding-top:.7rem;min-width:0}
+@media(max-width:600px){.field-job .field-work-record{scroll-margin-top:4rem}.field-job .field-work-record>.mobile-work-record>summary{font-size:1rem}}
