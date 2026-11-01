@@ -53,15 +53,16 @@ for(const key of ['window','document','HTMLElement'])globalThis[key]=dom.window[
 const {createRoot}=require('react-dom/client'),tick=()=>new Promise(r=>setImmediate(r));
 async function mount(fetcher){globalThis.fetch=fetcher;const root=createRoot(document.querySelector('#root'));let opened,navigated;const render=async(organization=org)=>act(async()=>{root.render(React.createElement(Desk,{organization,timezone:'America/Chicago',revision:1,onOpen:id=>{opened=id;},onNavigate:section=>{navigated=section;}}));await tick();await tick();});await render();return {render,opened:()=>opened,navigated:()=>navigated,close:()=>act(async()=>root.unmount())};}
 const work={checkedAt:'2030-10-21T12:00:00Z',page:0,total:1,hasMore:false,items:[{job:job.id,request:request.id,name:request.original_submission.name,address:'100 Synthetic Street',tasks:['Agreed furniture assembly'],status:'working'}]};
+const agent={checkedAt:'2030-10-21T12:00:00Z',tasks:[],hasMore:false};
 const day={checkedAt:'2030-10-21T12:00:00Z',timezone:'America/Chicago',hasMore:false,calls:[{id:visit.id,requestId:request.id,startAt:visit.start_at,arrivalAt:visit.start_at,endAt:visit.end_at,name:request.original_submission.name,address:'100 Synthetic Street',phone:'5550100999',tasks:['Agreed furniture assembly']}]};
 test('field desk deduplicates active work, scheduled visit and request; opens exactly that job without writes or business snapshot',async()=>{
- const reads=[];const h=await mount(async(path,init)=>{assert.equal(init.method,undefined);reads.push(path);return Response.json(path.startsWith('/api/owner-day')?day:path.startsWith('/api/owner-work')?work:{total:1,hasMore:false,requests:[scheduled]});});
- try{const node=document.querySelector('#root');assert.equal(node.querySelectorAll('h2').length,2);assert.equal(node.textContent.split(request.original_submission.name).length-1,2);assert.equal(node.querySelectorAll('[aria-label="Requests awaiting a decision"] .field-queue-row').length,1);assert.doesNotMatch(node.textContent,/Marketing|Your next move|Business overview|Ready for your next stop/);assert.equal(reads.length,3);assert.ok(reads.every(p=>!p.includes('business-snapshot')));await act(async()=>[...node.querySelectorAll('button')].find(b=>b.textContent.startsWith('Continue job')).click());assert.equal(h.opened(),request.id);}finally{await h.close();}
+ const reads=[];const h=await mount(async(path,init)=>{assert.equal(init.method,undefined);reads.push(path);return Response.json(path.startsWith('/api/owner-day')?day:path.startsWith('/api/field-agent')?agent:path.startsWith('/api/owner-work')?work:{total:1,hasMore:false,requests:[scheduled]});});
+ try{const node=document.querySelector('#root');assert.equal(node.querySelectorAll('h2').length,2);assert.equal(node.textContent.split(request.original_submission.name).length-1,2);assert.equal(node.querySelectorAll('[aria-label="Requests awaiting a decision"] .field-queue-row').length,1);assert.doesNotMatch(node.textContent,/Marketing|Your next move|Business overview|Ready for your next stop/);assert.equal(reads.length,4);assert.ok(reads.every(p=>!p.includes('business-snapshot')));await act(async()=>[...node.querySelectorAll('button')].find(b=>b.textContent.startsWith('Continue job')).click());assert.equal(h.opened(),request.id);}finally{await h.close();}
 });
 test('two separate jobs for one request remain independently visible in Today',async()=>{
  const other={...work.items[0],job:id(33),status:'completed'};
  const both={...work,total:2,items:[...work.items,other]};
- const h=await mount(async path=>Response.json(path.startsWith('/api/owner-day')?{...day,calls:[]}:path.startsWith('/api/owner-work')?both:{total:0,hasMore:false,requests:[]}));
+ const h=await mount(async path=>Response.json(path.startsWith('/api/owner-day')?{...day,calls:[]}:path.startsWith('/api/field-agent')?agent:path.startsWith('/api/owner-work')?both:{total:0,hasMore:false,requests:[]}));
  try{
   const node=document.querySelector('#root');
   assert.equal(node.querySelectorAll('[aria-label="Current job"]').length,1);
@@ -72,11 +73,11 @@ test('two separate jobs for one request remain independently visible in Today',a
  }finally{await h.close();}
 });
 test('partial queue failure keeps independently verified work, identifies missing appointments and exposes retry',async()=>{
- const h=await mount(async path=>path.startsWith('/api/owner-day')?new Response('{}',{status:503}):Response.json(path.startsWith('/api/owner-work')?work:{total:0,hasMore:false,requests:[]}));try{const node=document.querySelector('#root');assert.match(node.textContent,/Appointments could not refresh/);assert.match(node.textContent,/Synthetic field customer/);assert.ok([...node.querySelectorAll('button')].some(b=>b.textContent==='Retry queue'));}finally{await h.close();}
+ const h=await mount(async path=>path.startsWith('/api/owner-day')?new Response('{}',{status:503}):Response.json(path.startsWith('/api/field-agent')?agent:path.startsWith('/api/owner-work')?work:{total:0,hasMore:false,requests:[]}));try{const node=document.querySelector('#root');assert.match(node.textContent,/Appointments could not refresh/);assert.match(node.textContent,/Synthetic field customer/);assert.ok([...node.querySelectorAll('button')].some(b=>b.textContent==='Retry queue'));}finally{await h.close();}
 });
 
 test('queue finder opens the matched job, clears back to next action and never makes search requests',async()=>{
- const reads=[];const h=await mount(async path=>{reads.push(path);return Response.json(path.startsWith('/api/owner-day')?day:path.startsWith('/api/owner-work')?work:{total:0,hasMore:false,requests:[]});});
+ const reads=[];const h=await mount(async path=>{reads.push(path);return Response.json(path.startsWith('/api/owner-day')?day:path.startsWith('/api/field-agent')?agent:path.startsWith('/api/owner-work')?work:{total:0,hasMore:false,requests:[]});});
  const enter=async value=>act(async()=>{const input=document.querySelector('#field-search');Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(input,value);input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));});
  try{
   await enter('synthetic');
@@ -88,29 +89,29 @@ test('queue finder opens the matched job, clears back to next action and never m
   await act(async()=>[...document.querySelectorAll('button')].find(b=>b.textContent==='Clear').click());
   assert.ok(document.querySelector('[aria-label="Current job"]'));
   await enter('synthetic');
-  assert.equal(reads.length,3);
+  assert.equal(reads.length,4);
   await h.render(id(9));
   assert.equal(document.querySelector('#field-search')?.value||'','');
  }finally{await h.close();}
 });
 test('organization changes and late queue replies never restore the previous company',async()=>{
- const pending=[];const h=await mount((path)=>new Promise(resolve=>pending.push({path,resolve})));try{await h.render(id(9));await act(async()=>{for(const p of pending.filter(p=>new URL(p.path,'https://example.invalid').searchParams.get('organization')===id(9)))p.resolve(Response.json(p.path.startsWith('/api/owner-day')?{...day,calls:[]}:p.path.startsWith('/api/owner-work')?{...work,items:[],total:0}:{requests:[],total:0,hasMore:false}));await tick();});await act(async()=>{for(const p of pending.filter(p=>new URL(p.path,'https://example.invalid').searchParams.get('organization')===org))p.resolve(Response.json(p.path.startsWith('/api/owner-day')?day:p.path.startsWith('/api/owner-work')?work:{requests:[request],total:1,hasMore:false}));await tick();});assert.doesNotMatch(document.querySelector('#root').textContent,/Synthetic field customer/);}finally{await h.close();}
+ const pending=[];const h=await mount((path)=>new Promise(resolve=>pending.push({path,resolve})));try{await h.render(id(9));await act(async()=>{for(const p of pending.filter(p=>new URL(p.path,'https://example.invalid').searchParams.get('organization')===id(9)))p.resolve(Response.json(p.path.startsWith('/api/owner-day')?{...day,calls:[]}:p.path.startsWith('/api/field-agent')?agent:path.startsWith('/api/owner-work')?{...work,items:[],total:0}:{requests:[],total:0,hasMore:false}));await tick();});await act(async()=>{for(const p of pending.filter(p=>new URL(p.path,'https://example.invalid').searchParams.get('organization')===org))p.resolve(Response.json(p.path.startsWith('/api/owner-day')?day:p.path.startsWith('/api/field-agent')?agent:path.startsWith('/api/owner-work')?work:{requests:[request],total:1,hasMore:false}));await tick();});assert.doesNotMatch(document.querySelector('#root').textContent,/Synthetic field customer/);}finally{await h.close();}
 });
 
 test('a denied queue read clears all private sources rather than retaining an earlier successful response',async()=>{
- const h=await mount(async path=>path.startsWith('/api/owner-day')?new Response('{}',{status:403}):Response.json(path.startsWith('/api/owner-work')?work:{total:1,hasMore:false,requests:[request]}));try{const node=document.querySelector('#root');assert.match(node.textContent,/Company access could not be verified/);assert.doesNotMatch(node.textContent,/Synthetic field customer|Agreed furniture assembly|100 Synthetic Street/);assert.equal(node.querySelectorAll('.field-current,.field-queue-row').length,0);}finally{await h.close();}
+ const h=await mount(async path=>path.startsWith('/api/owner-day')?new Response('{}',{status:403}):Response.json(path.startsWith('/api/field-agent')?agent:path.startsWith('/api/owner-work')?work:{total:1,hasMore:false,requests:[request]}));try{const node=document.querySelector('#root');assert.match(node.textContent,/Company access could not be verified/);assert.doesNotMatch(node.textContent,/Synthetic field customer|Agreed furniture assembly|100 Synthetic Street/);assert.equal(node.querySelectorAll('.field-current,.field-queue-row').length,0);}finally{await h.close();}
 });
 test('permission loss hides an already visible queue before slower sibling reads finish',async()=>{
  let denied=false;const pending=[];
- const h=await mount(async path=>{if(denied){if(path.startsWith('/api/owner-day'))return new Response('{}',{status:403});return new Promise(resolve=>pending.push({path,resolve}));}return Response.json(path.startsWith('/api/owner-day')?day:path.startsWith('/api/owner-work')?work:{requests:[],total:0,hasMore:false});});
- try{assert.match(document.querySelector('#root').textContent,/Synthetic field customer/);denied=true;Object.defineProperty(document,'visibilityState',{value:'visible',configurable:true});await act(async()=>{document.dispatchEvent(new dom.window.Event('visibilitychange'));await tick();await tick();});assert.equal(pending.length,2);assert.match(document.querySelector('#root').textContent,/Company access could not be verified/);assert.doesNotMatch(document.querySelector('#root').textContent,/Synthetic field customer/);}finally{await h.close();for(const p of pending)p.resolve(Response.json(p.path.startsWith('/api/owner-work')?work:{requests:[],total:0,hasMore:false}));}
+ const h=await mount(async path=>{if(denied){if(path.startsWith('/api/owner-day'))return new Response('{}',{status:403});return new Promise(resolve=>pending.push({path,resolve}));}return Response.json(path.startsWith('/api/owner-day')?day:path.startsWith('/api/field-agent')?agent:path.startsWith('/api/owner-work')?work:{requests:[],total:0,hasMore:false});});
+ try{assert.match(document.querySelector('#root').textContent,/Synthetic field customer/);denied=true;Object.defineProperty(document,'visibilityState',{value:'visible',configurable:true});await act(async()=>{document.dispatchEvent(new dom.window.Event('visibilitychange'));await tick();await tick();});assert.equal(pending.length,3);assert.match(document.querySelector('#root').textContent,/Company access could not be verified/);assert.doesNotMatch(document.querySelector('#root').textContent,/Synthetic field customer/);}finally{await h.close();for(const p of pending)p.resolve(Response.json(p.path.startsWith('/api/field-agent')?agent:path.startsWith('/api/owner-work')?work:{requests:[],total:0,hasMore:false}));}
 });
 
  test('pending request finder retains address and status and opens the matching request without new reads',async()=>{
  const reads=[];const pending={...request,status:'reviewing',appointments:[],original_submission:{...request.original_submission,street:'204 Maple Avenue',city:'Sycamore'}};
- const h=await mount(async path=>{reads.push(path);return Response.json(path.startsWith('/api/owner-day')?{...day,calls:[]}:path.startsWith('/api/owner-work')?{...work,items:[],total:0}:{total:1,hasMore:false,requests:[pending]});});
+ const h=await mount(async path=>{reads.push(path);return Response.json(path.startsWith('/api/owner-day')?{...day,calls:[]}:path.startsWith('/api/field-agent')?agent:path.startsWith('/api/owner-work')?{...work,items:[],total:0}:{total:1,hasMore:false,requests:[pending]});});
  try{await act(async()=>{const input=document.querySelector('#field-search');Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(input,'maple sycamore reviewing');input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));});
- const row=document.querySelector('[aria-label="Matching work"] .field-queue-row');assert.ok(row);assert.match(row.textContent,/204 Maple Avenue · Sycamore/);await act(async()=>row.click());assert.equal(h.opened(),pending.id);assert.equal(reads.length,3);
+ const row=document.querySelector('[aria-label="Matching work"] .field-queue-row');assert.ok(row);assert.match(row.textContent,/204 Maple Avenue · Sycamore/);await act(async()=>row.click());assert.equal(h.opened(),pending.id);assert.equal(reads.length,4);
  }finally{await h.close();}
  });
 
