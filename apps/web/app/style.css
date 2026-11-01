@@ -357,3 +357,10 @@ html[data-theme=dark] .request-dialog .detail-tabs button{color:#b3c2cd}html[dat
 .field-job-progress .field-auto-preparation{margin:.55rem 0}
 .field-job .field-task :focus-visible,.field-job-progress>summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 @media(max-width:600px){.field-job .field-task{padding:.85rem}.field-job .field-task .field-command-actions>*{flex:1 1 100%;min-height:52px}.field-job-progress{padding:.2rem .7rem}}
+
+
+/* Prepared field administration stays inside existing request decisions, not a second dashboard. */
+.field-admin-prep{display:block;margin:8px 0 0;padding:10px 12px;border-left:3px solid #315842;border-radius:0 8px 8px 0;background:#f0f4ed;color:#213848;font-size:clamp(16px,.9rem,18px);line-height:1.5;overflow-wrap:anywhere;white-space:normal}
+.field-admin-prep strong{display:inline;font-size:inherit}
+.field-queue-row small.field-admin-prep{font-size:16px;line-height:1.5}
+@media(max-width:600px){.field-admin-prep{padding:10px;line-height:1.45}}
