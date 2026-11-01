@@ -63,7 +63,7 @@ if(form&&picker){
    await release(key);
    const previous=held;clearTimeout(expiryTimer);held=null;selectedStart='';updateSelection();
    if(previous)await release(previous.key,previous.token);
-   status.textContent=error.status===409?'That time is no longer available. Press “Refresh times” or “Arrange a time with me instead.”':error.status===429?'Please wait a moment before checking another time, or call 770-630-2094.':'We couldn’t hold that time. Press “Refresh times” or “Arrange a time with me instead.”';
+   status.textContent=error.status===409?'That time is no longer available. Press “Refresh times” or “Arrange a time with me instead.”':error.status===429?'Please wait a moment before checking another time, or call 815-680-1775.':'We couldn’t hold that time. Press “Refresh times” or “Arrange a time with me instead.”';
   }finally{
    for(const {element,disabled} of controls)element.disabled=disabled;
    holding=false;form.dataset.appointmentHolding='false';picker.setAttribute('aria-busy','false');showTimes();updateSelection();
@@ -125,7 +125,7 @@ if(form&&picker){
    const days=[...new Set(times.map(t=>localDay(Date.parse(t.start))))].sort();
    selectedDate=days.includes(preserveDate)?preserveDate:(days[0]||'');if(selectedDate)month=selectedDate.slice(0,7);
    drawQuickDates();showTimes();updateSelection();
-   status.textContent=times.length?`Choose an open time below.`:'No open times are showing in the next 30 days. Press “Arrange a time with me instead,” or call 770-630-2094.';draw();
+   status.textContent=times.length?`Choose an open time below.`:'No open times are showing in the next 30 days. Press “Arrange a time with me instead,” or call 815-680-1775.';draw();
   }catch{if(current===generation){status.dataset.state='error';status.textContent='Times couldn’t load. Try “Refresh times” or “Arrange a time with me instead.”';}}
   finally{clearTimeout(timeout);if(current===generation){refresh.disabled=false;picker.setAttribute('aria-busy','false');}}
  }

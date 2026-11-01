@@ -50,9 +50,9 @@ export default async function handler(req,res){
     }catch(error){
       const known=error instanceof IntakeFailure;
       console.error('CRM intake unavailable',{code:known?error.code:'UNAVAILABLE'});
-      return fail(res,known?error.status:503,known?error.message:'The form is temporarily unavailable. Please call or text 770-630-2094.');
+      return fail(res,known?error.status:503,known?error.message:'The form is temporarily unavailable. Please call or text 815-680-1775.');
     }
   }
   try{return res.status(200).json(await websiteRequest(req,{...data,services:normalized},id,process.env,fetch,heldSelection));}
-  catch(error){return fail(res,error.status||503,error.message||'We couldn’t save your request. Please try again, or call 770-630-2094.');}
+  catch(error){return fail(res,error.status||503,error.message||'We couldn’t save your request. Please try again, or call 815-680-1775.');}
 }

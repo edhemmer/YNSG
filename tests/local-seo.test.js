@@ -25,7 +25,7 @@ test('Local business identity and geography are consistent across indexable page
     assert.ok(business);
     assert.deepEqual(business['@type'], ['LocalBusiness', 'HomeAndConstructionBusiness']);
     assert.equal(business.url, WEBSITE_ORIGIN + '/');
-    assert.equal(business.telephone, '+1-770-630-2094');
+    assert.equal(business.telephone, '+1-815-680-1775');
     assert.deepEqual(business.areaServed.map(place => place.name), [
       'DeKalb, Illinois', 'Sycamore, Illinois', 'Cortland, Illinois'
     ]);
