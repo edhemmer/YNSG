@@ -364,3 +364,15 @@ html[data-theme=dark] .request-dialog .detail-tabs button{color:#b3c2cd}html[dat
 .field-admin-prep strong{display:inline;font-size:inherit}
 .field-queue-row small.field-admin-prep{font-size:16px;line-height:1.5}
 @media(max-width:600px){.field-admin-prep{padding:10px;line-height:1.45}}
+
+
+/* Owner-reviewed customer replies stay secondary to the saved request decision. */
+.prepared-customer-reply{margin:12px 0;border:1px solid var(--line);border-radius:12px;padding:0 14px;background:var(--paper)}
+.prepared-customer-reply>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:10px 0;cursor:pointer;font-weight:700}
+.prepared-customer-reply>summary span{font-size:14px;font-weight:500;color:var(--green)}
+.prepared-customer-reply-body{border-top:1px solid var(--line);padding:14px 0;display:grid;gap:12px;min-width:0}
+.prepared-customer-reply-body label{display:grid;gap:6px;font-size:16px;font-weight:650}
+.prepared-customer-reply-body input,.prepared-customer-reply-body textarea{min-height:46px;max-width:100%;width:100%;box-sizing:border-box;font:inherit;line-height:1.5;padding:10px 12px;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:white}
+.prepared-customer-reply-body textarea{min-height:150px;resize:vertical}
+.prepared-customer-reply-body button{min-height:44px;justify-self:start}
+.prepared-customer-reply-body [role=status]{overflow-wrap:anywhere}
