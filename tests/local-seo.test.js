@@ -39,7 +39,7 @@ test('Local business identity and geography are consistent across indexable page
 test('Service schema follows approved service restrictions and has distinct identifiers', () => {
   const graph = JSON.parse(seo('services', 'Services', 'Home services').schema)['@graph'];
   const services = graph.filter(node => node['@type'] === 'Service');
-  assert.equal(services.length, 6);
+  assert.equal(services.length, 9);
   assert.equal(new Set(services.map(service => service['@id'])).size, services.length);
   for (const service of services) {
     assert.equal(service.provider['@id'], WEBSITE_ORIGIN + '/#business');

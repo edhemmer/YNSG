@@ -1,6 +1,6 @@
+'use client';
 import GrowthPlanner from './growth-planner';
 import GoogleConnectionNotice from './google-connection-notice';
-'use client';
 import type {CompanionContext} from '../lib/job-companion';
 import dynamic from 'next/dynamic';
 import DeferredTool from './deferred-tool';

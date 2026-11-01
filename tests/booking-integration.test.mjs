@@ -1,3 +1,4 @@
+import {seasonalCategoryRank} from '../site/seasonal-services.js';
 import {choicesFromUrl,readServiceSelection,saveServiceSelection,clearServiceSelection} from '../site/service-selection.js';
 import {serviceCatalog} from '../site/service-catalog.js';
 import test from 'node:test';
@@ -16,9 +17,9 @@ function harness(outcomes=[],query='',saved=null,pickerJobs=[]){
  const dom=new JSDOM(html,{url:'https://example.invalid/request'+query}),w=dom.window,form=w.document.querySelector('form'),bodies=[];
  if(pickerJobs.length)saveServiceSelection(w.sessionStorage,pickerJobs);
  if(saved){const recovery=requestRecovery(w.sessionStorage);assert.equal(saved.kind==='pending'?recovery.savePending(saved.data):recovery.saveDraft(saved.data),true);}
- runInNewContext(source,{document:w.document,window:w,location:w.location,sessionStorage:w.sessionStorage,FormData:w.FormData,CustomEvent:w.CustomEvent,Event:w.Event,URLSearchParams,crypto:webcrypto,choicesFromUrl,readServiceSelection,saveServiceSelection,clearServiceSelection,serviceCatalog,cityPostalPicker,addressCheck,bookingJourney,requestRecovery,matchMedia:()=>({matches:true}),deliverRequest:async data=>{bodies.push(JSON.stringify(data));const result=outcomes.shift();if(result instanceof Error)throw result;return {id:'11111111-1111-4111-8111-111111111111'};}});
+ runInNewContext(source,{document:w.document,window:w,location:w.location,sessionStorage:w.sessionStorage,FormData:w.FormData,CustomEvent:w.CustomEvent,Event:w.Event,URLSearchParams,crypto:webcrypto,seasonalCategoryRank,choicesFromUrl,readServiceSelection,saveServiceSelection,clearServiceSelection,serviceCatalog,cityPostalPicker,addressCheck,bookingJourney,requestRecovery,matchMedia:()=>({matches:true}),deliverRequest:async data=>{bodies.push(JSON.stringify(data));const result=outcomes.shift();if(result instanceof Error)throw result;return {id:'11111111-1111-4111-8111-111111111111'};}});
  const click=s=>form.querySelector(s).click(),stage=()=>Number(form.querySelector('[data-stage]:not([hidden])').dataset.stage);
- return {dom,w,form,bodies,click,stage,choose:()=>click('.service-option input'),details:()=>{for(const [id,value] of Object.entries({name:'Synthetic customer',phone:'5550100999',email:'synthetic@example.invalid',street:'100 Synthetic Street',city:'DeKalb',postalCode:'60115'})){form.querySelector('#'+id).value=value;if(id==='city')form.querySelector('#city').dispatchEvent(new w.Event('change',{bubbles:true}));}},submit:async()=>{form.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await new Promise(resolve=>setImmediate(resolve));}};
+ return {dom,w,form,bodies,click,stage,choose:(task='Furniture assembly')=>[...form.querySelectorAll('.service-option')].find(label=>label.textContent.trim()===task).querySelector('input').click(),details:()=>{for(const [id,value] of Object.entries({name:'Synthetic customer',phone:'5550100999',email:'synthetic@example.invalid',street:'100 Synthetic Street',city:'DeKalb',postalCode:'60115'})){form.querySelector('#'+id).value=value;if(id==='city')form.querySelector('#city').dispatchEvent(new w.Event('change',{bubbles:true}));}},submit:async()=>{form.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await new Promise(resolve=>setImmediate(resolve));}};
 }
 test('real service selection and guide preserve an identical request through uncertain delivery and retry',async()=>{
  const h=harness([Error('timeout'),true]);h.choose();h.click('#booking-services-next');assert.equal(h.stage(),2);
@@ -39,7 +40,7 @@ test('Something else requires a meaningful note before time selection, and job s
 });
 
 test('combined booking review names each selected job from the shared catalog before one submission',async()=>{
- const h=harness([true]);const choices=h.form.querySelectorAll('.request-category');choices[0].querySelector('input').click();choices[1].querySelector('input').click();h.click('#booking-skip-time');
+ const h=harness([true]);h.choose('Furniture assembly');h.choose('Mowing');h.click('#booking-skip-time');
  const review=h.form.querySelector('#booking-summary');assert.equal(review.querySelectorAll('li').length,2);assert.match(review.textContent,/Help around the home: Furniture assembly/);assert.match(review.textContent,/Lawn care: Mowing/);assert.match(review.textContent,/One combined request/);h.details();await h.submit();assert.equal(h.bodies.length,1);const body=JSON.parse(h.bodies[0]);assert.equal(body.services.length,2);for(const item of body.services)assert.ok(serviceCatalog[item.service].includes(item.task));h.dom.window.close();
 });
 
