@@ -66,10 +66,10 @@ test('customer draft honors legacy requests and confirmed appointments without i
  assert.equal(prepareCustomerFollowUp({...base,status:'canceled'}),null);
 });
 test('customer draft bounds untrusted names and job descriptions to one editable paragraph',()=>{
- const suspicious={...base,original_submission:{...base.original_submission,name:'Pat\\nBcc: sample@example.invalid',services:[{service:'Yard',task:'Mulch\\nCC: sample@example.invalid '+ 'x'.repeat(500)}]}};
+ const suspicious={...base,original_submission:{...base.original_submission,name:'Pat\nBcc: sample@example.invalid',services:[{service:'Yard',task:'Mulch\nCC: sample@example.invalid '+ 'x'.repeat(500)}]}};
  const draft=prepareCustomerFollowUp(suspicious);
  assert.ok(draft);
  assert.ok(draft.body.length<600);
- assert.doesNotMatch(draft.body,/\\nBcc:|\\nCC:/);
+ assert.doesNotMatch(draft.body,/\nBcc:|\nCC:/);
  assert.match(draft.body,/not confirmed until/);
 });
