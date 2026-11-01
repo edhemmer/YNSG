@@ -218,3 +218,16 @@ test('Next visit still opens safely when phone and address cannot produce contac
   assert.equal(h.opened(),id(92));
  }finally{await h.close();}
 });
+
+
+test('Today warns when AI admin review is incomplete but preserves canonical job access',async()=>{
+ const partial={...agent,scanIncomplete:true};
+ const h=await mount(async path=>Response.json(path.startsWith('/api/field-agent')?partial:path.startsWith('/api/owner-day')?day:path.startsWith('/api/owner-work')?work:{total:0,hasMore:false,requests:[]}));
+ try{
+  const screen=document.querySelector('#root');
+  assert.match(screen.textContent,/Prepared admin checks cover only part of the saved queue/);
+  assert.ok(screen.querySelector('[aria-label="Current job"]'));
+  await act(async()=>screen.querySelector('[aria-label="Current job"] button').click());
+  assert.equal(h.opened(),request.id);
+ }finally{await h.close();}
+});
