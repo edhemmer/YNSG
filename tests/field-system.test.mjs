@@ -29,7 +29,7 @@ test('saved appointment and exact accepted job agreement gate Start work',()=>{
  const tooShort={...scheduled,appointments:[{...visit,end_at:'2030-10-21T15:00:00Z'}]};assert.equal(fieldWorkflow(tooShort,[quote],[job],[]).kind,'confirm');assert.deepEqual(actions(html(tooShort,[quote],[job],[])),['Confirm appointment']);
 });
 test('working and paused jobs have one timer control and a direct finish action',()=>{
- for(const [status,label] of [['working','Pause timer'],['paused','Resume timer']]){const d=html(scheduled,[quote],[{...job,status}],[]);assert.deepEqual(actions(d),[label,'Finish work']);assert.equal(d.querySelector('.field-work-record').hidden,true);assert.equal(d.querySelector('[aria-label="Available service steps"]'),null);assert.equal(d.querySelectorAll('.field-job-service').length,1);}
+ for(const [status,label] of [['working','Pause timer'],['paused','Resume timer']]){const d=html(scheduled,[quote],[{...job,status}],[]);assert.deepEqual(actions(d),[label,'Review & finish work']);assert.equal(d.querySelector('.field-work-record').hidden,true);assert.equal(d.querySelector('[aria-label="Available service steps"]'),null);assert.equal(d.querySelectorAll('.field-job-service').length,1);}
 });
 test('completed work opens invoice review; issued partial and settled invoices expose receipts without work editor',()=>{
  const completed={...job,status:'completed'};let d=html(scheduled,[quote],[completed],[]);assert.equal(d.querySelector('.mobile-work-record').open,true);assert.equal(d.querySelector('.field-work-record').hidden,false);
