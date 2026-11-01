@@ -164,3 +164,41 @@ test('optional AI admin outage does not hide a verified empty field queue',async
   assert.ok([...document.querySelectorAll('button')].some(x=>x.textContent==='Retry queue'));
  }finally{await h.close();}
 });
+
+
+test('Today keeps a next visit beside an active job without duplicating it in later work',async()=>{
+ const nextVisit={...day,calls:[{...day.calls[0],id:id(82),requestId:id(83),name:'Next synthetic visit',arrivalAt:'2030-10-21T19:00:00Z',startAt:'2030-10-21T19:00:00Z'}]};
+ const h=await mount(async path=>Response.json(path.startsWith('/api/owner-day')?nextVisit:path.startsWith('/api/field-agent')?agent:path.startsWith('/api/owner-work')?work:{total:0,hasMore:false,requests:[]}));
+ try{
+  const root=document.querySelector('#root');
+  assert.ok(root.querySelector('[aria-label="Current job"]'));
+  const next=root.querySelector('[aria-label="Next visit while working"]');
+  assert.ok(next);
+  assert.match(next.textContent,/Next synthetic visit/);
+  assert.equal(root.querySelectorAll('[aria-label="Remaining work"] .field-queue-row').length,0);
+  await act(async()=>next.querySelector('button').click());
+  assert.equal(h.opened(),id(83));
+ }finally{await h.close();}
+});
+test('Today keeps prepared admin detail available but collapsed until requested',async()=>{
+ const proposal={checkedAt:'2030-10-21T12:00:00Z',hasMore:false,tasks:[{id:id(88),request_id:request.id,title:'Prepare next steps',detail:'Verify the exact customer agreement before work.',task_kind:'work'}]};
+ const h=await mount(async path=>Response.json(path.startsWith('/api/field-agent')?proposal:path.startsWith('/api/owner-day')?day:path.startsWith('/api/owner-work')?work:{total:0,hasMore:false,requests:[]}));
+ try{
+  const details=document.querySelector('[aria-label="Current job"] details.field-admin-prep');
+  assert.ok(details);
+  assert.equal(details.open,false);
+  assert.match(details.querySelector('summary').textContent,/Prepared check · review only/);
+  assert.match(details.textContent,/Verify the exact customer agreement/);
+  assert.equal(document.querySelectorAll('.field-admin-prep button').length,0);
+ }finally{await h.close();}
+});
+test('Today does not repeat the featured request under an empty secondary request header',async()=>{
+ const pendingRequest={...request,status:'reviewing'};
+ const h=await mount(async path=>Response.json(path.startsWith('/api/field-agent')?agent:path.startsWith('/api/owner-day')?{...day,calls:[]}:path.startsWith('/api/owner-work')?{...work,total:0,items:[]}:{total:1,hasMore:false,requests:[pendingRequest]}));
+ try{
+  const root=document.querySelector('#root');
+  assert.ok(root.querySelector('[aria-label="Next request decision"]'));
+  assert.equal(root.querySelector('[aria-label="Requests awaiting a decision"]'),null);
+  assert.equal(root.querySelectorAll('[aria-label="Next request decision"]').length,1);
+ }finally{await h.close();}
+});
