@@ -154,3 +154,13 @@ test('AI admin guidance attaches to current job without executing an owner comma
   assert.equal(h.opened(),request.id);
  }finally{await h.close();}
 });
+
+test('optional AI admin outage does not hide a verified empty field queue',async()=>{
+ const h=await mount(async path=>path.startsWith('/api/field-agent')?new Response('{}',{status:503}):Response.json(path.startsWith('/api/owner-day')?{...day,calls:[]}:path.startsWith('/api/owner-work')?{...work,items:[],total:0}:{total:0,hasMore:false,requests:[]}));
+ try{
+  const view=document.querySelector('#root').textContent;
+  assert.match(view,/Prepared admin checks could not refresh/);
+  assert.match(view,/No unfinished work, upcoming appointments, or requests requiring a decision/);
+  assert.ok([...document.querySelectorAll('button')].some(x=>x.textContent==='Retry queue'));
+ }finally{await h.close();}
+});
