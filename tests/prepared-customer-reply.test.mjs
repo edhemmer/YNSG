@@ -9,7 +9,7 @@ for(const key of ['window','document','HTMLElement','Event','MouseEvent'])global
 Object.defineProperty(globalThis,'navigator',{value:dom.window.navigator,configurable:true});
 globalThis.IS_REACT_ACT_ENVIRONMENT=true;
 const require=createRequire(new URL('../apps/web/package.json',import.meta.url));
-const React=require('react'),{act}=React,{createRoot}=require('react-dom/client');
+const React=require('react'),{act}=React,{createRoot}=require('react-dom/client');globalThis.React=React;
 const {default:PreparedCustomerReply}=await import('../apps/web/app/prepared-customer-reply.tsx');
 const {EntrySafety}=await import('../apps/web/app/entry-safety.tsx');
 const detail=readFileSync(new URL('../apps/web/app/request-detail.tsx',import.meta.url),'utf8');
