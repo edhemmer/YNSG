@@ -383,8 +383,10 @@ html[data-theme=dark] .request-dialog .detail-tabs button{color:#b3c2cd}html[dat
 .field-next-visit>div{display:grid;gap:4px;min-width:0}
 .field-next-visit strong{font-size:15px;color:var(--green)}
 .field-next-visit span{font-size:16px;line-height:1.45;overflow-wrap:anywhere}
-.field-next-visit>button{min-height:44px;flex:none;display:inline-flex;align-items:center;gap:8px}
+.field-next-visit small{font-size:14px;line-height:1.45;overflow-wrap:anywhere;color:var(--ink)}
+.field-next-visit-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.field-next-visit-actions>button,.field-next-visit-actions>a{min-height:44px;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .field-admin-prep>summary{cursor:pointer;min-height:36px;display:flex;align-items:center;font-weight:700;line-height:1.45}
 .field-admin-prep>p{margin:8px 0 0;line-height:1.5}
 .field-admin-prep:focus-within{outline:2px solid var(--gold);outline-offset:2px}
-@media(max-width:600px){.field-next-visit{align-items:stretch;flex-direction:column}.field-next-visit>button{align-self:stretch;justify-content:space-between}}
+@media(max-width:600px){.field-next-visit{align-items:stretch;flex-direction:column}.field-next-visit-actions{justify-content:stretch}.field-next-visit-actions>*{flex:1 1 110px;min-width:0}}
