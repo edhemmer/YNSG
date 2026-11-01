@@ -28,8 +28,8 @@ test('work completion and invoice issue remain distinct reviewed canonical actio
  assert.match(invoice,/The work is finished\. I reviewed the actual work, minutes and agreed labor charges/);
  assert.match(invoice,/I reviewed the work, final charges and any applicable tax/);
  assert.match(invoice,/Approve and issue invoice/);
- assert.match(invoice,//api\/visit-completion/);
- assert.match(invoice,//api\/invoice-draft/);
+ assert.ok(invoice.includes('/api/visit-completion'));
+ assert.ok(invoice.includes('/api/invoice-draft'));
  assert.match(invoice,/entryConflict/);
  assert.match(invoice,/completionUncertain/);
  assert.match(workflow,/onBusy=\{busyFor\('work:'\+j.id\)\}/);
