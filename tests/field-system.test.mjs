@@ -175,6 +175,10 @@ test('Today keeps a next visit beside an active job without duplicating it in la
   const next=root.querySelector('[aria-label="Next visit while working"]');
   assert.ok(next);
   assert.match(next.textContent,/Next synthetic visit/);
+  assert.match(next.textContent,/Agreed furniture assembly/);
+  assert.match(next.textContent,/100 Synthetic Street/);
+  assert.match(next.querySelector('a[aria-label="Directions to Next synthetic visit"]').getAttribute('href'),/^https:\/\/www\.google\.com\/maps\/search\//);
+  assert.match(next.querySelector('a[aria-label="Call Next synthetic visit"]').getAttribute('href'),/^tel:5550100999$/);
   assert.equal(root.querySelectorAll('[aria-label="Remaining work"] .field-queue-row').length,0);
   await act(async()=>next.querySelector('button').click());
   assert.equal(h.opened(),id(83));
@@ -200,5 +204,17 @@ test('Today does not repeat the featured request under an empty secondary reques
   assert.ok(root.querySelector('[aria-label="Next request decision"]'));
   assert.equal(root.querySelector('[aria-label="Requests awaiting a decision"]'),null);
   assert.equal(root.querySelectorAll('[aria-label="Next request decision"]').length,1);
+ }finally{await h.close();}
+});
+
+test('Next visit still opens safely when phone and address cannot produce contact links',async()=>{
+ const sparse={...day,calls:[{...day.calls[0],id:id(91),requestId:id(92),name:'Visit with missing contact',address:'',phone:'invalid',arrivalAt:'2030-10-21T20:00:00Z',startAt:'2030-10-21T20:00:00Z'}]};
+ const h=await mount(async path=>Response.json(path.startsWith('/api/owner-day')?sparse:path.startsWith('/api/field-agent')?agent:path.startsWith('/api/owner-work')?work:{total:0,hasMore:false,requests:[]}));
+ try{
+  const next=document.querySelector('[aria-label="Next visit while working"]');
+  assert.ok(next);
+  assert.equal(next.querySelectorAll('a').length,0);
+  await act(async()=>next.querySelector('button').click());
+  assert.equal(h.opened(),id(92));
  }finally{await h.close();}
 });
