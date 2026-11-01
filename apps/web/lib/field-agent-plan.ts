@@ -24,7 +24,7 @@ export function prepareAgentPlan(request:InboxRequest,quotes:LinkedQuote[],jobs:
 export function prepareCustomerFollowUp(request:InboxRequest):{subject:string;body:string;requiresOwnerApproval:true;status:'draft'}|null{
  if(['declined','canceled'].includes(request.status)||request.appointments.some(a=>visitState(a)==='reserved'))return null;
  // Customer-supplied fields are only used in this editable draft, never sent to a model.
- const clean=(value:string,limit:number)=>value.replace(/[\\r\\n\\t]+/g,' ').replace(/\\s+/g,' ').trim().slice(0,limit);
+ const clean=(value:string,limit:number)=>value.replace(/[\r\n\t]+/g,' ').replace(/\s+/g,' ').trim().slice(0,limit);
  const name=clean(String(request.original_submission.name||''),80).split(' ')[0]||'there';
  const tasks=requestTasks(request.original_submission).slice(0,2).map(t=>clean(String(t.task||t.service||''),90)).filter(t=>t&&t!=='Details to review');
  const summary=tasks.join(' and ');
