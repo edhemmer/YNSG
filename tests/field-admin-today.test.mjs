@@ -16,7 +16,9 @@ test('prepared administration enriches the existing Today request queue, not a c
 test('prepared advice is tenant-scoped, revision-checked and read-only',()=>{
  assert.match(route,/await authenticated\(\)/);
  assert.match(route,/\.eq\('organization_id',q\.organization\)/);
- assert.match(route,/r\.revision===x\.request_revision/);
+ assert.match(route,/record&&record\.revision===x\.request_revision/);
+ assert.match(route,/!\['declined','canceled'\]\.includes\(record\.status\)/);
+ assert.match(route,/scanIncomplete/);
  assert.match(route,/status','proposed'/);
  assert.match(route,/execution:'owner_review_only'/);
  assert.doesNotMatch(today,/method:'POST'|dispatchGoogleMail|RecordPayment|IssueInvoice/);
