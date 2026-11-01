@@ -11,7 +11,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT=true;
 const require=createRequire(new URL('../apps/web/package.json',import.meta.url));
 const React=require('react'),{act}=React,{createRoot}=require('react-dom/client');
 const {default:PreparedCustomerReply}=await import('../apps/web/app/prepared-customer-reply.tsx');
-const {EntrySafety,useEntrySafety}=await import('../apps/web/app/entry-safety.tsx');
+const {EntrySafety}=await import('../apps/web/app/entry-safety.tsx');
 const detail=readFileSync(new URL('../apps/web/app/request-detail.tsx',import.meta.url),'utf8');
 const workflow=readFileSync(new URL('../apps/web/app/service-workflow.tsx',import.meta.url),'utf8');
 
