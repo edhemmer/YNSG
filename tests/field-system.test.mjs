@@ -135,3 +135,22 @@ test('mobile field preparation reveals every saved-state reminder behind one com
  assert.match(source,/prepared\.notes\.slice\(1\)\.map/);
  assert.match(source,/aria-label="Prepared job checks"/);
 });
+
+test('AI admin guidance attaches to current job without executing an owner command',async()=>{
+ const events=[];
+ const proposal={checkedAt:'2030-10-21T12:00:00Z',hasMore:false,tasks:[{id:id(71),request_id:request.id,title:'Check job details',detail:'Verify agreed scope before starting.',task_kind:'work'}]};
+ const h=await mount(async(path,init)=>{
+  events.push({path,method:init?.method});
+  return Response.json(path.startsWith('/api/field-agent')?proposal:path.startsWith('/api/owner-day')?day:path.startsWith('/api/owner-work')?work:{total:0,hasMore:false,requests:[]});
+ });
+ try{
+  const current=document.querySelector('[aria-label="Current job"]');
+  assert.ok(current);
+  assert.match(current.textContent,/Prepared check · review only/);
+  assert.match(current.textContent,/Verify agreed scope before starting/);
+  assert.equal(current.querySelectorAll('button').length,1,'Only the existing owner job action remains');
+  assert.ok(events.every(e=>!e.method),'AI administration reads only');
+  await act(async()=>current.querySelector('button').click());
+  assert.equal(h.opened(),request.id);
+ }finally{await h.close();}
+});
