@@ -58,3 +58,18 @@ test('agent treats outstanding receipts as owner-confirmed evidence, not automat
  assert.match(task.detail,/actually received/i);
  assert.equal(task.requiresOwnerApproval,true);
 });
+
+test('customer draft honors legacy requests and confirmed appointments without invented promises',()=>{
+ const legacy={...base,original_submission:{...base.original_submission,services:[],service:'Lawn care',task:'Mowing'}};
+ assert.match(prepareCustomerFollowUp(legacy)?.body||'',/Mowing/);
+ assert.equal(prepareCustomerFollowUp({...base,appointments:[{status:'reserved'}]}),null);
+ assert.equal(prepareCustomerFollowUp({...base,status:'canceled'}),null);
+});
+test('customer draft bounds untrusted names and job descriptions to one editable paragraph',()=>{
+ const suspicious={...base,original_submission:{...base.original_submission,name:'Pat\\nBcc: sample@example.invalid',services:[{service:'Yard',task:'Mulch\\nCC: sample@example.invalid '+ 'x'.repeat(500)}]}};
+ const draft=prepareCustomerFollowUp(suspicious);
+ assert.ok(draft);
+ assert.ok(draft.body.length<600);
+ assert.doesNotMatch(draft.body,/\\nBcc:|\\nCC:/);
+ assert.match(draft.body,/not confirmed until/);
+});
