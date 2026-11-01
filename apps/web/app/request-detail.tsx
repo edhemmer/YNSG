@@ -13,6 +13,8 @@ import {requestStage,requestTasks,requestTiming,visitState,type InboxData} from 
 import {navigationUrl} from '../lib/day-plan';
 import Icon from './crm-icons';
 import RequestReplyDraft from './request-reply-draft';
+import PreparedCustomerReply from './prepared-customer-reply';
+import {prepareCustomerFollowUp} from '../lib/field-agent-plan';
 import {YNSG_ORGANIZATION} from '../lib/decline-message';
 import {DeclineDecisionFields} from './decline-message-fields';
 import SchedulingReviewPanel from './scheduling-review-panel';
@@ -92,6 +94,7 @@ export default function RequestDetail({organization,requestId,timezone,canManage
  function close(){if(!busy&&!unknown&&canLeave())onClose();}
  function show(nextPanel:typeof panel){if(!busy&&!unknown&&canLeave())setPanel(nextPanel);}
  const next=request?ownerRequestNextStep(request,quotes,jobs,invoices):null;
+ const preparedReply=request&&canManage&&!confirmed&&openRequest?prepareCustomerFollowUp(request):null;
  async function cancelVisit(form:HTMLFormElement){
   if(!confirmed)return;
   const reason=String(new FormData(form).get('reason')||'').trim();
@@ -121,7 +124,7 @@ export default function RequestDetail({organization,requestId,timezone,canManage
      </section>
      <section className="detail-section request-services"><h3><Icon name="work"/>Services requested</h3><ul className="request-service-chips">{requestTasks(submission).map((s,i)=><li className={'calendar-tone-'+serviceTone([s.service])} key={i}><Icon name={['lawn','garden'].includes(serviceTone([s.service]))?'leaf':'work'}/><strong>{s.task||s.service}</strong></li>)}</ul>{submission.description&&<div className="customer-note"><strong>Customer note</strong><p>{submission.description}</p></div>}{submission.communityRate==='Yes'&&<p className="request-community-flag"><Icon name="users"/>Community Rate requested · review eligibility</p>}</section>
     <div className="detail-contact"><span><Icon name="pin"/>{submissionAddress(submission)}</span><div className="actions"><a className="button secondary" href={'tel:'+submission.phone}><Icon name="phone"/>Call customer</a><a className="button secondary" href={'mailto:'+submission.email}><Icon name="mail"/>Email</a><a className="button secondary" href={navigationUrl(submissionAddress(submission))||undefined} target="_blank" rel="noreferrer"><Icon name="pin"/>Directions</a></div></div>
-     <RelationshipNotes organization={organization} type="request" target={request.id} timezone={timezone}/>{canManage&&organization===YNSG_ORGANIZATION&&<RequestReplyDraft key={request.id} name={submission.name} email={submission.email} organization={organization}/>}<details className="request-supporting"><summary>Request details & progress</summary>
+     <RelationshipNotes organization={organization} type="request" target={request.id} timezone={timezone}/>{preparedReply&&submission.email&&<PreparedCustomerReply key={organization+':'+request.id+':'+request.revision} recipient={submission.email} draft={preparedReply}/>}{canManage&&organization===YNSG_ORGANIZATION&&<RequestReplyDraft key={request.id} name={submission.name} email={submission.email} organization={organization}/>}<details className="request-supporting"><summary>Request details & progress</summary>
     {confirmedHistory&&<div className="workflow-strip" aria-label="Service workflow">{[['Request',true],['Appointment',!!confirmed],['Quote',quotes.some(q=>q.status==='accepted')],['Work',jobs.some(j=>j.status==='completed')],['Invoice',invoices.length>0]].map(([name,done])=><span className={done?'is-done':''} key={String(name)}><i>{done?<Icon name="check"/>:<Icon name="arrow"/>}</i>{String(name)}</span>)}</div>}
 <dl className="request-facts"><div><dt>Received</dt><dd>{date(request.created_at)}</dd></div><div><dt>Original timing request</dt><dd>{submission.preferredTime||'No time requested'}</dd></div><div><dt>Community Rate inquiry</dt><dd>{submission.communityRate==='Yes'?'Requested':'Not requested'}</dd></div></dl></details>
      {canManage&&confirmedHistory&&<details><summary>Weekly visits and saved repeat schedules</summary><RecurringVisits key={request.id} organization={organization} requestId={request.id} firstAppointment={confirmed?.job_id?confirmed.id:undefined} onBusy={setBusy} onOpen={id=>{onClose();onWork(id);}} onChanged={()=>{setReload(n=>n+1);onChanged();}}/></details>}
