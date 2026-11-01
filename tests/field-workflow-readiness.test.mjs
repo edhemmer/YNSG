@@ -105,10 +105,10 @@ test('one field screen exposes request-to-payment progress with a single saved-s
 test('the single field screen links invoice and payment decisions to their existing authoritative forms',()=>{
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
  assert.match(source,/task\.kind==='invoice'&&j&&/);
- assert.match(source,/href="#field-invoice-draft"/);
+ assert.match(source,/<InvoiceDraft key=\{j.id\} mobile/);
  assert.match(source,/id="field-invoice-draft"/);
  assert.match(source,/task\.kind==='payment'&&/);
- assert.match(source,/href="#field-payment-record"/);
+ assert.match(source,/<InvoicePayments guided/);
  assert.match(source,/id=\{i\.id===paymentTarget\?'field-payment-record':'field-payment-'\+i\.id\}/);
  assert.match(source,/Review the verified invoice details before recording/);
 });

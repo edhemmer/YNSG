@@ -357,3 +357,6 @@ html[data-theme=dark] .request-dialog .detail-tabs button{color:#b3c2cd}html[dat
 .field-job-progress .field-auto-preparation{margin:.55rem 0}
 .field-job .field-task :focus-visible,.field-job-progress>summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 @media(max-width:600px){.field-job .field-task{padding:.85rem}.field-job .field-task .field-command-actions>*{flex:1 1 100%;min-height:52px}.field-job-progress{padding:.2rem .7rem}}
+
+/* Keep the active form and its controls in one reading area. */
+.field-job .field-task>.workflow-section{margin:0;padding-top:.35rem}.field-job .field-task>.schedule-review{margin:.5rem 0 0}.field-job .field-task>.field-work-record{min-width:0}.field-job .field-task>.field-invoice{margin-top:.5rem}.field-job .field-task>.field-invoice>h3{font-size:1.1rem}.field-job-progress .field-auto-preparation li{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin:.5rem 0}.field-job-progress .field-auto-preparation li>button{margin-left:auto}.field-job .field-task>section,.field-job .field-task>div{min-width:0}

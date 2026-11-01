@@ -16,7 +16,7 @@ const quote={id:id(4),request_id:request.id,status:'accepted',current_version:1,
 const invoice={id:id(6),job_id:job.id,number:2030100001,total_cents:12000,payments:[]};
 const scheduled={...request,status:'quoted',appointments:[visit]},quiet=()=>{};
 const html=(r=request,qs=[],js=[],is=[])=>new JSDOM(renderToStaticMarkup(React.createElement(Workflow,{organization:org,request:r,quotes:qs,jobs:js,invoices:is,timezone:'America/Chicago',canManage:true,canQuote:true,canWork:true,busy:false,onBusy:quiet,onReview:quiet,act:async()=>{},fieldAction:async()=>{},onChanged:quiet}))).window.document;
-const actions=doc=>[...doc.querySelectorAll('[aria-label="Current field action"] button')].map(b=>b.textContent);
+const actions=doc=>[...doc.querySelector('[aria-label="Current field action"]').querySelectorAll(':scope > button, :scope > .field-command-actions > button')].map(b=>b.textContent);
 for(const status of ['submitted','reviewing','quoted'])test(status+' without confirmed visit exposes only confirmation and decline',()=>{
  const d=html({...request,status},[quote],[job],[]);assert.deepEqual(actions(d),['Confirm appointment','Decline request']);assert.equal(d.querySelector('.invoice-payment-panel'),null);assert.equal(d.querySelector('.mobile-work-record'),null);assert.equal(d.querySelector('.workflow-customer-note').open,true);
 });
