@@ -1,5 +1,6 @@
+import {serviceBaseZip} from '../../../packages/domain/service-geography.mjs';
 /** Advisory straight-line planning distance around ZIP 60115. Never restrict inquiry intake. */
-export const RADIUS_CENTER={latitude:41.92944,longitude:-88.75833,label:'Operating ZIP 60115 (approximate center)'};
+export const RADIUS_CENTER={latitude:41.92944,longitude:-88.75833,label:'Operating ZIP '+serviceBaseZip+' (approximate center)'};
 // Owner-side approximation of the eastward planning reach, not a service eligibility limit.
 export const PREFERRED_RADIUS_MILES=28;
 export function radiusAssessment(latitude:number,longitude:number){
