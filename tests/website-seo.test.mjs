@@ -46,8 +46,8 @@ test('search service URLs resolve to visible public sections and breadcrumb refe
 test('service-area description matches the intake without duplicate ZIP lists',async()=>{
  const html=await readFile(new URL('../site/pages/service-area.html',import.meta.url),'utf8');
  for(const city of serviceCities)assert.ok(html.includes(city));
- assert.ok(html.includes('Enter your address when requesting an appointment'));
- assert.ok(html.includes('we’ll confirm whether we can serve it'));
+ assert.ok(html.includes('No customer account is required'));
+ assert.ok(html.includes('All genuine service requests can be submitted'));
  assert.ok(!html.includes('Do you serve every address in these ZIP codes?'));
  for(const slug of ['','services'])assert.match(seo(slug,'Page','Description').title,/Home|Yard/);
 });
@@ -67,7 +67,7 @@ test('search landing pages provide specific guidance without imposing handyman-f
   assert.ok(html.includes('href="/pricing/"'));
   assert.match(html,/href="\/request\/(?:\?[^"]*)?"/);
  }
- assert.match(seo('', 'Page','Description').title,/Home & Yard Services/);
+ assert.match(seo('', 'Page','Description').title,/Lawn & Home Services/);
 });
 
 test('main service categories link directly to detailed local landing pages',async()=>{
@@ -101,9 +101,9 @@ test('homepage primary service cards link directly to indexable local service pa
 
 test('service-area page accepts inquiries outside the primary towns',async()=>{
  const page=await readFile(new URL('../site/pages/service-area.html',import.meta.url),'utf8');
- assert.match(page,/Our primary service area is Sycamore, DeKalb and Cortland/);
- assert.match(page,/we’ll confirm whether we can serve it/);
- assert.match(page,/Enter your address when requesting an appointment/);
+ assert.match(page,/Our primary focus is nine communities/);
+ assert.match(page,/All genuine service requests can be submitted/);
+ assert.match(page,/No customer account is required/);
 });
 
 test('customers can request service without choosing a calendar time',async()=>{
@@ -168,7 +168,7 @@ test('farm labor SEO is locally relevant and grounded without thin location page
  const service=graph.find(n=>n['@type']==='Service'&&n.url===canonicalUrl('farm-hand-dekalb-il'));
  assert.match(meta.title,/Farm Hand Services/);
  assert.ok(service.description.includes('planting')&&service.description.includes('harvest'));
- assert.ok(service.description.includes('DeKalb')&&service.description.includes('Sycamore'));
+ assert.ok(service.description.includes('DeKalb')&&service.description.includes('St. Charles'));
  assert.ok(graph.some(n=>n['@type']==='ImageObject'&&n.contentUrl.endsWith('/ynsg-farm-hand-midwest.webp')));
  assert.ok(page.primaryImageOfPage);
  assert.ok(detail.includes('Questions about farm hand help'));
