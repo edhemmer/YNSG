@@ -15,8 +15,8 @@ const titles={
  request:'Request Home & Yard Service in DeKalb, IL',
  'service-area':'Service Area | DeKalb to St. Charles & Nearby',
  'farm-hand-dekalb-il':'Farm Hand Services for Planting & Harvest | DeKalb IL',
- 'cleanout-dekalb-il':'Home Cleanouts in DeKalb, Sycamore & Cortland',
- 'handyman-dekalb-il':'Handyman Help in DeKalb, Sycamore & Cortland',
+ 'cleanout-dekalb-il':'Home Cleanouts in DeKalb to St. Charles & Nearby',
+ 'handyman-dekalb-il':'Handyman Help in DeKalb to St. Charles & Nearby',
  'lawn-mowing-dekalb-il':'Lawn Mowing in DeKalb, IL',
  'leaf-cleanup-dekalb-il':'Leaf Management in DeKalb, IL',
  'snow-removal-dekalb-il':'Residential Snow Removal in DeKalb, IL',
@@ -26,7 +26,7 @@ const titles={
 };
 // Page-specific service entities describe the visible offer, never a separate location.
 export const localServicePages={
- 'farm-hand-dekalb-il':{name:'Seasonal farm hand services',description:'Seasonal farm hand labor for spring planting preparation, fall harvest support, farm cleanup and other agreed ground-level farm tasks in DeKalb, Sycamore, Cortland and nearby Illinois communities; work is subject to safety review and availability.'},
+ 'farm-hand-dekalb-il':{name:'Seasonal farm hand services',description:'Seasonal farm hand labor for spring planting preparation, fall harvest support, farm cleanup and other agreed ground-level farm tasks from DeKalb toward St. Charles and surrounding Illinois communities; work is subject to safety review and availability.'},
  'cleanout-dekalb-il':{name:'Household cleanout and removal',description:'Manageable garage, basement and storage-area cleanouts. Scope and access are reviewed before confirming. Disposal fees may apply.'},
  'handyman-dekalb-il':{name:'Small handyman jobs',description:'Furniture assembly, household setup and small home jobs within our published safety limits.'},
  'lawn-mowing-dekalb-il':{name:'Residential lawn mowing',description:'One-time or recurring residential mowing, trimming, edging and blowing clippings off finished surfaces.'},
