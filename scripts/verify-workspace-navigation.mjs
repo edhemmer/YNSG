@@ -95,6 +95,15 @@ try{
    await page.getByRole('button',{name:'Check saved timer action',exact:true}).click();await page.getByText('Job and time record saved.',{exact:true}).waitFor();assert.equal(writes.length,2);assert.equal(writes[1].body,first);
    assert.equal(await page.evaluate(()=>sessionStorage.length),0);await page.close();results.push(engine+' durable exact timer retry after reload, duplicate click and blocked alternate action');
   }
+  {
+   const {page,writes}=await mount({state:'working',path:'?section=Requests'});await heading(page,'Requests');
+   await page.getByRole('button',{name:'Open job',exact:true}).click();await heading(page,'Job');
+   await page.getByRole('button',{name:'Back to Requests',exact:true}).click();await heading(page,'Requests');
+   await go(page,'Jobs');await heading(page,'Jobs');await page.getByRole('button',{name:'Open job',exact:true}).click();await heading(page,'Job');
+   await page.getByRole('button',{name:'All jobs',exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'Back to Requests',exact:true}).count(),0);
+   await page.reload();await heading(page,'Job');await page.getByRole('button',{name:'All jobs',exact:true}).click();await heading(page,'Jobs');
+   assert.equal(writes.length,0);await page.close();results.push(engine+' contextual return and direct/job-list fallback do not reuse stale origin');
+  }
   for(const role of ['dispatcher','bookkeeper','technician']){
    const {page,writes}=await mount({role,path:'?section=Settings&request='+requestId+'&customer='+requestId});
    await heading(page,role==='dispatcher'?'Requests':role==='bookkeeper'?'Invoices & money':'Jobs');assert.equal(new URL(page.url()).searchParams.has('request'),false);assert.equal(new URL(page.url()).searchParams.has('customer'),false);assert.equal(writes.length,0);await page.close();

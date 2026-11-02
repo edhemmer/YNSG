@@ -220,7 +220,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
     if(!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)){setError('That job link is invalid.');return;}
     if(pending||invoiceBusy){setError('Please finish the current action before opening another request.');return;}
     if(!canLeave())return;
-    if(section!=='Work')setWorkOrigin({organization:org,request:id,section});
+    if(section!=='Work')setWorkOrigin({organization:org,request:id,section});else if(!workRequest||workRequest!==id)setWorkOrigin(null);
     setError('');saveDestination({organization:org,section:'Work',request:id,customer:null});
   }
   function openCustomer(id:string){
