@@ -76,7 +76,7 @@ function template(organization: string): CompanySettings {
     region: "IL",
     policyVersion: "ynsg-2026-10-02",
     privacyVersion: "ynsg-2026-10-02",
-    cities: ["DeKalb", "Sycamore", "Cortland"],
+    cities: ["DeKalb", "Sycamore", "Cortland", "Maple Park", "Elburn", "Lily Lake", "Campton Hills", "Geneva", "St. Charles"],
     brand: {
       navy: "#10283c",
       forest: "#315842",
