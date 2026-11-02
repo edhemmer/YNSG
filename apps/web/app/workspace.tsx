@@ -184,6 +184,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
   const [activeRequest,setActiveRequest]=useState<string|null>(null);
   const [mobileNav,setMobileNav]=useState(false);
   const [workRequest,setWorkRequest]=useState<string|null>(null);
+  const [workOrigin,setWorkOrigin]=useState<{organization:string;request:string;section:string}|null>(null);
   const [customerFocus,setCustomerFocus]=useState<string|null>(null);
   currentWorkspace.current={org,section,workRequest,customerFocus,session};
   // A new workspace destination starts at its heading, never the previous screen's scroll.
@@ -219,6 +220,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
     if(!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)){setError('That job link is invalid.');return;}
     if(pending||invoiceBusy){setError('Please finish the current action before opening another request.');return;}
     if(!canLeave())return;
+    if(section!=='Work')setWorkOrigin({organization:org,request:id,section});
     setError('');saveDestination({organization:org,section:'Work',request:id,customer:null});
   }
   function openCustomer(id:string){
@@ -521,7 +523,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
                     {section === "Work" && <>
                       {!workRequest&&['owner','admin'].includes(role||'')&&<OwnerWork key={org} organization={org} revision={reloadSequence.current} onOpen={openWork}/>}
 
-                      {workRequest&&<button type="button" className="secondary" onClick={()=>navigate('Work')}>All jobs</button>}
+                      {workRequest&&<button type="button" className="secondary work-return" onClick={()=>navigate(workOrigin?.organization===org&&workOrigin.request===workRequest&&canSeeSection({key:workOrigin.section})?workOrigin.section:'Work')}>{workOrigin?.organization===org&&workOrigin.request===workRequest&&canSeeSection({key:workOrigin.section})?'Back to '+(sections.find(s=>s.key===workOrigin.section)?.label||'jobs'):'All jobs'}</button>}
                       {role==='technician'?<FieldWork key={org} organization={org}/>:workRequest?data.requests.filter(r=>r.id===workRequest).map(r=><ServiceWorkflow companyName={data.company.display_name} onNetwork={openSupport} key={r.id} onCustomer={openCustomer} organization={org} request={{...r,appointments:data.appointments.filter(a=>a.request_id===r.id)}} quotes={data.quotes.filter(q=>q.request_id===r.id)} jobs={data.jobs.filter(j=>data.quotes.some(q=>q.id===j.quote_id&&q.request_id===r.id))} invoices={data.invoices.filter(i=>data.jobs.some(j=>j.id===i.job_id&&data.quotes.some(q=>q.id===j.quote_id&&q.request_id===r.id)))} timezone={data.company.timezone} canManage={['owner','admin'].includes(role||'')} canQuote={operational} canWork={Boolean(data.features?.productionWorkflows)&&['owner','admin','technician'].includes(role||'')} busy={pending||invoiceBusy} onBusy={setInvoiceBusy} onReview={()=>setActiveRequest(r.id)} act={act} fieldAction={fieldAction} onChanged={()=>void refresh()}/>):null}
                       {role!=='technician'&&workRequest&&!data.requests.some(r=>r.id===workRequest)&&<div className="card" role="alert"><h2>This job could not be opened</h2><p>It may no longer be available to this account. Refresh to check its saved status, or return to Requests.</p><button className="secondary" disabled={pending||invoiceBusy} onClick={()=>void refresh()}>Check saved job</button></div>}
 
