@@ -439,3 +439,6 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
 @media(max-width:850px){body.has-service-selection{padding-bottom:calc(88px + env(safe-area-inset-bottom))}.service-request-panel[data-has-jobs=true] button[type=submit]{position:fixed;bottom:calc(12px + env(safe-area-inset-bottom));left:18px;width:calc(100% - 36px);z-index:40;box-shadow:0 4px 24px #10283c33;min-height:56px}.service-picker-selection{scroll-margin-bottom:100px}}
 
 .home-service-card button.home-service-book{border:0;border-top:1px solid #d5ded6;border-radius:0;min-height:56px}
+
+/* Reuse the approved logo’s lettering, without an imitation font or extra download. */
+.premium-hero .brand-tagline{display:block;width:clamp(240px,24vw,310px);max-width:100%;height:auto;mix-blend-mode:multiply}.premium-hero .hero-local:has(.brand-tagline){line-height:0;margin-bottom:12px}

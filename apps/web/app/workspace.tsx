@@ -18,7 +18,6 @@ import CommandCenter from './command-center';
 import RequestInbox from './request-inbox';
 import OwnerLogin from './owner-login';
 import ThemeToggle from './theme-toggle';
-import MobileNotifications from './mobile-notifications';
 import RequestDetail from './request-detail';
 import NotificationAttention from "./notification-attention";
 import OwnerSetup from './owner-setup';
@@ -37,15 +36,10 @@ import {sessionFetch,SessionApiError} from '../lib/session-fetch';
 import {useCallback, useEffect, useRef, useState } from "react";
 
 function PanelLoading(){return <p role="status">Opening workspace tools…</p>;}
-const RetentionControls=dynamic(()=>import('./privacy-controls').then(module=>module.RetentionControls),{loading:PanelLoading});
-const OwnerSecurity=dynamic(()=>import('./owner-security'),{loading:PanelLoading});
+const OwnerSettings=dynamic(()=>import('./owner-settings'),{loading:PanelLoading});
 const BusinessSnapshot=dynamic(()=>import('./business-snapshot'),{loading:PanelLoading});
 const FinanceActivity=dynamic(()=>import('./finance-activity'),{loading:PanelLoading});
 const MileageActivity=dynamic(()=>import('./mileage-activity'),{loading:PanelLoading});
-const GoogleControls=dynamic(()=>import('./google-controls'),{loading:PanelLoading});
-const CalendarConnections=dynamic(()=>import('./calendar-connections'),{loading:PanelLoading});
-const SchedulingReadiness=dynamic(()=>import('./scheduling-readiness'),{loading:PanelLoading});
-const CompanySettingsPanel=dynamic(()=>import('./company-settings'),{loading:PanelLoading});
 const CustomerServiceInsights=dynamic(()=>import('./customer-service-insights'),{loading:PanelLoading});
 const EmailTemplateLibrary=dynamic(()=>import('./request-reply-draft'),{loading:PanelLoading});
 const MarketingDrafts=dynamic(()=>import('./marketing-drafts'),{loading:PanelLoading});
@@ -505,7 +499,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
                     </div>
                     {(page>0||data.pagination.hasMore)&&(section==='Money'||(section==='Customers'&&!['owner','admin'].includes(role||''))) && <div className="actions record-pages" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1} · 50 records per page</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>}
 
-                    {['owner','admin'].includes(role||'')&&<GoogleConnectionNotice key={'google-notice:'+org} organization={org} onSetup={()=>{setGoogleSetupOpen(true);navigate('Settings')}}/>}
+                    {section!=='Settings'&&['owner','admin'].includes(role||'')&&<GoogleConnectionNotice key={'google-notice:'+org} organization={org} onSetup={()=>{setGoogleSetupOpen(true);navigate('Settings')}}/>}
                     {section==='Dashboard'&&['owner','admin'].includes(role||'')&&<CommandCenter key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest} onNavigate={navigate}/>}
                     {section==='Requests'&&operational&&<RequestInbox fieldMode={['owner','admin'].includes(role||'')} key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest} canManage={['owner','admin'].includes(role||'')}/>}
                     {section==='Activity'&&['owner','admin'].includes(role||'')&&<NotificationAttention key={org} organization={org} timezone={data.company.timezone} onRequest={openWork} onSettings={()=>navigate('Settings')}/>}
@@ -517,13 +511,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
                     {section === 'Team'&&['owner','admin'].includes(role||'')&&<TeamDirectory key={org} organization={org} onRequests={()=>navigate('Requests')}/>}
                     {section === "Careers" && role==='owner' && <OwnerCareers key={org} organization={org} timezone={data.company.timezone}/>}
                     {section === "Learning" && ['owner','admin'].includes(role||'') && <OwnerLearningToolkit organization={org} onNetwork={openSupport}/>}
-                    {section === "Settings" && ['owner','admin'].includes(role||'') && <>
-                      <CalendarConnections key={"calendar-"+org} organization={org}/><details id="google-setup" open={googleSetupOpen} onToggle={e=>setGoogleSetupOpen(e.currentTarget.open)}><summary>Google Calendar &amp; Gmail setup</summary><GoogleControls key={org} organization={org} timezone={data.company.timezone} view="settings"/></details>
-                      <OwnerSecurity key={org} organization={org}/>
-                    </>}
-                    {section === "Settings" && ['owner','admin'].includes(role||'') && <MobileNotifications organization={org} timezone={data.company.timezone} onBusy={setInvoiceBusy}/>}
-                    {section === "Settings" && ['owner','admin'].includes(role||'') && <SchedulingReadiness organization={org}/>}
-                    {section === "Settings" && ['owner','admin'].includes(role||'') && <><CompanySettingsPanel organization={org} name={data.company.display_name}/><RetentionControls key={org} organization={org}/></>}
+                    {section === "Settings" && ['owner','admin'].includes(role||'') && <OwnerSettings key={org} organization={org} name={data.company.display_name} timezone={data.company.timezone} focusGoogle={googleSetupOpen} onBusy={setInvoiceBusy} onActivity={()=>navigate('Activity')}/>}
                     {['Today','Calendar'].includes(section)&&data.schedulingPreferences.length>0&&<section className="card" aria-labelledby="reschedule-heading"><h2 id="reschedule-heading">Customers requesting another time</h2>{data.schedulingPreferences.map(p=><article key={p.id} className="card"><p><strong>{data.requests.find(r=>r.id===p.request_id)?.original_submission.name||'Service request'}</strong></p><p>{p.preferred_local_start?.replace('T',' at ')} {p.preferred_local_start&&`(${p.timezone})`}</p><p>{p.note}</p><p className="note">Review this on the same request. A confirmed original stays booked until you approve its replacement.</p><button type="button" className="secondary" onClick={()=>{setActiveRequest(p.request_id);}}>Open service request</button></article>)}</section>}
                     {section === "Today" && ['owner','admin'].includes(role||'') && <DailyCallSheet key={org} organization={org} timezone={data.company.timezone}/>}
                     {section === 'Calendar'&&['owner','admin'].includes(role||'')&&<RecurringVisits organization={org} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest} onChanged={()=>void refresh()}/>}
@@ -585,25 +573,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
 
                       </>
                     )}
-                    {section === "Settings" && (
-                      <>
-                      <div className="card">
-                        <h2>Business preferences</h2>
-                        <p><a href="/auth/password">Change my password</a></p>
-                        <p><a href="/owner/practice">Practice with sample requests, jobs and payments</a></p>
-                        <p><a href={"/owner/production-check?"+new URLSearchParams({organization:org})}>Sample invoices and email checks</a></p>
-                        <p className="badge">{data.company.status}</p>
-                        <p>Timezone: {data.company.timezone}</p>
-                        <p>
-                          Manage your business rules and connections here. The request inbox and calendar use these settings for the next saved decision.
-                        </p>
 
-                        <p>
-                          Set your review link in the business settings below.
-                          Customer messages follow your current email approval and delivery settings.
-                        </p>
-                      </div></>
-                    )}
                   </>
                 )}
               </>

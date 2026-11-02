@@ -4,7 +4,7 @@ import {sessionFetch} from '../lib/session-fetch';
 import {workerHealth,type BackgroundHealth} from '../lib/background-health';
 import type {BackgroundSetupStatus} from '../lib/background-setup';
 type Setup={websiteCalendarReady:boolean;mailServiceReady:boolean;mailReady:boolean;routesStatus?:string;calendarSource?:'crm'|'google';optionalGoogleConnected?:boolean;checks:{label:string;complete:boolean;action:string}[];publicAvailabilityConfigured:boolean;recurringReservationsReady:boolean;background?:{workerCredentialReady:boolean;mailSwitchEnabled:boolean;calendarSwitchEnabled:boolean;calendarCompanyMatches:boolean;deploymentCredentialReady:boolean;schedulerStatus:BackgroundSetupStatus|null;executionHealth?:BackgroundHealth|null;canPrepare:boolean}};
-export default function SchedulingReadiness({organization}:{organization:string}){
+export default function SchedulingReadiness({organization,compact=false,onEmailSetup,onActivity}:{organization:string;compact?:boolean;onEmailSetup?:()=>void;onActivity?:()=>void}){
  const [setup,setSetup]=useState<Setup|null>(null),[error,setError]=useState(false),[retry,setRetry]=useState(0);
  useEffect(()=>{
   let live=true,controller:AbortController|null=null;setSetup(null);setError(false);
@@ -22,19 +22,21 @@ export default function SchedulingReadiness({organization}:{organization:string}
   void load();const timer=setInterval(()=>{if(document.visibilityState==='visible')void load();},60000);
   return()=>{live=false;clearInterval(timer);controller?.abort();};
  },[organization,retry]);
- return <section className="card" aria-labelledby="scheduling-readiness-heading"><h2 id="scheduling-readiness-heading">Connections &amp; automation</h2>
+ return <section className={compact?"card settings-status":"card"} aria-labelledby="scheduling-readiness-heading"><h2 id="scheduling-readiness-heading">{compact?"Business status":"Connections & automation"}</h2>
   {error?<p role="alert">Connection status could not be checked. Press Refresh status to try again.</p>:!setup?<p role="status">Checking connections…</p>:<>
    <ul>
     <li><strong>Website calendar:</strong> {setup.websiteCalendarReady?'Configured':'Needs attention'}</li>
     <li><strong>Appointment emails:</strong> {!setup.mailServiceReady?'Sender verification required':!setup.mailReady?'Notifications disabled':!setup.background?.schedulerStatus?'Needs attention':workerHealth(setup.background.executionHealth,'mail',setup.background.schedulerStatus.jobs.some(job=>job.name==='ynsg-mail-worker'&&job.active),setup.background.mailSwitchEnabled)}</li>
     <li><strong>Route estimates:</strong> {setup.routesStatus==='active'?'Available':setup.routesStatus==='disabled'?'Not enabled — scheduled travel buffers remain in use':'Needs attention — scheduled travel buffers remain in use'}</li>
-    <li><strong>Optional Google calendar export:</strong> {!setup.optionalGoogleConnected?'Not connected — CRM scheduling remains available':!setup.background?.schedulerStatus?'Needs attention':workerHealth(setup.background.executionHealth,'calendar',setup.background.schedulerStatus.jobs.some(job=>job.name==='ynsg-calendar-worker'&&job.active),setup.background.calendarSwitchEnabled&&setup.background.calendarCompanyMatches)}</li>
+    {!compact&&<li><strong>Optional Google calendar export:</strong> {!setup.optionalGoogleConnected?'Not connected — CRM scheduling remains available':!setup.background?.schedulerStatus?'Needs attention':workerHealth(setup.background.executionHealth,'calendar',setup.background.schedulerStatus.jobs.some(job=>job.name==='ynsg-calendar-worker'&&job.active),setup.background.calendarSwitchEnabled&&setup.background.calendarCompanyMatches)}</li>}
    </ul>
-   <p>When running, automatic updates continue when you close the app. Check Activity for individual message and calendar results.</p>
-   {Boolean(setup.background?.executionHealth?.queue.pausedCalendarWaiting)&&<p role="status">Optional Google export is paused. {setup.background!.executionHealth!.queue.pausedCalendarWaiting} saved update(s) are waiting for that connection.</p>}
+   {!compact&&<p>When running, automatic updates continue when you close the app. Check Activity for individual message and calendar results.</p>}
+   {compact&&(!setup.mailServiceReady||!setup.mailReady)&&onEmailSetup&&<button onClick={onEmailSetup}>Review customer email setup</button>}
+   {!compact&&Boolean(setup.background?.executionHealth?.queue.pausedCalendarWaiting)&&<p role="status">Optional Google export is paused. {setup.background!.executionHealth!.queue.pausedCalendarWaiting} saved update(s) are waiting for that connection.</p>}
    {Boolean(setup.background?.executionHealth?.queue.pausedMailWaiting)&&<p role="status">Email delivery is paused. {setup.background!.executionHealth!.queue.pausedMailWaiting} saved message(s) are waiting for delivery to be enabled.</p>}
    {setup.background?.executionHealth&&(setup.background.executionHealth.queue.needsReview>0||setup.background.executionHealth.queue.overdue>0)&&<p role="alert">{setup.background.executionHealth.queue.needsReview>0?`${setup.background.executionHealth.queue.needsReview} background update(s) need review. `:''}{setup.background.executionHealth.queue.overdue>0?`${setup.background.executionHealth.queue.overdue} background update(s) are taking longer than expected.`:''} Open Activity to review them.</p>}
+   {compact&&setup.background?.executionHealth&&(setup.background.executionHealth.queue.needsReview>0||setup.background.executionHealth.queue.overdue>0)&&onActivity&&<button onClick={onActivity}>Review activity</button>}
   </>}
-  <button type="button" className="secondary" onClick={()=>setRetry(v=>v+1)}>Refresh status</button>
+  {(!compact||error)&&<button type="button" className="secondary" onClick={()=>setRetry(v=>v+1)}>Refresh status</button>}
  </section>;
 }
