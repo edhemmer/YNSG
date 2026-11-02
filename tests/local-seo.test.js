@@ -27,7 +27,7 @@ test('Local business identity and geography are consistent across indexable page
     assert.equal(business.url, WEBSITE_ORIGIN + '/');
     assert.equal(business.telephone, '+1-815-680-1775');
     assert.deepEqual(business.areaServed.map(place => place.name), [
-      'DeKalb, Illinois', 'Sycamore, Illinois', 'Cortland, Illinois'
+      'DeKalb, Illinois', 'Sycamore, Illinois', 'Cortland, Illinois', 'Maple Park, Illinois', 'Elburn, Illinois', 'Lily Lake, Illinois', 'Campton Hills, Illinois', 'Geneva, Illinois', 'St. Charles, Illinois'
     ]);
     assert.equal(graph.find(node => node['@type'] === 'WebPage').url, canonicalUrl(slug));
     assert.ok(!('aggregateRating' in business));
@@ -45,7 +45,7 @@ test('Service schema follows approved service restrictions and has distinct iden
     assert.equal(service.provider['@id'], WEBSITE_ORIGIN + '/#business');
     assert.equal(service.serviceType, service.name);
     assert.ok(service.url.startsWith(canonicalUrl('services')));
-    assert.equal(service.areaServed.length, 3);
+    assert.equal(service.areaServed.length, 9);
   }
   assert.match(services.find(service => service.name === 'Residential snow clearing').description, /No salt, deicer or commercial plowing/);
   assert.match(services.find(service => service.name === 'Concrete pressure washing').description, /customer supplies accessible outdoor water/);
