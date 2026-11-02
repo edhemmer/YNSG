@@ -5,15 +5,15 @@ export const legalBusinessName=businessIdentity.legalName;
 export const serviceCities=['DeKalb','Sycamore','Cortland','Maple Park','Elburn','Kaneville','Burlington','Lily Lake','Campton Hills','Virgil','Geneva','St. Charles'];
 export const canonicalUrl=slug=>WEBSITE_ORIGIN+(slug?'/'+slug:'/');
 const titles={
- '':'Home & Yard Services | Sycamore, DeKalb & Nearby',
- services:'Home & Yard Services from DeKalb to St. Charles',
+ '':'Lawn & Home Services | DeKalb to St. Charles, IL',
+ services:'Lawn, Yard & Home Services | Fox Valley IL',
  pricing:'Home & Yard Rates in DeKalb, IL',
  'careers/small-home-jobs':'Handyman & Small Home Job Opportunities in DeKalb, IL',
  'careers/yard-work':'Yard Work Opportunities in DeKalb, IL',
  careers:'Home & Yard Careers in DeKalb, IL',
  about:'About Our DeKalb Area Home & Yard Service',
  request:'Request Home & Yard Service in DeKalb, IL',
- 'service-area':'Service Area | DeKalb to St. Charles & Nearby',
+ 'service-area':'Service Area | St. Charles, Campton Hills & DeKalb',
  'farm-hand-dekalb-il':'Farm Hand Services for Planting & Harvest | DeKalb IL',
  'cleanout-dekalb-il':'Home Cleanouts | DeKalb to St. Charles',
  'handyman-dekalb-il':'Small Handyman Jobs | DeKalb to St. Charles',

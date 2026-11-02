@@ -37,9 +37,9 @@ await cp(join(root,'lib','appointment-window.js'),join(output,'appointment-windo
 const form = await readFile(join(source,'pages','form.html'),'utf8');
 const serviceManifest=JSON.parse(await readFile(join(source,'assets','services','image-manifest.json'),'utf8'));
 const pages = {
-  '': ['Home & Yard Services in Sycamore, DeKalb & Nearby', 'Lawn mowing, yard cleanup, mulch, small home jobs and seasonal services from DeKalb toward St. Charles, Illinois. Request an appointment online.', 'home'],
-  services: ['Home & Yard Services', 'Lawn care, yard cleanup, furniture assembly and small cleanouts in DeKalb, Sycamore, Elburn, Campton Hills, St. Charles and nearby.', 'services'],
-  'service-area': ['Home & Yard Help from DeKalb to St. Charles', 'Home and yard services in DeKalb, Sycamore, Elburn, Campton Hills, St. Charles and nearby Illinois communities. Request an appointment online.', 'service-area'],
+  '': ['Lawn & Home Services | DeKalb to St. Charles, IL', 'Lawn care, yard cleanup, mulch spreading and small home jobs in DeKalb, Elburn, Campton Hills, Geneva and St. Charles, IL. Request service online.', 'home'],
+  services: ['Home & Yard Services', 'Lawn mowing, leaf cleanup, mulch, furniture assembly and small cleanouts near St. Charles, Campton Hills, Geneva, Elburn and DeKalb, IL.', 'services'],
+  'service-area': ['Service Area: DeKalb to St. Charles', 'Home and yard services for DeKalb, Sycamore, Elburn, Lily Lake, Campton Hills, Geneva and St. Charles, IL. See services and request an appointment.', 'service-area'],
   pricing: ['Pricing & Community Rate', 'Home and yard labor is $60 per person per hour, or $45 Community Rate. A two-hour minimum applies to the first person. See rates and examples.', 'pricing'],
   'careers/small-home-jobs': ['Handyman & Small Home Job Opportunities in DeKalb, IL', 'Bring your furniture assembly, household hardware and practical home-job skills to YNSG in DeKalb, Elburn, St. Charles and nearby communities. Explore the role and apply online.', 'careers-home-support'],
   'careers/yard-work': ['Yard Work Opportunities in DeKalb, IL', 'Explore local lawn, garden, leaf management and seasonal yard-work opportunities with YNSG in DeKalb, Elburn, St. Charles and nearby communities. Share your experience online.', 'careers-yard-support'],
