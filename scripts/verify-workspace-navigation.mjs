@@ -3,6 +3,8 @@ import http from 'node:http';
 import {createRequire} from 'node:module';
 import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
+import {auditReadability} from './readability.mjs';
+import {settings} from '../tests/fixtures/owner-settings-data.mjs';
 import {ownerFixture,organization,requestId} from '../tests/fixtures/owner-mobile-data.mjs';
 const require=createRequire(import.meta.url),{build}=require(require.resolve('esbuild',{paths:[require.resolve('tsx')]}));
 const {chromium,webkit}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
@@ -31,6 +33,10 @@ async function mount({role='owner',width=390,path='?section=Requests',theme='lig
   }
   if(url.pathname==='/api/owner-day')return route.fulfill({json:{checkedAt:new Date().toISOString(),timezone:'America/Chicago',hasMore:false,calls:fixture.data.requests[0].appointments.filter(a=>a.status==='reserved').map(a=>({id:a.id,requestId:requestId,startAt:a.start_at,arrivalAt:a.arrival_at||a.start_at,endAt:a.end_at,name:fixture.data.requests[0].original_submission.name,address:'100 Synthetic Street, DeKalb',phone:'5550100999',tasks:['Furniture assembly']}))}});
   if(url.pathname==='/api/owner-work')return route.fulfill({json:{checkedAt:new Date().toISOString(),page:0,total:fixture.data.jobs.length,hasMore:false,items:fixture.data.jobs.filter(j=>['working','paused','completed'].includes(j.status)&&!fixture.data.invoices.some(i=>i.job_id===j.id)).map(j=>({job:j.id,request:requestId,name:fixture.data.requests[0].original_submission.name,address:'100 Synthetic Street, DeKalb',tasks:['Furniture assembly'],status:j.status}))}});
+  if(url.pathname==='/api/configuration')return route.fulfill({json:{ready:true,configuration:{version:1,settings},catalog:[]}});
+  if(url.pathname==='/api/mail-transport')return route.fulfill({json:{enabled:true,sender:'notifications@example.invalid'}});
+  if(url.pathname==='/api/scheduling-readiness')return route.fulfill({json:{websiteCalendarReady:true,mailServiceReady:true,mailReady:true,routesStatus:'active',checks:[],publicAvailabilityConfigured:true,recurringReservationsReady:true,background:{mailSwitchEnabled:true,schedulerStatus:{jobs:[{name:'ynsg-mail-worker',active:true}]},executionHealth:{checkedAt:new Date().toISOString(),workers:[{kind:'mail',lastRequestedAt:new Date().toISOString(),lastSuccessfulAt:new Date().toISOString(),lastOutcome:'success'}],queue:{needsReview:0,overdue:0,waiting:0}}}}});
+  if(url.pathname==='/api/google'&&route.request().method()==='POST')return route.fulfill({json:{calendars:[{id:'synthetic-calendar',summary:'Synthetic calendar',timeZone:'America/Chicago'}]}});
   if(url.pathname==='/api/google')return route.fulfill({json:{missing:[],calendarSyncEnabled:control.google==='healthy',dispatcherEnabled:control.google==='healthy',delivery:{enabled:control.google==='healthy'},maps:null,connection:{connected:control.google!=='disconnected',health:control.google,email:null,calendarId:'synthetic-calendar',canCreateCalendar:false,checkedAt:null,gmailTest:'not_tested'}}});
   if(url.pathname==='/api/notification-attention'){
    if(control.messageError)return route.fulfill({status:503,json:{error:'Synthetic message read unavailable'}});
@@ -154,7 +160,28 @@ try{
    control.messageMismatch=false;await activity.getByRole('button',{name:'Refresh messages'}).click();await activity.locator('article').first().waitFor();await activity.getByRole('button',{name:'Open service request',exact:true}).first().click();await heading(page,'Job');assert.equal(writes.length,0);await page.close();results.push(engine+' message history timezone, scoped validation, retry and job navigation '+width+' '+theme);
   }
   {
-   const {page,writes,control}=await mount({path:'?section=Dashboard',google:'disconnected'});const notice=page.getByRole('complementary',{name:'Google connection notice'});await notice.getByRole('button',{name:'Reconnect Google',exact:true}).waitFor();await notice.getByRole('button',{name:'Open Google setup'}).click();await heading(page,'Settings');await page.locator('#google-setup[open]').waitFor();await page.locator('#google-setup').getByRole('button',{name:'Connect Google',exact:true}).waitFor();assert.deepEqual(writes,[]);control.google='healthy';await notice.getByRole('button',{name:'Refresh Google status'}).click();await notice.waitFor({state:'hidden'});await page.close();results.push(engine+' persistent disconnected notice opens actual setup, reconnect control and healthy recovery without writes');
+   const {page,writes,control}=await mount({path:'?section=Dashboard',google:'disconnected'});const notice=page.getByRole('complementary',{name:'Google connection notice'});await notice.getByRole('button',{name:'Reconnect Google',exact:true}).waitFor();await notice.getByRole('button',{name:'Open Google setup'}).click();await heading(page,'Settings');await page.locator('#google-setup').waitFor();assert.equal(await notice.count(),0);await page.locator('#google-setup').getByRole('button',{name:'Connect Google',exact:true}).waitFor();assert.deepEqual(writes,[]);control.google='healthy';await page.locator('.google-connection-options>summary').click();await page.locator('#google-setup').getByRole('button',{name:'Refresh status',exact:true}).click();await page.getByText('Google account connected',{exact:true}).waitFor();await go(page,'Today');await heading(page,'Today');await notice.waitFor({state:'hidden'});await page.close();results.push(engine+' persistent disconnected notice opens actual setup, reconnect control and healthy recovery without writes');
+  }
+  for(const width of [320,390,1366])for(const theme of ['light','dark']){
+   const {page,writes}=await mount({width,theme,path:'?section=Settings',google:'disconnected'});await heading(page,'Settings');
+   const settingsPanel=page.getByRole('region',{name:'Business settings'});
+   await settingsPanel.getByText('Confirm business identity',{exact:true}).waitFor();
+   assert.equal(await settingsPanel.locator('.settings-section').count(),4);assert.equal(await page.getByText('Business preferences',{exact:true}).count(),0);assert.equal(await settingsPanel.locator('.settings-section[open]').count(),0);
+   assert.equal(await settingsPanel.getByRole('button',{name:'Connect Google',exact:true}).count(),1);
+   assert.equal(await page.getByRole('complementary',{name:'Google connection notice'}).count(),0);
+   assert.equal(await settingsPanel.locator('.settings-status li').count(),3);
+   assert.equal(await settingsPanel.getByRole('textbox').count(),0);
+   await layout(page,engine+' settings '+width+' '+theme);assert.deepEqual((await auditReadability(page)).failures,[],engine+' settings text readability '+width+' '+theme);
+   if(width===390||width===1366)await page.screenshot({path:output+'/'+engine+'-settings-'+width+'-'+theme+'.png',fullPage:true});
+   const business=settingsPanel.locator('.settings-section').first();await business.locator(':scope>summary').click();
+   await business.getByLabel(/^Business name/).fill('Synthetic retained company draft');await business.locator(':scope>summary').click();
+   await settingsPanel.getByText('Unsaved changes',{exact:true}).waitFor();page.once('dialog',dialog=>dialog.dismiss());await go(page,'Requests');await heading(page,'Settings');
+   await business.locator(':scope>summary').click();assert.equal(await business.getByLabel(/^Business name/).inputValue(),'Synthetic retained company draft');await business.locator(':scope>summary').click();
+   const email=settingsPanel.locator('.settings-section').nth(1);await email.locator(':scope>summary').click();
+   await email.getByText('Email delivery controls',{exact:true}).click();await email.getByRole('button',{name:'Send a test email',exact:true}).waitFor();
+   await email.locator(':scope>summary').click();
+   await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' settings 200% '+width+' '+theme);
+   assert.equal(writes.length,0);await page.close();results.push(engine+' settings concise status, single Google action, preserved draft and reachable delivery controls '+width+' '+theme);
   }
   {
    const {page,writes}=await mount({path:'?section=Snapshot'});const planner=page.locator('.growth-planner');await planner.locator(':scope>summary').click();assert.match(await planner.getByRole('definition').allTextContents().then(x=>x.join(' ')),/70/);await planner.locator('.growth-scale>summary').click();await planner.getByText('Scenario costs and capacity, not a forecast',{exact:true}).waitFor();assert.match(await planner.textContent(),/11 \/ 22/);await planner.getByLabel('Average completed job revenue ($)',{exact:true}).fill('0');await planner.getByRole('status').waitFor();assert.equal(await planner.locator('.growth-scale .growth-results').count(),0);await planner.getByRole('button',{name:'Reset example assumptions'}).click();await planner.locator('.growth-scale .growth-results').waitFor();await page.setViewportSize({width:320,height:844});await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' growth plan 320px 200% text');assert.equal(writes.length,0);await page.close();results.push(engine+' growth assumptions, invalid-input guard and paid crew capacity model');

@@ -119,9 +119,11 @@ function template(organization: string): CompanySettings {
 }
 export default function CompanySettingsPanel({
   organization,
+  onStatus,
 }: {
   organization: string;
   name: string;
+  onStatus?:(status:string)=>void;
 }) {
   const [draft, setDraft] = useState<CompanySettings | null>(null),
     [version, setVersion] = useState(0),
@@ -334,6 +336,9 @@ export default function CompanySettingsPanel({
       await sendReviewedSettings();
     }catch(error){const issue=settingsIssue(error);if(issue)showIssue(issue);else setError(settingsError(error));}
   }
+  const statusCallback=useRef(onStatus);statusCallback.current=onStatus;
+  const reviewStatus=loading?'Checking settings…':unknown?'Save needs confirmation':pending?'Saving reviewed changes…':draft&&snapshot!==baseline?'Unsaved changes':!draft?(error?'Status unavailable':'Setup needed'):!draft.sellerVerified?'Confirm business identity':!draft.taxTreatmentVerified?'Review invoice tax setup':'Saved business settings';
+  useEffect(()=>{statusCallback.current?.(reviewStatus)},[reviewStatus]);
   const settingsFormId = "company-settings-" + organization;
   return (
     <section
@@ -342,8 +347,7 @@ export default function CompanySettingsPanel({
     >
       <h2 id="settings-heading" tabIndex={-1}>Company settings</h2>
       <p>
-        Review business details and operating rules before publishing. These
-        settings do not activate Google or customer emails.
+        Update business details, pricing and appointment rules. Review before saving.
       </p>
       {!ready && !loading && (
         <p className="note">
@@ -523,8 +527,8 @@ export default function CompanySettingsPanel({
               />
             </label>
             <p>
-              One two-hour minimum per combined visit. Community eligibility is
-              reviewed, never inferred.
+              Only the first person has a two-hour minimum per combined visit.
+              Additional people bill actual time.
             </p>
             <label>
               Partial extension billing
