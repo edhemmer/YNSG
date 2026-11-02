@@ -1,15 +1,16 @@
+import {readWorkspaceStyles} from './workspace-styles.mjs';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import {createRequire} from 'node:module';
-import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
+import {mkdirSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {auditReadability} from './readability.mjs';
 import {settings} from '../tests/fixtures/owner-settings-data.mjs';
-import {ownerFixture,organization,requestId} from '../tests/fixtures/owner-mobile-data.mjs';
+import {ownerFixture,organization,requestId,scheduleContext,resource} from '../tests/fixtures/owner-mobile-data.mjs';
 const require=createRequire(import.meta.url),{build}=require(require.resolve('esbuild',{paths:[require.resolve('tsx')]}));
 const {chromium,webkit}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const bundle=await build({entryPoints:['tests/fixtures/workspace-browser-harness.tsx'],bundle:true,write:false,nodePaths:[resolve('apps/web/node_modules')],platform:'browser',jsx:'automatic',define:{'process.env.NODE_ENV':'"production"','process.env':'{}'}});
-const css=['apps/web/app/style.css','apps/web/app/careers.css','apps/web/app/field-office.css'].map(path=>readFileSync(path,'utf8')).join('\n');
+const css=readWorkspaceStyles();
 const server=http.createServer((req,res)=>{if(req.url==='/bundle.js'){res.setHeader('Content-Type','text/javascript');res.end(bundle.outputFiles[0].text);}else if(req.url==='/style.css'){res.setHeader('Content-Type','text/css');res.end(css);}else{res.setHeader('Content-Type','text/html');res.end('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"></head><body><div id="root"></div><script src="/bundle.js"></script></body></html>');}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const origin='http://127.0.0.1:'+server.address().port;
@@ -36,8 +37,10 @@ async function mount({role='owner',width=390,path='?section=Requests',theme='lig
   if(url.pathname==='/api/configuration')return route.fulfill({json:{ready:true,configuration:{version:1,settings},catalog:[]}});
   if(url.pathname==='/api/mail-transport')return route.fulfill({json:{enabled:true,sender:'notifications@example.invalid'}});
   if(url.pathname==='/api/scheduling-readiness')return route.fulfill({json:{websiteCalendarReady:true,mailServiceReady:true,mailReady:true,routesStatus:'active',checks:[],publicAvailabilityConfigured:true,recurringReservationsReady:true,background:{mailSwitchEnabled:true,schedulerStatus:{jobs:[{name:'ynsg-mail-worker',active:true}]},executionHealth:{checkedAt:new Date().toISOString(),workers:[{kind:'mail',lastRequestedAt:new Date().toISOString(),lastSuccessfulAt:new Date().toISOString(),lastOutcome:'success'}],queue:{needsReview:0,overdue:0,waiting:0}}}}});
+  if(url.pathname==='/api/scheduling-review')return route.fulfill({json:{...scheduleContext,...(url.searchParams.has('appointment')?{appointment:fixture.data.requests[0].appointments[0],appointmentResources:[resource]}:{})}});
+  if(url.pathname==='/api/availability')return route.fulfill({json:{reserved:false,timezone:'America/Chicago',validUntil:new Date(Date.now()+60000).toISOString(),times:[{start:(url.searchParams.get('day')||'2099-10-19')+'T14:00:00Z'}]}});
   if(url.pathname==='/api/google'&&route.request().method()==='POST')return route.fulfill({json:{calendars:[{id:'synthetic-calendar',summary:'Synthetic calendar',timeZone:'America/Chicago'}]}});
-  if(url.pathname==='/api/google')return route.fulfill({json:{missing:[],calendarSyncEnabled:control.google==='healthy',dispatcherEnabled:control.google==='healthy',delivery:{enabled:control.google==='healthy'},maps:null,connection:{connected:control.google!=='disconnected',health:control.google,email:null,calendarId:'synthetic-calendar',canCreateCalendar:false,checkedAt:null,gmailTest:'not_tested'}}});
+  if(url.pathname==='/api/google')return route.fulfill({json:{missing:[],calendarSyncEnabled:control.google==='healthy',dispatcherEnabled:control.google==='healthy',delivery:{enabled:control.google==='healthy'},maps:null,connection:{connected:control.google!=='disconnected',health:control.google,email:null,services:{calendar:control.google==='healthy',gmail:control.google==='healthy'},calendarId:'synthetic-calendar',canCreateCalendar:false,checkedAt:null,gmailTest:'not_tested'}}});
   if(url.pathname==='/api/notification-attention'){
    if(control.messageError)return route.fulfill({status:503,json:{error:'Synthetic message read unavailable'}});
    const view=url.searchParams.get('view'),org=url.searchParams.get('organization');
@@ -104,6 +107,16 @@ try{
    await page.reload();await heading(page,'Job');await page.getByRole('button',{name:'All jobs',exact:true}).click();await heading(page,'Jobs');
    assert.equal(writes.length,0);await page.close();results.push(engine+' contextual return and direct/job-list fallback do not reuse stale origin');
   }
+  {
+   const {page,control,writes}=await mount({state:'confirmed',path:'?section=Work&request='+requestId});await heading(page,'Job');
+   const start=await page.getByRole('button',{name:'Start work',exact:true}).elementHandle();let release,started;
+   const gate=new Promise(resolve=>{release=resolve}),entered=new Promise(resolve=>{started=resolve});
+   control.workspace=async route=>{started();await gate;return route.fulfill({status:503,json:{error:'Synthetic refresh outage'}})};
+   await page.getByRole('button',{name:'Refresh',exact:true}).click();await entered;await heading(page,'Job');assert.equal(await start.evaluate(el=>el.isConnected),true);
+   assert.equal(await page.getByText('Open your workspace',{exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'Reload workspace',exact:true}).count(),0);
+   release();await page.getByRole('alert').filter({hasText:'Saved records could not be refreshed'}).waitFor();assert.equal(await start.evaluate(el=>el.isConnected),true);
+   assert.equal(writes.length,0);await page.close();results.push(engine+' same-company pending and failed refresh preserve the mounted job without a reload gate');
+  }
   for(const role of ['dispatcher','bookkeeper','technician']){
    const {page,writes}=await mount({role,path:'?section=Settings&request='+requestId+'&customer='+requestId});
    await heading(page,role==='dispatcher'?'Requests':role==='bookkeeper'?'Invoices & money':'Jobs');assert.equal(new URL(page.url()).searchParams.has('request'),false);assert.equal(new URL(page.url()).searchParams.has('customer'),false);assert.equal(writes.length,0);await page.close();
@@ -156,7 +169,7 @@ try{
    const match=page.locator('[aria-label="Matching work"] .field-queue-row');await match.waitFor();assert.match(await match.textContent(),/100 Fictional Lane.*DeKalb/);
    await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' pending address finder '+width+' '+theme);
    if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-request-finder.png',fullPage:true});
-   await match.click();await heading(page,'Job');await page.getByRole('button',{name:'Confirm appointment',exact:true}).waitFor();await page.getByRole('button',{name:'Back to Today',exact:true}).click();await heading(page,'Today');assert.equal(writes.length,0);await page.close();
+   await match.click();await heading(page,'Job');await page.getByRole('button',{name:'Schedule appointment',exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'Review appointment',exact:true}).count(),0);await page.getByRole('button',{name:'Back to Today',exact:true}).click();await heading(page,'Today');assert.equal(writes.length,0);await page.close();
   }
   for(const width of [320,390,1366])for(const theme of ['light','dark']){
    const {page,writes,control}=await mount({width,theme,path:'?section=Activity'});await heading(page,'Activity');const activity=page.getByRole('region',{name:'Notification attention'});
@@ -170,6 +183,11 @@ try{
   }
   {
    const {page,writes,control}=await mount({path:'?section=Dashboard',google:'disconnected'});const notice=page.getByRole('complementary',{name:'Google connection notice'});await notice.getByRole('button',{name:'Reconnect Google',exact:true}).waitFor();await notice.getByRole('button',{name:'Open Google setup'}).click();await heading(page,'Settings');await page.locator('#google-setup').waitFor();assert.equal(await notice.count(),0);await page.locator('#google-setup').getByRole('button',{name:'Connect Google',exact:true}).waitFor();assert.deepEqual(writes,[]);control.google='healthy';await page.locator('.google-connection-options>summary').click();await page.locator('#google-setup').getByRole('button',{name:'Refresh status',exact:true}).click();await page.getByText('Google account connected',{exact:true}).waitFor();await go(page,'Today');await heading(page,'Today');await notice.waitFor({state:'hidden'});await page.close();results.push(engine+' persistent disconnected notice opens actual setup, reconnect control and healthy recovery without writes');
+  }
+  {
+   const {page,writes}=await mount({path:'?section=Settings',google:'healthy'});await heading(page,'Settings');const google=page.locator('#google-setup');
+   await google.getByText('Connected',{exact:true}).waitFor();assert.equal(await google.getByRole('button',{name:'Reconnect Google',exact:true}).count(),0);
+   await google.locator('.google-connection-options>summary').click();await google.getByRole('button',{name:'Reconnect Google',exact:true}).waitFor();assert.equal(writes.length,0);await page.close();results.push(engine+' healthy Google requires no reconnect and retains an optional advanced action');
   }
   for(const width of [320,390,1366])for(const theme of ['light','dark']){
    const {page,writes}=await mount({width,theme,path:'?section=Settings',google:'disconnected'});await heading(page,'Settings');

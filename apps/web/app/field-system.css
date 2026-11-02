@@ -1,0 +1,31 @@
+/* Field operating system design authority. Status is always named; color is supplementary. */
+.company-workspace{--font-ui:"Segoe UI",Arial,Helvetica,sans-serif;font:400 16px/1.5 var(--font-ui);font-synthesis:none;--field-gap:16px}
+.company-workspace :is(button,input,select,textarea){font-family:var(--font-ui);letter-spacing:normal}
+.company-workspace:not(.signed-out) :is(h1,h2,h3,h4){font-family:var(--font-ui);font-weight:600;letter-spacing:-.015em;line-height:1.3}
+.company-workspace:not(.signed-out) h1{font-size:28px}.company-workspace:not(.signed-out) h2{font-size:21px}.company-workspace:not(.signed-out) h3{font-size:18px}
+.company-workspace:not(.signed-out) :is(button,summary,label,legend,strong){font-weight:500}
+.company-workspace:not(.signed-out) :is(h1,h2,h3,h4) strong{font-weight:600}
+.company-workspace:not(.signed-out) :is(input,select,textarea){font-weight:400;font-size:16px;min-height:44px;padding:10px 12px;border-radius:8px}
+.company-workspace:not(.signed-out) input[type=checkbox]{min-height:20px;width:20px;height:20px;padding:0}
+.company-workspace:not(.signed-out) .card{box-shadow:none;border-radius:12px;padding:20px}
+.company-workspace:not(.signed-out) p{margin-block:8px 12px;line-height:1.5}
+.company-workspace:not(.signed-out) .note{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-left:3px solid var(--border);border-radius:8px;padding:12px 14px}
+.company-workspace:not(.signed-out) .note[role=alert],.company-workspace:not(.signed-out) .error{border-left-color:#c6644f}
+.company-workspace:not(.signed-out) .status-pill{font-weight:500;font-size:14px;border:1px solid var(--border);background:var(--surface);color:var(--ink)}
+.company-workspace:not(.signed-out) .visit-summary{padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:none}
+.company-workspace .visit-summary header{font-size:14px}.company-workspace .visit-summary .visit-arrival{font-size:26px;font-weight:600}.company-workspace .visit-date-tile{width:58px;min-width:58px;padding:7px}.company-workspace .visit-date-tile strong{font-size:25px}
+.company-workspace .visit-summary-main{gap:14px}.company-workspace .visit-window{padding-top:12px;margin-top:12px}.company-workspace .visit-summary-proposed .visit-state{color:var(--ink)}
+.company-workspace .field-task{padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.company-workspace .field-task .schedule-review>.card{border:0;background:transparent;padding:0;margin:0}.company-workspace .field-task .schedule-review>.card>h3{display:none}
+.company-workspace .field-task .schedule-review>.card>p.tiny:first-of-type{margin-top:0}.company-workspace .field-task .field-command-actions{margin:0 0 12px}
+.company-workspace .field-task .field-command-actions button{flex:0 1 auto;min-height:44px;padding:10px 16px}
+.company-workspace .field-job-context{gap:12px}.company-workspace .field-job-context summary{font-size:15px;line-height:1.4}
+.company-workspace .request-summary-card{padding:16px}.company-workspace .request-work{margin-top:4px;font-size:14px}.company-workspace .request-visit-time{margin:5px 0;font-size:15px}.company-workspace .request-time-pill{padding:3px 8px;font-size:15px;background:var(--surface);color:var(--ink);border-color:var(--border)}
+.company-workspace .workflow-list-next{font-size:14px;margin:10px 0}.company-workspace .request-summary-card>button{min-height:44px;padding:9px 16px}
+.company-workspace .network-editor{max-width:900px}.company-workspace .network-editor .network-fields{gap:12px 18px}.company-workspace .network-editor fieldset{border:0;padding:0;margin:0}.company-workspace .network-editor label{margin:0 0 12px;font-size:15px}.company-workspace .network-optional{padding:10px 0;border-top:1px solid var(--border);margin-top:8px}.company-workspace .network-optional>summary{min-height:44px;cursor:pointer;display:flex;align-items:center}.company-workspace .network-editor .actions{margin-top:16px}
+.company-workspace .workspace-tax-link{display:flex;gap:12px;align-items:center;padding:12px;border-radius:8px;text-decoration:none;color:inherit;min-height:44px}.company-workspace .workspace-tax-link:hover{background:#ffffff12}.settings-tax-link a{min-height:44px;display:inline-flex;align-items:center}
+@media(max-width:700px){.company-workspace:not(.signed-out) .card{padding:16px}.company-workspace:not(.signed-out) h1{font-size:25px}.company-workspace .field-job-header{gap:12px}.company-workspace .field-contact-actions{width:100%}.company-workspace .field-task .field-command-actions button{flex:1 1 auto}.company-workspace .visit-window>div{display:flex;flex-wrap:wrap;gap:6px}.company-workspace .network-fields{grid-template-columns:minmax(0,1fr)}}
+
+.company-workspace:not(.signed-out){font-size:16px}.company-workspace .estimate-options>summary{min-height:44px;cursor:pointer}.company-workspace .field-job-progress .note{border:0;padding:0}.company-workspace .field-job-progress .note>summary{font-weight:400}.company-workspace .field-job-progress ul{padding-left:20px;font-size:15px}.company-workspace .schedule-review .note{margin:8px 0}.company-workspace .field-task .schedule-review>div>p:last-of-type{font-size:14px}
+
+.network-lookup{--font-ui:"Segoe UI",Arial,Helvetica,sans-serif;font:400 16px/1.5 var(--font-ui)}.network-lookup :is(input,button,select,textarea){font-family:var(--font-ui)}.network-lookup :is(h2,h3,h4){font-family:var(--font-ui);font-weight:600}.network-lookup :is(summary,label,strong,button){font-weight:500}.company-workspace .field-prepared-actions{padding:0;background:transparent;border:0}.company-workspace .field-prepared-actions ul{padding-left:20px}.company-workspace .owner-learning>aside.note{padding:12px;margin:12px 0}

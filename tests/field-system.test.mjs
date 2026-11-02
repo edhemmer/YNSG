@@ -17,8 +17,8 @@ const invoice={id:id(6),job_id:job.id,number:2030100001,total_cents:12000,paymen
 const scheduled={...request,status:'quoted',appointments:[visit]},quiet=()=>{};
 const html=(r=request,qs=[],js=[],is=[])=>new JSDOM(renderToStaticMarkup(React.createElement(Workflow,{organization:org,request:r,quotes:qs,jobs:js,invoices:is,timezone:'America/Chicago',canManage:true,canQuote:true,canWork:true,busy:false,onBusy:quiet,onReview:quiet,act:async()=>{},fieldAction:async()=>{},onChanged:quiet}))).window.document;
 const actions=doc=>[...doc.querySelector('[aria-label="Current field action"]').querySelectorAll(':scope > button, :scope > .field-command-actions > button')].map(b=>b.textContent);
-for(const status of ['submitted','reviewing','quoted'])test(status+' without confirmed visit exposes only confirmation and decline',()=>{
- const d=html({...request,status},[quote],[job],[]);assert.deepEqual(actions(d),['Confirm appointment','Decline request']);assert.equal(d.querySelector('.invoice-payment-panel'),null);assert.equal(d.querySelector('.mobile-work-record'),null);assert.equal(d.querySelector('.workflow-customer-note').open,true);
+for(const status of ['submitted','reviewing','quoted'])test(status+' opens appointment review directly and exposes no premature work or financial actions',()=>{
+ const d=html({...request,status},[quote],[job],[]);assert.deepEqual(actions(d),['Decline request']);assert.ok(d.querySelector('.schedule-review>.card'),'Appointment form opens immediately');assert.equal(d.querySelector('.invoice-payment-panel'),null);assert.equal(d.querySelector('.mobile-work-record'),null);assert.equal(d.querySelector('.workflow-customer-note').open,true);
 });
 for(const status of ['declined','canceled'])test(status+' cannot reopen confirmation, timer, invoicing or receipts',()=>{
  const d=html({...request,status},[quote],[job],[invoice]);assert.deepEqual(actions(d),[]);assert.equal(d.querySelector('.invoice-payment-panel'),null);assert.equal(fieldWorkflow({...request,status},[quote],[job],[invoice]).kind,'closed');
@@ -26,7 +26,7 @@ for(const status of ['declined','canceled'])test(status+' cannot reopen confirma
 test('saved appointment and exact accepted job agreement gate Start work',()=>{
  assert.equal(fieldWorkflow(scheduled,[quote],[job],[]).kind,'ready');assert.deepEqual(actions(html(scheduled,[quote],[job],[])),['Start work']);
  assert.equal(fieldWorkflow(scheduled,[],[job],[]).kind,'agreement');assert.deepEqual(actions(html(scheduled,[],[job],[])),[]);
- const tooShort={...scheduled,appointments:[{...visit,end_at:'2030-10-21T15:00:00Z'}]};assert.equal(fieldWorkflow(tooShort,[quote],[job],[]).kind,'confirm');assert.deepEqual(actions(html(tooShort,[quote],[job],[])),['Confirm appointment']);
+ const tooShort={...scheduled,appointments:[{...visit,end_at:'2030-10-21T15:00:00Z'}]};assert.equal(fieldWorkflow(tooShort,[quote],[job],[]).kind,'confirm');const shortDoc=html(tooShort,[quote],[job],[]);assert.deepEqual(actions(shortDoc),[]);assert.ok(shortDoc.querySelector('.schedule-review>.card'));
 });
 test('working and paused jobs have one timer control and a direct finish action',()=>{
  for(const [status,label] of [['working','Pause timer'],['paused','Resume timer']]){const d=html(scheduled,[quote],[{...job,status}],[]);assert.deepEqual(actions(d),[label,'Finish work']);assert.equal(d.querySelector('.field-work-record').hidden,true);assert.equal(d.querySelector('[aria-label="Available service steps"]'),null);assert.equal(d.querySelectorAll('.field-job-service').length,1);}
@@ -131,6 +131,6 @@ test('field brief never labels missing or unaccepted scope as agreed and retains
 
 test('mobile field preparation reveals every saved-state reminder behind one compact summary',()=>{
  const source=readFileSync(new URL('../apps/web/app/service-workflow.tsx',import.meta.url),'utf8');
- assert.match(source,/prepared\.notes\.slice\(1\)\.map/);
+ assert.match(source,/prepared\.notes\.map/);
  assert.match(source,/aria-label="Prepared job checks"/);
 });

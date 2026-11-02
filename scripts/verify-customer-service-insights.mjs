@@ -1,3 +1,4 @@
+import {readWorkspaceStyles} from './workspace-styles.mjs';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import {createRequire} from 'node:module';
@@ -5,7 +6,7 @@ import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 const require=createRequire(import.meta.url),{build}=require(require.resolve('esbuild',{paths:[require.resolve('tsx')]})),{chromium,webkit}=require('playwright');
 const bundle=await build({entryPoints:['tests/fixtures/customer-service-insights-browser.tsx'],bundle:true,write:false,nodePaths:[resolve('apps/web/node_modules')],platform:'browser',jsx:'automatic',define:{'process.env.NODE_ENV':'"production"','process.env':'{}'}});
-const css=readFileSync('apps/web/app/style.css','utf8')+'\n'+readFileSync('apps/web/app/customer-records.css','utf8');
+const css=readWorkspaceStyles()+'\n'+readFileSync('apps/web/app/customer-records.css','utf8');
 const customer='30000000-0000-4000-8000-000000000001',report={items:[{customerId:customer,name:'Synthetic neighbor',archived:false,requestCount:26,generatedVisits:3,firstRequestedAt:'2026-01-01T12:00:00Z',lastRequestedAt:'2026-10-29T12:00:00Z',categories:[{service:'Lawn care',requestCount:26,lastRequestedAt:'2026-10-29T12:00:00Z'}],services:[{service:'Lawn care',task:'Leaf management',requestCount:26,lastRequestedAt:'2026-10-29T12:00:00Z'}],servicesMore:false}],page:0,hasMore:false,matchingCustomers:1,unlinkedRequests:2,linkedRequests:26,generatedVisits:3,checkedAt:'2026-10-30T12:00:00Z'};
 const server=http.createServer((req,res)=>{if(req.url==='/bundle.js'){res.setHeader('Content-Type','text/javascript');res.end(bundle.outputFiles[0].text);}else if(req.url==='/style.css'){res.setHeader('Content-Type','text/css');res.end(css);}else{res.setHeader('Content-Type','text/html');res.end('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"></head><body><div id="root"></div><script src="/bundle.js"></script></body></html>');}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port,output=resolve(process.env.YNSG_INSIGHTS_OUTPUT||'/tmp/ynsg-service-insights');mkdirSync(output,{recursive:true});let browser;const findings=[],errors=[];

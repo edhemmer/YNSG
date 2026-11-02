@@ -25,11 +25,12 @@ test('automatic preparation flags live work without treating it as completed',()
  assert.ok(brief.notes.some(n=>/Work is in progress/.test(n)));
  assert.equal(brief.requiresOwnerDecision,true);
 });
-test('field view displays one automated saved-state instruction without automatic sends',()=>{
+test('field view keeps complete prepared service notes behind optional review without automatic sends',()=>{
  const source=readFileSync(new URL('../apps/web/app/service-workflow.tsx',import.meta.url),'utf8');
  assert.match(source,/prepareFieldBrief\(request,quotes,jobs,invoices\)/);
- assert.match(source,/prepared\.notes\[0\]/);
- assert.doesNotMatch(source,/prepared\.notes\.map/);
+ assert.match(source,/prepared\.notes\.map/);
+ assert.match(source,/<details className="field-job-progress">/);
+ assert.match(source,/<summary>Review service notes<\/summary>/);
 });
 
 test('field preparation identifies high-impact operational checks without authorizing action',()=>{

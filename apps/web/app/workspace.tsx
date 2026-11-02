@@ -1,3 +1,4 @@
+import {ownerCommandMessages} from '../lib/owner-command-messages';
 'use client';
 import GrowthPlanner from './growth-planner';
 import GoogleConnectionNotice from './google-connection-notice';
@@ -183,6 +184,8 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
   const openSupport=(tasks:string[],context?:CompanionContext,initialView:'learn'|'refer'='refer')=>setNetworkSupport({organization:org,tasks,context,initialView});
   const [activeRequest,setActiveRequest]=useState<string|null>(null);
   const [mobileNav,setMobileNav]=useState(false);
+  const [workspaceLoading,setWorkspaceLoading]=useState(false);
+  const readIdentity=useRef({organization:'',accessRevision:-1});
   const [workRequest,setWorkRequest]=useState<string|null>(null);
   const [workOrigin,setWorkOrigin]=useState<{organization:string;request:string;section:string}|null>(null);
   const [customerFocus,setCustomerFocus]=useState<string|null>(null);
@@ -191,13 +194,14 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
   const hasData=Boolean(data);
   useEffect(()=>{window.scrollTo({top:0,behavior:'instant'});document.querySelector<HTMLElement>('#main h1')?.focus({preventScroll:true});},[org,section,workRequest,customerFocus,hasData]);
   useBlockedEntry('workspace',pending||invoiceBusy);
-  const sections=[{key:'Dashboard',label:'Today',icon:'dashboard'},{key:'Requests',label:'Requests',icon:'inbox'},{key:'Calendar',label:'Calendar',icon:'calendar'},{key:'Today',label:'Day routes',icon:'pin'},{key:'Customers',label:'Customers',icon:'users'},{key:'Work',label:'Jobs',icon:'work'},{key:'Money',label:'Invoices & money',icon:'money'},{key:'Snapshot',label:'Reports',icon:'chart'},{key:'Marketing',label:'Marketing',icon:'chart'},{key:'Learning',label:'Field guide',icon:'book'},{key:'Network',label:'Owner network',icon:'users'},{key:'Team',label:'Team',icon:'users'},{key:'Careers',label:'Hiring',icon:'users'},{key:'Activity',label:'Activity & messages',icon:'bell'},{key:'Settings',label:'Settings',icon:'settings'}];
+  const sections=[{key:'Dashboard',label:'Today',icon:'dashboard'},{key:'Requests',label:'Requests',icon:'inbox'},{key:'Calendar',label:'Calendar',icon:'calendar'},{key:'Today',label:'Day routes',icon:'pin'},{key:'Customers',label:'Customers',icon:'users'},{key:'Work',label:'Jobs',icon:'work'},{key:'Money',label:'Invoices & money',icon:'money'},{key:'Snapshot',label:'Reports',icon:'chart'},{key:'Marketing',label:'Marketing',icon:'chart'},{key:'Learning',label:'Field guide',icon:'book'},{key:'Network',label:'Service Rolodex',icon:'users'},{key:'Team',label:'Team',icon:'users'},{key:'Careers',label:'Hiring',icon:'users'},{key:'Activity',label:'Activity & messages',icon:'bell'},{key:'Settings',label:'Settings',icon:'settings'}];
   const primarySections=sections.filter(s=>['Dashboard','Requests','Calendar','Work','Money'].includes(s.key));
   const secondarySections=sections.filter(s=>['Today','Customers','Snapshot','Marketing','Learning','Network','Team','Careers','Activity','Settings'].includes(s.key));
   const canSeeSection=(s:{key:string})=>workspaceSectionAllowed(s.key,role);
   function applyDestination(route:WorkspaceRoute){
     // Invalidate outgoing reads synchronously, before the next render/effect.
     reloadSequence.current++;
+    setWorkspaceLoading(Boolean(route.section==='Work'&&route.request));
     setNetworkSupport(null);setOrg(route.organization);setPage(0);setSection(route.section);
     setWorkRequest(route.section==='Work'?route.request:null);
     setActiveRequest(route.section==='Requests'?route.request:null);
@@ -296,7 +300,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
   const refresh=useCallback(async (selected = org)=>{
     if (!selected) return;
     const sequence = ++reloadSequence.current;
-    setError("");
+    setWorkspaceLoading(true);setError("");
     try {
       const next = await api(
         `/api/workspace?organization=${encodeURIComponent(selected)}&page=${page}&request=${encodeURIComponent(workRequest||'')}`,
@@ -309,9 +313,12 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
         setError('Saved records could not be refreshed. Your open entries are kept unless company access has ended. '+publicError(e));
       }
     }
+    finally{if(sequence===reloadSequence.current)setWorkspaceLoading(false);}
   },[org,page,workRequest]);
   useEffect(() => {
-    setData(null);
+    const changed=readIdentity.current.organization!==org||readIdentity.current.accessRevision!==accessRevision;
+    readIdentity.current={organization:org,accessRevision};
+    if(changed)setData(null);
     if (org) void refresh(org);
   }, [org,refresh,accessRevision]);
   async function act(value: Record<string, unknown>) {
@@ -420,7 +427,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
       {session&&data&&<aside className={'crm-sidebar'+(mobileNav?' is-open':'')} aria-label="Business navigation" inert={isMobile&&!mobileNav}>
         <a className="sidebar-brand" href="/" onClick={e=>{e.preventDefault();navigate(role==='technician'?'Work':role==='bookkeeper'?'Money':role==='dispatcher'?'Requests':'Dashboard');}}>{/your neighborhood service guy/i.test(data.company.display_name)?<img src="/brand/ynsg-logo.jpg" alt="Your Neighborhood Service Guy — Home & Yard"/>:<span className="company-mark"><Icon name="leaf"/>{data.company.display_name}</span>}</a>
         <p className="sidebar-caption">Field operations</p>
-        <nav aria-label="Workspace"><p className="nav-group-label">Workflow</p>{primarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span>{s.key==='Requests'&&data.requests.some(r=>r.status==='submitted')&&<i className="nav-attention" aria-label="New requests"/>}</button>)}{secondarySections.some(canSeeSection)&&<details className="sidebar-more" open={secondarySections.some(s=>s.key===section)}><summary><Icon name="settings"/><span>Office & tools</span></summary>{secondarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span></button>)}</details>}</nav>
+        <nav aria-label="Workspace"><p className="nav-group-label">Workflow</p>{primarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span>{s.key==='Requests'&&data.requests.some(r=>r.status==='submitted')&&<i className="nav-attention" aria-label="New requests"/>}</button>)}{secondarySections.some(canSeeSection)&&<details className="sidebar-more" open={secondarySections.some(s=>s.key===section)}><summary><Icon name="settings"/><span>Office & tools</span></summary>{secondarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span></button>)}</details>}{finance&&<a className="workspace-tax-link" href={"/owner/taxes?"+new URLSearchParams({organization:org})} onClick={e=>{if(pending||invoiceBusy||!canLeave())e.preventDefault();}}><Icon name="money"/><span>Taxes</span></a>}</nav>
         <div className="sidebar-footer"><span className="sidebar-profile">{session.email.slice(0,2).toUpperCase()}</span><div><strong>{role==='owner'?'Business owner':'Team workspace'}</strong><small>{session.email}</small></div></div>
       </aside>}
       {session&&<header className="crm-topbar"><div className="topbar-context"><span className="context-dot"/>{session.memberships.length>1?(<div className="company-switcher" hidden={session.memberships.length===1}><label htmlFor="company">Switch business</label>
@@ -451,7 +458,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
         <div className="workspace-feedback">
           {session&&pendingJobAction?.actor===session.email&&<section className="card timer-recovery" role="status"><strong>Check the saved timer action</strong><p>Check the original {pendingJobAction.body.action} action before starting another timer. This checks its saved result without creating an extra timer.</p><button type="button" disabled={pending||invoiceBusy||!session.memberships.some(m=>m.organization_id===pendingJobAction.body.organizationId&&['owner','admin','technician'].includes(m.role))} onClick={()=>void sendFieldAction(pendingJobAction,true)}>Check saved timer action</button>{!session.memberships.some(m=>m.organization_id===pendingJobAction.body.organizationId&&['owner','admin','technician'].includes(m.role))&&<p>Current access to the original company is required. The retry remains saved.</p>}</section>}
           {session&&timerRecoveryUnavailable&&<p className="error" role="alert">Timer recovery on this device needs attention. Keep the original browser tab and retry available; do not start a replacement timer.</p>}
-          {error && <div role="alert" className="error card workspace-error"><p>{error}</p><button type="button" className="secondary" aria-label="Dismiss message" onClick={()=>setError("")}>Dismiss</button></div>}
+          {error && <div role="alert" className="error card workspace-error"><p>{error}</p>{error===ownerCommandMessages.SERVICE_REVIEW_REQUIRED&&<a className="button secondary" target="_blank" rel="noopener noreferrer" href={"/owner?"+new URLSearchParams({section:"Settings",organization:org,setup:"services"})}>Review service setup</a>}<button type="button" className="secondary" aria-label="Dismiss message" onClick={()=>setError("")}>Dismiss</button></div>}
           {message && <p role="status" className="note">{message}</p>}
         </div>
         {!configured ? (
@@ -486,9 +493,8 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
               <>
                 {!data && (
                   <div className="card">
-                    <h2>Open your workspace</h2>
-                    <p>Your sign-in is complete. If your workspace has not loaded, try again.</p>
-                    <button disabled={pending} onClick={() => void refresh()}>Reload workspace</button>
+                    <h2>{error?"Your records could not load":"Loading your work…"}</h2>
+                    {error?<button disabled={pending||workspaceLoading} onClick={() => void refresh()}>Try loading records again</button>:<p role="status">Getting today’s saved work.</p>}
                   </div>
                 )}
                 {data && (
@@ -525,7 +531,8 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
 
                       {workRequest&&<button type="button" className="secondary work-return" onClick={()=>navigate(workOrigin?.organization===org&&workOrigin.request===workRequest&&canSeeSection({key:workOrigin.section})?workOrigin.section:'Work')}>{workOrigin?.organization===org&&workOrigin.request===workRequest&&canSeeSection({key:workOrigin.section})?'Back to '+(sections.find(s=>s.key===workOrigin.section)?.label||'jobs'):'All jobs'}</button>}
                       {role==='technician'?<FieldWork key={org} organization={org}/>:workRequest?data.requests.filter(r=>r.id===workRequest).map(r=><ServiceWorkflow companyName={data.company.display_name} onNetwork={openSupport} key={r.id} onCustomer={openCustomer} organization={org} request={{...r,appointments:data.appointments.filter(a=>a.request_id===r.id)}} quotes={data.quotes.filter(q=>q.request_id===r.id)} jobs={data.jobs.filter(j=>data.quotes.some(q=>q.id===j.quote_id&&q.request_id===r.id))} invoices={data.invoices.filter(i=>data.jobs.some(j=>j.id===i.job_id&&data.quotes.some(q=>q.id===j.quote_id&&q.request_id===r.id)))} timezone={data.company.timezone} canManage={['owner','admin'].includes(role||'')} canQuote={operational} canWork={Boolean(data.features?.productionWorkflows)&&['owner','admin','technician'].includes(role||'')} busy={pending||invoiceBusy} onBusy={setInvoiceBusy} onReview={()=>setActiveRequest(r.id)} act={act} fieldAction={fieldAction} onChanged={()=>void refresh()}/>):null}
-                      {role!=='technician'&&workRequest&&!data.requests.some(r=>r.id===workRequest)&&<div className="card" role="alert"><h2>This job could not be opened</h2><p>It may no longer be available to this account. Refresh to check its saved status, or return to Requests.</p><button className="secondary" disabled={pending||invoiceBusy} onClick={()=>void refresh()}>Check saved job</button></div>}
+                      {role!=='technician'&&workRequest&&workspaceLoading&&!data.requests.some(r=>r.id===workRequest)&&<p role="status">Loading this job…</p>}
+                      {role!=='technician'&&workRequest&&!workspaceLoading&&!data.requests.some(r=>r.id===workRequest)&&<div className="card" role="alert"><h2>This job could not be opened</h2><p>It may no longer be available to this account. Refresh to check its saved status, or return to Requests.</p><button className="secondary" disabled={pending||invoiceBusy} onClick={()=>void refresh()}>Check saved job</button></div>}
 
                     </>}
                     {section === "Money" && (

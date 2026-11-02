@@ -336,6 +336,8 @@ export default function CompanySettingsPanel({
       await sendReviewedSettings();
     }catch(error){const issue=settingsIssue(error);if(issue)showIssue(issue);else setError(settingsError(error));}
   }
+  const catalogFocused=useRef(false);
+  useEffect(()=>{if(!loading&&draft&&!catalogFocused.current&&new URLSearchParams(location.search).get('setup')==='services'){const target=document.getElementById('company-service-catalog');if(target){catalogFocused.current=true;target.scrollIntoView({block:'start'});target.focus({preventScroll:true});}}},[loading,draft]);
   const statusCallback=useRef(onStatus);statusCallback.current=onStatus;
   const reviewStatus=loading?'Checking settings…':unknown?'Save needs confirmation':pending?'Saving reviewed changes…':draft&&snapshot!==baseline?'Unsaved changes':!draft?(error?'Status unavailable':'Setup needed'):!draft.sellerVerified?'Confirm business identity':!draft.taxTreatmentVerified?'Review invoice tax setup':'Saved business settings';
   useEffect(()=>{statusCallback.current?.(reviewStatus)},[reviewStatus]);
@@ -719,7 +721,7 @@ export default function CompanySettingsPanel({
             </p>
           </fieldset>
           <fieldset disabled={pending||unknown}>
-            <legend>Company service catalog</legend>
+            <legend id="company-service-catalog" tabIndex={-1}>Company service catalog</legend>
             <p>
               Choose the services you offer, their scope and pricing approach. Only offer work you are qualified, insured and legally permitted to perform. Keep
               a published name for historical references; mark a retired service

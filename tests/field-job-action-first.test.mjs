@@ -30,9 +30,9 @@ test('workflow controls still use canonical saved-state permission and recovery 
 
 test('less primary-screen clutter does not conceal agreements, customer notes, preparation, or invoices',()=>{
  assert.ok(job.includes('<details className="field-job-progress">'));
- assert.ok(job.includes('<nav className="field-workflow-stages"'));
+ assert.ok(!job.includes('<nav className="field-workflow-stages"'),'Non-interactive progress tabs are removed');
  assert.ok(job.includes('prepared.preparedActions.map'));
- assert.ok(job.includes('prepared.notes.slice(1)'));
+ assert.ok(job.includes('prepared.notes.map'));
  assert.ok(job.includes('open={task.kind===\'confirm\'||task.kind===\'agreement\'}'));
  assert.ok(job.includes('scopeCharacters.slice(0,120)'));
  assert.ok(job.includes('<details><summary>Read full agreed scope'));
