@@ -65,6 +65,10 @@ select pg_temp.assert_true((select count(*)=1 and sum(cents)=16500 from public.p
 select pg_temp.assert_true((select count(*)=1 from public.audit_events where action='invoice.field_approved'),'audit identifies actual field issuer');
 select pg_temp.assert_true((select sum(debit_cents::bigint-credit_cents)=0 from public.journal_lines),'field closeout ledger balances');
 set local role authenticated;
+-- Exercise the actual deferred trigger under the field actor, before rollback.
+select pg_temp.assert_true((select count(*)=0 from public.journal_lines),'technician cannot read the private ledger');
+set constraints public.journal_balanced immediate;
+set constraints public.journal_balanced deferred;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001"}',true);
 select public.assign_lead('20000000-0000-4000-8000-000000000001',(select id from public.service_requests limit 1),2,null,'Owner resumes responsibility','85000000-0000-4000-8000-000000000004');
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000004","session_id":"10000000-0000-4000-8000-000000000004"}',true);

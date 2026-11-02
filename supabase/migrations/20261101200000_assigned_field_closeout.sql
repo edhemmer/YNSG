@@ -1,3 +1,9 @@
+-- Deferred ledger validation must inspect canonical lines even when a scoped
+-- technician issues an invoice. This trigger returns no data and has no client
+-- EXECUTE grant; ledger reads remain restricted by their existing RLS policies.
+alter function private.assert_balanced() security definer;
+revoke all on function private.assert_balanced() from public,anon,authenticated,service_role;
+
 -- Office owns commercial agreements, scheduling and tax setup. A primary assigned
 -- technician may execute the approved visit, issue its reviewed invoice and record
 -- actual cash/Zelle receipts. Additional labor-review delegation is not this authority.
