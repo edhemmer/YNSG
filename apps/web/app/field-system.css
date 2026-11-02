@@ -29,3 +29,5 @@
 .company-workspace:not(.signed-out){font-size:16px}.company-workspace .estimate-options>summary{min-height:44px;cursor:pointer}.company-workspace .field-job-progress .note{border:0;padding:0}.company-workspace .field-job-progress .note>summary{font-weight:400}.company-workspace .field-job-progress ul{padding-left:20px;font-size:15px}.company-workspace .schedule-review .note{margin:8px 0}.company-workspace .field-task .schedule-review>div>p:last-of-type{font-size:14px}
 
 .network-lookup{--font-ui:"Segoe UI",Arial,Helvetica,sans-serif;font:400 16px/1.5 var(--font-ui)}.network-lookup :is(input,button,select,textarea){font-family:var(--font-ui)}.network-lookup :is(h2,h3,h4){font-family:var(--font-ui);font-weight:600}.network-lookup :is(summary,label,strong,button){font-weight:500}.company-workspace .field-prepared-actions{padding:0;background:transparent;border:0}.company-workspace .field-prepared-actions ul{padding-left:20px}.company-workspace .owner-learning>aside.note{padding:12px;margin:12px 0}
+.company-workspace:not(.signed-out) small{font-size:14px}
+.network-lookup small{font-size:14px}
