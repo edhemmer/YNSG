@@ -24,6 +24,7 @@ async function mount({role='owner',width=390,path='?section=Requests',theme='lig
   const req=route.request(),url=new URL(req.url());if(url.origin!==origin)throw Error('External request blocked');
   if(!url.pathname.startsWith('/api/'))return route.continue();
   if(req.method()==='POST'&&url.pathname==='/api/privacy'&&req.postDataJSON().action==='read')return route.fulfill({status:503,json:{error:'Synthetic privacy read unavailable'}});
+  if(url.pathname==='/api/google'&&req.method()==='POST'&&req.postDataJSON()?.action==='calendars')return route.fulfill({json:{calendars:[{id:'synthetic-calendar',summary:'Synthetic calendar',timeZone:'America/Chicago'}]}});
   if(req.method()==='POST'){writes.push({path:url.pathname,body:req.postData()});if(control.post)return control.post(route,req,url);return route.fulfill({status:503,json:{error:'Synthetic write unavailable'}});}
   reads.push(url.pathname+url.search);
   if(url.pathname==='/api/session')return route.fulfill({status:control.sessionStatus,json:control.sessionStatus===200?{email:'owner@example.invalid',memberships:control.memberships}:{error:'Sign in required'}});
@@ -39,7 +40,6 @@ async function mount({role='owner',width=390,path='?section=Requests',theme='lig
   if(url.pathname==='/api/scheduling-readiness')return route.fulfill({json:{websiteCalendarReady:true,mailServiceReady:true,mailReady:true,routesStatus:'active',checks:[],publicAvailabilityConfigured:true,recurringReservationsReady:true,background:{mailSwitchEnabled:true,schedulerStatus:{jobs:[{name:'ynsg-mail-worker',active:true}]},executionHealth:{checkedAt:new Date().toISOString(),workers:[{kind:'mail',lastRequestedAt:new Date().toISOString(),lastSuccessfulAt:new Date().toISOString(),lastOutcome:'success'}],queue:{needsReview:0,overdue:0,waiting:0}}}}});
   if(url.pathname==='/api/scheduling-review')return route.fulfill({json:{...scheduleContext,...(url.searchParams.has('appointment')?{appointment:fixture.data.requests[0].appointments[0],appointmentResources:[resource]}:{})}});
   if(url.pathname==='/api/availability')return route.fulfill({json:{reserved:false,timezone:'America/Chicago',validUntil:new Date(Date.now()+60000).toISOString(),times:[{start:(url.searchParams.get('day')||'2099-10-19')+'T14:00:00Z'}]}});
-  if(url.pathname==='/api/google'&&route.request().method()==='POST')return route.fulfill({json:{calendars:[{id:'synthetic-calendar',summary:'Synthetic calendar',timeZone:'America/Chicago'}]}});
   if(url.pathname==='/api/google')return route.fulfill({json:{missing:[],calendarSyncEnabled:control.google==='healthy',dispatcherEnabled:control.google==='healthy',delivery:{enabled:control.google==='healthy'},maps:null,connection:{connected:control.google!=='disconnected',health:control.google,email:null,services:{calendar:control.google==='healthy',gmail:control.google==='healthy'},calendarId:'synthetic-calendar',canCreateCalendar:false,checkedAt:null,gmailTest:'not_tested'}}});
   if(url.pathname==='/api/notification-attention'){
    if(control.messageError)return route.fulfill({status:503,json:{error:'Synthetic message read unavailable'}});
