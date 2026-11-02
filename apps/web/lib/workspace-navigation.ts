@@ -1,16 +1,17 @@
 export type WorkspaceMembership = { organization_id: string; role: string };
 export type WorkspaceRoute = { organization: string; section: string; request: string | null; customer: string | null };
-const sections = ['Dashboard', 'Requests', 'Calendar', 'Today', 'Customers', 'Work', 'Money', 'Snapshot', 'Marketing', 'Learning', 'Network', 'Activity', 'Settings'];
+const sections = ['Dashboard', 'Requests', 'Calendar', 'Today', 'Customers', 'Work', 'Money', 'Snapshot', 'Marketing', 'Learning', 'Network', 'Team', 'Careers', 'Activity', 'Settings'];
 const uuid = /^[a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12}$/i;
 export function workspaceHome(role?: string) {
-  return role === 'technician' ? 'Today' : role === 'bookkeeper' ? 'Money' : role === 'dispatcher' ? 'Requests' : 'Dashboard';
+  return role === 'technician' ? 'Work' : role === 'bookkeeper' ? 'Money' : role === 'dispatcher' ? 'Requests' : 'Dashboard';
 }
 export function workspaceSectionAllowed(section: string, role?: string) {
   if (!sections.includes(section)) return false;
+  if (section === 'Careers') return role === 'owner';
   if (role === 'owner' || role === 'admin') return true;
   if (role === 'dispatcher') return ['Requests', 'Customers', 'Work', 'Today'].includes(section);
   if (role === 'bookkeeper') return ['Customers', 'Money'].includes(section);
-  return role === 'technician' && ['Today', 'Work'].includes(section);
+  return role === 'technician' && section === 'Work';
 }
 // URL values identify a destination, never confer company or record authority.
 export function readWorkspaceRoute(url: URL, memberships: WorkspaceMembership[], fallback = ''): WorkspaceRoute {

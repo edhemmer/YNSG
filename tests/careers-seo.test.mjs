@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {seo,canonicalUrl} from '../scripts/seo.mjs';
+test('careers directory connects crawlable role pages with truthful collection schema',()=>{
+ const graph=JSON.parse(seo('careers','Careers','Local home and yard careers').schema)['@graph'],page=graph.find(x=>x['@type']==='CollectionPage'),list=graph.find(x=>x['@id']===page.mainEntity['@id']);
+ assert.equal(page.url,canonicalUrl('careers'));assert.equal(list['@type'],'ItemList');assert.deepEqual(list.itemListElement.map(x=>x.url),[canonicalUrl('careers/small-home-jobs'),canonicalUrl('careers/yard-work')]);assert.equal(graph.some(x=>x['@type']==='JobPosting'),false,'Interest-based board must not fabricate a specific guaranteed vacancy');
+});
+test('each opportunity has unique local search metadata, careers breadcrumb and direct role application',()=>{
+ const titles=new Set();for(const [slug,role]of [['careers/small-home-jobs','home_support'],['careers/yard-work','yard_support']]){const meta=seo(slug,'Opportunity','Local field support'),graph=JSON.parse(meta.schema)['@graph'],crumb=graph.find(x=>x['@type']==='BreadcrumbList'),html=readFileSync('site/pages/'+slug+'.html','utf8');assert.match(meta.title,/DeKalb/);titles.add(meta.title);assert.equal(crumb.itemListElement[1].item,canonicalUrl('careers'));assert.equal(crumb.itemListElement.at(-1).item,canonicalUrl(slug));assert.ok(html.includes('https://yourneighborhoodserviceguy.app/careers?role='+role));assert.match(html,/Veterans are encouraged/);assert.match(html,/All qualified applicants/);assert.match(html,/Sycamore/);assert.match(html,/Cortland/);assert.doesNotMatch(html,/\$[0-9]|1099|JobPosting/);}assert.equal(titles.size,2);
+});

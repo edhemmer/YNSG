@@ -1,3 +1,4 @@
+import {officeAssignee,officeRequestPage} from '../../../lib/team-contract';
 import {completeInvoicePayments} from '../../../lib/complete-invoice-payments';
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
@@ -14,16 +15,10 @@ export async function GET(request:Request){
   const {db,user}=await authenticated();
   const access=await db.from('memberships').select('role').eq('organization_id',org).eq('user_id',user.id).is('revoked_at',null).in('role',['owner','admin','dispatcher']).maybeSingle();
   if(access.error||!access.data)return NextResponse.json({error:'Your account cannot review requests for this business.'},{status:403,headers});
-  let records=db.from('service_requests').select('id,customer_id,status,revision,created_at,original_submission,appointments!appointments_organization_id_request_id_fkey(id,request_id,job_id,status,revision,start_at,end_at,arrival_at,expires_at,replaces_id,customer_response)',{count:'exact'}).eq('organization_id',org);
-  if(selected)records=records.eq('id',selected);
-  else{
-   records=records.is('recurring_series_id',null);
-   if(filter==='review')records=records.in('status',['submitted','reviewing','quoted']);
-   if(filter==='closed')records=records.in('status',['declined','canceled']);
-   if(search)records=records.or(['name','street','city','email','phone'].map(field=>`original_submission->>${field}.ilike.*${search}*`).join(','));
-  }
-  const [rows,count]=await Promise.all([records.order('created_at',{ascending:false}).order('id').range(page*20,page*20+19),db.from('service_requests').select('id',{count:'exact',head:true}).eq('organization_id',org).in('status',['submitted','reviewing'])]);
-  if(rows.error||count.error||rows.count===null||count.count===null)throw Error('FAILED');
+  const assignee=officeAssignee.parse(q.get('assignee')||'all');
+  const result=await db.rpc('office_request_page',{p_org:org,p_page:page,p_filter:filter,p_query:search,p_assignee:assignee,p_selected:selected||null});if(result.error)throw result.error;
+  const office=officeRequestPage.parse(result.data);if(office.organization!==org||office.page!==page||office.requests.length!==Math.max(0,Math.min(20,office.total-page*20)))throw Error('UNVERIFIED');
+  const rows={data:office.requests,count:office.total};
   const ids=rows.data.map(r=>r.id);
   const [quotes,preferences]=ids.length?await Promise.all([
    db.from('quotes').select('id,request_id,status,current_version,quote_versions(version,scope,labor_cents,duration_minutes)').eq('organization_id',org).in('request_id',ids).order('id').limit(1001),
@@ -36,6 +31,6 @@ export async function GET(request:Request){
   const jobIds=jobs.data!.map(v=>v.id);
   const invoices=jobIds.length?await db.from('invoices').select('id,job_id,number,total_cents').eq('organization_id',org).in('job_id',jobIds).limit(1001):{data:[],error:null};
   if(invoices.error||invoices.data!.length>1000)throw Error('FAILED');
-  return NextResponse.json({requests:rows.data,total:rows.count,needsReview:count.count,page,hasMore:(page+1)*20<rows.count,checkedAt:new Date().toISOString(),quotes:quotes.data,jobs:jobs.data,invoices:await completeInvoicePayments(db,org,invoices.data||[]),preferences:preferences.data},{headers});
+  return NextResponse.json({organization:org,requests:rows.data,total:rows.count,needsReview:office.needsReview,page,hasMore:(page+1)*20<rows.count,checkedAt:new Date().toISOString(),quotes:quotes.data,jobs:jobs.data,invoices:await completeInvoicePayments(db,org,invoices.data||[]),preferences:preferences.data,assignments:office.assignments,technicians:office.technicians},{headers});
  }catch(e){return failure(e);}
 }

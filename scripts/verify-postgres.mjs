@@ -1,3 +1,4 @@
+import {verifyCareersFieldRaces} from './verify-careers-field-races.mjs';
 import {withNetworkCatalog} from './sql-fixture-catalog.mjs';
 import {verifyOwnerNetworkRaces} from './verify-owner-network-races.mjs';
 import {verifyTaskTimeRaces} from './verify-task-time-races.mjs';
@@ -161,5 +162,6 @@ const capturedManifest=JSON.parse(await readFile(join(capturedDirectory,'verifie
 assert.equal(reconcileRecoveryCatalog(capturedCatalog,capturedManifest).verified,files.length);
 assert.deepEqual(JSON.parse((await sql(snapshotSql,'ynsg_capture')).trim()),before);
 console.log('PASS: source capture exports one live read-only snapshot; concurrent later write excluded from dump, all original files and financial records restored');
+await verifyCareersFieldRaces(sql);
 await verifyTaskTimeRaces(sql);
 await verifyOwnerNetworkRaces(sql);

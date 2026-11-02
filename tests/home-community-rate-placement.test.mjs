@@ -8,9 +8,11 @@ test('homepage publishes clear hourly terms and links to complete pricing',()=>{
  assert.match(home,/Community Rate for qualifying neighbors/);
  assert.ok(home.includes('href="/pricing/"'));
  const pricingPage=readFileSync('site/pages/pricing.html','utf8');
- assert.match(pricingPage,/\$60 <span>\/ hour<\/span>/);
- assert.match(pricingPage,/\$45 <span>\/ hour<\/span>/);
- assert.match(pricingPage,/Two-hour minimum/);
+ assert.match(pricingPage,/\$60 <span>\/ person \/ hour<\/span>/);
+ assert.match(pricingPage,/\$45 <span>\/ person \/ hour<\/span>/);
+ assert.match(pricingPage,/First-person two-hour minimum/);
+ assert.match(pricingPage,/three people each working one hour/);
+ assert.match(pricingPage,/>\$180 in labor</);
  assert.match(home,/>Request service appointment(?:\s|<)/);
  const build=readFileSync('scripts/build.mjs','utf8');
  assert.doesNotMatch(build,/nav-request-short[^>]*>Request appt</);
@@ -19,7 +21,7 @@ test('homepage publishes clear hourly terms and links to complete pricing',()=>{
 test('request details explain Community Rate while preserving the original Yes No input contract',()=>{
  const form=readFileSync('site/pages/form.html','utf8');
  const pricing=form.match(/<fieldset class="form-field community-choice">[\s\S]*?<\/fieldset>/)?.[0]||'';
- assert.match(pricing,/\$45\/hour/);
+ assert.match(pricing,/\$45\/person\/hour/);
  assert.match(pricing,/name="communityRate" value="Yes"/);
  assert.match(pricing,/name="communityRate" value="No" checked/);
  assert.match(pricing,/confirm eligibility and pricing/);

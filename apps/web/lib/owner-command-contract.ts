@@ -18,6 +18,7 @@ export const ownerCommandSchema = z.discriminatedUnion("command", [
     revision: z.number().int().positive(),
     scope: z.string().min(10).max(5000),
     minutes: z.number().int().min(120).max(1440).multipleOf(30),
+    crewSize: z.number().int().min(1).max(6).optional(),
     community: z.boolean(),
     eligibilityReviewed: z.boolean(),
     customerId: z.uuid().nullable(),

@@ -16,6 +16,6 @@ export default async function handler(req,res){
   return res.status(200).json(await websiteHold(req,{action:d.action,key:d.key,clientKey:d.clientKey,token:d.token,start}));
  }catch(error){
   const status=[409,429].includes(error.status)?error.status:503;
-  return res.status(status).json({error:status===409?'That time is no longer available. Please choose another time.':status===429?'Please wait a moment before checking another time, or call 770-630-2094.':'We couldn’t hold that time. Please try again, or send your request without a time.'});
+  return res.status(status).json({error:status===409?'That time is no longer available. Please choose another time.':status===429?'Please wait a moment before checking another time, or call 815-680-1775.':'We couldn’t hold that time. Please try again, or send your request without a time.'});
  }
 }

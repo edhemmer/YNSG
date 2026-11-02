@@ -3646,7 +3646,7 @@
             "WorkspaceCookie": []
           }
         ],
-        "x-ynsg-permission": "owner/admin",
+        "x-ynsg-permission": "owner/admin or current primary technician assigned to this job; exact revision and approved financial cap remain canonical",
         "x-ynsg-origin-required": true,
         "requestBody": {
           "required": true,
@@ -8895,6 +8895,2927 @@
           }
         }
       }
+    },
+    "/api/career-apply": {
+      "get": {
+        "operationId": "readCurrentCareerOpportunities",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Current home/yard interest roles only; no farm recruiting, wage or work guarantee.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accepting": {
+                      "type": "boolean"
+                    },
+                    "checkedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    "roles": {
+                      "maxItems": 2,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "home_support",
+                          "yard_support"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "accepting",
+                    "checkedAt",
+                    "roles"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      },
+      "post": {
+        "operationId": "submitOrResolvePrivateCareerInterest",
+        "security": [],
+        "x-ynsg-origin-required": true,
+        "x-ynsg-max-body-bytes": 1200000,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "proof": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "action": {
+                    "type": "string",
+                    "const": "resolve"
+                  }
+                },
+                "required": [
+                  "key",
+                  "proof",
+                  "action"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "key",
+                  "proof",
+                  "profile"
+                ],
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "proof": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "profile": {
+                    "type": "string",
+                    "description": "JSON conforming to CareerProfile"
+                  },
+                  "resume": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Optional PDF, max 1048576 bytes, no identity documents."
+                  },
+                  "website": {
+                    "type": "string",
+                    "maxLength": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal proof-bound application receipt. Uncertain sends reconcile the same key; never return profile or resume.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "organization": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "key": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "id": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "outcome": {
+                      "type": "string",
+                      "enum": [
+                        "received",
+                        "not_applied"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "organization",
+                    "key",
+                    "id",
+                    "outcome"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    },
+    "/api/careers-owner": {
+      "get": {
+        "operationId": "readPrivateHiringInbox",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner only; current tenant and live session",
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "default": 0,
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "default": "all",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "new",
+                    "reviewing",
+                    "contacted",
+                    "closed",
+                    "withdrawn"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "all"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Original private applications, bounded 25 per page; no file bytes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "organization": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "actor": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "checkedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    "policy": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "employeeCount": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "reviewUntil": {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                        },
+                        "revision": {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "enabled",
+                        "employeeCount",
+                        "reviewUntil",
+                        "revision"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "hasMore": {
+                      "type": "boolean"
+                    },
+                    "items": {
+                      "maxItems": 25,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "profile": {
+                            "type": "object",
+                            "properties": {
+                              "role": {
+                                "type": "string",
+                                "enum": [
+                                  "home_support",
+                                  "yard_support"
+                                ]
+                              },
+                              "name": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 120,
+                                "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+                              },
+                              "email": {
+                                "type": "string",
+                                "maxLength": 254,
+                                "format": "email",
+                                "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                              },
+                              "phone": {
+                                "type": "string",
+                                "maxLength": 35,
+                                "allOf": [
+                                  {
+                                    "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+                                  },
+                                  {
+                                    "pattern": "^[+\\d() .x#-]{7,35}$"
+                                  }
+                                ]
+                              },
+                              "city": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 80,
+                                "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+                              },
+                              "skills": {
+                                "minItems": 1,
+                                "maxItems": 12,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "Furniture assembly",
+                                    "Household hardware",
+                                    "Minor drywall patches",
+                                    "Organizing",
+                                    "Lawn care",
+                                    "Garden-bed care",
+                                    "Leaf management",
+                                    "Mulch handling",
+                                    "Residential snow",
+                                    "Manageable cleanouts",
+                                    "Customer communication",
+                                    "Other relevant experience"
+                                  ]
+                                }
+                              },
+                              "experience": {
+                                "type": "string",
+                                "minLength": 20,
+                                "maxLength": 4000,
+                                "pattern": "^[^\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]*$"
+                              },
+                              "availability": {
+                                "type": "string",
+                                "minLength": 5,
+                                "maxLength": 1000,
+                                "pattern": "^[^\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]*$"
+                              },
+                              "travel": {
+                                "type": "string",
+                                "enum": [
+                                  "yes",
+                                  "discuss"
+                                ]
+                              },
+                              "authorized": {
+                                "type": "string",
+                                "enum": [
+                                  "yes",
+                                  "discuss"
+                                ]
+                              },
+                              "adult": {
+                                "type": "boolean",
+                                "const": true
+                              },
+                              "privacy": {
+                                "type": "boolean",
+                                "const": true
+                              },
+                              "notice": {
+                                "type": "string",
+                                "const": "careers-2026-11-01"
+                              }
+                            },
+                            "required": [
+                              "role",
+                              "name",
+                              "email",
+                              "phone",
+                              "city",
+                              "skills",
+                              "experience",
+                              "availability",
+                              "travel",
+                              "authorized",
+                              "adult",
+                              "privacy",
+                              "notice"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "new",
+                              "reviewing",
+                              "contacted",
+                              "closed",
+                              "withdrawn"
+                            ]
+                          },
+                          "revision": {
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          "resume": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "maxLength": 180,
+                                    "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+                                  },
+                                  "bytes": {
+                                    "type": "integer",
+                                    "minimum": -9007199254740991,
+                                    "maximum": 1048576
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "bytes"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "history": {
+                            "maxItems": 100,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "at": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                                },
+                                "actor": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "new",
+                                    "reviewing",
+                                    "contacted",
+                                    "closed",
+                                    "withdrawn"
+                                  ]
+                                },
+                                "note": {
+                                  "type": "string",
+                                  "maxLength": 2000,
+                                  "pattern": "^[^\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]*$"
+                                }
+                              },
+                              "required": [
+                                "at",
+                                "actor",
+                                "status",
+                                "note"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "profile",
+                          "status",
+                          "revision",
+                          "createdAt",
+                          "updatedAt",
+                          "resume",
+                          "history"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "organization",
+                    "actor",
+                    "checkedAt",
+                    "policy",
+                    "page",
+                    "total",
+                    "hasMore",
+                    "items"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      },
+      "post": {
+        "operationId": "recordPrivateHiringReview",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner only; actor-bound immutable attempt, exact revision and explicit actual-contact attestation",
+        "x-ynsg-origin-required": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CareerOwnerInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verified save or not-applied tombstone. Does not send email or make a hiring decision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "organization": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "key": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "id": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "revision": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "action": {
+                      "type": "string",
+                      "enum": [
+                        "review",
+                        "configure"
+                      ]
+                    },
+                    "outcome": {
+                      "type": "string",
+                      "enum": [
+                        "saved",
+                        "not_applied"
+                      ]
+                    },
+                    "fingerprint": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  },
+                  "required": [
+                    "organization",
+                    "key",
+                    "id",
+                    "revision",
+                    "action",
+                    "outcome",
+                    "fingerprint"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    },
+    "/api/careers-resume": {
+      "get": {
+        "operationId": "downloadPrivateApplicantResume",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner only; current tenant and live session",
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Hash-verified private PDF attachment, max 1MB, audited owner access. No inline renderer, public URL or malware-free claim.",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    },
+    "/api/field-labor": {
+      "get": {
+        "operationId": "readAssignedJobInvoiceDraft",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner/admin or current primary assigned technician",
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          {
+            "name": "job",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current saved draft, per-person terms and office-reviewed tax readiness. No financial setup authority.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "organization": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "job": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "crew": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "billingBasis": {
+                              "type": "string",
+                              "const": "per_person_first_minimum"
+                            },
+                            "plannedPeople": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 6
+                            },
+                            "perPersonRateCents": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "maximum": 999999999
+                            },
+                            "firstPersonMinimumMinutes": {
+                              "type": "number",
+                              "const": 120
+                            },
+                            "additionalPersonMinimumMinutes": {
+                              "type": "number",
+                              "const": 0
+                            },
+                            "partialExtension": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "ceil",
+                                    "exact"
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "billingBasis",
+                            "plannedPeople",
+                            "perPersonRateCents",
+                            "firstPersonMinimumMinutes",
+                            "additionalPersonMinimumMinutes",
+                            "partialExtension"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "draft": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "lines": {
+                              "minItems": 1,
+                              "maxItems": 50,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "crewPerson": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 6
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "minLength": 2,
+                                    "maxLength": 1000
+                                  },
+                                  "recordedMinutes": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 1440
+                                  },
+                                  "chargedCents": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 999999999
+                                  },
+                                  "waiverReason": {
+                                    "type": "string",
+                                    "maxLength": 1000
+                                  },
+                                  "billingBasis": {
+                                    "type": "string",
+                                    "enum": [
+                                      "hourly",
+                                      "fixed"
+                                    ]
+                                  },
+                                  "billingMinutes": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 1440
+                                  },
+                                  "unitRateCents": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 999999999
+                                  }
+                                },
+                                "required": [
+                                  "description",
+                                  "recordedMinutes",
+                                  "chargedCents",
+                                  "waiverReason"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "jobRevision": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9007199254740991
+                            }
+                          },
+                          "required": [
+                            "lines",
+                            "jobRevision"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "canIssue": {
+                      "type": "boolean"
+                    },
+                    "tax": {
+                      "type": "object",
+                      "properties": {
+                        "required": {
+                          "type": "boolean"
+                        },
+                        "valid": {
+                          "type": "boolean"
+                        },
+                        "tax": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "taxCents": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                }
+                              },
+                              "required": [
+                                "taxCents"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "rules": {
+                          "type": "array",
+                          "items": {
+                            "not": {}
+                          }
+                        }
+                      },
+                      "required": [
+                        "required",
+                        "valid",
+                        "tax",
+                        "rules"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "readiness": {
+                      "type": "object",
+                      "properties": {
+                        "ready": {
+                          "type": "boolean"
+                        },
+                        "reasons": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "ready",
+                        "reasons"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "organization",
+                    "job",
+                    "crew",
+                    "draft",
+                    "canIssue",
+                    "tax",
+                    "readiness"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    },
+    "/api/technicians": {
+      "get": {
+        "operationId": "readPrivateTechnicianDirectory",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner/admin",
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "default": 0,
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "default": "",
+              "type": "string",
+              "maxLength": 100,
+              "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+            }
+          },
+          {
+            "name": "archived",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "default": "active",
+              "type": "string",
+              "enum": [
+                "active",
+                "all"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Private name, phone, email and office notes; separate from applicants and customers.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "organization": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "actor": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "hasMore": {
+                      "type": "boolean"
+                    },
+                    "items": {
+                      "maxItems": 25,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "revision": {
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "profile": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 120,
+                                "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+                              },
+                              "phone": {
+                                "type": "string",
+                                "maxLength": 35,
+                                "allOf": [
+                                  {
+                                    "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+                                  },
+                                  {
+                                    "pattern": "^[+\\d() .x#-]{7,35}$"
+                                  }
+                                ]
+                              },
+                              "email": {
+                                "type": "string",
+                                "maxLength": 254,
+                                "format": "email",
+                                "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                              },
+                              "skills": {
+                                "type": "string",
+                                "maxLength": 500,
+                                "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+                              },
+                              "notes": {
+                                "type": "string",
+                                "maxLength": 2000,
+                                "pattern": "^[^\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]*$"
+                              },
+                              "userId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "archived": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "phone",
+                              "email",
+                              "skills",
+                              "notes",
+                              "userId",
+                              "archived"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          "activeLeads": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "revision",
+                          "profile",
+                          "updatedAt",
+                          "activeLeads"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "accounts": {
+                      "maxItems": 100,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "email": {
+                            "type": "string",
+                            "maxLength": 254,
+                            "format": "email",
+                            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "email"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "organization",
+                    "actor",
+                    "page",
+                    "total",
+                    "hasMore",
+                    "items",
+                    "accounts"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    },
+    "/api/lead-assignment": {
+      "get": {
+        "operationId": "readLeadResponsibility",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner/admin",
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          {
+            "name": "request",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owner is the default; selected technician is an explicit operational handoff.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "organization": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "actor": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "request": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "revision": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "technician": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "assignedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "note": {
+                      "type": "string",
+                      "maxLength": 2000,
+                      "pattern": "^[^\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]*$"
+                    },
+                    "contact": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "name": {
+                              "type": "string",
+                              "maxLength": 120,
+                              "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+                            },
+                            "phone": {
+                              "type": "string",
+                              "maxLength": 35,
+                              "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+                            },
+                            "email": {
+                              "type": "string",
+                              "format": "email",
+                              "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                            },
+                            "archived": {
+                              "type": "boolean"
+                            },
+                            "userId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "phone",
+                            "email",
+                            "archived",
+                            "userId"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "organization",
+                    "actor",
+                    "request",
+                    "revision",
+                    "technician",
+                    "assignedAt",
+                    "note",
+                    "contact"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    },
+    "/api/team-command": {
+      "post": {
+        "operationId": "saveTechnicianOrLeadAssignment",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner/admin; live actor, exact revision, actor/body-bound receipts and tombstone recovery",
+        "x-ynsg-origin-required": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Exact saved action or not-applied recovery. Does not send messages or confirm appointments.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "organization": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "key": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "action": {
+                      "type": "string",
+                      "enum": [
+                        "technician",
+                        "assign",
+                        "activate"
+                      ]
+                    },
+                    "fingerprint": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    },
+                    "outcome": {
+                      "type": "string",
+                      "enum": [
+                        "saved",
+                        "not_applied"
+                      ]
+                    },
+                    "revision": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "organization",
+                    "key",
+                    "id",
+                    "action",
+                    "fingerprint",
+                    "outcome",
+                    "revision"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    },
+    "/api/field-work": {
+      "get": {
+        "operationId": "readAssignedFieldVisits",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "current primary assigned technician or owner/admin",
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          {
+            "name": "job",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bounded assigned jobs, actual work notes and invoice balance; no office administration or tax setup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "organization": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "actor": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "timezone": {
+                          "type": "string",
+                          "maxLength": 100
+                        },
+                        "checkedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                        },
+                        "items": {
+                          "maxItems": 100,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "revision": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "approved",
+                                  "scheduled",
+                                  "en_route",
+                                  "arrived",
+                                  "working",
+                                  "paused",
+                                  "completed"
+                                ]
+                              },
+                              "customer": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 254
+                              },
+                              "start": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "end": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "arrival": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "invoice": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                      },
+                                      "number": {
+                                        "type": "integer",
+                                        "exclusiveMinimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "totalCents": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 999999999
+                                      },
+                                      "paidCents": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 999999999
+                                      },
+                                      "creditedCents": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 999999999
+                                      },
+                                      "balanceCents": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 999999999
+                                      },
+                                      "issuedAt": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                                      },
+                                      "lines": {
+                                        "maxItems": 50,
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "description": {
+                                              "type": "string",
+                                              "maxLength": 1000
+                                            },
+                                            "recordedMinutes": {
+                                              "type": "integer",
+                                              "minimum": 0,
+                                              "maximum": 1440
+                                            },
+                                            "chargedCents": {
+                                              "type": "integer",
+                                              "minimum": 0,
+                                              "maximum": 999999999
+                                            },
+                                            "unitRateCents": {
+                                              "type": "integer",
+                                              "minimum": 0,
+                                              "maximum": 999999999
+                                            },
+                                            "billingMinutes": {
+                                              "type": "integer",
+                                              "minimum": 0,
+                                              "maximum": 1440
+                                            },
+                                            "crewPerson": {
+                                              "type": "integer",
+                                              "minimum": 1,
+                                              "maximum": 6
+                                            },
+                                            "waiverReason": {
+                                              "type": "string",
+                                              "maxLength": 1000
+                                            },
+                                            "billingBasis": {
+                                              "type": "string",
+                                              "enum": [
+                                                "fixed",
+                                                "hourly"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "description",
+                                            "recordedMinutes",
+                                            "chargedCents",
+                                            "waiverReason"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "id",
+                                      "number",
+                                      "totalCents",
+                                      "paidCents",
+                                      "creditedCents",
+                                      "balanceCents",
+                                      "issuedAt",
+                                      "lines"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "revision",
+                              "status",
+                              "customer",
+                              "start",
+                              "end",
+                              "arrival",
+                              "invoice"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "organization",
+                        "actor",
+                        "timezone",
+                        "checkedAt",
+                        "items"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "organization": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "actor": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "timezone": {
+                          "type": "string",
+                          "maxLength": 100
+                        },
+                        "checkedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                        },
+                        "job": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "revision": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "approved",
+                                "scheduled",
+                                "en_route",
+                                "arrived",
+                                "working",
+                                "paused",
+                                "completed"
+                              ]
+                            },
+                            "customer": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 254
+                            },
+                            "start": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "end": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "arrival": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "invoice": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string",
+                                      "format": "uuid",
+                                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                    },
+                                    "number": {
+                                      "type": "integer",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "totalCents": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 999999999
+                                    },
+                                    "paidCents": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 999999999
+                                    },
+                                    "creditedCents": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 999999999
+                                    },
+                                    "balanceCents": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 999999999
+                                    },
+                                    "issuedAt": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                                    },
+                                    "lines": {
+                                      "maxItems": 50,
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "description": {
+                                            "type": "string",
+                                            "maxLength": 1000
+                                          },
+                                          "recordedMinutes": {
+                                            "type": "integer",
+                                            "minimum": 0,
+                                            "maximum": 1440
+                                          },
+                                          "chargedCents": {
+                                            "type": "integer",
+                                            "minimum": 0,
+                                            "maximum": 999999999
+                                          },
+                                          "unitRateCents": {
+                                            "type": "integer",
+                                            "minimum": 0,
+                                            "maximum": 999999999
+                                          },
+                                          "billingMinutes": {
+                                            "type": "integer",
+                                            "minimum": 0,
+                                            "maximum": 1440
+                                          },
+                                          "crewPerson": {
+                                            "type": "integer",
+                                            "minimum": 1,
+                                            "maximum": 6
+                                          },
+                                          "waiverReason": {
+                                            "type": "string",
+                                            "maxLength": 1000
+                                          },
+                                          "billingBasis": {
+                                            "type": "string",
+                                            "enum": [
+                                              "fixed",
+                                              "hourly"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "description",
+                                          "recordedMinutes",
+                                          "chargedCents",
+                                          "waiverReason"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "number",
+                                    "totalCents",
+                                    "paidCents",
+                                    "creditedCents",
+                                    "balanceCents",
+                                    "issuedAt",
+                                    "lines"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "revision",
+                            "status",
+                            "customer",
+                            "start",
+                            "end",
+                            "arrival",
+                            "invoice"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "scope": {
+                          "type": "string",
+                          "maxLength": 5000
+                        },
+                        "address": {
+                          "type": "string",
+                          "maxLength": 1000
+                        },
+                        "notes": {
+                          "maxItems": 100,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "body": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 3000
+                              },
+                              "at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                              },
+                              "actor": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "body",
+                              "at",
+                              "actor"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "organization",
+                        "actor",
+                        "timezone",
+                        "checkedAt",
+                        "job",
+                        "scope",
+                        "address",
+                        "notes"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      },
+      "post": {
+        "operationId": "recordAssignedFieldWork",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "current assigned job only; timer/note or confirmed actual cash/Zelle receipt; actor/body-bound receipt with unknown-result recovery",
+        "x-ynsg-origin-required": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldWorkInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Exact field action receipt. No scheduling, agreements, marketing, credit, refund or tax-rule changes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "organization": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "key": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "target": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "action": {
+                      "type": "string",
+                      "enum": [
+                        "timer",
+                        "note",
+                        "payment"
+                      ]
+                    },
+                    "fingerprint": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    },
+                    "outcome": {
+                      "type": "string",
+                      "enum": [
+                        "saved",
+                        "not_applied"
+                      ]
+                    },
+                    "result": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "revision": {
+                                  "type": "integer",
+                                  "exclusiveMinimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "working",
+                                    "paused"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "revision",
+                                "status"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "job": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "job"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "balanceCents": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 999999999
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "balanceCents"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "organization",
+                    "key",
+                    "target",
+                    "action",
+                    "fingerprint",
+                    "outcome",
+                    "result"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
+    },
+    "/api/request-inbox": {
+      "get": {
+        "operationId": "readOfficeRequestAssignments",
+        "security": [
+          {
+            "WorkspaceCookie": []
+          }
+        ],
+        "x-ynsg-permission": "owner/admin/dispatcher; current company",
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "default": 0,
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000
+            }
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "default": "review",
+              "type": "string",
+              "enum": [
+                "review",
+                "all",
+                "closed"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          {
+            "name": "assignee",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "default": "all",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "all"
+                },
+                {
+                  "type": "string",
+                  "const": "owner"
+                },
+                {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                }
+              ]
+            }
+          },
+          {
+            "name": "request",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "20 requests per page; assignment filter is applied before pagination; absent assignment means Owner. Linked financial records retain existing complete-payment verification.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "organization": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "needsReview": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "requests": {
+                      "maxItems": 20,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "customer_id": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "revision": {
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          "original_submission": {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "$ref": "#/$defs/__schema0"
+                            }
+                          },
+                          "appointments": {
+                            "maxItems": 1000,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "request_id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "job_id": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "format": "uuid",
+                                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "status": {
+                                  "type": "string"
+                                },
+                                "revision": {
+                                  "type": "integer",
+                                  "exclusiveMinimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                "start_at": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                                },
+                                "end_at": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                                },
+                                "arrival_at": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                                },
+                                "expires_at": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "replaces_id": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "format": "uuid",
+                                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "customer_response": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "request_id",
+                                "job_id",
+                                "status",
+                                "revision",
+                                "start_at",
+                                "end_at",
+                                "arrival_at",
+                                "expires_at",
+                                "replaces_id",
+                                "customer_response"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "customer_id",
+                          "status",
+                          "revision",
+                          "created_at",
+                          "original_submission",
+                          "appointments"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "assignments": {
+                      "maxItems": 20,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "request": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "technician": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 120,
+                            "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+                          },
+                          "archived": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "request",
+                          "technician",
+                          "name",
+                          "archived"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "technicians": {
+                      "maxItems": 200,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 120,
+                            "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "hasMore": {
+                      "type": "boolean"
+                    },
+                    "checkedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                    },
+                    "quotes": {
+                      "maxItems": 1000,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "$ref": "#/$defs/__schema1"
+                        }
+                      }
+                    },
+                    "jobs": {
+                      "maxItems": 1000,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "$ref": "#/$defs/__schema2"
+                        }
+                      }
+                    },
+                    "invoices": {
+                      "maxItems": 1000,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "$ref": "#/$defs/__schema3"
+                        }
+                      }
+                    },
+                    "preferences": {
+                      "maxItems": 1000,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "$ref": "#/$defs/__schema4"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "organization",
+                    "page",
+                    "total",
+                    "needsReview",
+                    "requests",
+                    "assignments",
+                    "technicians",
+                    "hasMore",
+                    "checkedAt",
+                    "quotes",
+                    "jobs",
+                    "invoices",
+                    "preferences"
+                  ],
+                  "additionalProperties": false,
+                  "$defs": {
+                    "__schema0": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/$defs/__schema0"
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "$ref": "#/$defs/__schema0"
+                          }
+                        }
+                      ]
+                    },
+                    "__schema1": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/$defs/__schema1"
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "$ref": "#/$defs/__schema1"
+                          }
+                        }
+                      ]
+                    },
+                    "__schema2": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/$defs/__schema2"
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "$ref": "#/$defs/__schema2"
+                          }
+                        }
+                      ]
+                    },
+                    "__schema3": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/$defs/__schema3"
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "$ref": "#/$defs/__schema3"
+                          }
+                        }
+                      ]
+                    },
+                    "__schema4": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/$defs/__schema4"
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "$ref": "#/$defs/__schema4"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input; do not change data."
+          },
+          "401": {
+            "description": "Sign in; validate the saved result before retrying a mutation."
+          },
+          "403": {
+            "description": "Wrong origin or insufficient live organization permission."
+          },
+          "409": {
+            "description": "Stale revision, changed retry or business gate; refresh/review."
+          },
+          "503": {
+            "description": "Setup unavailable or result uncertain; consequential commands replay the exact body/key."
+          }
+        }
+      }
     }
   },
   "components": {
@@ -10338,6 +13259,11 @@
                 "maximum": 1440,
                 "multipleOf": 30
               },
+              "crewSize": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 6
+              },
               "community": {
                 "type": "boolean"
               },
@@ -10781,6 +13707,11 @@
             "items": {
               "type": "object",
               "properties": {
+                "crewPerson": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 6
+                },
                 "description": {
                   "type": "string",
                   "minLength": 2,
@@ -10867,6 +13798,11 @@
             "items": {
               "type": "object",
               "properties": {
+                "crewPerson": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 6
+                },
                 "description": {
                   "type": "string",
                   "minLength": 2,
@@ -12209,6 +15145,741 @@
               "action",
               "operation",
               "revision",
+              "fingerprint"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "CareerProfile": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "home_support",
+              "yard_support"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120,
+            "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 35,
+            "allOf": [
+              {
+                "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+              },
+              {
+                "pattern": "^[+\\d() .x#-]{7,35}$"
+              }
+            ]
+          },
+          "city": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80,
+            "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+          },
+          "skills": {
+            "minItems": 1,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Furniture assembly",
+                "Household hardware",
+                "Minor drywall patches",
+                "Organizing",
+                "Lawn care",
+                "Garden-bed care",
+                "Leaf management",
+                "Mulch handling",
+                "Residential snow",
+                "Manageable cleanouts",
+                "Customer communication",
+                "Other relevant experience"
+              ]
+            }
+          },
+          "experience": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 4000,
+            "pattern": "^[^\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]*$"
+          },
+          "availability": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 1000,
+            "pattern": "^[^\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]*$"
+          },
+          "travel": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "discuss"
+            ]
+          },
+          "authorized": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "discuss"
+            ]
+          },
+          "adult": {
+            "type": "boolean",
+            "const": true
+          },
+          "privacy": {
+            "type": "boolean",
+            "const": true
+          },
+          "notice": {
+            "type": "string",
+            "const": "careers-2026-11-01"
+          }
+        },
+        "required": [
+          "role",
+          "name",
+          "email",
+          "phone",
+          "city",
+          "skills",
+          "experience",
+          "availability",
+          "travel",
+          "authorized",
+          "adult",
+          "privacy",
+          "notice"
+        ],
+        "additionalProperties": false
+      },
+      "CareerOwnerInput": {
+        "oneOf": [
+          {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "organization": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "action": {
+                    "type": "string",
+                    "const": "review"
+                  },
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "new",
+                      "reviewing",
+                      "contacted",
+                      "closed",
+                      "withdrawn"
+                    ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 2000,
+                    "pattern": "^[^\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]*$"
+                  },
+                  "confirmedContact": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "organization",
+                  "key",
+                  "revision",
+                  "action",
+                  "id",
+                  "status",
+                  "note",
+                  "confirmedContact"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "organization": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "action": {
+                    "type": "string",
+                    "const": "configure"
+                  },
+                  "employeeCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10000
+                  },
+                  "accepting": {
+                    "type": "boolean"
+                  },
+                  "reviewed": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                },
+                "required": [
+                  "organization",
+                  "key",
+                  "revision",
+                  "action",
+                  "employeeCount",
+                  "accepting",
+                  "reviewed"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "organization": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "key": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "id": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "action": {
+                "type": "string",
+                "const": "resolve"
+              },
+              "operation": {
+                "type": "string",
+                "enum": [
+                  "review",
+                  "configure"
+                ]
+              },
+              "fingerprint": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "organization",
+              "key",
+              "id",
+              "action",
+              "operation",
+              "fingerprint"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "TeamCommand": {
+        "oneOf": [
+          {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "organization": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "profile": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 120,
+                        "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+                      },
+                      "phone": {
+                        "type": "string",
+                        "maxLength": 35,
+                        "allOf": [
+                          {
+                            "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+                          },
+                          {
+                            "pattern": "^[+\\d() .x#-]{7,35}$"
+                          }
+                        ]
+                      },
+                      "email": {
+                        "type": "string",
+                        "maxLength": 254,
+                        "format": "email",
+                        "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                      },
+                      "skills": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "pattern": "^[^\\x00-\\x1f\\x7f<>]*$"
+                      },
+                      "notes": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "pattern": "^[^\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]*$"
+                      },
+                      "userId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "archived": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "phone",
+                      "email",
+                      "skills",
+                      "notes",
+                      "userId",
+                      "archived"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "action": {
+                    "type": "string",
+                    "const": "technician"
+                  }
+                },
+                "required": [
+                  "organization",
+                  "id",
+                  "key",
+                  "revision",
+                  "profile",
+                  "action"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "organization": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "request": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "technician": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 2000,
+                    "pattern": "^[^\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]*$"
+                  },
+                  "action": {
+                    "type": "string",
+                    "const": "assign"
+                  }
+                },
+                "required": [
+                  "organization",
+                  "request",
+                  "key",
+                  "revision",
+                  "technician",
+                  "note",
+                  "action"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "organization": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "action": {
+                    "type": "string",
+                    "const": "activate"
+                  },
+                  "reviewed": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                },
+                "required": [
+                  "organization",
+                  "id",
+                  "key",
+                  "revision",
+                  "action",
+                  "reviewed"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "organization": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "key": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "action": {
+                "type": "string",
+                "const": "resolve"
+              },
+              "operation": {
+                "type": "string",
+                "enum": [
+                  "technician",
+                  "assign",
+                  "activate"
+                ]
+              },
+              "fingerprint": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "organization",
+              "key",
+              "id",
+              "action",
+              "operation",
+              "fingerprint"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "FieldWorkInput": {
+        "oneOf": [
+          {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "organization": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "action": {
+                    "type": "string",
+                    "const": "timer"
+                  },
+                  "job": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "operation": {
+                    "type": "string",
+                    "enum": [
+                      "start",
+                      "pause",
+                      "resume"
+                    ]
+                  }
+                },
+                "required": [
+                  "organization",
+                  "key",
+                  "action",
+                  "job",
+                  "revision",
+                  "operation"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "organization": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "action": {
+                    "type": "string",
+                    "const": "note"
+                  },
+                  "job": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "body": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 3000,
+                    "pattern": "^[^\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]*$"
+                  }
+                },
+                "required": [
+                  "organization",
+                  "key",
+                  "action",
+                  "job",
+                  "body"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "organization": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "action": {
+                    "type": "string",
+                    "const": "payment"
+                  },
+                  "invoice": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "cents": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 999999999
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "cash",
+                      "zelle"
+                    ]
+                  },
+                  "reference": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  "receivedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "confirmed": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                },
+                "required": [
+                  "organization",
+                  "key",
+                  "action",
+                  "invoice",
+                  "cents",
+                  "method",
+                  "reference",
+                  "receivedAt",
+                  "confirmed"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "organization": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "key": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "action": {
+                "type": "string",
+                "const": "resolve"
+              },
+              "operation": {
+                "type": "string",
+                "enum": [
+                  "timer",
+                  "note",
+                  "payment"
+                ]
+              },
+              "target": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "fingerprint": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "organization",
+              "key",
+              "action",
+              "operation",
+              "target",
               "fingerprint"
             ],
             "additionalProperties": false

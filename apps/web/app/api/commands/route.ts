@@ -64,13 +64,14 @@ export async function POST(request: Request) {
         };
         break;
       case "PublishQuote":
-        name = "publish_hourly_quote";
+        name = c.crewSize===undefined?"publish_hourly_quote":"publish_hourly_crew_quote";
         args = {
           p_org: c.organizationId,
           p_request: c.id,
           p_revision: c.revision,
           p_scope: c.scope,
           p_minutes: c.minutes,
+          ...(c.crewSize===undefined?{}:{p_people:c.crewSize}),
           p_community: c.community,
           p_eligibility_reviewed: c.eligibilityReviewed,
           p_customer: c.customerId,

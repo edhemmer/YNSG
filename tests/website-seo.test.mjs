@@ -8,7 +8,7 @@ test('local metadata uses canonical hosting URLs and real service cities without
   assert.equal(metadata.url,canonicalUrl(slug));assert.ok(slug?!metadata.url.endsWith('/'):metadata.url.endsWith('/'));
   assert.equal(graph.find(v=>v['@type']==='WebPage').url,metadata.url);
   assert.deepEqual(graph[0].areaServed.map(v=>v.name),serviceCities.map(v=>v+', Illinois'));
-  assert.equal(graph[0].telephone,'+1-770-630-2094');
+  assert.equal(graph[0].telephone,'+1-815-680-1775');
   assert.ok(!metadata.schema.includes('streetAddress')&&!metadata.schema.includes('aggregateRating'));
   assert.ok(!metadata.schema.includes('licensed')&&!metadata.schema.includes('guaranteed'));
  }

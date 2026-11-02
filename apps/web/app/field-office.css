@@ -1,0 +1,11 @@
+.team-directory,.lead-assignment,.field-work,.field-notes{min-width:0;overflow-wrap:anywhere}
+:is(.team-directory,.lead-assignment,.field-work,.field-notes) fieldset{min-width:0;border:0;padding:0;margin:0}
+:is(.team-directory,.lead-assignment,.field-work,.field-notes) :is(input,select,textarea){min-width:0;max-width:100%;font-size:1rem}
+:is(.team-directory,.lead-assignment,.field-work,.field-notes) :is(button,a.button){max-width:100%;white-space:normal;overflow-wrap:anywhere;min-height:48px}
+:is(.team-directory,.lead-assignment,.field-work,.field-notes) label{line-height:1.5}
+:is(.team-directory,.lead-assignment,.field-work,.field-notes) .check{align-items:flex-start;gap:8px}
+:is(.team-directory,.lead-assignment,.field-work,.field-notes) .check input{flex:0 0 22px;margin-top:4px}
+.team-directory .section-heading,.field-work .section-heading{flex-wrap:wrap;gap:16px}
+.team-editor{border:2px solid var(--green)}.lead-assignment h3{margin-top:0}
+.field-work .amount{font-size:clamp(1.5rem,5vw,2rem)}
+@media(max-width:650px){.team-directory .careers-fields{grid-template-columns:1fr}.field-work .actions{display:grid;grid-template-columns:1fr}.field-work .actions>a{display:flex;align-items:center;justify-content:center}.team-directory .careers-inbox-bar{display:block}}

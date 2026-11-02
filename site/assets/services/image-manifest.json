@@ -163,20 +163,21 @@
       "edited_background": true,
       "variants": [
         {
-          "filename": "ynsg-cleanout-trailer-v2-960.webp",
+          "filename": "ynsg-cleanout-trailer-v3-960.webp",
           "width": 960,
           "height": 540,
-          "size_bytes": 149502,
-          "sha256": "89573da4ffd6715009a2d376844661d66c20d24765a6ed3a340e4d6dc78136a1"
+          "size_bytes": 152518,
+          "sha256": "6f953f0c2bb1bd8578ed9f5f736a8457fe0eb65c9dd5ec6c0384364bb5794967"
         },
         {
-          "filename": "ynsg-cleanout-trailer-v2-640.webp",
+          "filename": "ynsg-cleanout-trailer-v3-640.webp",
           "width": 640,
           "height": 360,
-          "size_bytes": 75484,
-          "sha256": "f889fda2d85d00e55680d7bad5791819baa35318fcf5c0fb17f20d2c725e0f9d"
+          "size_bytes": 76748,
+          "sha256": "478f31b5d4afbff21abfcbbf26a419c00e0e4606c22538e2c98bef361d6d314d"
         }
-      ]
+      ],
+      "branding": "Logo, tagline and website only; no phone number on signage."
     },
     {
       "id": "mulch-material",
