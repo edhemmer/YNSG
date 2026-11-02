@@ -4,6 +4,6 @@ import {radiusAssessment,RADIUS_CENTER,PREFERRED_RADIUS_MILES} from '../apps/web
 test('operating area uses ZIP 60115 and never determines intake eligibility',()=>{
  assert.match(RADIUS_CENTER.label,/60115/);assert.equal(PREFERRED_RADIUS_MILES,28);
  assert.deepEqual(radiusAssessment(RADIUS_CENTER.latitude,RADIUS_CENTER.longitude),{status:'nearby',miles:0});
- const outside=radiusAssessment(42.3,-88.75);assert.equal(outside.status,'outside_preferred');assert.ok(outside.miles>28);
+ const outside=radiusAssessment(42.5,-88.75);assert.equal(outside.status,'outside_preferred');assert.ok(outside.miles>28);
  assert.deepEqual(radiusAssessment(NaN,0),{status:'needs_review',miles:null});
 });
