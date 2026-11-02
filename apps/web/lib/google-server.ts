@@ -11,6 +11,7 @@ import {
   GoogleFailure,
   googleRefreshFailure,
   CALENDAR_CREATION_SCOPE,
+  ownedCalendars,
 } from "./google-core";
 export type Account = {
   organization_id: string;
@@ -112,6 +113,7 @@ export function publicAccount(a: Account) {
         ? "unknown"
         : a.gmail_test,
     legacyEmailUnchanged: true,
+    services:{calendar:GOOGLE_SCOPES.filter(s=>s.includes('/auth/calendar')).every(s=>a.scopes.includes(s)),gmail:a.scopes.includes('https://www.googleapis.com/auth/gmail.send')},
     canCreateCalendar: a.scopes.includes(CALENDAR_CREATION_SCOPE),
   };
 }
@@ -123,13 +125,13 @@ type OAuthState = {
   nonce: string;
   revision: number;
   expires: number;
+  subject: string | null;
+  calendarId: string | null;
 };
 export async function startGoogle(org: string) {
   const session = await authorizeGoogle(org),
     client = oauth(),
     a = await store(org, "read");
-  if (a.encrypted_tokens)
-    throw new GoogleFailure("DISCONNECT_BEFORE_RECONNECT");
   const state = randomBytes(32).toString("base64url"),
     nonce = randomBytes(32).toString("base64url");
   const { codeVerifier, codeChallenge } =
@@ -141,6 +143,8 @@ export async function startGoogle(org: string) {
     verifier: codeVerifier,
     nonce,
     revision: a.revision,
+    subject: a.subject,
+    calendarId: a.calendar_id,
     expires: Date.now() + 600000,
   };
   await store(org, "state_put", {
@@ -149,6 +153,8 @@ export async function startGoogle(org: string) {
   });
   const url = client.generateAuthUrl({
     access_type: "offline",
+    include_granted_scopes: true,
+    ...(a.email ? {login_hint:a.email} : {}),
     prompt: "consent",
     scope: [...GOOGLE_SCOPES],
     state,
@@ -200,16 +206,25 @@ export async function finishGoogle(state: string, nonce: string, code: string) {
   const claims = ticket.getPayload();
   if (!claims?.sub || !claims.email || !claims.email_verified)
     throw new GoogleFailure("VERIFIED_GOOGLE_EMAIL_REQUIRED");
+  if(s.subject&&claims.sub!==s.subject)throw new GoogleFailure("GOOGLE_ACCOUNT_MISMATCH");
   const scopes = (tokens.scope || "").split(" ");
   if (GOOGLE_SCOPES.some((scope) => !scopes.includes(scope)))
     throw new GoogleFailure("MISSING_GOOGLE_SCOPES");
-  await store(s.org, "connect", {
+  let calendarVerified=false;
+  if(s.calendarId){
+    if(!tokens.access_token)throw new GoogleFailure("RECONNECT_REQUIRED");
+    calendarVerified=(await ownedCalendars(tokens.access_token)).some(calendar=>calendar.id===s.calendarId);
+    if(!calendarVerified)throw new GoogleFailure("CALENDAR_RECONNECT_REVIEW_REQUIRED");
+  }
+  await store(s.org, "reconnect", {
     revision: s.revision,
     ciphertext: seal(tokens, encryptionKey(), "tokens:" + s.org),
     email: claims.email,
     subject: claims.sub,
     scopes,
     actor: s.user,
+    calendarId:s.calendarId||null,
+    calendarVerified,
   });
   return s.org;
 }

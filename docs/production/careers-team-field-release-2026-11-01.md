@@ -60,3 +60,9 @@ Security advisors were reviewed after DDL. Default-deny private career tables in
 Google Business Profile’s saved business information was inspected and already shows 815-680-1775. Some Google search snippets still show retired cached contact text; a source correction cannot guarantee when Google recrawls it.
 
 The migration-register/evidence update still requires final exact-head CI and the intended production merge/deployment/live smoke checks.
+
+## Production release closure
+
+PR #233 merged tested head d7f68877854f8b2bb32aab6a89f3d763b1baf958 as f2ebb09920ca2795a546dd7b3ef3e7ae182e54b3. The trees match (92b86a4d16ddb5c22774f85e45968834a8d02117). Both final CI jobs passed in https://github.com/edhemmer/YNSG/actions/runs/41447437480. Public deployment dpl_2DbaYhMBrcmz5mvUX6LvvAHCAsR3 and app deployment dpl_4SSKzdB8tqDFtg5oKaxdumwyZGzK are READY at that SHA with the intended .com/.app aliases. Live read-only HTTP checks pass on 23 public pages: new phone/LLC identity, hashed v3 trailer bytes, phone-free print SVG, careers public status, noindex application host and six private API 401/no-store boundaries; /api/health returns 200. The actual owner/provider/device/human/legal gates are not closed by this release. A subsequent owner request adds one-click Google reconnect in a separate tested change.
+
+Live Chromium checks also pass at 390px and 1366px: nine service images/details, intact trailer frame, related-service suggestions and three selected cleanout/door/smart-lock jobs continuing directly to request step two, with edit-jobs and optional-time paths intact. Browser errors: zero; production writes: zero.

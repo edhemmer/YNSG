@@ -1,8 +1,8 @@
 {
   "observedOn": "2026-11-02",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
-  "sourceBranch": "codex/careers-farm-readiness-20261101",
-  "sourceCommit": "f49734a435cc8b503e86dc9300792aeaefe5d5b7",
+  "sourceBranch": "codex/google-one-click-reconnect-20261102",
+  "sourceCommit": "de9936306d3fdea96244dbd61075c9c79b503ca6",
   "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
   "repositoryMigrations": [
     {
@@ -459,6 +459,11 @@
       "file": "20261101200000_assigned_field_closeout.sql",
       "historyVersion": "20261102124506",
       "name": "assigned_field_closeout"
+    },
+    {
+      "file": "20261102130040_google_one_click_reconnect.sql",
+      "name": "google_one_click_reconnect",
+      "historyVersion": "20261102131651"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [

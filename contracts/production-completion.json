@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-01",
+  "updatedAt": "2026-11-02",
   "baselineCommit": "56b0a9fec3f7c9e4664c2192c91564b9340b9584",
   "milestones": [
     "web",
@@ -69,7 +69,7 @@
       "dependsOn": [
         "WEB-01"
       ],
-      "nextAction": "PR #129 is live on both domains; owner day calendar and next-day existing route read passed. Embedded Maps still returns RefererNotAllowedMapError for .app/owner; directions fallback and complete stop details work. Correct Google website restrictions, then complete controlled cancellation/recurrence/calendar outage and neighboring-route acceptance under #36/#37. Historical address state/ZIP evidence remains authoritative. November 1 owner-workspace audit adds cohesive operational shell, in-header guarded business switch, bounded recent/attention message history with job navigation and explicit business-timezone timestamps, and expiring route-health display. Read-only production evidence and remaining provider/security/device actions: docs/production/owner-workspace-audit-2026-11-01.md. Require exact-head CI and deployed SHA verification; retain real acceptance gates.",
+      "nextAction": "PR #129 is live on both domains; owner day calendar and next-day existing route read passed. Embedded Maps still returns RefererNotAllowedMapError for .app/owner; directions fallback and complete stop details work. Correct Google website restrictions, then complete controlled cancellation/recurrence/calendar outage and neighboring-route acceptance under #36/#37. Historical address state/ZIP evidence remains authoritative. November 1 owner-workspace audit adds cohesive operational shell, in-header guarded business switch, bounded recent/attention message history with job navigation and explicit business-timezone timestamps, and expiring route-health display. Read-only production evidence and remaining provider/security/device actions: docs/production/owner-workspace-audit-2026-11-01.md. Require exact-head CI and deployed SHA verification; retain real acceptance gates. November 2 follow-up prepares direct one-click same-account Google Calendar/Gmail reconnect with retained calendar and prior mail approval; see docs/production/google-one-click-reconnect-2026-11-02.md. Require exact-head database/browser CI, migration/deployment verification and actual owner Google consent/provider acceptance.",
       "acceptance": "No double booking or stale approval; preserved original visit until replacement; correct local time/DST, minimum duration, travel and per-visit reminders; clear configured/offline states.",
       "requiredEvidence": "Native PostgreSQL races/replay tests, isolated provider tests and controlled connected-calendar acceptance.",
       "evidence": []

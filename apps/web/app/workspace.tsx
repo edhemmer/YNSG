@@ -179,6 +179,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
     [data, setData] = useState<Data | null>(null),
     [section, setSection] = useState("Dashboard");
   const [googleSetupOpen,setGoogleSetupOpen]=useState(false);
+  useEffect(()=>{if(new URLSearchParams(window.location.search).has('google'))setGoogleSetupOpen(true)},[]);
   useEffect(()=>{if(section==='Settings'&&googleSetupOpen)document.getElementById('google-setup')?.scrollIntoView({block:'start'});},[section,googleSetupOpen]);
   const [page,setPage]=useState(0);
   const [accessRevision,setAccessRevision]=useState(0);

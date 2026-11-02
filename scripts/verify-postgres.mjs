@@ -1,3 +1,4 @@
+import {verifyGoogleReconnectRaces} from './verify-google-reconnect-races.mjs';
 import {verifyCareersFieldRaces} from './verify-careers-field-races.mjs';
 import {withNetworkCatalog} from './sql-fixture-catalog.mjs';
 import {verifyOwnerNetworkRaces} from './verify-owner-network-races.mjs';
@@ -165,3 +166,5 @@ console.log('PASS: source capture exports one live read-only snapshot; concurren
 await verifyCareersFieldRaces(sql);
 await verifyTaskTimeRaces(sql);
 await verifyOwnerNetworkRaces(sql);
+
+await verifyGoogleReconnectRaces(sql);
