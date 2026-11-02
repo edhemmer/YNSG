@@ -7,7 +7,7 @@ export default async function handler(req,res){
   if(req.headers['sec-fetch-site']==='cross-site'||!req.headers.origin||new URL(req.headers.origin).host!==req.headers.host)return res.status(403).json({error:'Request not accepted.'});
   if(!req.body||Buffer.byteLength(JSON.stringify(req.body))>1024)throw new AddressInputFailure();
   const input=addressInput(req.body);
-  if(input.state!=='IL'||!['dekalb','sycamore','cortland'].includes(input.city.toLowerCase()))throw new AddressInputFailure();
+  // City validation and geocoding are advisory; never reject by service area.
   // Reuse the durable public-read quota; no address is sent to its guard or logged.
   await websiteGuard(req,'availability');
   return res.status(200).json(await checkAddress(input));

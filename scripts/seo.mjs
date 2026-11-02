@@ -2,18 +2,18 @@ import {businessIdentity} from '../lib/business-identity.js';
 export const WEBSITE_ORIGIN='https://www.yourneighborhoodserviceguy.com';
 export const brand='Your Neighborhood Service Guy';
 export const legalBusinessName=businessIdentity.legalName;
-export const serviceCities=['DeKalb','Sycamore','Cortland'];
+export const serviceCities=['DeKalb','Sycamore','Cortland','Maple Park','Elburn','Kaneville','Burlington','Lily Lake','Campton Hills','Virgil','Geneva','St. Charles'];
 export const canonicalUrl=slug=>WEBSITE_ORIGIN+(slug?'/'+slug:'/');
 const titles={
  '':'Home & Yard Services | Sycamore, DeKalb & Nearby',
- services:'Home & Yard Services in DeKalb, Sycamore & Cortland',
+ services:'Home & Yard Services from DeKalb to St. Charles',
  pricing:'Home & Yard Rates in DeKalb, IL',
  'careers/small-home-jobs':'Handyman & Small Home Job Opportunities in DeKalb, IL',
  'careers/yard-work':'Yard Work Opportunities in DeKalb, IL',
  careers:'Home & Yard Careers in DeKalb, IL',
  about:'About Our DeKalb Area Home & Yard Service',
  request:'Request Home & Yard Service in DeKalb, IL',
- 'service-area':'DeKalb, Sycamore & Cortland Service Area',
+ 'service-area':'Service Area | DeKalb to St. Charles & Nearby',
  'farm-hand-dekalb-il':'Farm Hand Services for Planting & Harvest | DeKalb IL',
  'cleanout-dekalb-il':'Home Cleanouts in DeKalb, Sycamore & Cortland',
  'handyman-dekalb-il':'Handyman Help in DeKalb, Sycamore & Cortland',
@@ -39,7 +39,7 @@ export const localServicePages={
 export function seo(slug,title,description,media=null){
  const url=canonicalUrl(slug),origin=WEBSITE_ORIGIN+'/';
  const areaServed=serviceCities.map(name=>({'@type':'City',name:name+', Illinois',containedInPlace:{'@type':'State',name:'Illinois'}}));
- const organization={'@type':['LocalBusiness','HomeAndConstructionBusiness'],'@id':origin+'#business',name:legalBusinessName,alternateName:brand,legalName:businessIdentity.legalName,url:origin,logo:origin+'assets/logo.jpg',telephone:'+1-'+businessIdentity.phoneDisplay,contactPoint:{'@type':'ContactPoint',telephone:'+1-'+businessIdentity.phoneDisplay,contactType:'customer service',availableLanguage:'en'},description:'Owner-operated home and yard services in DeKalb, Sycamore and Cortland, Illinois.',slogan:'We’re Here to Help.',areaServed};
+ const organization={'@type':['LocalBusiness','HomeAndConstructionBusiness'],'@id':origin+'#business',name:legalBusinessName,alternateName:brand,legalName:businessIdentity.legalName,url:origin,logo:origin+'assets/logo.jpg',telephone:'+1-'+businessIdentity.phoneDisplay,contactPoint:{'@type':'ContactPoint',telephone:'+1-'+businessIdentity.phoneDisplay,contactType:'customer service',availableLanguage:'en'},description:'Owner-operated home and yard services based near DeKalb, Illinois, serving communities toward St. Charles and surrounding areas.',slogan:'We’re Here to Help.',areaServed};
  const pageId=url+'#page',breadcrumbId=url+'#breadcrumb';
  const graph=[organization,{'@type':'WebSite','@id':origin+'#website',url:origin,name:brand,publisher:{'@id':organization['@id']},inLanguage:'en-US'},{'@type':slug==='careers'?'CollectionPage':'WebPage','@id':pageId,url,name:titles[slug]||title,description,isPartOf:{'@id':origin+'#website'},about:{'@id':organization['@id']},inLanguage:'en-US',...(slug?{breadcrumb:{'@id':breadcrumbId}}:{})}];
  if(media){const imageId=url+'#service-image';graph.push({'@type':'ImageObject','@id':imageId,url:WEBSITE_ORIGIN+media.src,contentUrl:WEBSITE_ORIGIN+media.src,width:media.width,height:media.height,caption:media.alt});graph.find(node=>node['@id']===pageId).primaryImageOfPage={'@id':imageId};}
@@ -52,7 +52,7 @@ export function seo(slug,title,description,media=null){
  if(slug==='careers'){const listId=url+'#opportunities';graph.find(node=>node['@id']===pageId).mainEntity={'@id':listId};graph.push({'@type':'ItemList','@id':listId,name:'Home and yard field-support opportunities',itemListElement:[['careers/small-home-jobs','Small home jobs · field support'],['careers/yard-work','Home & yard · field support']].map(([path,name],index)=>({'@type':'ListItem',position:index+1,name,url:canonicalUrl(path)}))});}
  if(slug)graph.push({'@type':'BreadcrumbList','@id':breadcrumbId,itemListElement:[{'@type':'ListItem',position:1,name:'Home',item:origin},...(slug.startsWith('careers/')?[{'@type':'ListItem',position:2,name:'Careers',item:canonicalUrl('careers')},{'@type':'ListItem',position:3,name:title,item:url}]:[{'@type':'ListItem',position:2,name:title,item:url}])]});
  if(!slug||slug==='services'||slug==='service-area'){
-  const services=[['help-around-the-home','Small home jobs','Furniture assembly, household setup, organizing and minor home jobs within our published limits.'],['lawn-care','Lawn care','Residential mowing, trimming, edging and blowing clippings off finished surfaces.'],['leaf-management','Leaf management','Seasonal leaf management for residential lawns and outdoor areas; approach and timing agreed together.'],['mulch-material','Mulch pickup, delivery and spreading','Arranged bulk or bagged mulch pickup, delivery and spreading, or spreading mulch already at home. Supplier-prepaid materials; no material resale.'],['junk-cleanout','Household cleanout and removal','Manageable garage, basement and storage cleanouts; disposal fees may apply.'],['yard-and-garden','Yard and garden help','Hand weeding, small bush and flower planting, small bush trimming and arranged mulch pickup, delivery and application. No herbicides.'],['snow-clearing','Residential snow clearing','Residential driveways, sidewalks and entries. No salt, deicer or commercial plowing.'],['farm-hand','Farm hand services','One farm hand for spring planting preparation, fall harvest support, seasonal cleanup and other agreed farm tasks in DeKalb, Sycamore and nearby communities.'],['concrete-washing','Concrete pressure washing','Ground-level residential concrete driveways, walks and patios. The customer supplies accessible outdoor water.']];
+  const services=[['help-around-the-home','Small home jobs','Furniture assembly, household setup, organizing and minor home jobs within our published limits.'],['lawn-care','Lawn care','Residential mowing, trimming, edging and blowing clippings off finished surfaces.'],['leaf-management','Leaf management','Seasonal leaf management for residential lawns and outdoor areas; approach and timing agreed together.'],['mulch-material','Mulch pickup, delivery and spreading','Arranged bulk or bagged mulch pickup, delivery and spreading, or spreading mulch already at home. Supplier-prepaid materials; no material resale.'],['junk-cleanout','Household cleanout and removal','Manageable garage, basement and storage cleanouts; disposal fees may apply.'],['yard-and-garden','Yard and garden help','Hand weeding, small bush and flower planting, small bush trimming and arranged mulch pickup, delivery and application. No herbicides.'],['snow-clearing','Residential snow clearing','Residential driveways, sidewalks and entries. No salt, deicer or commercial plowing.'],['farm-hand','Farm hand services','One farm hand for spring planting preparation, fall harvest support, seasonal cleanup and other agreed farm tasks in DeKalb, St. Charles and nearby communities.'],['concrete-washing','Concrete pressure washing','Ground-level residential concrete driveways, walks and patios. The customer supplies accessible outdoor water.']];
   for(const [key,name,summary] of services)graph.push({'@type':'Service','@id':origin+'services#'+key,name,description:summary,provider:{'@id':organization['@id']},areaServed,serviceType:name,url:canonicalUrl('services')+'#'+key});
  }
  return {title:(titles[slug]||title)+' | '+brand,url,schema:JSON.stringify({'@context':'https://schema.org','@graph':graph}).replaceAll('<','\\u003c')};
