@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile,readdir,access} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {JSDOM} from 'jsdom';
-import {WEBSITE_ORIGIN,canonicalUrl,localServicePages} from './seo.mjs';
+import {WEBSITE_ORIGIN,canonicalUrl,localServicePages,serviceCities} from './seo.mjs';
 
 const root=resolve('dist'),pages=new Map(),titles=new Set(),descriptions=new Set();
 const slugFor=pathname=>pathname.replace(/^\//,'').replace(/\/$/,'');
@@ -48,7 +48,7 @@ for(const [slug,document] of pages){
  if(localServicePages[slug]){
   const service=graph.find(node=>node['@id']===page.mainEntity?.['@id']);
   assert.equal(service?.['@type'],'Service',context+': missing primary service');
-  assert.equal(service.url,url,context);assert.equal(service.areaServed.length,3,context);
+  assert.equal(service.url,url,context);assert.deepEqual(service.areaServed.map(city=>city.name),serviceCities.map(city=>city+', Illinois'),context);
   assert.ok(ids.has(service.provider['@id']),context+': unresolved provider');
   assert.ok(document.querySelector('main a[href^="/pricing"]'),context+': missing pricing guidance');
  }
