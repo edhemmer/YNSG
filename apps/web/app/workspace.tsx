@@ -1,5 +1,5 @@
-import {ownerCommandMessages} from '../lib/owner-command-messages';
 'use client';
+import {ownerCommandMessages} from '../lib/owner-command-messages';
 import GrowthPlanner from './growth-planner';
 import GoogleConnectionNotice from './google-connection-notice';
 import type {CompanionContext} from '../lib/job-companion';
