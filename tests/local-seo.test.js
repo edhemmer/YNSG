@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { seo, WEBSITE_ORIGIN, canonicalUrl, localServicePages } from '../scripts/seo.mjs';
+import { seo, WEBSITE_ORIGIN, canonicalUrl, localServicePages, serviceCities } from '../scripts/seo.mjs';
 
 test('each local landing page describes its own primary service with the same verified provider and geography', () => {
   assert.equal(Object.keys(localServicePages).length,9);
@@ -27,7 +27,7 @@ test('Local business identity and geography are consistent across indexable page
     assert.equal(business.url, WEBSITE_ORIGIN + '/');
     assert.equal(business.telephone, '+1-815-680-1775');
     assert.deepEqual(business.areaServed.map(place => place.name), [
-      'DeKalb, Illinois', 'Sycamore, Illinois', 'Cortland, Illinois'
+      ...serviceCities.map(city=>city+', Illinois')
     ]);
     assert.equal(graph.find(node => node['@type'] === 'WebPage').url, canonicalUrl(slug));
     assert.ok(!('aggregateRating' in business));
@@ -45,7 +45,7 @@ test('Service schema follows approved service restrictions and has distinct iden
     assert.equal(service.provider['@id'], WEBSITE_ORIGIN + '/#business');
     assert.equal(service.serviceType, service.name);
     assert.ok(service.url.startsWith(canonicalUrl('services')));
-    assert.equal(service.areaServed.length, 3);
+    assert.equal(service.areaServed.length, serviceCities.length);
   }
   assert.match(services.find(service => service.name === 'Residential snow clearing').description, /No salt, deicer or commercial plowing/);
   assert.match(services.find(service => service.name === 'Concrete pressure washing').description, /customer supplies accessible outdoor water/);

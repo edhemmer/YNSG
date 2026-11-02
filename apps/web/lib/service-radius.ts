@@ -1,6 +1,7 @@
-/** Advisory straight-line distance from the approximate 60115 area. No intake decisions. */
+/** Advisory straight-line planning distance around ZIP 60115. Never restrict inquiry intake. */
 export const RADIUS_CENTER={latitude:41.92944,longitude:-88.75833,label:'Operating ZIP 60115 (approximate center)'};
-export const PREFERRED_RADIUS_MILES=15;
+// Owner-side approximation of the eastward planning reach, not a service eligibility limit.
+export const PREFERRED_RADIUS_MILES=28;
 export function radiusAssessment(latitude:number,longitude:number){
  if(!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180)return {status:'needs_review' as const,miles:null};
  const rad=(n:number)=>n*Math.PI/180,latDiff=rad(latitude-RADIUS_CENTER.latitude),lonDiff=rad(longitude-RADIUS_CENTER.longitude);
