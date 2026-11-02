@@ -1,8 +1,9 @@
 import {businessIdentity} from '../lib/business-identity.js';
+import {priorityServiceCities} from '../packages/domain/service-geography.mjs';
 export const WEBSITE_ORIGIN='https://www.yourneighborhoodserviceguy.com';
 export const brand='Your Neighborhood Service Guy';
 export const legalBusinessName=businessIdentity.legalName;
-export const serviceCities=['DeKalb','Sycamore','Cortland','Maple Park','Elburn','Lily Lake','Campton Hills','Geneva','St. Charles'];
+export const serviceCities=priorityServiceCities;
 export const canonicalUrl=slug=>WEBSITE_ORIGIN+(slug?'/'+slug:'/');
 const titles={
  '':'Lawn & Home Services | DeKalb to St. Charles, IL',

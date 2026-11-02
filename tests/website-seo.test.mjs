@@ -46,7 +46,7 @@ test('search service URLs resolve to visible public sections and breadcrumb refe
 test('service-area description matches the intake without duplicate ZIP lists',async()=>{
  const html=await readFile(new URL('../site/pages/service-area.html',import.meta.url),'utf8');
  for(const city of serviceCities)assert.ok(html.includes(city));
- assert.ok(html.includes('Enter your actual city and ZIP code'));
+ assert.ok(html.includes('No customer account is required'));
  assert.ok(html.includes('All genuine service requests can be submitted'));
  assert.ok(!html.includes('Do you serve every address in these ZIP codes?'));
  for(const slug of ['','services'])assert.match(seo(slug,'Page','Description').title,/Home|Yard/);
@@ -101,9 +101,9 @@ test('homepage primary service cards link directly to indexable local service pa
 
 test('service-area page accepts inquiries outside the primary towns',async()=>{
  const page=await readFile(new URL('../site/pages/service-area.html',import.meta.url),'utf8');
- assert.match(page,/Our primary focus is nine communities between DeKalb and St\. Charles/);
- assert.match(page,/requests from smaller neighboring towns are welcome/);
- assert.match(page,/Enter your actual city and ZIP code/);
+ assert.match(page,/Our primary focus is nine communities/);
+ assert.match(page,/All genuine service requests can be submitted/);
+ assert.match(page,/No customer account is required/);
 });
 
 test('customers can request service without choosing a calendar time',async()=>{

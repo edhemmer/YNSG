@@ -442,3 +442,18 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
 
 /* Reuse the approved logo’s lettering, without an imitation font or extra download. */
 .premium-hero .brand-tagline{display:block;width:clamp(240px,24vw,310px);max-width:100%;height:auto;mix-blend-mode:multiply}.premium-hero .hero-local:has(.brand-tagline){line-height:0;margin-bottom:12px}
+
+
+/* Optional spoken welcome: compact, readable, unobtrusive, and keyboard accessible. */
+.welcome-voice{max-width:650px;border:1px solid #cdd9d0;background:#f5f8f3;border-radius:14px;padding:14px 17px;margin:0 0 20px;box-shadow:0 2px 9px #10283c09}
+.welcome-voice-heading{display:flex;align-items:center;gap:12px;margin-bottom:9px}
+.welcome-voice-icon{display:grid;place-items:center;flex:none;width:38px;height:38px;border-radius:50%;background:#e3eee0;color:#214b32;font-size:1.3rem}
+.welcome-voice-heading strong{display:block;font-size:1rem;line-height:1.35;color:#10283c}
+.welcome-voice-heading span:not(.welcome-voice-icon){display:block;font-size:.84rem;color:#405868}
+.welcome-voice audio{display:block;width:100%;height:44px;max-width:100%;color-scheme:light}
+.welcome-voice-note{font-size:.79rem;line-height:1.4;color:#476056;margin:5px 0 0}
+.welcome-voice-transcript{border-top:1px solid #d6e1d9;margin-top:9px;padding-top:7px}
+.welcome-voice-transcript summary{color:#315842;font-size:.9rem;font-weight:650;cursor:pointer;min-height:34px;display:list-item;margin-left:18px}
+.welcome-voice-transcript-copy{max-height:260px;overflow-y:auto;padding:9px 5px 0 0}
+.welcome-voice-transcript-copy p{font-size:.9rem;line-height:1.55;color:#354c55;margin:0 0 10px}
+@media(max-width:520px){.welcome-voice{padding:12px;margin-bottom:17px}.welcome-voice-heading span:not(.welcome-voice-icon){font-size:.78rem}}

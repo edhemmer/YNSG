@@ -1,5 +1,6 @@
 "use client";
 import {z} from 'zod';
+import {priorityServiceCities} from "../../../packages/domain/service-geography.mjs";
 import { publicError } from "../lib/public-errors";
 import { useEffect, useRef, useState } from "react";
 import {settingsIssue,settingsFieldLabel,type SettingsIssue} from "../lib/settings-validation";
@@ -76,7 +77,7 @@ function template(organization: string): CompanySettings {
     region: "IL",
     policyVersion: "ynsg-2026-10-02",
     privacyVersion: "ynsg-2026-10-02",
-    cities: ["DeKalb", "Sycamore", "Cortland", "Maple Park", "Elburn", "Lily Lake", "Campton Hills", "Geneva", "St. Charles"],
+    cities: [...priorityServiceCities],
     brand: {
       navy: "#10283c",
       forest: "#315842",

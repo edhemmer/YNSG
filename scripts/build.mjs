@@ -1,4 +1,5 @@
 import {businessIdentity} from '../lib/business-identity.js';
+import {priorityServiceCities} from '../packages/domain/service-geography.mjs';
 import {sortServiceArticles} from '../site/seasonal-services.js';
 import {servicePages,serviceMedia,serviceImage,servicePicker,relatedServices} from './service-experience.mjs';
 import {seo,canonicalUrl} from './seo.mjs';
@@ -20,6 +21,7 @@ await cp(join(source,'booking.css'),join(output,'booking.css'));
 await cp(join(source,'request-button.css'),join(output,'request-button.css'));
 await cp(join(source,'franchise.css'), join(output,'franchise.css'));
 await cp(join(source,'main.js'), join(output,'main.js'));
+await cp(join(source,'welcome-voice.js'),join(output,'welcome-voice.js'));
 await cp(join(source,'service-catalog.js'),join(output,'service-catalog.js'));
 await cp(join(source,'service-selection.js'),join(output,'service-selection.js'));
 await cp(join(source,'home-service-picker.js'),join(output,'home-service-picker.js'));
@@ -34,7 +36,11 @@ await cp(join(source,'request-recovery.js'),join(output,'request-recovery.js'));
 await cp(join(source,'appointment-picker.js'),join(output,'appointment-picker.js'));
 await cp(join(source,'appointment-hold.js'),join(output,'appointment-hold.js'));
 await cp(join(root,'lib','appointment-window.js'),join(output,'appointment-window.js'));
-const form = await readFile(join(source,'pages','form.html'),'utf8');
+const formTemplate = await readFile(join(source,'pages','form.html'),'utf8');
+// Rendering the city hints from the shared policy eliminates drift. Free-text intake remains open.
+const targetDatalist='<datalist id="nearby-cities">'+priorityServiceCities.map(city=>'<option value="'+city+'">').join('')+'</datalist>';
+if(!/<datalist id="nearby-cities">[\s\S]*?<\/datalist>/.test(formTemplate))throw Error('Missing customer city suggestions');
+const form=formTemplate.replace(/<datalist id="nearby-cities">[\s\S]*?<\/datalist>/,targetDatalist);
 const serviceManifest=JSON.parse(await readFile(join(source,'assets','services','image-manifest.json'),'utf8'));
 const pages = {
   '': ['Lawn & Home Services | DeKalb to St. Charles, IL', 'Lawn care, yard cleanup, mulch spreading and small home jobs in DeKalb, Elburn, Campton Hills, Geneva and St. Charles, IL. Request service online.', 'home'],
