@@ -1,6 +1,7 @@
 // Standard service-address ZIP choices for the currently advertised Illinois cities.
 // Sources and coverage limits are recorded in docs/production/city-postal-codes.md.
-export const serviceCities=['DeKalb','Sycamore','Cortland'];
+// These ZIP hints are historical convenience data, not the marketed service boundary.
+// The public form accepts any valid customer-entered Illinois city and ZIP.
 const codes={dekalb:['60115'],sycamore:['60178'],cortland:['60112']};
 export function postalCodesForCity(city,state='IL'){
  return state.toUpperCase()==='IL'?[...(Object.hasOwn(codes,String(city).trim().toLowerCase())?codes[String(city).trim().toLowerCase()]:[])]:[];
