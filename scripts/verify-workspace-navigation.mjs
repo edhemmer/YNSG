@@ -175,7 +175,7 @@ try{
    if(width===390||width===1366)await page.screenshot({path:output+'/'+engine+'-settings-'+width+'-'+theme+'.png',fullPage:true});
    const business=settingsPanel.locator('.settings-section').first();await business.locator(':scope>summary').click();
    await business.getByLabel(/^Business name/).fill('Synthetic retained company draft');await business.locator(':scope>summary').click();
-   page.once('dialog',dialog=>dialog.dismiss());await go(page,'Requests');await heading(page,'Settings');
+   await settingsPanel.getByText('Unsaved changes',{exact:true}).waitFor();page.once('dialog',dialog=>dialog.dismiss());await go(page,'Requests');await heading(page,'Settings');
    await business.locator(':scope>summary').click();assert.equal(await business.getByLabel(/^Business name/).inputValue(),'Synthetic retained company draft');await business.locator(':scope>summary').click();
    const email=settingsPanel.locator('.settings-section').nth(1);await email.locator(':scope>summary').click();
    await email.getByText('Email delivery controls',{exact:true}).click();await email.getByRole('button',{name:'Send a test email',exact:true}).waitFor();
