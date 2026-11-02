@@ -1,5 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
-import {previewInventoryMovement as move,inventoryLabel,parseInventoryScan,inventoryCsv} from '../apps/web/lib/inventory-custody';
+import {previewInventoryMovement as move,inventoryLabel,parseInventoryScan,inventoryCsv} from '../apps/web/lib/inventory-custody.js';
 const org='20000000-0000-4000-8000-000000000001',actor='00000000-0000-4000-8000-000000000001',other='00000000-0000-4000-8000-000000000002',itemId='90000000-0000-4000-8000-000000000001',location='90000000-0000-4000-8000-000000000002',job='90000000-0000-4000-8000-000000000003',key='90000000-0000-4000-8000-000000000004';
 const item={id:itemId,organization:org,revision:1,name:'Synthetic drill',kind:'asset',quantity:1,unit:'each',location,custodian:null,status:'available',productBarcode:null,purchaseUnitCents:12999,replacementCents:null,updatedAt:'2026-11-01T12:00:00Z'};
 const scope={organization:org,actor,office:true,at:'2026-11-01T13:00:00Z',locations:[location],people:[actor,other],jobs:[job]};

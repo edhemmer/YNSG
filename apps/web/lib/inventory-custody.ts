@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {parseProductBarcode} from './barcode-receipt-parser';
+import {parseProductBarcode} from './barcode-receipt-parser.js';
 
 const id=z.uuid(),cents=z.number().int().min(0).max(999999999);
 const state=z.enum(['available','checked_out','maintenance','missing','retired']);
