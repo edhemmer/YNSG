@@ -1,3 +1,6 @@
+import {priorityServiceCities} from '../packages/domain/service-geography.mjs';
+// Shared marketing town list; never a geographic eligibility filter.
+export const serviceCities=priorityServiceCities;
 // Standard service-address ZIP choices for the currently advertised Illinois cities.
 // Sources and coverage limits are recorded in docs/production/city-postal-codes.md.
 // These ZIP hints are historical convenience data, not the marketed service boundary.
