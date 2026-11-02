@@ -1,8 +1,8 @@
 {
-  "observedOn": "2026-10-30",
+  "observedOn": "2026-11-02",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
-  "sourceBranch": "codex/owner-network-20261030",
-  "sourceCommit": "c4fcbb58dea81c0cd0439c2ab8a19c1f1311618c",
+  "sourceBranch": "codex/careers-farm-readiness-20261101",
+  "sourceCommit": "f49734a435cc8b503e86dc9300792aeaefe5d5b7",
   "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
   "repositoryMigrations": [
     {
@@ -439,6 +439,26 @@
       "file": "20261030210629_owner_network.sql",
       "name": "owner_network",
       "historyVersion": "20261031020533"
+    },
+    {
+      "file": "20261101160000_private_careers.sql",
+      "historyVersion": "20261102124426",
+      "name": "private_careers"
+    },
+    {
+      "file": "20261101170000_per_person_labor.sql",
+      "historyVersion": "20261102124439",
+      "name": "per_person_labor"
+    },
+    {
+      "file": "20261101190000_team_and_lead_assignments.sql",
+      "historyVersion": "20261102124451",
+      "name": "team_and_lead_assignments"
+    },
+    {
+      "file": "20261101200000_assigned_field_closeout.sql",
+      "historyVersion": "20261102124506",
+      "name": "assigned_field_closeout"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -471,26 +491,5 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": [
-    {
-      "file": "20261101160000_private_careers.sql",
-      "name": "private_careers",
-      "status": "not_applied_to_connected_supabase"
-    },
-    {
-      "file": "20261101170000_per_person_labor.sql",
-      "name": "per_person_labor",
-      "status": "not_applied_to_connected_supabase"
-    },
-    {
-      "file": "20261101190000_team_and_lead_assignments.sql",
-      "name": "team_and_lead_assignments",
-      "status": "not_applied_to_connected_supabase"
-    },
-    {
-      "file": "20261101200000_assigned_field_closeout.sql",
-      "name": "assigned_field_closeout",
-      "status": "not_applied_to_connected_supabase"
-    }
-  ]
+  "pendingUnappliedMigrations": []
 }
