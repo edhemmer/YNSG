@@ -337,7 +337,7 @@ export default function CompanySettingsPanel({
     }catch(error){const issue=settingsIssue(error);if(issue)showIssue(issue);else setError(settingsError(error));}
   }
   const catalogFocused=useRef(false);
-  useEffect(()=>{if(!loading&&draft&&!catalogFocused.current&&new URLSearchParams(location.search).get('setup')==='services'){const target=document.getElementById('company-service-catalog');if(target){catalogFocused.current=true;target.scrollIntoView({block:'start'});target.focus({preventScroll:true});}}},[loading,draft]);
+  useEffect(()=>{if(!loading&&draft&&!catalogFocused.current&&new URLSearchParams(window.location.search).get('setup')==='services'){const target=document.getElementById('company-service-catalog');if(target){catalogFocused.current=true;target.scrollIntoView({block:'start'});target.focus({preventScroll:true});}}},[loading,draft]);
   const statusCallback=useRef(onStatus);statusCallback.current=onStatus;
   const reviewStatus=loading?'Checking settings…':unknown?'Save needs confirmation':pending?'Saving reviewed changes…':draft&&snapshot!==baseline?'Unsaved changes':!draft?(error?'Status unavailable':'Setup needed'):!draft.sellerVerified?'Confirm business identity':!draft.taxTreatmentVerified?'Review invoice tax setup':'Saved business settings';
   useEffect(()=>{statusCallback.current?.(reviewStatus)},[reviewStatus]);

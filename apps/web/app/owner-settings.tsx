@@ -9,7 +9,7 @@ const RetentionControls=dynamic(()=>import('./privacy-controls').then(m=>m.Reten
 export default function OwnerSettings({organization,name,timezone,focusGoogle,onBusy,onActivity}:{organization:string;name:string;timezone:string;focusGoogle:boolean;onBusy:(busy:boolean)=>void;onActivity:()=>void}){
  const {canLeave}=useEntrySafety();
  const [businessOpen,setBusinessOpen]=useState(false);
- useEffect(()=>{if(new URLSearchParams(location.search).get('setup')==='services')setBusinessOpen(true)},[]);
+ useEffect(()=>{if(new URLSearchParams(window.location.search).get('setup')==='services')setBusinessOpen(true)},[]);
  const [emailOpen,setEmailOpen]=useState(false),[businessStatus,setBusinessStatus]=useState('Checking settings…');
  useEffect(()=>{if(focusGoogle)document.getElementById('google-setup')?.scrollIntoView({block:'start'})},[focusGoogle]);
  return <section className="owner-settings" aria-label="Business settings">

@@ -186,7 +186,7 @@ try{
   }
   {
    const {page,writes}=await mount({path:'?section=Settings',google:'healthy'});await heading(page,'Settings');const google=page.locator('#google-setup');
-   await google.getByText('Connected',{exact:true}).waitFor();assert.equal(await google.locator('.settings-google-action button').count(),0);assert.equal(await google.getByRole('button',{name:'Reconnect Google',exact:true}).evaluate(button=>button.checkVisibility()),false);
+   await google.getByText('Connected',{exact:true}).waitFor();assert.equal(await google.locator('.settings-google-action button').count(),0);assert.equal(await google.locator('.google-connection-options').getAttribute('open'),null);
    await google.locator('.google-connection-options>summary').click();await google.getByRole('button',{name:'Reconnect Google',exact:true}).waitFor();assert.equal(writes.length,0);await page.close();results.push(engine+' healthy Google requires no reconnect and retains an optional advanced action');
   }
   for(const width of [320,390,1366])for(const theme of ['light','dark']){
