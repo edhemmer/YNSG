@@ -54,7 +54,7 @@ test('company switch serializes context, clears record links and browser Back re
 test('focus recheck removes a revoked company and routes to current permitted role',async()=>{
  const h=await mount('?section=Money');
  try{
-  h.control.memberships=[{organization_id:other,role:'technician'}];h.w.dispatchEvent(new h.w.Event('focus'));await until(()=>h.heading()==='Day routes');
+  h.control.memberships=[{organization_id:other,role:'technician'}];h.w.dispatchEvent(new h.w.Event('focus'));await until(()=>h.heading()==='Jobs');
   assert.equal(h.w.document.querySelector('.money-invoice'),null);assert.equal(new URL(h.w.location.href).searchParams.get('organization'),other);
   assert.equal(h.w.document.querySelector('button[aria-label="Invoices & money"]'),null);
  }finally{h.close();}
@@ -92,23 +92,23 @@ test('same-screen role downgrade invalidates the previous owner data and reloads
 });
 
 test('lost timer response retains one frozen action across refresh and explicit same-attempt recovery',async()=>{
- const h=await mount('?section=Work','technician',{state:'confirmed'});
+ const h=await mount('?section=Work&request='+requestId,'owner',{state:'confirmed'});
  try{
-  const start=[...h.w.document.querySelectorAll('button')].find(b=>b.textContent==='Start work');assert.ok(start);start.click();start.click();
+  await until(()=>[...h.w.document.querySelectorAll('button')].some(b=>b.textContent==='Start work'));const start=[...h.w.document.querySelectorAll('button')].find(b=>b.textContent==='Start work');assert.ok(start);start.click();start.click();
   await until(()=>h.w.document.body.textContent.includes('timer result is unconfirmed'));assert.equal(h.writes.length,1);
   const first=h.writes[0].body,c=JSON.parse(first);assert.equal(c.action,'start');assert.equal(h.w.sessionStorage.length,1);
   h.fixture.data.jobs[0].status='working';h.fixture.data.jobs[0].revision=c.revision+1;
-  [...h.w.document.querySelectorAll('button')].find(b=>b.textContent==='Refresh').click();await until(()=>[...h.w.document.querySelectorAll('button')].some(b=>b.textContent==='Pause work'));
-  [...h.w.document.querySelectorAll('button')].find(b=>b.textContent==='Pause work').click();await tick();assert.equal(h.writes.length,1);
+  [...h.w.document.querySelectorAll('button')].find(b=>b.textContent==='Refresh').click();await until(()=>[...h.w.document.querySelectorAll('button')].some(b=>b.textContent==='Pause timer'));
+  [...h.w.document.querySelectorAll('button')].find(b=>b.textContent==='Pause timer').click();await tick();assert.equal(h.writes.length,1);
   h.control.post=()=>Response.json({ok:true,result:{id:c.id,revision:c.revision+1,status:'working'}});
   const retry=[...h.w.document.querySelectorAll('button')].find(b=>b.textContent==='Check saved timer action');assert.ok(retry);retry.click();retry.click();
   await until(()=>h.w.document.body.textContent.includes('Job and time record saved.'));assert.equal(h.writes.length,2);assert.equal(h.writes[1].body,first);assert.equal(h.w.sessionStorage.length,0);
  }finally{h.close();}
 });
 test('timer retry reload is explicit and permission rejection retains the earlier unknown attempt',async()=>{
- const first=await mount('?section=Work','technician',{state:'confirmed'});let storage,body;
- try{[...first.w.document.querySelectorAll('button')].find(b=>b.textContent==='Start work').click();await until(()=>first.writes.length===1&&first.w.document.body.textContent.includes('timer result is unconfirmed'));body=first.writes[0].body;storage=Object.fromEntries(Array.from({length:first.w.sessionStorage.length},(_,i)=>{const k=first.w.sessionStorage.key(i);return [k,first.w.sessionStorage.getItem(k)];}));}finally{first.close();}
- const h=await mount('?section=Work','technician',{state:'confirmed',storage});
+ const first=await mount('?section=Work&request='+requestId,'owner',{state:'confirmed'});let storage,body;
+ try{await until(()=>[...first.w.document.querySelectorAll('button')].some(b=>b.textContent==='Start work'));[...first.w.document.querySelectorAll('button')].find(b=>b.textContent==='Start work').click();await until(()=>first.writes.length===1&&first.w.document.body.textContent.includes('timer result is unconfirmed'));body=first.writes[0].body;storage=Object.fromEntries(Array.from({length:first.w.sessionStorage.length},(_,i)=>{const k=first.w.sessionStorage.key(i);return [k,first.w.sessionStorage.getItem(k)];}));}finally{first.close();}
+ const h=await mount('?section=Work&request='+requestId,'owner',{state:'confirmed',storage});
  try{
   await until(()=>[...h.w.document.querySelectorAll('button')].some(b=>b.textContent==='Check saved timer action'));assert.equal(h.writes.length,0);
   h.control.post=()=>Response.json({error:'Access ended'},{status:403});[...h.w.document.querySelectorAll('button')].find(b=>b.textContent==='Check saved timer action').click();await until(()=>h.writes.length===1&&h.w.document.body.textContent.includes('timer result is unconfirmed'));
@@ -117,8 +117,9 @@ test('timer retry reload is explicit and permission rejection retains the earlie
 });
 
 test('failed timer recovery storage prevents sending and a malformed success never clears its frozen retry',async()=>{
- const h=await mount('?section=Work','technician',{state:'confirmed'});
+ const h=await mount('?section=Work&request='+requestId,'owner',{state:'confirmed'});
  try{
+  await until(()=>[...h.w.document.querySelectorAll('button')].some(b=>b.textContent==='Start work'));
   const prototype=Object.getPrototypeOf(h.w.sessionStorage),original=prototype.setItem;
   prototype.setItem=function(){throw Error('Synthetic device unavailable');};
   [...h.w.document.querySelectorAll('button')].find(b=>b.textContent==='Start work').click();await until(()=>h.w.document.body.textContent.includes('No new timer action was sent'));assert.equal(h.writes.length,0);
@@ -128,8 +129,9 @@ test('failed timer recovery storage prevents sending and a malformed success nev
  }finally{h.close();}
 });
 test('confirmed timer save remains saved when local retry cleanup fails',async()=>{
- const h=await mount('?section=Work','technician',{state:'confirmed'});
+ const h=await mount('?section=Work&request='+requestId,'owner',{state:'confirmed'});
  try{
+  await until(()=>[...h.w.document.querySelectorAll('button')].some(b=>b.textContent==='Start work'));
   const prototype=Object.getPrototypeOf(h.w.sessionStorage);prototype.removeItem=function(){throw Error('Synthetic cleanup failure');};
   h.control.post=(_url,init)=>{const c=JSON.parse(init.body);return Response.json({ok:true,result:{id:c.id,revision:c.revision+1,status:'working'}});};
   [...h.w.document.querySelectorAll('button')].find(b=>b.textContent==='Start work').click();await until(()=>h.w.document.body.textContent.includes('Job and time record saved.'));

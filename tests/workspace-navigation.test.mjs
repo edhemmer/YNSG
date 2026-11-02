@@ -15,7 +15,7 @@ test('deep links retain an authorized company and only valid selected records fo
  assert.equal(readWorkspaceRoute(new URL('https://example.invalid/owner?organization=foreign'),members,other).organization,other);
 });
 test('revoked and unknown roles cannot use URL values to gain owner screens',()=>{
- for(const [role,home] of [['dispatcher','Requests'],['bookkeeper','Money'],['technician','Today'],['unknown','Dashboard']]){
+ for(const [role,home] of [['dispatcher','Requests'],['bookkeeper','Money'],['technician','Work'],['unknown','Dashboard']]){
   const route=readWorkspaceRoute(new URL('https://example.invalid/owner?section=Settings&request='+id),[{organization_id:org,role}]);assert.equal(route.section,home);assert.equal(route.request,null);
   assert.equal(workspaceSectionAllowed('Settings',role),false);
  }

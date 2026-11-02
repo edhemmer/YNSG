@@ -7,7 +7,7 @@ import {ownerFixture,organization,requestId} from '../tests/fixtures/owner-mobil
 const require=createRequire(import.meta.url),{build}=require(require.resolve('esbuild',{paths:[require.resolve('tsx')]}));
 const {chromium,webkit}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const bundle=await build({entryPoints:['tests/fixtures/workspace-browser-harness.tsx'],bundle:true,write:false,nodePaths:[resolve('apps/web/node_modules')],platform:'browser',jsx:'automatic',define:{'process.env.NODE_ENV':'"production"','process.env':'{}'}});
-const css=readFileSync('apps/web/app/style.css','utf8');
+const css=['apps/web/app/style.css','apps/web/app/careers.css','apps/web/app/field-office.css'].map(path=>readFileSync(path,'utf8')).join('\n');
 const server=http.createServer((req,res)=>{if(req.url==='/bundle.js'){res.setHeader('Content-Type','text/javascript');res.end(bundle.outputFiles[0].text);}else if(req.url==='/style.css'){res.setHeader('Content-Type','text/css');res.end(css);}else{res.setHeader('Content-Type','text/html');res.end('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"></head><body><div id="root"></div><script src="/bundle.js"></script></body></html>');}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const origin='http://127.0.0.1:'+server.address().port;
@@ -74,11 +74,11 @@ try{
    assert.equal(new URL(page.url()).searchParams.has('request'),false);
    await page.getByLabel('Switch business').selectOption(company2);await heading(page,'Invoices & money');assert.equal(new URL(page.url()).searchParams.get('organization'),company2);
    await page.goBack();await heading(page,'Invoices & money');assert.equal(new URL(page.url()).searchParams.get('organization'),organization);
-   control.memberships=[{organization_id:organization,role:'technician'}];await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await heading(page,'Day routes');assert.equal(await page.getByRole('navigation',{name:'Workspace',exact:true}).getByRole('button',{name:'Invoices & money'}).count(),0);
+   control.memberships=[{organization_id:organization,role:'technician'}];await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await heading(page,'Jobs');assert.equal(await page.getByRole('navigation',{name:'Workspace',exact:true}).getByRole('button',{name:'Invoices & money'}).count(),0);
    assert.equal(writes.length,0);await page.close();results.push(engine+' company history and live role revocation');
   }
   {
-   const {page,writes,control}=await mount({role:'technician',state:'confirmed',path:'?section=Work'});
+   const {page,writes,control}=await mount({role:'owner',state:'confirmed',path:'?section=Work&request='+requestId});
    await page.getByRole('button',{name:'Start work',exact:true}).evaluate(button=>{button.click();button.click();});
    await page.getByText('The timer result is unconfirmed.',{exact:false}).waitFor();assert.equal(writes.length,1);
    const first=writes[0].body,command=JSON.parse(first);
@@ -91,7 +91,7 @@ try{
   }
   for(const role of ['dispatcher','bookkeeper','technician']){
    const {page,writes}=await mount({role,path:'?section=Settings&request='+requestId+'&customer='+requestId});
-   await heading(page,role==='dispatcher'?'Requests':role==='bookkeeper'?'Invoices & money':'Day routes');assert.equal(new URL(page.url()).searchParams.has('request'),false);assert.equal(new URL(page.url()).searchParams.has('customer'),false);assert.equal(writes.length,0);await page.close();
+   await heading(page,role==='dispatcher'?'Requests':role==='bookkeeper'?'Invoices & money':'Jobs');assert.equal(new URL(page.url()).searchParams.has('request'),false);assert.equal(new URL(page.url()).searchParams.has('customer'),false);assert.equal(writes.length,0);await page.close();
   }results.push(engine+' denied deep links sanitized for all staff roles');
   {
    const {page,reads,writes}=await mount({path:'?section=Money'});

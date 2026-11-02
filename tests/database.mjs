@@ -20,6 +20,7 @@ try {
  grant select,insert on storage.objects to authenticated;`);
  for(const f of (await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')).sort())await db.exec(await readFile(`supabase/migrations/${f}`,'utf8'));
  const foundation=await readFile('tests/foundation.sql','utf8');
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/careers.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await withNetworkCatalog(await readFile('tests/owner-network.sql','utf8')));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/task-time.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/customer-service-history.sql','utf8'));
@@ -47,6 +48,9 @@ try {
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/mileage-lifecycle.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/customer-import-atomic.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/platform-admin.sql','utf8'));
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/crew-labor.sql','utf8'));
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/crew-labor-adjustment.sql','utf8'));
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/team-assignment.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/invoice-waivers.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/invoice-zero.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/customer-history.sql','utf8'));

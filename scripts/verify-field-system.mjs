@@ -7,7 +7,7 @@ import {resolve} from 'node:path';
 const require=createRequire(import.meta.url),{build}=require(require.resolve('esbuild',{paths:[require.resolve('tsx')]}));
 const {chromium,webkit}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const bundle=await build({entryPoints:['tests/fixtures/field-system-browser-harness.tsx'],bundle:true,write:false,nodePaths:[resolve('apps/web/node_modules')],platform:'browser',jsx:'automatic',define:{'process.env.NODE_ENV':'"production"'}});
-const css=readFileSync('apps/web/app/style.css','utf8');
+const css=['apps/web/app/style.css','apps/web/app/careers.css','apps/web/app/field-office.css'].map(path=>readFileSync(path,'utf8')).join('\n');
 const server=http.createServer((req,res)=>{if(req.url==='/bundle.js'){res.setHeader('Content-Type','text/javascript');res.end(bundle.outputFiles[0].text);}else if(req.url==='/style.css'){res.setHeader('Content-Type','text/css');res.end(css);}else{res.setHeader('Content-Type','text/html');res.end('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"></head><body><div id="root"></div><script src="/bundle.js"></script></body></html>');}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
 const output=resolve(process.env.YNSG_FIELD_OUTPUT||'/tmp/ynsg-field-system');mkdirSync(output,{recursive:true});

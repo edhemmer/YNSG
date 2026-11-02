@@ -10,6 +10,8 @@ import SchedulingReviewPanel from './scheduling-review-panel';
 import Icon from './crm-icons';
 import {navigationUrl} from '../lib/day-plan';
 import {invoiceNumber} from '../lib/invoice-number';
+import {OfficeFieldNotes} from './field-work';
+import LeadAssignment from './lead-assignment';
 import InvoiceDraft from './invoice-draft';
 import TaskTimer from './task-timer';
 import AppointmentSummary from './appointment-summary';
@@ -25,7 +27,7 @@ import UnforeseenJobReview from './unforeseen-job-review';
 import {hiddenConditionPreflight} from '../lib/unforeseen-job-cost';
 type Job=LinkedJob;
 const money=(n:number)=>(n/100).toLocaleString('en-US',{style:'currency',currency:'USD'});
-export default function ServiceWorkflow({organization,request,quotes,jobs,invoices,timezone,canManage,canQuote,canWork,busy,onBusy,onReview,act,fieldAction,onChanged,onCustomer,onNetwork,companyName}:{organization:string;request:InboxRequest;quotes:LinkedQuote[];jobs:Job[];invoices:LinkedInvoice[];timezone:string;canManage:boolean;canQuote:boolean;canWork:boolean;busy:boolean;onBusy:(v:boolean)=>void;onReview:()=>void;act:(value:Record<string,unknown>)=>Promise<unknown>;fieldAction:(job:Job,action:'start'|'pause'|'resume')=>Promise<void>;onChanged:()=>void;onCustomer?:(id:string)=>void;onNetwork?:(tasks:string[],context?:CompanionContext,initialView?:'learn'|'refer')=>void;companyName?:string}){
+export default function ServiceWorkflow({organization,request,quotes,jobs,invoices,timezone,canManage,canQuote,canWork,busy,onBusy,onReview,act,fieldAction,onChanged,onCustomer,onNetwork,companyName,officeTools=true}:{organization:string;request:InboxRequest;quotes:LinkedQuote[];jobs:Job[];invoices:LinkedInvoice[];timezone:string;canManage:boolean;canQuote:boolean;canWork:boolean;busy:boolean;onBusy:(v:boolean)=>void;onReview:()=>void;act:(value:Record<string,unknown>)=>Promise<unknown>;fieldAction:(job:Job,action:'start'|'pause'|'resume')=>Promise<void>;onChanged:()=>void;onCustomer?:(id:string)=>void;onNetwork?:(tasks:string[],context?:CompanionContext,initialView?:'learn'|'refer')=>void;companyName?:string;officeTools?:boolean}){
  const task=fieldWorkflow(request,quotes,jobs,invoices),{canLeave}=useEntrySafety();
  const prepared=prepareFieldBrief(request,quotes,jobs,invoices);
  const [scheduleOpen,setScheduleOpen]=useState(false),[declineOpen,setDeclineOpen]=useState(false),[workRecordOpen,setWorkRecordOpen]=useState(false);
@@ -83,6 +85,8 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
   </section>}
 
   {j&&canManage&&(working||task.kind==='invoice')&&<div ref={workRecordRef} tabIndex={-1} hidden={working&&!workRecordOpen} className="field-work-record" id="field-invoice-draft"><InvoiceDraft key={j.id} mobile initialExpanded={workRecordOpen||task.kind==='invoice'} completeOnSave={j.status!=='completed'} organization={organization} job={j.id} revision={j.revision} completed={j.status==='completed'} blocked={blocked} onBusy={busyFor('work:'+j.id)} saved={onChanged} suggestedWork={v?{description:v.scope,chargedCents:v.labor_cents}:undefined}/></div>}
+  {canManage&&officeTools&&<LeadAssignment key={'assignment:'+organization+':'+request.id} organization={organization} request={request.id}/>}
+  {j&&canManage&&officeTools&&<OfficeFieldNotes key={'field-notes:'+organization+':'+j.id} organization={organization} job={j.id}/>}
   {j&&canManage&&<TaskTimer key={organization+':'+j.id} organization={organization} job={j.id} revision={j.revision} choices={requestTasks(request.original_submission).map(c=>({service:c.service,task:c.task||c.service}))} blocked={blocked} onChanged={onChanged}/>}
   {(task.kind==='payment'||task.kind==='settled')&&(task.kind==='payment'?orderedInvoices:invoices).map(i=><section className="field-invoice" id={i.id===paymentTarget?'field-payment-record':'field-payment-'+i.id} key={i.id}><h3>Invoice {invoiceNumber(i.number)}</h3><InvoicePayments guided onBusy={busyFor('payment:'+i.id)} organization={organization} invoice={i.id} totalCents={i.total_cents} timezone={timezone} onChanged={onChanged}/><details className="workflow-supporting"><summary>Email invoice & PDF</summary><a className="button secondary" href={'/invoice?'+new URLSearchParams({organization,invoice:i.id,request:request.id})}>Open invoice / download PDF</a>{canManage&&<InvoiceDelivery onBusy={busyFor('email:'+i.id)} organization={organization} invoice={i.id}/>}</details></section>)}
   </section>
@@ -109,8 +113,9 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
 function WorkflowQuoteForm({request,busy,submit,organization,canLink}:{request:InboxRequest;busy:boolean;submit:(value:Record<string,unknown>)=>Promise<unknown>;organization:string;canLink:boolean}){
  const [community,setCommunity]=useState(request.original_submission.communityRate==='Yes');
  const [dirty,setDirty]=useState(false);useUnsavedEntry('quote:'+request.id,dirty);
- return <form onChangeCapture={()=>setDirty(true)} onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);void submit({command:'PublishQuote',id:request.id,revision:request.revision,scope:f.get('scope'),minutes:Number(f.get('minutes')),community,eligibilityReviewed:community&&f.get('reviewed')==='on',customerId:f.get('customerId')||null}).then(result=>{if((result as {ok?:boolean}|undefined)?.ok)setDirty(false);});}}><fieldset disabled={busy}>
-  <legend>Prepare the work and labor estimate</legend>{canLink&&!request.customer_id&&<CustomerPicker organization={organization} onChanged={()=>setDirty(true)}/>}<label>Work included<textarea name="scope" minLength={10} maxLength={5000} required defaultValue={requestTasks(request.original_submission).map(s=>s.task||s.service).join('\n')}/></label>
+ return <form onChangeCapture={()=>setDirty(true)} onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);void submit({command:'PublishQuote',id:request.id,revision:request.revision,scope:f.get('scope'),minutes:Number(f.get('minutes')),crewSize:Number(f.get('crewSize')),community,eligibilityReviewed:community&&f.get('reviewed')==='on',customerId:f.get('customerId')||null}).then(result=>{if((result as {ok?:boolean}|undefined)?.ok)setDirty(false);});}}><fieldset disabled={busy}>
+  <legend>Prepare the work and labor estimate</legend>{canLink&&!request.customer_id&&<CustomerPicker organization={organization} onChanged={()=>setDirty(true)}/>}<label>Work included<textarea name="scope" minLength={10} maxLength={4500} required defaultValue={requestTasks(request.original_submission).map(s=>s.task||s.service).join('\n')}/></label>
+  <label>Planned people — owner planning<select name="crewSize" defaultValue="1">{[1,2,3,4,5,6].map(n=><option key={n} value={n}>{n} {n===1?'person':'people'}</option>)}</select></label><p className="tiny">Rates are per person. Only the first person has a two-hour minimum; additional people are billed for their worked time. Staffing is managed by you. This estimate does not assign or reserve workers.</p>
   <label>Estimated work time<select name="minutes" defaultValue="120">{[120,150,180,210,240,300,360,420,480].map(n=><option key={n} value={n}>{n/60} hours</option>)}</select></label>
   <label className="check"><input type="checkbox" name="community" checked={community} onChange={e=>setCommunity(e.target.checked)}/>Use the Community Rate</label>{community&&<label className="check"><input type="checkbox" name="reviewed" required/>I reviewed the customer’s Community Rate request.</label>}
   <button>Save labor estimate</button><p className="tiny">Discuss the saved amount with the customer, then record their agreement. Separate materials and extra charges require their approval.</p>

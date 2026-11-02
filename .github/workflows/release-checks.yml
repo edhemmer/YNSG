@@ -78,6 +78,10 @@ jobs:
         run: node scripts/verify-email-templates.mjs
       - name: Verify customer service-history insights
         run: node scripts/verify-customer-service-insights.mjs
+      - name: Verify private careers and editable per-person labor
+        run: node scripts/verify-careers-labor.mjs
+      - name: Verify owner Team, lead responsibility and assigned field closeout
+        run: node scripts/verify-team-field-work.mjs
       - name: Verify complete field request-to-receipt journey
         run: node scripts/verify-field-system.mjs
       - name: Install isolated locked native dependencies

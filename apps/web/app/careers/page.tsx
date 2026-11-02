@@ -1,0 +1,3 @@
+import type {Metadata} from 'next';import Careers from './panel';import {EntrySafety} from '../entry-safety';
+export const dynamic='force-dynamic';export const metadata:Metadata={title:'Work with Your Neighborhood Service Guy',description:'Explore local home and yard field opportunities in DeKalb, Sycamore and Cortland.',robots:{index:false,follow:false},referrer:'no-referrer'};
+export default async function Page({searchParams}:{searchParams?:Promise<Record<string,string|string[]|undefined>>}){const query=searchParams?await searchParams:{};return <EntrySafety><Careers initialRole={query.role==='yard_support'?'yard_support':'home_support'}/></EntrySafety>}

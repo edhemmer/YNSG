@@ -2,6 +2,7 @@ import {hourlyCharge} from "./invoice-billing.ts";
 import { z } from "zod";
 const line = z
   .object({
+    crewPerson:z.number().int().min(1).max(6).optional(),
     description: z.string().trim().min(2).max(1000),
     recordedMinutes: z.number().int().min(0).max(1440),
     chargedCents: z.number().int().min(0).max(999999999),

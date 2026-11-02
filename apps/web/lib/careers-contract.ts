@@ -1,0 +1,24 @@
+import {z} from 'zod';
+const id=z.uuid(),stamp=z.iso.datetime({offset:true}),line=(n:number)=>z.string().trim().max(n).regex(/^[^\x00-\x1f\x7f<>]*$/),note=(n:number)=>z.string().trim().max(n).regex(/^[^\x00-\x08\x0b\x0c\x0e-\x1f\x7f]*$/);
+export const careerRoles={home_support:{title:'Small home jobs · field support',summary:'Furniture assembly, household hardware, organizing and other agreed small jobs within our service limits.'},yard_support:{title:'Home & yard · field support',summary:'Lawn and garden upkeep, leaf management, mulch handling, residential snow and manageable cleanout work, as agreed.'}} as const;
+export const careerSkills=['Furniture assembly','Household hardware','Minor drywall patches','Organizing','Lawn care','Garden-bed care','Leaf management','Mulch handling','Residential snow','Manageable cleanouts','Customer communication','Other relevant experience'] as const;
+export const careerProfile=z.object({role:z.enum(['home_support','yard_support']),name:line(120).min(2),email:z.email().max(254),phone:line(35).regex(/^[+\d() .x#-]{7,35}$/i),city:line(80).min(2),skills:z.array(z.enum(careerSkills)).min(1).max(12).refine(a=>new Set(a).size===a.length),experience:note(4000).min(20),availability:note(1000).min(5),travel:z.enum(['yes','discuss']),authorized:z.enum(['yes','discuss']),adult:z.literal(true),privacy:z.literal(true),notice:z.literal('careers-2026-11-01')}).strict();
+export const careerResume=z.object({name:line(180).min(1),mime:z.literal('application/pdf'),bytes:z.number().int().min(16).max(1048576),sha256:z.string().regex(/^[a-f0-9]{64}$/),content:z.string().min(20).max(1400000).regex(/^[A-Za-z0-9+/=\r\n]+$/)}).strict();
+export const careerSubmission=z.object({key:id,proof:z.string().regex(/^[a-f0-9]{64}$/),profile:careerProfile,resume:careerResume.nullable()}).strict();
+export const careerResolution=z.object({key:id,proof:z.string().regex(/^[a-f0-9]{64}$/),action:z.literal('resolve')}).strict();
+export const careerReceipt=z.object({organization:id,key:id,id:id.nullable(),outcome:z.enum(['received','not_applied'])}).strict().refine(v=>v.outcome==='received'?v.id!==null:v.id===null);
+export const careerPublic=z.object({accepting:z.boolean(),checkedAt:stamp,roles:z.array(z.enum(['home_support','yard_support'])).max(2)}).strict();
+export const careerStatus=z.enum(['new','reviewing','contacted','closed','withdrawn']);
+export const careerQuery=z.object({organization:id,id:id.optional(),page:z.coerce.number().int().min(0).max(10000).default(0),status:z.union([careerStatus,z.literal('all')]).default('all')}).strict();
+const command={organization:id,key:id,revision:z.number().int().positive()};
+export const careerCommand=z.discriminatedUnion('action',[
+ z.object({...command,action:z.literal('review'),id,status:careerStatus,note:note(2000).min(10),confirmedContact:z.boolean()}).strict(),
+ z.object({...command,action:z.literal('configure'),employeeCount:z.number().int().min(0).max(10000),accepting:z.boolean(),reviewed:z.literal(true)}).strict()
+]);
+export const careerRecovery=z.object({organization:id,key:id,id:id.nullable(),action:z.literal('resolve'),operation:z.enum(['review','configure']),fingerprint:z.string().regex(/^[a-f0-9]{64}$/)}).strict();
+export const careerSaved=z.object({organization:id,key:id,id:id.nullable(),revision:z.number().int().positive().nullable(),action:z.enum(['review','configure']),outcome:z.enum(['saved','not_applied']),fingerprint:z.string().regex(/^[a-f0-9]{64}$/)}).strict().refine(v=>v.outcome==='saved'?v.revision!==null:v.revision===null);
+export const careerPolicy=z.object({enabled:z.boolean(),employeeCount:z.number().int().min(0),reviewUntil:stamp,revision:z.number().int().positive()}).strict();
+export const careerApplicant=z.object({id,profile:careerProfile,status:careerStatus,revision:z.number().int().positive(),createdAt:stamp,updatedAt:stamp,resume:z.object({name:line(180),bytes:z.number().int().max(1048576)}).strict().nullable(),history:z.array(z.object({at:stamp,actor:id,status:careerStatus,note:note(2000)}).strict()).max(100)}).strict();
+export const careerWorkspace=z.object({organization:id,actor:id,checkedAt:stamp,policy:careerPolicy,page:z.number().int().min(0),total:z.number().int().nonnegative(),hasMore:z.boolean(),items:z.array(careerApplicant).max(25)}).strict();
+export const careerDownload=z.object({organization:id,id,name:line(180).min(1),mime:z.literal('application/pdf'),bytes:z.number().int().min(16).max(1048576),sha256:z.string().regex(/^[a-f0-9]{64}$/),content:z.string().max(1500000)}).strict();
+export function resumePdf(bytes:Uint8Array){if(bytes.length<16||bytes.length>1048576)return false;const head=new TextDecoder('latin1').decode(bytes.subarray(0,16)),tail=new TextDecoder('latin1').decode(bytes.subarray(Math.max(0,bytes.length-1024)));return /^%PDF-(1\.[0-7]|2\.0)/.test(head)&&tail.includes('%%EOF');}

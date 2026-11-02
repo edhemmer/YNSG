@@ -1,3 +1,4 @@
+import {crewTerms} from '../../../lib/crew-billing';
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { authenticated, sameOrigin, failure } from "../../../lib/session";
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
     const quote=await db.from('quote_versions').select('snapshot').eq('organization_id',org).eq('quote_id',record.data.quote_id).eq('version',record.data.approved_version).single();
     if(quote.error)throw quote.error;
     return NextResponse.json(
-      { draft: r.data, tax:tax.data,readiness:invoiceIssuanceReadiness(quote.data.snapshot?.configuration||null,tax.data?.required===true) },
+      { draft: r.data, tax:tax.data,crew:quote.data.snapshot?.crew?crewTerms.parse(quote.data.snapshot.crew):null,readiness:invoiceIssuanceReadiness(quote.data.snapshot?.configuration||null,tax.data?.required===true) },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e) {
@@ -48,6 +49,10 @@ export async function POST(request: Request) {
         CHANGE_ORDER_REQUIRED:'Charges exceed approved labor. Review the change order.',
         STALE_REVISION:'Work changed. Refresh the saved job before modifying it.',
         TRANSITION:'The work record no longer accepts draft changes.',
+        ADJUSTMENT_REASON_REQUIRED:'Add a reason for changing a person’s rate.',
+        ACTUAL_WORK_REQUIRED:'Record actual time for each person or explicitly waive the charge.',
+        ROUNDING_POLICY_REQUIRED:'Review the saved agreement’s extension policy before billing this time.',
+        INVOICE_TOTAL_CHANGED:'Check each person’s billed time, rate and calculated charge.',
         VALIDATION:'Check work descriptions, amounts and waiver reasons.',
         SETUP_REQUIRED:'Finance setup is not ready.',
         IDEMPOTENCY_CONFLICT:'Original retry details differ. Keep the same attempt.',

@@ -40,9 +40,11 @@ for(const [slug,document] of pages){
  assert.ok(!descriptions.has(description),context+': duplicate description');descriptions.add(description);
  for(const meta of document.querySelectorAll('meta[name="robots"],meta[name="googlebot"]'))assert.doesNotMatch(meta.content,/noindex|none/i,context);
  const graph=[...document.querySelectorAll('script[type="application/ld+json"]')].flatMap(node=>JSON.parse(node.textContent)['@graph']||[]);
- const page=graph.find(node=>node['@type']==='WebPage');assert.equal(page?.url,url,context);
+ const page=graph.find(node=>node['@type']===(slug==='careers'?'CollectionPage':'WebPage'));assert.equal(page?.url,url,context);
  const ids=new Set(graph.map(node=>node['@id']));assert.equal(ids.size,graph.length,context+': duplicate schema IDs');
  if(slug){const crumb=graph.find(node=>node['@id']===page.breadcrumb?.['@id']);assert.equal(crumb?.itemListElement.at(-1).item,url,context);}
+ if(slug==='careers'){const list=graph.find(node=>node['@id']===page.mainEntity?.['@id']);assert.equal(list?.['@type'],'ItemList','Careers must describe the visible role directory');assert.equal(list.itemListElement.length,2);for(const item of list.itemListElement)assert.ok(pages.has(slugFor(new URL(item.url).pathname)),'Career role destination must be crawlable');}
+ if(slug.startsWith('careers/')){const crumb=graph.find(node=>node['@id']===page.breadcrumb?.['@id']);assert.equal(crumb.itemListElement[1].item,canonicalUrl('careers'),'Opportunity must connect to careers');assert.ok(document.querySelector('a[href^="https://yourneighborhoodserviceguy.app/careers?role="]'),'Direct role application required');}
  if(localServicePages[slug]){
   const service=graph.find(node=>node['@id']===page.mainEntity?.['@id']);
   assert.equal(service?.['@type'],'Service',context+': missing primary service');

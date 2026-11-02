@@ -1,0 +1,62 @@
+-- Run after fixture prefix from foundation.sql; everything rolls back.
+update public.catalog_services set compliance='approved',pricing_mode='hourly';
+insert into public.entitlements values('20000000-0000-4000-8000-000000000001','finance',true);
+insert into public.configuration_versions(organization_id,version,settings) values('20000000-0000-4000-8000-000000000001',2,
+ '{"intakeEnabled":true,"cities":["DeKalb"],"region":"IL","privacyVersion":"test-only","notificationRecipient":"owner@example.invalid","hourly":{"standardCents":6000,"communityCents":4500},"policyVersion":"synthetic-1","sellerVerified":true,"sellerLegalName":"SYNTHETIC TEST ONLY","taxTreatmentVerified":true,"laborTaxTreatment":"reviewed_non_taxable","invoiceTerms":"Synthetic test only","displayName":"Synthetic Company","sender":"owner@example.invalid","review":{"enabled":true,"url":"https://example.invalid/review"}}');
+set local role service_role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+select public.submit_service_request('20000000-0000-4000-8000-000000000001','test-commercial-01',repeat('a',64),'{"service":"Lawn care","name":"Synthetic Test","phone":"5550000000","email":"test@example.invalid","street":"100 Test Street","city":"DeKalb","description":"Synthetic integration request","communityRate":"Yes"}');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select public.review_service_request('20000000-0000-4000-8000-000000000001',(select id from public.service_requests limit 1),1,'reviewing','test-commercial-review');
+select public.publish_hourly_crew_quote('20000000-0000-4000-8000-000000000001',(select id from public.service_requests limit 1),2,'Synthetic three-person hourly scope',120,true,true,null,'test-crew-publish-01',3);
+select public.publish_hourly_crew_quote('20000000-0000-4000-8000-000000000001',(select id from public.service_requests limit 1),2,'Synthetic three-person hourly scope',120,true,true,null,'test-crew-publish-01',3);
+select pg_temp.assert_true((select count(*)=1 from public.quote_versions),'crew quote retry does not publish twice');
+select pg_temp.assert_true((select labor_cents=27000 and duration_minutes=120 and snapshot->'crew'->>'plannedPeople'='3' and snapshot->'crew'->>'additionalPersonMinimumMinutes'='0' from public.quote_versions),'three-person estimate cap and first-person-only minimum snapshot');
+do $$begin begin
+ perform public.publish_hourly_crew_quote('20000000-0000-4000-8000-000000000001',(select id from public.service_requests limit 1),2,'Synthetic three-person hourly scope',120,true,true,null,'test-crew-publish-01',2);raise exception 'TEST FAILED changed headcount replay';
+ exception when raise_exception then if sqlerrm<>'IDEMPOTENCY_CONFLICT' then raise;end if;end;end$$;
+select public.approve_quote('20000000-0000-4000-8000-000000000001',(select id from public.quotes limit 1),1,'Synthetic approval of scope and financial cap only');
+reset role;
+-- Explicit execution precondition in synthetic fixture, not a real work assertion.
+update public.jobs set status='working',revision=2;
+set local role authenticated;
+reset role;
+create temporary table team_mail_baseline as select count(*) n from public.outbox;
+update auth.users set email='technician@example.invalid' where id='00000000-0000-4000-8000-000000000004';
+set local role authenticated;
+select pg_temp.assert_true(public.office_request_page('20000000-0000-4000-8000-000000000001',0,'all','','owner')->>'total'='1','solo launch defaults every lead to Owner');
+select pg_temp.assert_true(public.office_request_page('20000000-0000-4000-8000-000000000001',0,'all','','all')->'assignments'->0->>'name'='Owner','owner label exists without a technician');
+select public.team_command('20000000-0000-4000-8000-000000000001','{"organization":"20000000-0000-4000-8000-000000000001","id":"85000000-0000-4000-8000-000000000001","key":"85000000-0000-4000-8000-000000000002","revision":0,"profile":{"name":"Synthetic Field Technician","phone":"5550000001","email":"technician@example.invalid","skills":"Furniture assembly and yard work","notes":"Synthetic office contact only","userId":null,"archived":false},"action":"technician"}');
+select public.team_command('20000000-0000-4000-8000-000000000001','{"organization":"20000000-0000-4000-8000-000000000001","id":"85000000-0000-4000-8000-000000000001","key":"85000000-0000-4000-8000-000000000002","revision":0,"profile":{"name":"Synthetic Field Technician","phone":"5550000001","email":"technician@example.invalid","skills":"Furniture assembly and yard work","notes":"Synthetic office contact only","userId":null,"archived":false},"action":"technician"}');
+select pg_temp.assert_true(public.technician_directory('20000000-0000-4000-8000-000000000001',0,'',false)->>'total'='1','technician replay creates one directory contact');
+select public.team_command('20000000-0000-4000-8000-000000000001','{"organization":"20000000-0000-4000-8000-000000000001","id":"85000000-0000-4000-8000-000000000001","key":"85000000-0000-4000-8000-000000000009","revision":1,"action":"activate","reviewed":true}');
+select public.team_command('20000000-0000-4000-8000-000000000001','{"organization":"20000000-0000-4000-8000-000000000001","id":"85000000-0000-4000-8000-000000000001","key":"85000000-0000-4000-8000-000000000009","revision":1,"action":"activate","reviewed":true}');
+select pg_temp.assert_true(public.technician_directory('20000000-0000-4000-8000-000000000001',0,'',false)->'items'->0->'profile'->>'userId'='00000000-0000-4000-8000-000000000004','owner activates exact verified saved email as technician');
+do $$declare req uuid;body text;begin
+ req:=(public.office_request_page('20000000-0000-4000-8000-000000000001',0,'all','','all')->'requests'->0->>'id')::uuid;
+ body:=jsonb_build_object('organization','20000000-0000-4000-8000-000000000001','request',req,'key','85000000-0000-4000-8000-000000000003','revision',1,'technician','85000000-0000-4000-8000-000000000001','note','Please follow up on this synthetic lead','action','assign')::text;
+ perform public.team_command('20000000-0000-4000-8000-000000000001',body);perform public.team_command('20000000-0000-4000-8000-000000000001',body);
+ perform pg_temp.assert_true(public.lead_assignment('20000000-0000-4000-8000-000000000001',req)->>'technician'='85000000-0000-4000-8000-000000000001','explicit lead delegation');
+ perform pg_temp.assert_true(public.office_request_page('20000000-0000-4000-8000-000000000001',0,'all','','owner')->>'total'='0','delegated lead leaves Owner filter');
+ perform pg_temp.assert_true(public.office_request_page('20000000-0000-4000-8000-000000000001',0,'all','','85000000-0000-4000-8000-000000000001')->>'total'='1','office filters assigned technician before pagination');
+end $$;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000004","session_id":"10000000-0000-4000-8000-000000000004"}',true);
+select pg_temp.assert_true(jsonb_array_length(public.field_work_workspace('20000000-0000-4000-8000-000000000001')->'items')=1,'linked technician sees assigned lead');
+select pg_temp.assert_true(jsonb_array_length(public.field_work_workspace('20000000-0000-4000-8000-000000000001')->'items')=1,'assigned technician gets only authorized active labor draft');
+do $$begin begin perform public.technician_directory('20000000-0000-4000-8000-000000000001',0,'',false);raise exception 'TEST FAILED technician reads full team contacts';exception when insufficient_privilege then null;end;end$$;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001"}',true);
+select public.assign_lead('20000000-0000-4000-8000-000000000001',(select id from public.service_requests limit 1),2,null,'Owner resumes responsibility','85000000-0000-4000-8000-000000000004');
+select pg_temp.assert_true(public.office_request_page('20000000-0000-4000-8000-000000000001',0,'all','','owner')->>'total'='1','return to Owner remains visible');
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000004","session_id":"10000000-0000-4000-8000-000000000004"}',true);
+select pg_temp.assert_true(jsonb_array_length(public.field_work_workspace('20000000-0000-4000-8000-000000000001')->'items')=0,'reassignment revokes prior technician lead access');
+select pg_temp.assert_true(jsonb_array_length(public.field_work_workspace('20000000-0000-4000-8000-000000000001')->'items')=0,'reassignment revokes inherited labor draft access');
+reset role;
+select pg_temp.assert_true((select count(*)=2 from private.lead_assignment_history),'one historical handoff per saved revision');
+select pg_temp.assert_true((select count(*) from public.outbox)=(select n from team_mail_baseline),'assignment does not send any customer or technician messages');
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002"}',true);
+do $$begin begin perform public.office_request_page('20000000-0000-4000-8000-000000000001',0,'all','','all');raise exception 'TEST FAILED cross-company office page';exception when insufficient_privilege then null;end;end$$;
+reset role;
+rollback;

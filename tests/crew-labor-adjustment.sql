@@ -1,0 +1,77 @@
+-- Run after fixture prefix from foundation.sql; everything rolls back.
+update public.catalog_services set compliance='approved',pricing_mode='hourly';
+insert into public.entitlements values('20000000-0000-4000-8000-000000000001','finance',true);
+insert into public.configuration_versions(organization_id,version,settings) values('20000000-0000-4000-8000-000000000001',2,
+ '{"intakeEnabled":true,"cities":["DeKalb"],"region":"IL","privacyVersion":"test-only","notificationRecipient":"owner@example.invalid","hourly":{"standardCents":6000,"communityCents":4500},"policyVersion":"synthetic-1","sellerVerified":true,"sellerLegalName":"SYNTHETIC TEST ONLY","taxTreatmentVerified":true,"laborTaxTreatment":"reviewed_non_taxable","invoiceTerms":"Synthetic test only","displayName":"Synthetic Company","sender":"owner@example.invalid","review":{"enabled":true,"url":"https://example.invalid/review"}}');
+set local role service_role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+select public.submit_service_request('20000000-0000-4000-8000-000000000001','test-commercial-01',repeat('a',64),'{"service":"Lawn care","name":"Synthetic Test","phone":"5550000000","email":"test@example.invalid","street":"100 Test Street","city":"DeKalb","description":"Synthetic integration request","communityRate":"Yes"}');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select public.review_service_request('20000000-0000-4000-8000-000000000001',(select id from public.service_requests limit 1),1,'reviewing','test-commercial-review');
+select public.publish_hourly_crew_quote('20000000-0000-4000-8000-000000000001',(select id from public.service_requests limit 1),2,'Synthetic three-person hourly scope',120,true,true,null,'test-crew-publish-01',3);
+select public.publish_hourly_crew_quote('20000000-0000-4000-8000-000000000001',(select id from public.service_requests limit 1),2,'Synthetic three-person hourly scope',120,true,true,null,'test-crew-publish-01',3);
+select pg_temp.assert_true((select count(*)=1 from public.quote_versions),'crew quote retry does not publish twice');
+select pg_temp.assert_true((select labor_cents=27000 and duration_minutes=120 and snapshot->'crew'->>'plannedPeople'='3' and snapshot->'crew'->>'additionalPersonMinimumMinutes'='0' from public.quote_versions),'three-person estimate cap and first-person-only minimum snapshot');
+do $$begin begin
+ perform public.publish_hourly_crew_quote('20000000-0000-4000-8000-000000000001',(select id from public.service_requests limit 1),2,'Synthetic three-person hourly scope',120,true,true,null,'test-crew-publish-01',2);raise exception 'TEST FAILED changed headcount replay';
+ exception when raise_exception then if sqlerrm<>'IDEMPOTENCY_CONFLICT' then raise;end if;end;end$$;
+select public.approve_quote('20000000-0000-4000-8000-000000000001',(select id from public.quotes limit 1),1,'Synthetic approval of scope and financial cap only');
+reset role;
+-- Explicit execution precondition in synthetic fixture, not a real work assertion.
+update public.jobs set status='working',revision=2;
+set local role authenticated;
+reset role;
+create temporary table team_mail_baseline as select count(*) n from public.outbox;
+update auth.users set email='technician@example.invalid' where id='00000000-0000-4000-8000-000000000004';
+set local role authenticated;
+select pg_temp.assert_true(public.office_request_page('20000000-0000-4000-8000-000000000001',0,'all','','owner')->>'total'='1','solo launch defaults every lead to Owner');
+select pg_temp.assert_true(public.office_request_page('20000000-0000-4000-8000-000000000001',0,'all','','all')->'assignments'->0->>'name'='Owner','owner label exists without a technician');
+select public.team_command('20000000-0000-4000-8000-000000000001','{"organization":"20000000-0000-4000-8000-000000000001","id":"85000000-0000-4000-8000-000000000001","key":"85000000-0000-4000-8000-000000000002","revision":0,"profile":{"name":"Synthetic Field Technician","phone":"5550000001","email":"technician@example.invalid","skills":"Furniture assembly and yard work","notes":"Synthetic office contact only","userId":null,"archived":false},"action":"technician"}');
+select public.team_command('20000000-0000-4000-8000-000000000001','{"organization":"20000000-0000-4000-8000-000000000001","id":"85000000-0000-4000-8000-000000000001","key":"85000000-0000-4000-8000-000000000002","revision":0,"profile":{"name":"Synthetic Field Technician","phone":"5550000001","email":"technician@example.invalid","skills":"Furniture assembly and yard work","notes":"Synthetic office contact only","userId":null,"archived":false},"action":"technician"}');
+select pg_temp.assert_true(public.technician_directory('20000000-0000-4000-8000-000000000001',0,'',false)->>'total'='1','technician replay creates one directory contact');
+select public.team_command('20000000-0000-4000-8000-000000000001','{"organization":"20000000-0000-4000-8000-000000000001","id":"85000000-0000-4000-8000-000000000001","key":"85000000-0000-4000-8000-000000000009","revision":1,"action":"activate","reviewed":true}');
+select public.team_command('20000000-0000-4000-8000-000000000001','{"organization":"20000000-0000-4000-8000-000000000001","id":"85000000-0000-4000-8000-000000000001","key":"85000000-0000-4000-8000-000000000009","revision":1,"action":"activate","reviewed":true}');
+select pg_temp.assert_true(public.technician_directory('20000000-0000-4000-8000-000000000001',0,'',false)->'items'->0->'profile'->>'userId'='00000000-0000-4000-8000-000000000004','owner activates exact verified saved email as technician');
+do $$declare req uuid;body text;begin
+ req:=(public.office_request_page('20000000-0000-4000-8000-000000000001',0,'all','','all')->'requests'->0->>'id')::uuid;
+ body:=jsonb_build_object('organization','20000000-0000-4000-8000-000000000001','request',req,'key','85000000-0000-4000-8000-000000000003','revision',1,'technician','85000000-0000-4000-8000-000000000001','note','Please follow up on this synthetic lead','action','assign')::text;
+ perform public.team_command('20000000-0000-4000-8000-000000000001',body);perform public.team_command('20000000-0000-4000-8000-000000000001',body);
+ perform pg_temp.assert_true(public.lead_assignment('20000000-0000-4000-8000-000000000001',req)->>'technician'='85000000-0000-4000-8000-000000000001','explicit lead delegation');
+ perform pg_temp.assert_true(public.office_request_page('20000000-0000-4000-8000-000000000001',0,'all','','owner')->>'total'='0','delegated lead leaves Owner filter');
+ perform pg_temp.assert_true(public.office_request_page('20000000-0000-4000-8000-000000000001',0,'all','','85000000-0000-4000-8000-000000000001')->>'total'='1','office filters assigned technician before pagination');
+end $$;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000004","session_id":"10000000-0000-4000-8000-000000000004"}',true);
+do $$declare job_n uuid;invoice_n uuid;receipt jsonb;body text;begin
+ job_n:=(public.field_work_workspace('20000000-0000-4000-8000-000000000001')->'items'->0->>'id')::uuid;perform set_config('test.field_job',job_n::text,true);
+ perform public.complete_owner_visit('20000000-0000-4000-8000-000000000001',job_n,2,'[{"crewPerson":1,"description":"Synthetic first-person labor","recordedMinutes":60,"chargedCents":9000,"waiverReason":"","billingBasis":"hourly","billingMinutes":120,"unitRateCents":4500},{"crewPerson":2,"description":"Synthetic second-person labor","recordedMinutes":60,"chargedCents":4500,"waiverReason":"","billingBasis":"hourly","billingMinutes":60,"unitRateCents":4500},{"crewPerson":3,"description":"Synthetic adjusted third person","recordedMinutes":60,"chargedCents":3000,"waiverReason":"Courtesy reduction for this person","billingBasis":"hourly","billingMinutes":60,"unitRateCents":3000}]',true,'field-complete-discount-01');
+ perform public.complete_owner_visit('20000000-0000-4000-8000-000000000001',job_n,2,'[{"crewPerson":1,"description":"Synthetic first-person labor","recordedMinutes":60,"chargedCents":9000,"waiverReason":"","billingBasis":"hourly","billingMinutes":120,"unitRateCents":4500},{"crewPerson":2,"description":"Synthetic second-person labor","recordedMinutes":60,"chargedCents":4500,"waiverReason":"","billingBasis":"hourly","billingMinutes":60,"unitRateCents":4500},{"crewPerson":3,"description":"Synthetic adjusted third person","recordedMinutes":60,"chargedCents":3000,"waiverReason":"Courtesy reduction for this person","billingBasis":"hourly","billingMinutes":60,"unitRateCents":3000}]',true,'field-complete-discount-01');
+ perform pg_temp.assert_true(public.field_work_workspace('20000000-0000-4000-8000-000000000001',job_n)->'job'->>'status'='completed','assigned tech completes approved work atomically');
+ receipt:=public.approve_invoice('20000000-0000-4000-8000-000000000001',job_n,4,16500,true,'field-issue-discount-01');
+ perform pg_temp.assert_true(receipt=public.approve_invoice('20000000-0000-4000-8000-000000000001',job_n,4,16500,true,'field-issue-discount-01'),'assigned invoice issuance exact replay');
+ invoice_n:=(public.field_work_workspace('20000000-0000-4000-8000-000000000001',job_n)->'job'->'invoice'->>'id')::uuid;
+ perform pg_temp.assert_true(public.field_work_workspace('20000000-0000-4000-8000-000000000001',job_n)->'job'->'invoice'->>'totalCents'='16500','field adjusted invoice equals $165');
+ body:=jsonb_build_object('organization','20000000-0000-4000-8000-000000000001','key','86000000-0000-4000-8000-000000000001','action','payment','invoice',invoice_n,'cents',16500,'method','cash','reference','Synthetic actually received cash','receivedAt',clock_timestamp()-interval '1 second','confirmed',true)::text;
+ receipt:=public.field_work_command('20000000-0000-4000-8000-000000000001',body);perform pg_temp.assert_true(receipt=public.field_work_command('20000000-0000-4000-8000-000000000001',body),'field receipt retry cannot duplicate payment');
+ perform pg_temp.assert_true(public.field_work_workspace('20000000-0000-4000-8000-000000000001',job_n)->'job'->'invoice'->>'balanceCents'='0','actual receipt settles field invoice');
+ body:=jsonb_build_object('organization','20000000-0000-4000-8000-000000000001','key','86000000-0000-4000-8000-000000000002','action','note','job',job_n,'body','Synthetic completed work and customer concern note')::text;
+ perform public.field_work_command('20000000-0000-4000-8000-000000000001',body);perform public.field_work_command('20000000-0000-4000-8000-000000000001',body);
+ perform pg_temp.assert_true(jsonb_array_length(public.field_work_workspace('20000000-0000-4000-8000-000000000001',job_n)->'notes')=1,'one retained field note');
+end $$;
+reset role;
+select pg_temp.assert_true((select count(*)=1 from public.invoices),'one field-issued invoice');
+select pg_temp.assert_true((select count(*)=1 and sum(cents)=16500 from public.payments),'one actual field receipt');
+select pg_temp.assert_true((select count(*)=1 from public.audit_events where action='invoice.field_approved'),'audit identifies actual field issuer');
+select pg_temp.assert_true((select sum(debit_cents::bigint-credit_cents)=0 from public.journal_lines),'field closeout ledger balances');
+set local role authenticated;
+-- Exercise the actual deferred trigger under the field actor, before rollback.
+select pg_temp.assert_true((select count(*)=0 from public.journal_lines),'technician cannot read the private ledger');
+set constraints public.journal_balanced immediate;
+set constraints public.journal_balanced deferred;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001"}',true);
+select public.assign_lead('20000000-0000-4000-8000-000000000001',(select id from public.service_requests limit 1),2,null,'Owner resumes responsibility','85000000-0000-4000-8000-000000000004');
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000004","session_id":"10000000-0000-4000-8000-000000000004"}',true);
+do $$begin begin perform public.field_work_workspace('20000000-0000-4000-8000-000000000001',current_setting('test.field_job')::uuid);raise exception 'TEST FAILED prior assignee retains field invoice access';exception when insufficient_privilege then null;end;end$$;
+reset role;
+rollback;

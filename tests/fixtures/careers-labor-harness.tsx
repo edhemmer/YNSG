@@ -1,0 +1,5 @@
+import React,{useState} from 'react';import {createRoot} from 'react-dom/client';
+import Careers from '../../apps/web/app/careers/panel';import OwnerCareers from '../../apps/web/app/owner-careers';import InvoiceDraft from '../../apps/web/app/invoice-draft';import {EntrySafety} from '../../apps/web/app/entry-safety';
+const organization='20000000-0000-4000-8000-000000000001',job='84000000-0000-4000-8000-000000000001';
+function Harness(){const [revision,setRevision]=useState(3),[busy,setBusy]=useState(false),mode=new URL(location.href).searchParams.get('mode');return <EntrySafety>{mode==='public'?<Careers/>:<main className="company-workspace" style={{padding:'1rem'}}>{mode==='owner'?<OwnerCareers organization={organization} timezone="America/Chicago"/>:<InvoiceDraft initialExpanded fieldMode={mode==='tech'} organization={organization} job={job} revision={revision} completed={mode==='tech'} blocked={busy} onBusy={setBusy} saved={()=>setRevision(n=>n+1)}/>}</main>}</EntrySafety>}
+createRoot(document.getElementById('root')!).render(<Harness/>);
