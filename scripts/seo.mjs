@@ -1,6 +1,7 @@
 import {businessIdentity} from '../lib/business-identity.js';
 export const WEBSITE_ORIGIN='https://www.yourneighborhoodserviceguy.com';
 export const brand='Your Neighborhood Service Guy';
+export const legalBusinessName=businessIdentity.legalName;
 export const serviceCities=['DeKalb','Sycamore','Cortland'];
 export const canonicalUrl=slug=>WEBSITE_ORIGIN+(slug?'/'+slug:'/');
 const titles={
@@ -38,7 +39,7 @@ export const localServicePages={
 export function seo(slug,title,description,media=null){
  const url=canonicalUrl(slug),origin=WEBSITE_ORIGIN+'/';
  const areaServed=serviceCities.map(name=>({'@type':'City',name:name+', Illinois',containedInPlace:{'@type':'State',name:'Illinois'}}));
- const organization={'@type':['LocalBusiness','HomeAndConstructionBusiness'],'@id':origin+'#business',name:brand,legalName:businessIdentity.legalName,url:origin,logo:origin+'assets/logo.jpg',telephone:'+1-'+businessIdentity.phoneDisplay,contactPoint:{'@type':'ContactPoint',telephone:'+1-'+businessIdentity.phoneDisplay,contactType:'customer service',availableLanguage:'en'},description:'Owner-operated home and yard services in DeKalb, Sycamore and Cortland, Illinois.',slogan:'We’re Here to Help.',areaServed};
+ const organization={'@type':['LocalBusiness','HomeAndConstructionBusiness'],'@id':origin+'#business',name:legalBusinessName,alternateName:brand,legalName:businessIdentity.legalName,url:origin,logo:origin+'assets/logo.jpg',telephone:'+1-'+businessIdentity.phoneDisplay,contactPoint:{'@type':'ContactPoint',telephone:'+1-'+businessIdentity.phoneDisplay,contactType:'customer service',availableLanguage:'en'},description:'Owner-operated home and yard services in DeKalb, Sycamore and Cortland, Illinois.',slogan:'We’re Here to Help.',areaServed};
  const pageId=url+'#page',breadcrumbId=url+'#breadcrumb';
  const graph=[organization,{'@type':'WebSite','@id':origin+'#website',url:origin,name:brand,publisher:{'@id':organization['@id']},inLanguage:'en-US'},{'@type':slug==='careers'?'CollectionPage':'WebPage','@id':pageId,url,name:titles[slug]||title,description,isPartOf:{'@id':origin+'#website'},about:{'@id':organization['@id']},inLanguage:'en-US',...(slug?{breadcrumb:{'@id':breadcrumbId}}:{})}];
  if(media){const imageId=url+'#service-image';graph.push({'@type':'ImageObject','@id':imageId,url:WEBSITE_ORIGIN+media.src,contentUrl:WEBSITE_ORIGIN+media.src,width:media.width,height:media.height,caption:media.alt});graph.find(node=>node['@id']===pageId).primaryImageOfPage={'@id':imageId};}
