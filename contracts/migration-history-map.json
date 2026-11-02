@@ -491,5 +491,11 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": []
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261102130040_google_one_click_reconnect.sql",
+      "name": "google_one_click_reconnect",
+      "status": "not_applied_to_connected_supabase"
+    }
+  ]
 }

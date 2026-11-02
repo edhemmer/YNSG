@@ -82,6 +82,8 @@ jobs:
         run: node scripts/verify-careers-labor.mjs
       - name: Verify owner Team, lead responsibility and assigned field closeout
         run: node scripts/verify-team-field-work.mjs
+      - name: Verify one-click Google reconnect and retained settings
+        run: node scripts/verify-google-reconnect.mjs
       - name: Verify complete field request-to-receipt journey
         run: node scripts/verify-field-system.mjs
       - name: Install isolated locked native dependencies

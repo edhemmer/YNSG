@@ -1,4 +1,5 @@
 "use client";
+import {useGoogleReconnect} from './use-google-reconnect';
 import {businessTimestamp} from '../lib/business-time';
 import {routesRecentlyVerified} from '../lib/maps-status';
 import {mailActivationBlocker} from "../lib/mail-activation";
@@ -9,6 +10,7 @@ import {sessionFetch} from '../lib/session-fetch';
 type Connection = {
   connected: boolean;
   canCreateCalendar: boolean;
+  services?:{calendar:boolean;gmail:boolean};
   email: string | null;
   calendarId: string | null;
   health: string;
@@ -27,6 +29,7 @@ export default function GoogleControls({
   timezone?: string;
   view?: "calendar" | "email" | "settings";
 }) {
+  const reconnect=useGoogleReconnect(organization);
   const [connection, setConnection] = useState<Connection | null>(null),
     [missing, setMissing] = useState<string[]>([]),
     [calendars, setCalendars] = useState<Calendar[]>([]),
@@ -110,7 +113,7 @@ export default function GoogleControls({
     if (outcome)
       setMessage(
         outcome === "connected"
-          ? "Google connected. Select a calendar and run the Gmail test."
+          ? "Google reconnected. Your saved calendar and existing mail approval are retained. Review the service status below; first-time setup or paused services may still need a choice."
           : "Google connection was not completed. Check configuration and try Connect Google again.",
       );
     return () => {
@@ -199,20 +202,23 @@ export default function GoogleControls({
     <section className="card" aria-labelledby={"google-"+view+"-heading"}>
       <p className="eyebrow">{view === "settings" ? "Google connection" : view === "calendar" ? "Business calendar" : "Email connection"}</p>
       <h2 id={"google-"+view+"-heading"}>{view === "settings" ? "Google Calendar & Gmail" : view === "calendar" ? "Choose your business calendar" : "Gmail"}</h2>
+      <p>Reconnect once for Calendar and Gmail. Google may ask you to sign in or approve access. Your saved business calendar and approved mail settings are kept.</p>
+      {reconnect.message&&<p role="status">{reconnect.message}</p>}
       {missing.length > 0 && <p>Google connection is currently unavailable. Your app administrator needs to restore it.</p>}
       {statusLoading && <p role="status">Loading Google connection…</p>}
+      {connection?.connected&&<ul className="google-service-status"><li><strong>Calendar:</strong> {connection.services?.calendar?connection.calendarId?"Authorized · saved calendar retained":"Authorized · choose your business calendar":"Authorization needs attention"}{connection.services?.calendar&&connection.calendarId?calendarSyncEnabled?" · automatic updates enabled":" · automatic updates paused":""}</li><li><strong>Gmail:</strong> {connection.services?.gmail?"Authorized":"Authorization needs attention"}{connection.services?.gmail?dispatcherEnabled&&delivery?.enabled?" · approved sending enabled":" · automatic sending paused":""}</li></ul>}
       {!connection?.connected ? (
         <button
           type="button"
-          disabled={busy || statusLoading || missing.length > 0}
-          onClick={() => void act("connect")}
+          disabled={busy || reconnect.busy || statusLoading || missing.length > 0}
+          onClick={() => void reconnect.reconnect()}
         >
           Connect Google
         </button>
       ) : (
         <>
-          <button type="button" disabled={busy||statusLoading||missing.length>0} onClick={()=>void act('connect')}>Reconnect Google</button><p><strong>{connection.health==='reconnect_required'?'Google reconnection required':'Google account connected'}</strong> · {connection.email}</p>
-          {connection.health!=='healthy'&&<div role="alert"><p><strong>Google Calendar needs attention ({connection.health}).</strong> Calendar syncing may be paused. If Google asks for authorization, reconnect from this screen. The last connection check did not confirm Google Calendar access. Keep using the CRM's saved schedule while this is resolved.</p><p>{['reconnect_required','google_client_configuration_required','permission_or_api_required'].includes(connection.health)?'Google authorization needs attention. Use Reconnect Google to authorize the same account again, then select your existing calendar.':'Use Check connection below. If the problem persists, review Google access and background synchronization before reconnecting.'}</p></div>}
+          <button type="button" disabled={busy||reconnect.busy||statusLoading||missing.length>0} onClick={()=>void reconnect.reconnect()}>Reconnect Google</button><p><strong>{connection.health==='reconnect_required'?'Google reconnection required':'Google account connected'}</strong> · {connection.email}</p>
+          {connection.health!=='healthy'&&<div role="alert"><p><strong>Google Calendar needs attention ({connection.health}).</strong> Calendar syncing may be paused. If Google asks for authorization, reconnect from this screen. The last connection check did not confirm Google Calendar access. Keep using the CRM's saved schedule while this is resolved.</p><p>{['reconnect_required','google_client_configuration_required','permission_or_api_required'].includes(connection.health)?'Google authorization needs attention. Use Reconnect Google to authorize the same account again. Your existing calendar is retained.':'Use Check connection below. If the problem persists, review Google access and background synchronization before reconnecting.'}</p></div>}
           {view !== "email" && <>
             <p>Automatic calendar updates: <strong>{calendarSyncEnabled&&connection.calendarId?'enabled':'paused'}</strong>.</p>
             <p>{connection.calendarId ? "Business calendar: " + (calendars.find(c => c.id === connection.calendarId)?.summary || "Saved calendar") : "Choose an existing calendar or create a separate one for your business."}</p>

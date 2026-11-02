@@ -40,6 +40,7 @@ export async function GET(request: Request) {
     outcome = "failed";
   }
   destination.searchParams.set("google", outcome);
+  destination.searchParams.set("section", "Settings");
   const response = NextResponse.redirect(destination, 303);
   response.headers.set("Cache-Control", "no-store");
   response.headers.set("Referrer-Policy", "no-referrer");
