@@ -42,3 +42,7 @@
 @media(max-width:760px){.company-workspace .job-record-kicker{display:none}.company-workspace .job-record-header{padding:16px}.company-workspace .job-record-summary{gap:6px 16px}.company-workspace .job-record-summary>span:nth-child(2){order:3;flex-basis:100%}.company-workspace .job-record-summary>span:nth-child(3){order:2}.company-workspace .job-record-summary>span:nth-child(4){order:2}.company-workspace .job-record-body{padding-top:16px}.company-workspace .job-work-controls .job-clock{margin-bottom:14px}}
 
 .company-workspace .request-manager .search-field input{padding-left:40px}
+
+.company-workspace .company-settings-nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.company-workspace .company-settings legend[id]{scroll-margin-top:90px}.company-workspace .company-settings-nav button{font-size:.875rem}
+
+.company-workspace .company-settings .settings-actions{top:72px;background:var(--os-surface)}.company-workspace .company-settings legend[id]{scroll-margin-top:230px}@media(max-width:760px){.company-workspace .company-settings .settings-actions{top:64px}}

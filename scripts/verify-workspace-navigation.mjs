@@ -190,6 +190,9 @@ try{
    await google.getByText('Connected',{exact:true}).waitFor();assert.equal(await google.locator('.settings-google-action button').count(),0);assert.equal(await google.locator('.google-connection-options').getAttribute('open'),null);
    await google.locator('.google-connection-options>summary').click();await google.getByRole('button',{name:'Reconnect Google',exact:true}).waitFor();assert.equal(writes.length,0);await page.close();results.push(engine+' healthy Google requires no reconnect and retains an optional advanced action');
   }
+  {
+   const {page,writes}=await mount({path:'?section=Settings&setup=services'});await page.getByLabel('Business settings sections',{exact:true}).waitFor();const catalog=page.locator('#company-service-catalog');await catalog.waitFor();await page.waitForFunction(()=>{const r=document.getElementById('company-service-catalog')?.getBoundingClientRect();return r&&r.top>=0&&r.top<innerHeight});assert.equal(new URL(page.url()).searchParams.has('setup'),false);assert.equal(writes.length,0);await page.close();results.push(engine+' service setup intent survives route cleanup and opens the actual catalog');
+  }
   for(const width of [320,390,1366])for(const theme of ['light','dark']){
    const {page,writes}=await mount({width,theme,path:'?section=Settings',google:'disconnected'});await heading(page,'Settings');
    const settingsPanel=page.getByRole('region',{name:'Business settings'});

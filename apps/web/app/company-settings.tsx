@@ -121,10 +121,12 @@ function template(organization: string): CompanySettings {
 export default function CompanySettingsPanel({
   organization,
   onStatus,
+  focusServices=false,
 }: {
   organization: string;
   name: string;
   onStatus?:(status:string)=>void;
+  focusServices?:boolean;
 }) {
   const [draft, setDraft] = useState<CompanySettings | null>(null),
     [version, setVersion] = useState(0),
@@ -338,7 +340,7 @@ export default function CompanySettingsPanel({
     }catch(error){const issue=settingsIssue(error);if(issue)showIssue(issue);else setError(settingsError(error));}
   }
   const catalogFocused=useRef(false);
-  useEffect(()=>{if(!loading&&draft&&!catalogFocused.current&&new URLSearchParams(window.location.search).get('setup')==='services'){const target=document.getElementById('company-service-catalog');if(target){catalogFocused.current=true;target.scrollIntoView({block:'start'});target.focus({preventScroll:true});}}},[loading,draft]);
+  useEffect(()=>{if(!loading&&draft&&!catalogFocused.current&&focusServices){const target=document.getElementById('company-service-catalog');if(target){catalogFocused.current=true;target.scrollIntoView({block:'start'});target.focus({preventScroll:true});}}},[loading,draft,focusServices]);
   const statusCallback=useRef(onStatus);statusCallback.current=onStatus;
   const reviewStatus=loading?'Checking settings…':unknown?'Save needs confirmation':pending?'Saving reviewed changes…':draft&&snapshot!==baseline?'Unsaved changes':!draft?(error?'Status unavailable':'Setup needed'):!draft.sellerVerified?'Confirm business identity':!draft.taxTreatmentVerified?'Review invoice tax setup':'Saved business settings';
   useEffect(()=>{statusCallback.current?.(reviewStatus)},[reviewStatus]);
@@ -352,6 +354,7 @@ export default function CompanySettingsPanel({
       <p>
         Update business details, pricing and appointment rules. Review before saving.
       </p>
+      {draft&&<nav className="company-settings-nav" aria-label="Business settings sections">{[["company-business","Business"],["company-rates","Rates & invoices"],["company-hours","Schedule"],["company-service-catalog","Services"]].map(([id,label])=><button key={id} type="button" className="secondary" onClick={()=>{const target=document.getElementById(id!);target?.scrollIntoView({block:"start"});target?.focus({preventScroll:true});}}>{label}</button>)}</nav>}
       {!ready && !loading && (
         <p className="note">
           Publishing awaits the approved database rollout. You can review the
@@ -398,7 +401,7 @@ export default function CompanySettingsPanel({
           }}
         >
           <fieldset disabled={pending||unknown}>
-            <legend>Business and email</legend>
+            <legend id="company-business" tabIndex={-1}>Business and email</legend>
             <label>
               Licensed brand name
               <input
@@ -490,7 +493,7 @@ export default function CompanySettingsPanel({
             <p>Use the HTTPS link where customers can leave a review. Leave this off until your review page is ready.</p>
           </fieldset>
           <fieldset disabled={pending||unknown}>
-            <legend>Rates and invoices</legend>
+            <legend id="company-rates" tabIndex={-1}>Rates and invoices</legend>
             <label>
               Standard hourly rate ($)
               <input
@@ -611,7 +614,7 @@ export default function CompanySettingsPanel({
             </p>
           </fieldset>
           <fieldset disabled={pending||unknown}>
-            <legend>Appointment hours</legend>
+            <legend id="company-hours" tabIndex={-1}>Appointment hours</legend>
             <p>
               Times use {draft.timezone}. Visits need at least two hours; you
               approve each proposed appointment.
