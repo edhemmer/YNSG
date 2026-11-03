@@ -496,5 +496,11 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": []
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261102230000_field_job_clock.sql",
+      "name": "field_job_clock",
+      "status": "not_applied_to_connected_supabase"
+    }
+  ]
 }

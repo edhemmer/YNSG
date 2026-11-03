@@ -231,7 +231,7 @@ test('owner attention card explains the remaining action even when the appointme
  const {default:RequestInbox}=await import('../apps/web/app/request-inbox.tsx');const root=createRoot(node);
  const request={id,revision:1,status:'quoted',created_at:'2026-10-14T12:00:00Z',original_submission:{name:'Synthetic owner review',street:'100 Synthetic Street',city:'DeKalb',phone:'5550100999',services:[{service:'Home jobs',task:'Furniture assembly'}]},appointments:[{id:'60000000-0000-4000-8000-000000000001',status:'reserved',start_at:'2026-10-20T14:00:00Z',end_at:'2026-10-20T16:00:00Z',arrival_at:'2026-10-20T14:00:00Z',expires_at:null}]};
  globalThis.fetch=async()=>response({requests:[request],total:1,needsReview:0,page:0,hasMore:false,checkedAt:'2026-10-14T12:00:00Z',quotes:[],jobs:[],invoices:[],preferences:[]});
- try{await act(async()=>{root.render(React.createElement(RequestInbox,{organization:org,timezone:'America/Chicago',revision:1,onOpen:quiet,compact:true}));await tick();await tick();});assert.match(node.textContent,/Next: Agree on the work and price/);assert.ok([...node.querySelectorAll('button')].some(b=>b.textContent.includes('Continue workflow')));
+ try{await act(async()=>{root.render(React.createElement(RequestInbox,{organization:org,timezone:'America/Chicago',revision:1,onOpen:quiet,compact:true}));await tick();await tick();});assert.match(node.textContent,/Agree on the work and price/);assert.ok([...node.querySelectorAll('button')].some(b=>b.textContent==='Open'));
  }finally{await act(async()=>root.unmount());}
 });
 
@@ -239,5 +239,25 @@ test('visit brief separates services and appointment from the complete customer 
  const {renderToStaticMarkup}=require('react-dom/server');
  const request={id,status:'reviewing',revision:1,created_at:'2026-10-15T12:00:00Z',original_submission:{name:'Synthetic visit brief',street:'100 Synthetic Street',city:'DeKalb',phone:'5550100999',services:[{service:'Home jobs',task:'Furniture assembly'}],description:'Synthetic access instruction that must remain readable.'},appointments:[{id:'60000000-0000-4000-8000-000000000001',status:'reserved',revision:1,start_at:'2026-10-20T14:00:00Z',arrival_at:'2026-10-20T14:00:00Z',end_at:'2026-10-20T16:00:00Z',expires_at:null}]};
  const html=renderToStaticMarkup(React.createElement(ServiceWorkflow,{organization:org,request,quotes:[],jobs:[],invoices:[],timezone:'America/Chicago',canManage:true,canQuote:true,canWork:true,busy:false,onBusy:quiet,onReview:quiet,act:async()=>({ok:true}),fieldAction:async()=>{},onChanged:quiet}));const doc=new JSDOM(html).window.document;
- assert.match(doc.querySelector('.field-job-service').textContent,/Furniture assembly/);assert.equal(doc.querySelector('.field-job-header .customer-note'),null);assert.match(doc.querySelector('.field-job-time').textContent,/9:00 AM/);assert.ok(doc.querySelector('.workflow-customer-note').open,'Owner starts with customer instructions expanded during confirmation');assert.match(doc.querySelector('.workflow-customer-note p').textContent,/must remain readable/);assert.ok(html.indexOf('field-job-time')<html.indexOf('workflow-customer-note'));assert.equal(doc.querySelectorAll('.workflow-section>.visit-summary').length,0,'No duplicate primary appointment card');
+ assert.match(doc.querySelector('.job-panel-heading').textContent,/Furniture assembly/);assert.equal(doc.querySelector('.job-record-header .customer-note'),null);assert.match(doc.querySelector('.job-record-summary').textContent,/9:00 AM/);assert.ok(doc.querySelector('.job-customer-message'),'Customer instructions are directly available in Plan');assert.match(doc.querySelector('.job-customer-message p').textContent,/must remain readable/);assert.ok(html.indexOf('job-record-summary')<html.indexOf('job-customer-message'));assert.equal(doc.querySelectorAll('.workflow-section>.visit-summary').length,0,'No duplicate primary appointment card');
+});
+
+test('uncertain invoice issuance freezes charges and replays the original reviewed total and key',async()=>{
+ const root=createRoot(node),writes=[];let savedCount=0;
+ globalThis.fetch=async(path,init)=>{
+  if(!init?.method)return response({draft:{jobRevision:3,lines:[{description:'Synthetic completed assembly',recordedMinutes:120,chargedCents:12000,waiverReason:''}]},tax:{required:false,rules:[],valid:true,tax:null},readiness:{ready:true,reasons:[]}});
+  assert.equal(path,'/api/commands');writes.push(init.body);
+  if(writes.length===1)throw Error('Lost saved response');
+  if(writes.length===2)return response({ok:true,result:{id,totalCents:11999}});
+  return response({ok:true,result:{id,totalCents:12000}});
+ };
+ try{
+  await act(async()=>{root.render(React.createElement(InvoiceDraft,{organization:org,job:id,revision:3,completed:true,blocked:false,onBusy:quiet,saved:()=>savedCount++,streamlined:true,mobile:true}));await tick();});
+  await act(async()=>{button('Issue invoice · $120.00').click();await tick();});
+  assert.equal(savedCount,0);assert.ok(node.querySelector('form fieldset').disabled);
+  await act(async()=>{button('Check issued invoice').click();await tick();});
+  assert.equal(savedCount,0);assert.ok(node.querySelector('form fieldset').disabled);
+  await act(async()=>{button('Check issued invoice').click();await tick();});
+  assert.equal(savedCount,1);assert.equal(new Set(writes).size,1);assert.equal(JSON.parse(writes[0]).reviewed,true);
+ }finally{await act(async()=>root.unmount());}
 });

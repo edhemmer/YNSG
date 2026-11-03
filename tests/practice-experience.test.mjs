@@ -23,7 +23,7 @@ async function openSample(name){const card=[...node.querySelectorAll('article')]
 test('real request and job screens work with sample data and never reach production',async()=>{
  const h=await mount();try{
   assert.equal(node.querySelectorAll('.request-summary-card').length,6);assert.match(node.textContent,/simulated responses/);
-  await openSample('Sample — Scheduled visit');assert.match(node.textContent,/Customer’s note/);assert.match(node.textContent,/Pending invoice/);
+  await openSample('Sample — Scheduled visit');assert.match(node.textContent,/From the customer/);assert.match(node.textContent,/Estimate carried forward/);
   await click('Start work');assert.match(node.textContent,/Work in progress/);
   await click('Pause timer');assert.match(node.textContent,/Work paused/);await click('Resume timer');assert.match(node.textContent,/Work in progress/);
   await click('All sample visits');assert.equal(node.querySelectorAll('.request-summary-card').length,6);assert.equal(h.calls(),0);
@@ -33,8 +33,8 @@ test('partial payment screen accepts a sample receipt and shows exact paid close
  const h=await mount();try{
   await openSample('Sample — Partial payment');assert.match(node.textContent,/Remaining balance\$60.00/);
   await input('reference','Practice Zelle receipt');
-  await act(async()=>{const checkbox=[...node.querySelectorAll('input[type="checkbox"]')].find(c=>c.parentElement.textContent.includes('confirmed the money'));checkbox.click();await tick();});
-  await click('Record received payment');assert.match(node.textContent,/No payment remains due/);assert.match(node.textContent,/Closed out/);
+
+  await click('Record received payment');assert.match(node.textContent,/No payment remains due/);assert.match(node.textContent,/Paid and saved/);
   assert.equal(getBrowserPractice().document(getBrowserPractice().snapshot().invoices[0].id).balanceCents,0);
   const anchor=[...node.querySelectorAll('a')].find(a=>a.textContent.includes('Open invoice'));await act(async()=>{anchor.click();await settle();});assert.match(node.textContent,/SAMPLE/);assert.ok([...node.querySelectorAll('button')].some(b=>b.textContent==='Back to sample visit'));assert.equal(h.calls(),0);
  }finally{await h.close();}
@@ -49,11 +49,11 @@ test('practice prevents real calls and unknown operations and reset restores sam
 test('work recording through invoice issue and document uses the real connected components',async()=>{
  const h=await mount();try{
   await openSample('Sample — Work in progress');await click('Finish work');
-  const minutes=[...node.querySelectorAll('label')].find(l=>l.textContent.trim()==='Actual minutes recorded')?.querySelector('input');assert.ok(minutes);
-  await act(async()=>{Object.getOwnPropertyDescriptor(Object.getPrototypeOf(minutes),'value').set.call(minutes,'120');minutes.dispatchEvent(new Event('input',{bubbles:true}));await tick();});
-  await act(async()=>{const review=[...node.querySelectorAll('input[type="checkbox"]')].find(c=>c.parentElement.textContent.includes('The work is finished'));assert.ok(review);review.click();await tick();});
-  await click('Save work & complete visit');assert.match(node.textContent,/Review & issue invoice/);
-  await click('Approve and issue invoice');assert.match(node.textContent,/Invoice /);assert.ok([...node.querySelectorAll('a')].some(a=>a.textContent.includes('Open invoice')));assert.equal(h.calls(),0);
+  const minutes=[...node.querySelectorAll('label')].find(l=>l.textContent.trim()==='Time worked (hours:minutes)')?.querySelector('input');assert.ok(minutes);
+  await act(async()=>{Object.getOwnPropertyDescriptor(Object.getPrototypeOf(minutes),'value').set.call(minutes,'2:00');minutes.dispatchEvent(new Event('input',{bubbles:true}));await tick();});
+
+  await click('Complete visit & review invoice');assert.match(node.textContent,/Invoice charges/);
+  await click('Issue invoice · $120.00');assert.match(node.textContent,/Invoice /);assert.ok([...node.querySelectorAll('a')].some(a=>a.textContent.includes('Open invoice')));assert.equal(h.calls(),0);
  }finally{await h.close();}
 });
 test('scheduling and estimate agreement are operable with sample data',async()=>{
@@ -61,9 +61,9 @@ test('scheduling and estimate agreement are operable with sample data',async()=>
   await openSample('Sample — New request');assert.ok(node.querySelector('.schedule-review'),'Appointment review opens without another click');
   await until(()=>[...document.querySelectorAll('select[name="visitTime"] option')].some(option=>option.value),'Appointment time choices load');
   const start=node.querySelector('select[name="visitTime"]');assert.ok(start);const option=[...start.options].find(o=>o.value);assert.ok(option);
-  await input('visitTime',option.value);await click('Schedule appointment');assert.match(node.textContent,/Work, price & customer approval/);
+  await input('visitTime',option.value);await click('Schedule appointment');assert.match(node.textContent,/Work & estimate/);
   assert.doesNotMatch(node.textContent,/Google Calendar update queued/);
-  await click('Save labor estimate');await until(()=>node.textContent.includes('How did the customer agree'),'Agreement form becomes available after estimate save');await input('evidence','Practice only: fictional agreement for this sample.');await click('Record customer agreement');assert.ok(getBrowserPractice().snapshot().jobs.some(j=>j.status==='approved'||j.status==='scheduled'));assert.equal(h.calls(),0);
+  await click('Save labor estimate');await until(()=>node.textContent.includes('Record text or email agreement'),'Agreement form becomes available after estimate save');await click('Record text or email agreement');assert.ok(getBrowserPractice().snapshot().jobs.some(j=>j.status==='approved'||j.status==='scheduled'));assert.equal(h.calls(),0);
  }finally{await h.close();}
 });
 test('customer screen shows editable sample contacts and hides unavailable external actions',async()=>{

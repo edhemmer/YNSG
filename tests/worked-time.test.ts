@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import{workedTimeMinutes,workedTimeLabel}from'../apps/web/lib/worked-time.ts';
+test('field time entry preserves exact minutes and rejects ambiguous decimal hours',()=>{for(const [text,minutes]of [['0:00',0],['1:20',80],['2:30',150],['3:12',192],['24:00',1440]]as const){assert.equal(workedTimeMinutes(text),minutes);assert.equal(workedTimeLabel(minutes),text);}for(const value of ['1.20','3.2','80','2:60','24:01','-1:20','2:3',''])assert.equal(workedTimeMinutes(value),null);});

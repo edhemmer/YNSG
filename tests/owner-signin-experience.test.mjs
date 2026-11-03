@@ -36,7 +36,7 @@ test('returning owner reaches inbox, full request and branded decline without re
  try{
   await act(async()=>{root.render(React.createElement(Workspace,{configured:true,initialEmail:'owner@example.invalid'}));for(let n=0;n<6;n++)await tick();});
   assert.match(node.querySelector('.request-summary-card').textContent,/Synthetic Neighbor/);
-  await click('Review request');await click('Decline request');const reason=node.querySelector('.decision-form select');await act(async()=>{reason.value='service';reason.dispatchEvent(new Event('change',{bubbles:true}));await tick();});
+  await click('Open');await click('Decline request');const reason=node.querySelector('.decision-form select');await act(async()=>{reason.value='service';reason.dispatchEvent(new Event('change',{bubbles:true}));await tick();});
   assert.match(node.querySelector('.decision-form textarea').value,/outside the services/);assert.match(node.querySelector('.decision-form').textContent,/future project/);assert.match(node.querySelector('.decision-form').textContent,/Approve decline & send message/);
   await act(async()=>{node.querySelector('.request-dialog button[aria-label="Close request"]').click();for(let n=0;n<6;n++)await tick();});assert.ok(node.querySelector('.schedule-review'),'Appointment review is already open');
   assert.match(node.textContent,/Synthetic full note for incident recovery verification/);

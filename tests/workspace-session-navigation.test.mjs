@@ -35,7 +35,7 @@ test('session focus keeps the current job instead of reopening an initial reques
  const h=await mount('?section=Requests&request='+requestId);
  try{
   // Entry opens a request. Close it, then navigate to Jobs through the actual menu.
-  await until(()=>h.w.document.querySelector('dialog'));
+  await until(()=>h.w.document.querySelector('.job-record'));
   const close=h.w.document.querySelector('dialog button[aria-label="Close request"]')||[...h.w.document.querySelectorAll('dialog button')].find(b=>/close/i.test(b.textContent));if(close)close.click();
   await h.click('Jobs');await until(()=>h.heading()==='Jobs');
   const calls=h.control.sessionCalls;h.w.dispatchEvent(new h.w.Event('focus'));await until(()=>h.control.sessionCalls>calls);await tick();
@@ -48,7 +48,7 @@ test('company switch serializes context, clears record links and browser Back re
   assert.equal(new URL(h.w.location.href).searchParams.has('request'),false);
   const select=h.w.document.querySelector('#company');select.value=other;select.dispatchEvent(new h.w.Event('change',{bubbles:true}));await until(()=>new URL(h.w.location.href).searchParams.get('organization')===other);
   await until(()=>h.reads.some(u=>u.pathname==='/api/workspace'&&u.searchParams.get('organization')===other));
-  h.w.history.back();await until(()=>new URL(h.w.location.href).searchParams.get('organization')===organization);assert.equal(h.heading(),'Invoices & money');assert.equal(h.writes.length,0);
+  h.w.history.back();await until(()=>new URL(h.w.location.href).searchParams.get('organization')===organization);assert.equal(h.heading(),'Billing');assert.equal(h.writes.length,0);
  }finally{h.close();}
 });
 test('focus recheck removes a revoked company and routes to current permitted role',async()=>{
@@ -56,12 +56,12 @@ test('focus recheck removes a revoked company and routes to current permitted ro
  try{
   h.control.memberships=[{organization_id:other,role:'technician'}];h.w.dispatchEvent(new h.w.Event('focus'));await until(()=>h.heading()==='Jobs');
   assert.equal(h.w.document.querySelector('.money-invoice'),null);assert.equal(new URL(h.w.location.href).searchParams.get('organization'),other);
-  assert.equal(h.w.document.querySelector('button[aria-label="Invoices & money"]'),null);
+  assert.equal(h.w.document.querySelector('button[aria-label="Billing"]'),null);
  }finally{h.close();}
 });
 test('transient session outage retains the current workflow without requesting sign-in mail',async()=>{
  const h=await mount('?section=Money');
- try{h.control.sessionStatus=503;h.w.dispatchEvent(new h.w.Event('focus'));await until(()=>h.w.document.body.textContent.includes('saved sign-in'));assert.equal(h.heading(),'Invoices & money');assert.equal(h.writes.length,0);}finally{h.close();}
+ try{h.control.sessionStatus=503;h.w.dispatchEvent(new h.w.Event('focus'));await until(()=>h.w.document.body.textContent.includes('saved sign-in'));assert.equal(h.heading(),'Billing');assert.equal(h.writes.length,0);}finally{h.close();}
 });
 test('invoice screen starts compact and keeps expense/mileage tools after invoice rows',async()=>{
  const h=await mount('?section=Money');
@@ -157,14 +157,14 @@ test('lost customer-agreement response retains exact key through denial and save
  const h=await mount('?section=Work&request='+requestId,'owner',{state:'confirmed'});
  try{
   const savedJob=h.fixture.data.jobs[0];h.fixture.data.quotes[0].status='sent';h.fixture.data.jobs=[];
-  h.w.document.querySelector('#main .heading-actions button').click();await until(()=>h.w.document.querySelector('.field-job textarea[name=evidence]'));
+  h.w.document.querySelector('#main .job-desk-toolbar button:last-child').click();await until(()=>h.w.document.querySelector('.field-job textarea[name=evidence]'));
   const evidence=h.w.document.querySelector('textarea[name=evidence]');Object.getOwnPropertyDescriptor(h.w.HTMLTextAreaElement.prototype,'value').set.call(evidence,'Synthetic actual customer agreement for this fixture.');evidence.dispatchEvent(new h.w.Event('input',{bubbles:true}));
   const press=label=>{const b=[...h.w.document.querySelectorAll('.field-job button')].find(b=>b.textContent===label);assert.ok(b,label);assert.equal(b.disabled,false,label);b.click();};
-  h.control.post=()=>Response.json({error:'Lost response after save'},{status:503});press('Record customer agreement');await until(()=>h.w.document.querySelector('.field-job').textContent.includes('Check saved field decision'));assert.equal(h.writes.length,1);
-  const original=h.writes[0].body;h.control.post=()=>Response.json({error:'Access changed'},{status:403});press('Check saved field decision');await until(()=>h.writes.length===2);await tick();await tick();assert.equal(h.writes[1].body,original);
-  h.fixture.data.quotes[0].status='accepted';h.fixture.data.jobs=[savedJob];h.w.document.querySelector('#main .heading-actions button').click();await until(()=>[...h.w.document.querySelectorAll('.field-job button')].some(b=>b.textContent==='Start work'));
+  h.control.post=()=>Response.json({error:'Lost response after save'},{status:503});press('Record customer agreement');await until(()=>h.w.document.querySelector('.field-job').textContent.includes('Check saved action'));assert.equal(h.writes.length,1);
+  const original=h.writes[0].body;h.control.post=()=>Response.json({error:'Access changed'},{status:403});press('Check saved action');await until(()=>h.writes.length===2);await tick();await tick();assert.equal(h.writes[1].body,original);
+  h.fixture.data.quotes[0].status='accepted';h.fixture.data.jobs=[savedJob];h.w.document.querySelector('#main .job-desk-toolbar button:last-child').click();await until(()=>[...h.w.document.querySelectorAll('.field-job button')].some(b=>b.textContent==='Start work'));
   assert.equal([...h.w.document.querySelectorAll('.field-job button')].find(b=>b.textContent==='Start work').disabled,true);await h.click('Jobs');assert.equal(new URL(h.w.location.href).searchParams.get('request'),requestId);
-  h.control.post=()=>Response.json({ok:true,result:{id:savedJob.id,revision:4}});press('Check saved field decision');await until(()=>h.writes.length===3);await until(()=>![...h.w.document.querySelectorAll('.field-job button')].find(b=>b.textContent==='Start work')?.disabled);assert.equal(h.writes[2].body,original);assert.equal(h.w.document.querySelector('.field-job').textContent.includes('Check saved field decision'),false);
+  h.control.post=()=>Response.json({ok:true,result:{id:savedJob.id,revision:4}});press('Check saved action');await until(()=>h.writes.length===3);await until(()=>![...h.w.document.querySelectorAll('.field-job button')].find(b=>b.textContent==='Start work')?.disabled);assert.equal(h.writes[2].body,original);assert.equal(h.w.document.querySelector('.field-job').textContent.includes('Check saved action'),false);
  }finally{h.close();}
 });
 

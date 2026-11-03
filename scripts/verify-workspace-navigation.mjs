@@ -33,6 +33,7 @@ async function mount({role='owner',width=390,path='?section=Requests',theme='lig
    const org=url.searchParams.get('organization');
    return route.fulfill({json:{...fixture.data,brand:null,company:{id:org,display_name:'Synthetic Field Company',timezone:'America/Chicago',status:'active'},customers:[],outbox:[],invoiceAdmin:{},appointments:fixture.data.requests[0].appointments,schedulingPreferences:[],pagination:{page:Number(url.searchParams.get('page')),hasMore:false,appointmentFrom:new Date().toISOString()},features:{productionWorkflows:true}}});
   }
+  if(url.pathname==='/api/job-clock'){const j=fixture.data.jobs.find(j=>j.id===url.searchParams.get('job'));return route.fulfill({json:{organization:url.searchParams.get('organization'),actor:'00000000-0000-4000-8000-000000000001',job:j.id,revision:j.revision,status:j.status,checkedAt:new Date().toISOString(),closedSeconds:1800,runningSince:j.status==='working'?new Date(Date.now()-60000).toISOString():null}});}
   if(url.pathname==='/api/owner-day')return route.fulfill({json:{checkedAt:new Date().toISOString(),timezone:'America/Chicago',hasMore:false,calls:fixture.data.requests[0].appointments.filter(a=>a.status==='reserved').map(a=>({id:a.id,requestId:requestId,startAt:a.start_at,arrivalAt:a.arrival_at||a.start_at,endAt:a.end_at,name:fixture.data.requests[0].original_submission.name,address:'100 Synthetic Street, DeKalb',phone:'5550100999',tasks:['Furniture assembly']}))}});
   if(url.pathname==='/api/owner-work')return route.fulfill({json:{checkedAt:new Date().toISOString(),page:0,total:fixture.data.jobs.length,hasMore:false,items:fixture.data.jobs.filter(j=>['working','paused','completed'].includes(j.status)&&!fixture.data.invoices.some(i=>i.job_id===j.id)).map(j=>({job:j.id,request:requestId,name:fixture.data.requests[0].original_submission.name,address:'100 Synthetic Street, DeKalb',tasks:['Furniture assembly'],status:j.status}))}});
   if(url.pathname==='/api/configuration')return route.fulfill({json:{ready:true,configuration:{version:1,settings},catalog:[]}});
@@ -52,10 +53,10 @@ async function mount({role='owner',width=390,path='?section=Requests',theme='lig
  page.setDefaultTimeout(12000);await page.goto(origin+'/owner'+path);await page.locator('#main h1').waitFor();
  return {page,reads,writes,control};
 }
-async function heading(page,name){await page.locator('#main h1').filter({hasText:name}).waitFor();}
+async function heading(page,name){await page.locator('#main h1').filter({hasText:name==='Job'?'Morgan Synthetic Neighbor':name}).waitFor();}
 async function go(page,label){
  const dock=page.locator('.crm-mobile-dock');
- if(await dock.isVisible()&&['Today','Requests','Jobs'].includes(label))await dock.getByRole('button',{name:label,exact:true}).click();
+ if(await dock.isVisible()&&['Today','Requests','Schedule','Jobs'].includes(label))await dock.getByRole('button',{name:label,exact:true}).click();
  else{if(await dock.isVisible())await dock.getByRole('button',{name:'More workspace tools'}).click();const nav=page.getByRole('navigation',{name:'Workspace',exact:true}),target=nav.getByRole('button',{name:label,exact:true});if(!await target.isVisible())await nav.locator('.sidebar-more>summary').click();await target.click();}
 }
 async function layout(page,label){
@@ -72,18 +73,18 @@ try{
   browser=await(engine==='webkit'?webkit:chromium).launch({headless:true,...(engine==='chromium'&&process.env.YNSG_CHROMIUM_EXECUTABLE?{executablePath:process.env.YNSG_CHROMIUM_EXECUTABLE}:{})});
   {
    const {page,writes,reads}=await mount();
-   await heading(page,'Requests');await go(page,'Calendar');await heading(page,'Calendar');await go(page,'Jobs');await heading(page,'Jobs');
-   await page.goBack();await heading(page,'Calendar');await page.goBack();await heading(page,'Requests');await page.goForward();await heading(page,'Calendar');await page.goForward();await heading(page,'Jobs');
+   await heading(page,'Requests');await go(page,'Schedule');await heading(page,'Schedule');await go(page,'Jobs');await heading(page,'Jobs');
+   await page.goBack();await heading(page,'Schedule');await page.goBack();await heading(page,'Requests');await page.goForward();await heading(page,'Schedule');await page.goForward();await heading(page,'Jobs');
    assert.equal(new URL(page.url()).searchParams.get('organization'),organization);
    await page.reload();await heading(page,'Jobs');await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await heading(page,'Jobs');
    assert.ok(reads.some(s=>s.startsWith('/api/session')));assert.equal(writes.length,0);await page.close();results.push(engine+' full-shell mobile Back/Forward/reload/session focus');
   }
   {
-   const {page,control,writes}=await mount({path:'?section=Money&request='+requestId});await heading(page,'Invoices & money');
+   const {page,control,writes}=await mount({path:'?section=Money&request='+requestId});await heading(page,'Billing');
    assert.equal(new URL(page.url()).searchParams.has('request'),false);
-   await page.getByLabel('Switch business').selectOption(company2);await heading(page,'Invoices & money');assert.equal(new URL(page.url()).searchParams.get('organization'),company2);
-   await page.goBack();await heading(page,'Invoices & money');assert.equal(new URL(page.url()).searchParams.get('organization'),organization);
-   control.memberships=[{organization_id:organization,role:'technician'}];await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await heading(page,'Jobs');assert.equal(await page.getByRole('navigation',{name:'Workspace',exact:true}).getByRole('button',{name:'Invoices & money'}).count(),0);
+   await page.getByLabel('Switch business').selectOption(company2);await heading(page,'Billing');assert.equal(new URL(page.url()).searchParams.get('organization'),company2);
+   await page.goBack();await heading(page,'Billing');assert.equal(new URL(page.url()).searchParams.get('organization'),organization);
+   control.memberships=[{organization_id:organization,role:'technician'}];await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await heading(page,'Jobs');assert.equal(await page.getByRole('navigation',{name:'Workspace',exact:true}).getByRole('button',{name:'Billing'}).count(),0);
    assert.equal(writes.length,0);await page.close();results.push(engine+' company history and live role revocation');
   }
   {
@@ -100,7 +101,7 @@ try{
   }
   {
    const {page,writes}=await mount({state:'working',path:'?section=Requests'});await heading(page,'Requests');
-   await page.getByRole('button',{name:'Open job',exact:true}).click();await heading(page,'Job');
+   await page.getByRole('button',{name:'Open Morgan Synthetic Neighbor request',exact:true}).click();await heading(page,'Job');
    await page.getByRole('button',{name:'Back to Requests',exact:true}).click();await heading(page,'Requests');
    await go(page,'Jobs');await heading(page,'Jobs');await page.getByRole('button',{name:'Open job',exact:true}).click();await heading(page,'Job');
    await page.getByRole('button',{name:'All jobs',exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'Back to Requests',exact:true}).count(),0);
@@ -119,7 +120,7 @@ try{
   }
   for(const role of ['dispatcher','bookkeeper','technician']){
    const {page,writes}=await mount({role,path:'?section=Settings&request='+requestId+'&customer='+requestId});
-   await heading(page,role==='dispatcher'?'Requests':role==='bookkeeper'?'Invoices & money':'Jobs');assert.equal(new URL(page.url()).searchParams.has('request'),false);assert.equal(new URL(page.url()).searchParams.has('customer'),false);assert.equal(writes.length,0);await page.close();
+   await heading(page,role==='dispatcher'?'Requests':role==='bookkeeper'?'Billing':'Jobs');assert.equal(new URL(page.url()).searchParams.has('request'),false);assert.equal(new URL(page.url()).searchParams.has('customer'),false);assert.equal(writes.length,0);await page.close();
   }results.push(engine+' denied deep links sanitized for all staff roles');
   {
    const {page,reads,writes}=await mount({path:'?section=Money'});
@@ -130,16 +131,16 @@ try{
    await expense.locator(':scope > summary').click();await expense.getByText('Record a paid business expense',{exact:true}).click();await expense.getByLabel('Vendor',{exact:true}).fill('Synthetic retained draft');
    const expenseReads=reads.filter(path=>path.startsWith('/api/finance-activity?')).length;assert.equal(expenseReads,1);
    await expense.locator(':scope > summary').click();
-   page.once('dialog',dialog=>dialog.dismiss());await go(page,'Requests');await heading(page,'Invoices & money');
+   page.once('dialog',dialog=>dialog.dismiss());await go(page,'Requests');await heading(page,'Billing');
    await expense.locator(':scope > summary').click();assert.equal(await expense.getByLabel('Vendor',{exact:true}).inputValue(),'Synthetic retained draft');
    assert.equal(reads.filter(path=>path.startsWith('/api/finance-activity?')).length,expenseReads);
    assert.equal(reads.filter(path=>path.startsWith('/api/mileage?')).length,0);
-   page.once('dialog',dialog=>dialog.accept());await page.getByLabel('Switch business').selectOption(company2);await heading(page,'Invoices & money');
+   page.once('dialog',dialog=>dialog.accept());await page.getByLabel('Switch business').selectOption(company2);await heading(page,'Billing');
    assert.equal(await page.locator('.money-tools input').count(),0);
    assert.equal(writes.length,0);await page.close();results.push(engine+' tools defer reads, retain collapsed drafts and guard company/navigation changes');
   }
   for(const width of [320,375,390,430,768,1366])for(const theme of ['light','dark']){
-   const {page,writes}=await mount({width,theme,path:'?section=Money'});await heading(page,'Invoices & money');
+   const {page,writes}=await mount({width,theme,path:'?section=Money'});await heading(page,'Billing');
    assert.equal(await page.locator('.money-invoice:not([open])').count(),1);assert.equal(await page.locator('.money-tools[open]').count(),0);
    await layout(page,engine+' money '+width+' '+theme);
    if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-money-closed.png',fullPage:true});
@@ -152,7 +153,7 @@ try{
    const {page,reads,writes}=await mount({width,theme,state:'working',path:'?section=Dashboard'});await heading(page,'Today');await page.getByRole('button',{name:'Continue job',exact:true}).waitFor();
    assert.equal(await page.locator('.marketing-assistant,.metric-grid,.business-brief').count(),0);assert.equal(reads.filter(p=>p.startsWith('/api/business-snapshot')).length,0);assert.equal(await page.locator('.field-desk h2').filter({hasText:'Morgan Synthetic Neighbor'}).count(),1);
    await layout(page,engine+' field desk '+width+' '+theme);if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-field-desk.png',fullPage:true});
-   await page.locator('.field-search-disclosure>summary').click();assert.equal(await page.locator('.field-search-disclosure[open]').count(),1);await page.getByLabel('Search loaded jobs, visits and requests').fill('morgan assembly');
+   assert.equal(await page.getByLabel('Search loaded jobs, visits and requests').isVisible(),true);await page.getByLabel('Search loaded jobs, visits and requests').fill('morgan assembly');
    await page.getByRole('status').filter({hasText:'2 matches in the loaded queue'}).waitFor();
    assert.equal(await page.locator('[aria-label="Matching work"] .field-queue-row').count(),2);
    await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' finder 200% '+width+' '+theme);
@@ -160,12 +161,12 @@ try{
    await page.getByRole('button',{name:'Clear',exact:true}).click();await page.getByRole('button',{name:'Continue job',exact:true}).waitFor();
    await page.addStyleTag({content:'html{font-size:16px!important}'});
    await page.getByLabel('Search loaded jobs, visits and requests').fill('morgan assembly');
-   await page.locator('[aria-label="Matching work"] .field-queue-row').filter({hasText:'Working job'}).click();await heading(page,'Job');await page.getByRole('button',{name:'Back to Today',exact:true}).waitFor();assert.equal(await page.locator('.field-job-main .lead-assignment,.field-job-main .field-notes').count(),0);assert.equal(await page.getByRole('complementary',{name:'Visit context'}).count(),1);assert.equal(await page.locator('.mobile-workflow-steps').count(),0);assert.equal(await page.locator('.field-job .field-job-service').count(),1);const brief=page.getByRole('region',{name:'Agreed work brief'});await brief.waitFor();assert.match(await brief.textContent(),/Assemble a small bookcase/);assert.match(await brief.textContent(),/Labor estimate/);await layout(page,engine+' one field job '+width+' '+theme);await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' agreed work 200% '+width+' '+theme);await page.addStyleTag({content:'html{font-size:16px!important}'});if(width===390&&theme==='light')await page.locator('.field-job').screenshot({path:output+'/'+engine+'-field-job.png'});
+   await page.locator('[aria-label="Matching work"] .field-queue-row').filter({hasText:'Working job'}).click();await heading(page,'Job');await page.getByRole('button',{name:'Back to Today',exact:true}).waitFor();assert.equal(await page.getByRole('tab',{name:'Work',exact:true}).getAttribute('aria-selected'),'true');const brief=page.getByRole('tabpanel',{name:'Work',exact:true});assert.match(await brief.textContent(),/Assemble a small bookcase/);await layout(page,engine+' one field job '+width+' '+theme);await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' agreed work 200% '+width+' '+theme);await page.addStyleTag({content:'html{font-size:16px!important}'});if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-job-full.png',fullPage:true});if(width===390&&theme==='light')await page.locator('.field-job').screenshot({path:output+'/'+engine+'-field-job.png'});
    await go(page,'Marketing');await heading(page,'Marketing');await page.locator('.marketing-assistant').waitFor();assert.equal(await page.locator('.field-desk,.field-job').count(),0);assert.equal(writes.length,0);await page.close();
   }
   for(const width of [320,375,390,430,768,1366])for(const theme of ['light','dark']){
    const {page,writes}=await mount({width,theme,state:'new',path:'?section=Dashboard'});await heading(page,'Today');
-   await page.locator('.field-search-disclosure>summary').click();await page.getByLabel('Search loaded jobs, visits and requests').fill('fictional dekalb reviewing');
+   await page.getByLabel('Search loaded jobs, visits and requests').fill('fictional dekalb reviewing');
    const match=page.locator('[aria-label="Matching work"] .field-queue-row');await match.waitFor();assert.match(await match.textContent(),/100 Fictional Lane.*DeKalb/);
    await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' pending address finder '+width+' '+theme);
    if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-request-finder.png',fullPage:true});

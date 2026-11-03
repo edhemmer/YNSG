@@ -1,6 +1,7 @@
 'use client';
 import {useState} from 'react';
-import {postalCodesForCity,serviceCities} from '../../../site/city-postal-codes.js';
+import {postalCodesForCity} from '../../../site/city-postal-codes.js';
+import {priorityServiceCities as serviceCities} from '../../../packages/domain/service-geography.mjs';
 import {usStates} from '../lib/customer-record-contract';
 export default function AddressFields({values,onChange}:{values:Record<string,string>;onChange:(key:string,value:string)=>void}){
  const [other,setOther]=useState(false);
