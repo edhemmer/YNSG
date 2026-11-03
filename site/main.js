@@ -6,8 +6,6 @@ import {deliverRequest} from './request-delivery.js';
 import {requestRecovery} from './request-recovery.js';
 import {bookingJourney} from './booking-journey.js';
 import {addressCheck} from './address-check.js';
-import {welcomeVoice} from './welcome-voice.js';
-welcomeVoice(document);
 function requestErrorMessage(error){
   const approved=new Set([
     'Please check the form and try again.',
