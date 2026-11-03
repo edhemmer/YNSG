@@ -1,6 +1,6 @@
 'use client';
 import {sessionFetch} from '../lib/session-fetch';
-import JobRecordTabs from './job-record-tabs';
+import JobWorkspace from './job-workspace';
 import {useJobClock} from './use-job-clock';
 import JobClockDisplay from './job-clock-display';
 import {makeCompanionContext,supportTaskLabels,type CompanionContext} from '../lib/job-companion';
@@ -71,15 +71,12 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
  const totalOutstanding=paymentInvoices.reduce((total,i)=>total+Math.max(0,i.total_cents-i.payments.reduce((sum,p)=>sum+p.cents,0)-creditTotal(i.credits)),0);
  const paymentBalanceNote='Based on saved records. Open an invoice to refresh and verify the latest balance before recording payment.';
  
- return <section className="service-workflow field-job job-record" aria-label={'Service workflow for '+request.original_submission.name}>
-  <header className="job-record-header"><div><p className="job-record-kicker">{jobs.length?'Service job':'Website request'}</p><h1 id={'job-title-'+request.id} tabIndex={-1}>{request.original_submission.name}</h1><p>{submissionAddress(request.original_submission)}</p></div><div className="field-contact-actions"><a className="button secondary" href={'tel:'+request.original_submission.phone} aria-label="Call customer"><Icon name="phone"/>Call</a>{navigationUrl(submissionAddress(request.original_submission))&&<a className="button secondary" href={navigationUrl(submissionAddress(request.original_submission))!} target="_blank" rel="noopener noreferrer" aria-label={'Directions to '+request.original_submission.name}><Icon name="pin"/>Directions</a>}</div></header>
-  <div className="job-record-summary"><span className="job-state" role="status"><i aria-hidden="true"/>{task.label}</span><span><Icon name="calendar"/>{timing.text}</span>{v&&<span>{money(v.labor_cents)} agreed labor</span>}{totalOutstanding>0&&<span>{money(totalOutstanding)} due</span>}</div>
-  <JobRecordTabs id={request.id} panel={panel} onChange={setPanel} blocked={blocked}/>
-  {decision.unknown&&<div className="note" role="alert"><p>The last action needs confirmation. Check its saved result before making another change.</p><button type="button" disabled={decision.busy} onClick={()=>void decision.run()}>Check saved action</button></div>}
-  <div className="job-record-body">
+ return <JobWorkspace id={request.id} title={request.original_submission.name} address={submissionAddress(request.original_submission)} kind={jobs.length?'Service job':'Website request'} status={task.label} panel={panel} onPanel={setPanel} blocked={blocked} className="service-workflow field-job" label={'Service workflow for '+request.original_submission.name}
+  actions={<><a className="button secondary" href={'tel:'+request.original_submission.phone} aria-label="Call customer"><Icon name="phone"/>Call</a>{navigationUrl(submissionAddress(request.original_submission))&&<a className="button secondary" href={navigationUrl(submissionAddress(request.original_submission))!} target="_blank" rel="noopener noreferrer" aria-label={'Directions to '+request.original_submission.name}><Icon name="pin"/>Directions</a>}</>}
+  context={<><section><h2>Appointment</h2><p>{timing.text}</p></section><section><h2>Requested work</h2><ul>{requestTasks(request.original_submission).map((item,index)=><li key={index}>{item.task||item.service}</li>)}</ul></section>{request.original_submission.description&&<section className="job-customer-message"><h2>From the customer</h2><p>{request.original_submission.description}</p></section>}{v&&<section><h2>Agreed labor</h2><p className="job-context-amount">{money(v.labor_cents)}</p></section>}{totalOutstanding>0&&<section><h2>Outstanding</h2><p className="job-context-amount">{money(totalOutstanding)}</p></section>}</>}
+  feedback={decision.unknown&&<div className="note" role="alert"><p>The last action needs confirmation. Check its saved result before making another change.</p><button type="button" disabled={decision.busy} onClick={()=>void decision.run()}>Check saved action</button></div>}>
   <section className="job-record-panel" id={'job-panel-'+request.id+'-plan'} role="tabpanel" aria-labelledby={'job-tab-'+request.id+'-plan'} hidden={panel!=='plan'}>
    <div className="job-panel-heading"><div><h3>Plan the visit</h3><p>{requestTasks(request.original_submission).map(t=>t.task||t.service).join(' · ')}</p></div>{canManage&&!confirmedVisit&&task.kind!=='closed'&&<button type="button" className="text-action" disabled={blocked} onClick={()=>{if(canLeave())setDeclineOpen(true);}}>Decline request</button>}</div>
-   {request.original_submission.description&&<section className="job-customer-message"><h4>From the customer</h4><p>{request.original_submission.description}</p></section>}
    {scheduleOpen?<SchedulingReviewPanel key={proposal?.id||request.id} organization={organization} requestId={request.id} appointmentId={proposal?.id||null} initialExpanded initialStart={request.original_submission.preferredTime} onBusy={busyFor('schedule')} completed={()=>{setScheduleOpen(false);onChanged();}}/>:<section className="job-plan-appointment"><h4>{confirmedVisit?'Scheduled visit':'Appointment'}</h4><p>{timing.text}</p>{canManage&&<button type="button" className="secondary" disabled={blocked} onClick={openSchedule}>{proposal&&confirmedVisit?'Review requested time change':confirmedVisit?'Change appointment':'Choose appointment'}</button>}</section>}
    {proposal&&confirmedVisit&&<p className="note">A new time was requested. Original visit stays booked until you save the replacement.</p>}
   {(task.kind==='confirm'||task.kind==='agreement')&&<section className="workflow-section" id="field-customer-agreement" tabIndex={-1}><h3>Work &amp; estimate</h3>
@@ -132,9 +129,9 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
    {canManage&&(working||task.kind==='ready')&&<details className="workflow-supporting"><summary>Extra work or unexpected conditions</summary><OnSiteExtraReview/><UnforeseenJobReview/></details>}
   </details>
   <details className="workflow-history"><summary>Request history & agreements</summary><button type="button" className="secondary" disabled={blocked} onClick={onReview}>Open full request</button>{quotes.map(q=><p key={q.id}>Scope & price: {q.status.replaceAll('_',' ')} · {q.quote_versions.find(v=>v.version===q.current_version)?.scope}</p>)}{invoices.map(i=><p key={i.id}>Invoice {invoiceNumber(i.number)} · {money(i.total_cents)} · received {money(i.payments.reduce((sum,p)=>sum+p.cents,0))} · credits {money(creditTotal(i.credits))}</p>)}</details>
-  </section></div>
+  </section>
   {declineOpen&&<RequestDetail onNetwork={onNetwork} companyName={companyName} organization={organization} requestId={request.id} timezone={timezone} canManage={canManage} initialPanel="decline" onClose={()=>setDeclineOpen(false)} onChanged={onChanged} onWork={()=>{setDeclineOpen(false);onChanged();}}/>}
- </section>;
+ </JobWorkspace>;
 }
 
 function WorkflowQuoteForm({request,busy,submit,organization,canLink}:{request:InboxRequest;busy:boolean;submit:(value:Record<string,unknown>)=>Promise<unknown>;organization:string;canLink:boolean}){

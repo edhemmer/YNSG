@@ -38,7 +38,7 @@ test('completed work opens invoice review; issued partial and settled invoices e
 });
 test('a requested replacement preserves current appointment context and exposes explicit review',()=>{
  const replacement={...visit,id:id(8),status:'proposal',start_at:'2030-10-22T14:00:00Z',arrival_at:'2030-10-22T14:00:00Z',end_at:'2030-10-22T16:00:00Z',replaces_id:visit.id};const d=html({...scheduled,appointments:[replacement,visit]},[quote],[job],[]);
- assert.match(d.querySelector('.job-record-summary').textContent,/Oct 21/);assert.match(d.querySelector('.job-record-summary').textContent,/Oct 21/);assert.ok([...d.querySelectorAll('button')].some(b=>b.textContent==='Review requested time change'));assert.match(d.querySelector('.field-job-details').textContent,/Original visit stays booked/);
+ assert.match(d.querySelector('.job-context').textContent,/Oct 21/);assert.doesNotMatch(d.querySelector('.job-context').textContent,/Oct 22/);assert.ok([...d.querySelectorAll('button')].some(b=>b.textContent==='Review requested time change'));assert.match(d.querySelector('.field-job-details').textContent,/Original visit stays booked/);
 });
 test('multiple jobs finish one saved task at a time without declaring early closeout',()=>{
  const second={...job,id:id(7),status:'working'};assert.equal(fieldWorkflow(scheduled,[quote],[{...job,status:'completed'},second],[]).job.id,job.id);

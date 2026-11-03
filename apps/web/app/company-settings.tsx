@@ -135,7 +135,7 @@ export default function CompanySettingsPanel({
     [message, setMessage] = useState(""),
     [pending, setPending] = useState(false),
     [unknown,setUnknown]=useState(false),
-    [preview, setPreview] = useState(false),
+    [settingsSection, setSettingsSection] = useState(focusServices?'company-service-catalog':'company-business'),
     [ready, setReady] = useState(false),
     [loading, setLoading] = useState(true);
   const [readVersion,setReadVersion]=useState(0);
@@ -155,7 +155,7 @@ export default function CompanySettingsPanel({
     setCatalog([]);
     setVersion(0);
     setReady(false);
-    setPreview(false);
+
     setMessage("");
     setError("");
     setFieldIssue(null);
@@ -203,7 +203,7 @@ export default function CompanySettingsPanel({
   }, [organization,readVersion]);
   const change = (patch: Partial<CompanySettings>) => {
     setDraft((d) => (d ? { ...d, ...patch } : d));
-    setPreview(false);
+
     setFieldIssue(null);
     setError("");
   };
@@ -281,22 +281,24 @@ export default function CompanySettingsPanel({
     </label>
   );
   function showIssue(issue:SettingsIssue) {
-    setPreview(false);setFieldIssue(issue);setError(issue.message);
+    setFieldIssue(issue);setError(issue.message);
     const form=formRef.current;if(!form)return;
     const controls=Array.from(form.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>('input,select,textarea'));
     controls.forEach(control=>{control.removeAttribute('aria-invalid');control.removeAttribute('aria-errormessage');});
     const target=controls.find(control=>control.name===issue.path);
-    if(target){target.setAttribute('aria-invalid','true');target.setAttribute('aria-errormessage','settings-field-error');requestAnimationFrame(()=>{if(target.isConnected){target.scrollIntoView({behavior:'auto',block:'center'});target.focus({preventScroll:true});}});}
+    if(target){const section=target.closest<HTMLElement>('[data-settings-section]')?.dataset.settingsSection;if(section)setSettingsSection(section);target.setAttribute('aria-invalid','true');target.setAttribute('aria-errormessage','settings-field-error');requestAnimationFrame(()=>{if(target.isConnected){target.scrollIntoView({behavior:'auto',block:'center'});target.focus({preventScroll:true});}});}
   }
-  function previewSettings(form:HTMLFormElement) {
-    if(!draft)return;
+  async function saveSettings(form:HTMLFormElement) {
+    if(!draft||pending||unknown||sending.current||!ready)return;
     const invalid=Array.from(form.elements).find((element):element is HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement=>(element instanceof HTMLInputElement||element instanceof HTMLSelectElement||element instanceof HTMLTextAreaElement)&&element.willValidate&&!element.validity.valid);
     if(invalid){showIssue({path:invalid.name,message:settingsFieldLabel(invalid.name)+': '+(invalid.validity.valueMissing?'Please complete this field.':invalid.validationMessage)});return;}
     try{
       validateConfiguration(draft);
-      configurationCommand.parse({organizationId:organization,expectedVersion:version,key:'settings-preview-validation',settings:draft,catalog:catalog.map(({existing,...item})=>item)});
-      setError('');setFieldIssue(null);setPreview(true);
+      const command=configurationCommand.parse({organizationId:organization,expectedVersion:version,key:crypto.randomUUID(),settings:draft,catalog:catalog.map(({existing,...item})=>item)});
+      retry.current={body:JSON.stringify(command),expectedVersion:version,key:command.key};
+      setError('');setFieldIssue(null);
       form.querySelectorAll('[aria-invalid]').forEach(control=>{control.removeAttribute('aria-invalid');control.removeAttribute('aria-errormessage');});
+      await sendReviewedSettings();
     }catch(error){const issue=settingsIssue(error);if(issue)showIssue(issue);else setError(settingsError(error));}
   }
   async function sendReviewedSettings() {
@@ -323,24 +325,15 @@ export default function CompanySettingsPanel({
       setVersion(result.result.version);
       const savedCatalog=catalog.map(item=>({...item,existing:true}));
       setCatalog(savedCatalog);setBaseline(JSON.stringify({draft,catalog:savedCatalog}));
-      setPreview(false);
+
       setMessage("Settings version "+result.result.version+" published. Google and customer delivery remain separately controlled.");
     } catch {
       if(activeOrganization.current!==target||generation.current!==attemptGeneration)return;
       setUnknown(true);setError("We could not confirm whether the settings were published. Do not edit or publish a different version. Use Check saved settings result to retry the exact same request.");
     } finally {sending.current=false;if(activeOrganization.current===target&&generation.current===attemptGeneration)setPending(false);}
   }
-  async function publish() {
-    if(!draft||pending||unknown||sending.current||!preview)return;
-    try {
-      const settings=validateConfiguration(draft);
-      const command=configurationCommand.parse({organizationId:organization,expectedVersion:version,key:crypto.randomUUID(),settings,catalog:catalog.map(({existing,...item})=>item)});
-      retry.current={body:JSON.stringify(command),expectedVersion:version,key:command.key};
-      await sendReviewedSettings();
-    }catch(error){const issue=settingsIssue(error);if(issue)showIssue(issue);else setError(settingsError(error));}
-  }
   const catalogFocused=useRef(false);
-  useEffect(()=>{if(!loading&&draft&&!catalogFocused.current&&focusServices){const target=document.getElementById('company-service-catalog');if(target){catalogFocused.current=true;target.scrollIntoView({block:'start'});target.focus({preventScroll:true});}}},[loading,draft,focusServices]);
+  useEffect(()=>{if(!loading&&draft&&!catalogFocused.current&&focusServices){setSettingsSection('company-service-catalog');catalogFocused.current=true;requestAnimationFrame(()=>{const target=document.getElementById('company-service-catalog');target?.scrollIntoView({block:'start'});target?.focus({preventScroll:true});});}},[loading,draft,focusServices]);
   const statusCallback=useRef(onStatus);statusCallback.current=onStatus;
   const reviewStatus=loading?'Checking settings…':unknown?'Save needs confirmation':pending?'Saving reviewed changes…':draft&&snapshot!==baseline?'Unsaved changes':!draft?(error?'Status unavailable':'Setup needed'):!draft.sellerVerified?'Confirm business identity':!draft.taxTreatmentVerified?'Review invoice tax setup':'Saved business settings';
   useEffect(()=>{statusCallback.current?.(reviewStatus)},[reviewStatus]);
@@ -354,7 +347,7 @@ export default function CompanySettingsPanel({
       <p>
         Update business details, pricing and appointment rules. Review before saving.
       </p>
-      {draft&&<nav className="company-settings-nav" aria-label="Business settings sections">{[["company-business","Business"],["company-rates","Rates & invoices"],["company-hours","Schedule"],["company-service-catalog","Services"]].map(([id,label])=><button key={id} type="button" className="secondary" onClick={()=>{const target=document.getElementById(id!);target?.scrollIntoView({block:"start"});target?.focus({preventScroll:true});}}>{label}</button>)}</nav>}
+      {draft&&<nav className="company-settings-nav" aria-label="Business settings sections">{[["company-business","Business"],["company-rates","Rates & invoices"],["company-hours","Schedule"],["company-service-catalog","Services"]].map(([id,label])=><button key={id} type="button" className="secondary" aria-pressed={settingsSection===id} onClick={()=>setSettingsSection(id!)}>{label}</button>)}</nav>}
       {!ready && !loading && (
         <p className="note">
           Publishing awaits the approved database rollout. You can review the
@@ -362,11 +355,10 @@ export default function CompanySettingsPanel({
         </p>
       )}
       {draft && <div className="settings-actions" role="group" aria-label="Save company settings">
-        <p>{preview ? "Review your settings, then publish to save them." : "Changes are saved when you preview and publish them."}</p>
+        <p>{snapshot===baseline?"All changes saved":"Unsaved changes"}</p>
         {fieldIssue && <p id="settings-field-error" role="alert">{fieldIssue.message}</p>}
         {fieldIssue && <button type="button" className="secondary" onClick={()=>showIssue(fieldIssue)}>Go to this field</button>}
-        {preview && <p>{draft.displayName} · {draft.timezone} · Standard ${draft.hourly.standardCents / 100}/hour · Community ${draft.hourly.communityCents / 100}/hour</p>}
-        {preview ? <button type="button" disabled={pending || unknown || !ready} onClick={() => void publish()}>{pending ? "Saving…" : "Publish reviewed settings"}</button> : <button type="submit" form={settingsFormId} disabled={pending || unknown}>Preview settings to save</button>}
+        <button type="submit" form={settingsFormId} disabled={pending||unknown||!ready||snapshot===baseline}>{pending?"Saving…":"Save changes"}</button>
       </div>}
       {error && !fieldIssue && <p role="alert">{error}</p>}
       {unknown && <button type="button" disabled={pending} onClick={()=>void sendReviewedSettings()}>{pending?"Checking saved settings…":"Check saved settings result"}</button>}
@@ -397,10 +389,10 @@ export default function CompanySettingsPanel({
           onInput={()=>{if(fieldIssue){setFieldIssue(null);setError("");formRef.current?.querySelectorAll("[aria-invalid]").forEach(control=>{control.removeAttribute("aria-invalid");control.removeAttribute("aria-errormessage");});}}}
           onSubmit={(e) => {
             e.preventDefault();
-            previewSettings(e.currentTarget);
+            void saveSettings(e.currentTarget);
           }}
         >
-          <fieldset disabled={pending||unknown}>
+          <fieldset data-settings-section="company-business" hidden={settingsSection!=="company-business"} disabled={pending||unknown}>
             <legend id="company-business" tabIndex={-1}>Business and email</legend>
             <label>
               Licensed brand name
@@ -479,12 +471,12 @@ export default function CompanySettingsPanel({
               />
             </label>
           </fieldset>
-          <fieldset disabled={pending||unknown}>
+          <fieldset data-settings-section="company-business" hidden={settingsSection!=="company-business"} disabled={pending||unknown}>
             <legend>Email logo and signature</legend>
             <label>Owner name for email signature<input name="brand.ownerName" maxLength={160} value={draft.brand.ownerName || ""} placeholder="Your name" onChange={e=>change({brand:{...draft.brand,ownerName:e.target.value||null}})}/><small>Emails close with Best Regards, followed by this name.</small></label>
             <p>The licensed name, official logo and colors are managed centrally. Personalization uses your owner name, contact details and approved services.</p>
           </fieldset>
-          <fieldset disabled={pending||unknown}>
+          <fieldset data-settings-section="company-business" hidden={settingsSection!=="company-business"} disabled={pending||unknown}>
             <legend>After an invoice is paid</legend>
             <p>A thank-you email queues when confirmed payments cover the full invoice. Sending requires a verified business email service and enabled email delivery.</p>
             <label className="check"><input type="checkbox" checked={draft.review.enabled} onChange={e=>change({review:{...draft.review,enabled:e.target.checked}})} />Include a review request in the thank-you email</label>
@@ -492,7 +484,7 @@ export default function CompanySettingsPanel({
             {organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" && <button type="button" className="secondary" onClick={()=>change({review:{enabled:true,url:"https://g.page/r/CWxW2KabD1UWECE/review"}})}>Use our Google review link</button>}
             <p>Use the HTTPS link where customers can leave a review. Leave this off until your review page is ready.</p>
           </fieldset>
-          <fieldset disabled={pending||unknown}>
+          <fieldset data-settings-section="company-rates" hidden={settingsSection!=="company-rates"} disabled={pending||unknown}>
             <legend id="company-rates" tabIndex={-1}>Rates and invoices</legend>
             <label>
               Standard hourly rate ($)
@@ -578,7 +570,7 @@ export default function CompanySettingsPanel({
               I confirm the business name is correct.
             </label>
           </fieldset>
-          <fieldset disabled={pending||unknown}>
+          <fieldset data-settings-section="company-rates" hidden={settingsSection!=="company-rates"} disabled={pending||unknown}>
             <legend>Tax setup</legend>
             <label>
               Tax review status
@@ -613,7 +605,7 @@ export default function CompanySettingsPanel({
               before invoicing.
             </p>
           </fieldset>
-          <fieldset disabled={pending||unknown}>
+          <fieldset data-settings-section="company-hours" hidden={settingsSection!=="company-hours"} disabled={pending||unknown}>
             <legend id="company-hours" tabIndex={-1}>Appointment hours</legend>
             <p>
               Times use {draft.timezone}. Visits need at least two hours; you
@@ -666,7 +658,7 @@ export default function CompanySettingsPanel({
               )}
             </div>
           </fieldset>
-          <fieldset disabled={pending||unknown}>
+          <fieldset data-settings-section="company-hours" hidden={settingsSection!=="company-hours"} disabled={pending||unknown}>
             <legend>Booking rules</legend>
             <div className="settings-grid">
               {duration(
@@ -724,7 +716,7 @@ export default function CompanySettingsPanel({
               appointment needs approval before it is confirmed.
             </p>
           </fieldset>
-          <fieldset disabled={pending||unknown}>
+          <fieldset data-settings-section="company-service-catalog" hidden={settingsSection!=="company-service-catalog"} disabled={pending||unknown}>
             <legend id="company-service-catalog" tabIndex={-1}>Company service catalog</legend>
             <p>
               Choose the services you offer, their scope and pricing approach. Only offer work you are qualified, insured and legally permitted to perform. Keep
@@ -748,7 +740,7 @@ export default function CompanySettingsPanel({
                           i === index ? { ...v, name: e.target.value } : v,
                         ),
                       );
-                      setPreview(false);
+
                     }}
                   />
                 </label>
@@ -766,7 +758,7 @@ export default function CompanySettingsPanel({
                           i === index ? { ...v, scope: e.target.value } : v,
                         ),
                       );
-                      setPreview(false);
+
                     }}
                   />
                 </label>
@@ -786,7 +778,7 @@ export default function CompanySettingsPanel({
                             : v,
                         ),
                       );
-                      setPreview(false);
+
                     }}
                   />
                 </label>
@@ -807,7 +799,7 @@ export default function CompanySettingsPanel({
                             : v,
                         ),
                       );
-                      setPreview(false);
+
                     }}
                   >
                     <option value="review">Needs review</option>
@@ -832,7 +824,7 @@ export default function CompanySettingsPanel({
                             : v,
                         ),
                       );
-                      setPreview(false);
+
                     }}
                   >
                     <option value="hourly">Hourly</option>
@@ -849,7 +841,7 @@ export default function CompanySettingsPanel({
                     className="secondary"
                     onClick={() => {
                       setCatalog((c) => c.filter((_, i) => i !== index));
-                      setPreview(false);
+
                     }}
                   >
                     Remove unpublished service
@@ -872,7 +864,7 @@ export default function CompanySettingsPanel({
                     pricingMode: "review",
                   },
                 ]);
-                setPreview(false);
+
               }}
             >
               Add a service
@@ -886,34 +878,7 @@ export default function CompanySettingsPanel({
               Save website requests here after the connection is verified.
             </label>
           </fieldset>
-          <p>
-            Before issuing invoices:{" "}
-            {releaseGates(draft).join("; ") ||
-              "These invoice setup checks are complete."}
-          </p>
-          <p>You can publish settings while invoice decisions remain unreviewed. Invoicing stays blocked until those checks are complete.</p>
-          <button disabled={pending||unknown}>Preview settings to save</button>
-          {preview && (
-            <div className="card">
-              <h3>Publish version {version + 1}</h3>
-              <p>
-                {draft.displayName} · {draft.timezone} · standard $
-                {draft.hourly.standardCents / 100}/hour · Community $
-                {draft.hourly.communityCents / 100}/hour
-              </p>
-              <p>
-                Website requests: {draft.intakeEnabled ? "enabled" : "disabled"}.
-                Previously issued invoices keep their original details.
-              </p>
-              <button
-                type="button"
-                disabled={pending || !ready}
-                onClick={() => void publish()}
-              >
-                Publish reviewed settings
-              </button>
-            </div>
-          )}
+          {settingsSection==='company-rates'&&<p className="settings-invoice-status">Before issuing invoices: {releaseGates(draft).join('; ')||'Invoice setup checks complete.'}</p>}
         </form>
       )}
     </section>

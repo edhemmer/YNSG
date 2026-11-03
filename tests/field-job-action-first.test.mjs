@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-const job=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+const job=readFileSync('apps/web/app/service-workflow.tsx','utf8'),frame=readFileSync('apps/web/app/job-workspace.tsx','utf8');
 test('one job record connects plan, work, invoice and details with real panels',()=>{
- assert.match(job,/<JobRecordTabs/);
+ assert.match(job,/<JobWorkspace/);assert.match(frame,/<JobRecordTabs/);
  for(const panel of ['plan','work','invoice','details'])assert.ok(job.includes("hidden={panel!=='"+panel+"'}"));
- assert.ok(job.indexOf('job-record-header')<job.indexOf('<JobRecordTabs'));
- assert.ok(job.indexOf('decision.unknown&&')<job.indexOf('job-record-body'));
+ assert.ok(frame.indexOf('job-record-header')<frame.indexOf('<JobRecordTabs'));
+ assert.match(job,/feedback={decision.unknown/);assert.ok(frame.indexOf('{feedback}')<frame.indexOf('job-record-body'));
  assert.match(job,/job-customer-message/);
 });
 test('work and consequential transitions keep canonical guards and wait for saved timer state',()=>{
