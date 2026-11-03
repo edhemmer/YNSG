@@ -347,7 +347,7 @@ export default function CompanySettingsPanel({
       <p>
         Update business details, pricing and appointment rules. Review before saving.
       </p>
-      {draft&&<nav className="company-settings-nav" aria-label="Business settings sections">{[["company-business","Business"],["company-rates","Rates & invoices"],["company-hours","Schedule"],["company-service-catalog","Services"]].map(([id,label])=><button key={id} type="button" className="secondary" aria-pressed={settingsSection===id} onClick={()=>setSettingsSection(id!)}>{label}</button>)}</nav>}
+      {draft&&<nav className="company-settings-nav" aria-label="Business settings sections">{[["company-business","Business"],["company-rates","Rates & invoices"],["company-hours","Schedule"],["company-service-catalog","Services"],["company-email","Email & signature"]].map(([id,label])=><button key={id} type="button" className="secondary" aria-pressed={settingsSection===id} onClick={()=>setSettingsSection(id!)}>{label}</button>)}</nav>}
       {!ready && !loading && (
         <p className="note">
           Publishing awaits the approved database rollout. You can review the
@@ -393,7 +393,7 @@ export default function CompanySettingsPanel({
           }}
         >
           <fieldset data-settings-section="company-business" hidden={settingsSection!=="company-business"} disabled={pending||unknown}>
-            <legend id="company-business" tabIndex={-1}>Business and email</legend>
+            <legend id="company-business" tabIndex={-1}>Business details</legend>
             <label>
               Licensed brand name
               <input
@@ -448,6 +448,9 @@ export default function CompanySettingsPanel({
                 }
               />
             </label>
+          </fieldset>
+          <fieldset data-settings-section="company-email" hidden={settingsSection!=="company-email"} disabled={pending||unknown}>
+            <legend>Email identity</legend>
             <label>
               Customer reply email
               <input
@@ -471,12 +474,12 @@ export default function CompanySettingsPanel({
               />
             </label>
           </fieldset>
-          <fieldset data-settings-section="company-business" hidden={settingsSection!=="company-business"} disabled={pending||unknown}>
+          <fieldset data-settings-section="company-email" hidden={settingsSection!=="company-email"} disabled={pending||unknown}>
             <legend>Email logo and signature</legend>
             <label>Owner name for email signature<input name="brand.ownerName" maxLength={160} value={draft.brand.ownerName || ""} placeholder="Your name" onChange={e=>change({brand:{...draft.brand,ownerName:e.target.value||null}})}/><small>Emails close with Best Regards, followed by this name.</small></label>
             <p>The licensed name, official logo and colors are managed centrally. Personalization uses your owner name, contact details and approved services.</p>
           </fieldset>
-          <fieldset data-settings-section="company-business" hidden={settingsSection!=="company-business"} disabled={pending||unknown}>
+          <fieldset data-settings-section="company-email" hidden={settingsSection!=="company-email"} disabled={pending||unknown}>
             <legend>After an invoice is paid</legend>
             <p>A thank-you email queues when confirmed payments cover the full invoice. Sending requires a verified business email service and enabled email delivery.</p>
             <label className="check"><input type="checkbox" checked={draft.review.enabled} onChange={e=>change({review:{...draft.review,enabled:e.target.checked}})} />Include a review request in the thank-you email</label>
