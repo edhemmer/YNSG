@@ -28,6 +28,8 @@ await cp(join(source,'home-service-picker.js'),join(output,'home-service-picker.
 await cp(join(source,'booking-journey.js'),join(output,'booking-journey.js'));
 await cp(join(source,'address-check.js'),join(output,'address-check.js'));
 await cp(join(source,'city-postal-codes.js'),join(output,'city-postal-codes.js'));
+await mkdir(join(output,'packages','domain'),{recursive:true});
+await cp(join(root,'packages','domain','service-geography.mjs'),join(output,'packages','domain','service-geography.mjs'));
 await cp(join(source,'neighbor-carousel.js'),join(output,'neighbor-carousel.js'));
 await cp(join(source,'seasonal-services.js'),join(output,'seasonal-services.js'));
 await cp(join(source,'public-ui.js'),join(output,'public-ui.js'));
@@ -95,3 +97,6 @@ await writeFile(join(output,'sitemap.xml'),`<?xml version="1.0" encoding="UTF-8"
 await verifyLocalSeo(output);
 console.log(`Built ${Object.keys(pages).length} HTML pages.`);
 
+
+const {verifyBrowserModules}=await import('./check-browser-modules.mjs');
+await verifyBrowserModules(output);
