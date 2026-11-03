@@ -118,7 +118,7 @@ test('customers can request service without choosing a calendar time',async()=>{
 
 test('mulch has a distinct discoverable page while garden care stays in Yard & garden',async()=>{const home=await readFile(new URL('../site/pages/home.html',import.meta.url),'utf8'),mulch=await readFile(new URL('../site/pages/mulch-delivery-spreading-dekalb-il.html',import.meta.url),'utf8');assert.equal((home.match(/<article class="home-service-card/g)||[]).length,9);assert.match(home,/href="\/mulch-delivery-spreading-dekalb-il\/"/);assert.match(home,/Hand weeding, small planting, bush trimming and garden-bed cleanup/);assert.match(mulch,/Supplier-prepaid materials are not billed again/);assert.match(mulch,/one combined two-hour minimum/);assert.match(mulch,/href="\/mulch-yard-cleanup-dekalb-il\/"/);});
 
-test('farm hand has a distinct daily-rate page, service panel and full-day arranged intake',async()=>{
+test('farm hand has a distinct quote-based page, four-hour minimum and arranged intake',async()=>{
  const [home,services,price,farm,form,journey,catalog]=await Promise.all([
   'home.html','services.html','pricing.html','farm-hand-dekalb-il.html','form.html'
  ].map(file=>readFile(new URL('../site/pages/'+file,import.meta.url),'utf8')).concat([
@@ -127,7 +127,10 @@ test('farm hand has a distinct daily-rate page, service panel and full-day arran
  ]));
  assert.match(home,/href="\/farm-hand-dekalb-il\/"/);
  assert.match(services,/id="farm-hand"/);
- assert.match(price,/\$300 per day for one farm hand, up to 10 hours/);
+ assert.match(price,/four-hour minimum/);
+ assert.doesNotMatch(price,/\$300|up to 10 hours/);
+ assert.match(form,/four-hour minimum/);
+ assert.doesNotMatch(form,/Farm hand day rate|\$300/);
  assert.match(farm,/Need an extra hand on the farm\?/);
  assert.match(farm,/Spring planting support|spring planting support/);
  assert.match(farm,/fall harvest support/i);
@@ -139,7 +142,7 @@ test('farm hand has a distinct daily-rate page, service panel and full-day arran
  assert.ok(graph.some(node=>node['@type']==='Service'&&node.url===canonicalUrl('farm-hand-dekalb-il')));
 });
 
-test('farm photo panel matches uniform service cards and farm price stays at page bottom',async()=>{
+test('farm photo panel matches uniform cards and quote-based visit planning stays discoverable',async()=>{
  const [home,farm,styles]=await Promise.all([
   readFile(new URL('../site/pages/home.html',import.meta.url),'utf8'),
   readFile(new URL('../site/pages/farm-hand-dekalb-il.html',import.meta.url),'utf8'),
@@ -149,9 +152,9 @@ test('farm photo panel matches uniform service cards and farm price stays at pag
  assert.ok(card.includes('ynsg-farm-hand-midwest.webp'));
  assert.ok(!card.includes('$300')&&!card.includes('day rate')&&!card.includes('up to 10 hours'));
  assert.ok(farm.includes('ynsg-farm-hand-midwest.webp'));
- assert.equal(farm.split('$300').length-1,1);
+ assert.doesNotMatch(farm,/\$300|per day for one farm hand|up to 10 hours/);
  assert.ok(farm.indexOf('farm-day-pricing')>farm.indexOf('service-area-note'));
- assert.ok(farm.includes('Multi-day rates can be negotiated'));
+ assert.ok(farm.includes('four-hour minimum'));assert.ok(farm.includes('agree on the price before confirming'));
  assert.ok(styles.includes('grid-auto-rows:1fr'));
  assert.ok(styles.includes('aspect-ratio:5/2;object-fit:cover'));
 });
@@ -175,5 +178,5 @@ test('farm labor SEO is locally relevant and grounded without thin location page
  assert.ok(detail.includes('href="/service-area/"'));
  assert.ok(area.includes('href="/farm-hand-dekalb-il/"'));
  assert.ok(build.includes('const farmMedia='));
- assert.equal(detail.split('$300').length-1,1);
+ assert.doesNotMatch(detail,/\$300|up to 10 hours/);assert.match(detail,/four-hour minimum/);
 });

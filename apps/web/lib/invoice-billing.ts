@@ -4,6 +4,6 @@ export function hourlyCharge(minutes:number,rateCents:number){
 }
 export function billingLabel(line:{crewPerson?:number;billingBasis?:string;billingMinutes?:number;unitRateCents?:number}){
  if(line.billingBasis==='fixed')return line.crewPerson?'Adjusted person labor amount':'Fixed amount';
- if(line.billingBasis==='hourly'&&line.billingMinutes!==undefined&&line.unitRateCents!==undefined)return `${line.billingMinutes} billed minutes × ${(line.unitRateCents/100).toLocaleString('en-US',{style:'currency',currency:'USD'})}/${line.crewPerson?'person/hour':'hour'}`;
+ if(line.billingBasis==='hourly'&&line.billingMinutes!==undefined&&line.unitRateCents!==undefined)return `${line.billingMinutes%60===0?line.billingMinutes/60+" "+(line.billingMinutes===60?"hour":"hours"):Math.floor(line.billingMinutes/60)+"h "+line.billingMinutes%60+"m"} × ${(line.unitRateCents/100).toLocaleString('en-US',{style:'currency',currency:'USD'})}/${line.crewPerson?'person/hour':'hour'}`;
  return 'Recorded service charge';
 }

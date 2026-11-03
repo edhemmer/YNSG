@@ -1,5 +1,6 @@
 import {z} from 'zod';
 const id=z.uuid(),stamp=z.iso.datetime({offset:true}),line=(max:number)=>z.string().trim().max(max).regex(/^[^\x00-\x1f\x7f<>]*$/),note=(max:number)=>z.string().trim().max(max).regex(/^[^\x00-\x08\x0b\x0c\x0e-\x1f\x7f]*$/);
+export const normalizeNetworkUrl=(value:string)=>{const v=value.trim();return !v||/^[a-z][a-z0-9+.-]*:/i.test(v)?v:v.startsWith('//')?'https:'+v:'https://'+v;};
 const url=z.string().trim().max(2048).refine(v=>{try{const u=new URL(v);return ['https:','http:'].includes(u.protocol)&&!u.username&&!u.password;}catch{return false;}},'Use a complete http or https website link.');
 const phone=line(35).refine(v=>!v||(/^[+\d() .x#-]{7,35}$/i.test(v)&&v.replace(/\D/g,'').length>=7),'Use a phone number with at least seven digits.');
 export const networkVetting=z.enum(['not_vetted','referred','known_work']);

@@ -20,8 +20,9 @@ export function readWorkspaceRoute(url: URL, memberships: WorkspaceMembership[],
     || memberships.find(m => m.organization_id === fallback) || memberships[0];
   const desired = url.searchParams.get('section') || (url.searchParams.has('request') ? 'Requests' : workspaceHome(member?.role));
   const allowed = workspaceSectionAllowed(desired, member?.role);
-  const section = allowed ? desired : workspaceHome(member?.role);
+  let section = allowed ? desired : workspaceHome(member?.role);
   const request = url.searchParams.get('request'), customer = url.searchParams.get('customer');
+  if(allowed&&section==='Requests'&&request&&uuid.test(request)&&['owner','admin'].includes(member?.role||''))section='Work';
   return { organization: member?.organization_id || '', section,
     request: allowed && ['Work', 'Requests'].includes(section) && request && uuid.test(request) ? request : null,
     customer: allowed && section === 'Customers' && customer && uuid.test(customer) ? customer : null };

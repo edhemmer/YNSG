@@ -1,14 +1,15 @@
+import {readWorkspaceStyles} from './workspace-styles.mjs';
 // Actual React components + production stylesheet; only isolated synthetic API responses.
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import {createRequire} from 'node:module';
-import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
+import {mkdirSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {ownerFixture,scheduleContext,visitId,resource} from '../tests/fixtures/owner-mobile-data.mjs';
 const require=createRequire(import.meta.url),{build}=require(require.resolve('esbuild',{paths:[require.resolve('tsx')]}));
 const {chromium,webkit}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const bundle=await build({entryPoints:['tests/fixtures/owner-mobile-harness.tsx'],bundle:true,write:false,nodePaths:[resolve('apps/web/node_modules')],platform:'browser',jsx:'automatic',define:{'process.env.NODE_ENV':'"production"'}});
-const css=['apps/web/app/style.css','apps/web/app/careers.css','apps/web/app/field-office.css'].map(path=>readFileSync(path,'utf8')).join('\n');
+const css=readWorkspaceStyles();
 const server=http.createServer((req,res)=>{if(req.url==='/bundle.js'){res.setHeader('Content-Type','text/javascript');res.end(bundle.outputFiles[0].text);}else if(req.url==='/style.css'){res.setHeader('Content-Type','text/css');res.end(css);}else{res.setHeader('Content-Type','text/html');res.end('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"></head><body><div id="root"></div><script src="/bundle.js"></script></body></html>');}});
 await new Promise(r=>server.listen(Number(process.env.YNSG_BROWSER_PORT||0),'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
 const output=resolve(process.env.YNSG_BROWSER_OUTPUT||'/tmp/ynsg-owner-mobile');mkdirSync(output,{recursive:true});
@@ -71,10 +72,9 @@ try{
    assert.equal(await action.count(),1);
    assert.equal(await progress.count(),1);
    assert.equal(await progress.getAttribute('open'),null,'Preparation is optional, not a second screen before the job action');
-   const positions=await page.evaluate(()=>({action:document.querySelector('.field-task')?.getBoundingClientRect().top,progress:document.querySelector('.field-job-progress')?.getBoundingClientRect().top}));
-   assert.ok(Number.isFinite(positions.action)&&Number.isFinite(positions.progress)&&positions.action<positions.progress,'Next job action comes before progress details');
+   assert.equal(await page.getByRole('tab').count(),4);assert.equal(await page.getByRole('tabpanel').count(),1,'Exactly one job view is presented at a time');
    if(state==='new'){assert.equal(await page.getByRole('button',{name:/Start work timer|Save work|Approve and issue invoice|Record received payment/}).count(),0);await page.getByRole('button',{name:'Decline request',exact:true}).click();await page.locator('.decline-fields select').last().waitFor();}
-    if(state==='retained'){assert.equal(await page.getByRole('button',{name:'Decline request',exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'Confirm appointment',exact:true}).count(),0);assert.match(await page.locator('[aria-label="Current field action"]').innerText(),/Review payments/);assert.equal(await page.getByRole('link',{name:'Review payments'}).count(),0);assert.ok(await action.locator('.invoice-payment-panel').count()>0);}
+    if(state==='retained'){assert.equal(await page.getByRole('button',{name:'Decline request',exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'Confirm appointment',exact:true}).count(),0);assert.equal(await page.getByRole('tab',{name:'Invoice',exact:true}).getAttribute('aria-selected'),'true');assert.equal(await page.getByRole('link',{name:'Review payments'}).count(),0);assert.ok(await page.getByRole('tabpanel',{name:'Invoice',exact:true}).locator('.invoice-payment-panel').count()>0);}
    if(['issued','paid'].includes(state)){for(const summary of await page.locator('.field-job details:not([open]) > summary').all())if(await summary.isVisible())await summary.click();await layout(page,engine+' expanded workflow '+width+' '+state);}
    await page.close();
   }
@@ -94,7 +94,7 @@ try{
    await page.waitForFunction(()=>document.querySelector('select[name="visitTime"]').options.length>1);
    const option=await page.locator('select[name="visitTime"] option').nth(1).getAttribute('value');await page.locator('select[name="visitTime"]').selectOption(option);
    controls.post=(route,req,url)=>{assert.equal(url.pathname,'/api/scheduling-review');fixture.data.requests[0].appointments=ownerFixture('confirmed').data.requests[0].appointments;return route.fulfill({json:{ok:true,result:{id:visitId,status:'reserved',revision:3},delivery:null}});};
-   await page.getByRole('button',{name:'Schedule appointment',exact:true}).click();await page.getByRole('button',{name:'Prepare work & price',exact:true}).waitFor();assert.equal(writes.length,1);assert.equal(JSON.parse(writes[0].body).confirmImmediately,true);assert.equal(await page.getByLabel('Service radius advisory').count(),0);await page.getByRole('button',{name:'Prepare work & price',exact:true}).click();await page.getByLabel('Current field action',{exact:true}).getByRole('button',{name:'Save labor estimate',exact:true}).waitFor();assert.equal(await page.getByRole('link',{name:'Review work & customer approval',exact:true}).count(),0);await page.locator('#field-customer-agreement').waitFor();assert.equal(writes.length,1);await page.close();
+   await page.getByRole('button',{name:'Schedule appointment',exact:true}).click();await page.getByRole('button',{name:'Prepare work & price',exact:true}).waitFor();assert.equal(writes.length,1);assert.equal(JSON.parse(writes[0].body).confirmImmediately,true);assert.equal(await page.getByLabel('Service radius advisory').count(),0);await page.getByRole('button',{name:'Prepare work & price',exact:true}).click();await page.getByRole('button',{name:'Save labor estimate',exact:true}).waitFor();assert.equal(await page.getByRole('link',{name:'Review work & customer approval',exact:true}).count(),0);await page.locator('#field-customer-agreement').waitFor();assert.equal(writes.length,1);await page.close();
   }
   {
    const {page,writes}=await mount('proposal');await page.getByRole('button',{name:'Choose another time',exact:true}).click();await page.locator('.decline-fields select').last().selectOption('time');assert.equal(writes.length,0);await layout(page,engine+' alternate-time approval');await page.close();

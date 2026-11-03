@@ -93,24 +93,24 @@ test('a previously invoiced approved job cannot redirect a second completed job 
  assert.equal(fieldWorkflow(withoutVisit,[quote,{...quote,id:'q2'}],[invoiced,completed],[oldInvoice]).kind,'invoice');
 });
 
-test('one field screen exposes request-to-payment progress with a single saved-state stage',()=>{
+test('one field screen derives a single current action without non-interactive progress tabs',()=>{
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
- assert.match(source,/aria-label="Job progress"/);
- assert.match(source,/aria-current=\{task\.kind==='confirm'/);
- assert.match(source,/aria-current=\{task\.kind==='payment'/);
+ assert.match(source,/aria-label="Current field action"/);
+ assert.match(source,/const task=fieldWorkflow\(request,quotes,jobs,invoices\)/);
+ assert.doesNotMatch(source,/className="field-workflow-stages"/);
  assert.match(source,/navigationUrl\(submissionAddress\(request\.original_submission\)\)/);
  assert.doesNotMatch(source,/href=\{navigationUrl\(submissionAddress\(request\.original_submission\)\)\|\|undefined\}/);
 });
 
 test('the single field screen links invoice and payment decisions to their existing authoritative forms',()=>{
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
- assert.match(source,/task\.kind==='invoice'&&j&&/);
- assert.match(source,/<InvoiceDraft key=\{j.id\} mobile/);
+ assert.match(source,/j&&canManage&&\(working\|\|task\.kind==='invoice'\)/);
+ assert.match(source,/<InvoiceDraft key=\{j.id\} streamlined/);
  assert.match(source,/id="field-invoice-draft"/);
  assert.match(source,/task\.kind==='payment'&&/);
- assert.match(source,/<InvoicePayments guided/);
+ assert.match(source,/<InvoicePayments streamlined guided/);
  assert.match(source,/id=\{i\.id===paymentTarget\?'field-payment-record':'field-payment-'\+i\.id\}/);
- assert.match(source,/Review the verified invoice details before recording/);
+ assert.match(source,/Open an invoice to refresh and verify/);
 });
 
 test('payment shortcut prefers an invoice with a recorded outstanding balance',()=>{
@@ -125,7 +125,7 @@ test('payment step presents a saved outstanding balance rather than an invented 
  assert.match(source,/const totalOutstanding=paymentInvoices\.reduce/);
  assert.match(source,/money\(totalOutstanding\)/);
  assert.match(source,/Saved records show no remaining balance/);
- assert.match(source,/Review the verified invoice details before recording/);
+ assert.match(source,/Open an invoice to refresh and verify/);
 });
 
 test('missing authorized job does not present a misleading ready-to-start action',()=>{
@@ -134,7 +134,7 @@ test('missing authorized job does not present a misleading ready-to-start action
  assert.match(source,/job\?'ready' as const:'review' as const/);
  assert.match(source,/Review saved job details/);
  assert.match(ui,/task\.kind==='review'&&/);
- assert.match(ui,/Review saved request/);
+ assert.match(ui,/Review saved records/);
 });
 
 test('invoice stage cannot suggest issuance without an authoritative completed uninvoiced job',()=>{
@@ -143,7 +143,7 @@ test('invoice stage cannot suggest issuance without an authoritative completed u
  assert.match(source,/if\(next\.step===5\)\{const completed=pending\.find/);
  assert.match(source,/completed\?\{kind:'invoice' as const/);
  assert.match(source,/\{kind:'review' as const,label:'Review saved job details'/);
- assert.match(ui,/The next action cannot be verified from the saved job records/);
+ assert.match(ui,/The saved job needs attention before work can continue/);
 });
 
 test('payment and settlement never appear without an authoritative invoice',()=>{
@@ -161,8 +161,8 @@ test('saved payment overview explicitly requires an invoice refresh before recor
 
 test('multiple outstanding invoices have distinct direct review links',()=>{
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
- assert.match(source,/paymentInvoices\.length>1&&<ul/);
- assert.match(source,/href=\{i\.id===paymentTarget\?"#field-payment-record":"#field-payment-"\+i\.id\}/);
+ assert.match(source,/paymentInvoices\.length>1&&<nav/);
+ assert.match(source,/href=\{i\.id===paymentTarget\?'#field-payment-record':'#field-payment-'\+i\.id\}/);
  assert.match(source,/id=\{i\.id===paymentTarget\?'field-payment-record':'field-payment-'\+i\.id\}/);
 });
 
@@ -181,9 +181,9 @@ test('payment-stage balance discrepancy calls for fresh verification rather than
 
 test('customer agreement quick wording stays editable and requires an explicit owner save',()=>{
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
- assert.match(source,/Agreed by phone/);
- assert.match(source,/Agreed in person/);
- assert.match(source,/confirm that the customer agrees to the work and price shown above/);
+ assert.match(source,/Record phone agreement/);
+ assert.match(source,/Record in-person agreement/);
+ assert.match(source,/Once the customer has accepted this work and amount/);
  assert.match(source,/value=\{evidence\} onChange/);
  assert.match(source,/disabled=\{evidence\.trim\(\)\.length<10\}/);
  assert.match(source,/Record customer agreement/);
@@ -192,15 +192,15 @@ test('customer agreement quick wording stays editable and requires an explicit o
 test('agreement evidence disables repeated submits while a decision is pending',()=>{
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
  assert.match(source,/if\(attempted\|\|blocked\|\|needsReview\|\|versionChanged\)return;setAttempted\(true\)/);
- assert.match(source,/fieldset disabled=\{blocked\|\|attempted\|\|versionChanged\}/);
+ assert.match(source,/fieldset disabled=\{blocked\|\|attempted\|\|versionChanged\|\|needsReview\}/);
  assert.match(source,/else setNeedsReview\(true\)/);
- assert.match(source,/Review saved agreement/);
+ assert.match(source,/Check agreement/);
 });
 
 test('uncertain customer approval remains locked pending authoritative review',()=>{
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
  assert.match(source,/if\(attempted\|\|blocked\|\|needsReview\|\|versionChanged\)return/);
- assert.match(source,/Do not submit again until its status is confirmed/);
+ assert.match(source,/Check the saved agreement before trying another action/);
 });
 
 test('changing estimate version invalidates open customer agreement approval',()=>{
@@ -209,12 +209,12 @@ test('changing estimate version invalidates open customer agreement approval',()
  assert.match(source,/if\(attempted\|\|blocked\|\|needsReview\|\|versionChanged\)return/);
  assert.match(source,/version:draftVersion/);
  assert.match(source,/Review updated estimate/);
- assert.match(source,/fieldset disabled=\{blocked\|\|attempted\|\|versionChanged\}/);
+ assert.match(source,/fieldset disabled=\{blocked\|\|attempted\|\|versionChanged\|\|needsReview\}/);
 });
 
-test('revised quote creates a fresh agreement draft rather than carrying earlier evidence',()=>{
+test('revised quote keeps the original agreement version guard instead of silently accepting new terms',()=>{
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
- assert.match(source,/CustomerAgreement key=\{q\.id\+":"\+q\.current_version\}/);
+ assert.match(source,/CustomerAgreement key=\{q\.id\}/);
  assert.match(source,/version:draftVersion/);
 });
 
@@ -235,7 +235,7 @@ test('Finish work brings the existing completion form into view without creating
  assert.match(source,/const workRecordRef=useRef<HTMLDivElement\|null>\(null\)/);
  assert.match(source,/if\(workRecordOpen&&workRecordRef\.current\)/);
  assert.match(source,/workRecordRef\.current\.scrollIntoView\?/);
- assert.match(source,/ref=\{workRecordRef\} tabIndex=\{-1\} hidden=\{working&&!workRecordOpen\}/);
+ assert.match(source,/ref=\{workRecordRef\} tabIndex=\{-1\} className="field-work-record"/);
 });
 
 test('AI-first administrative preparation remains read-only and requires owner approvals',()=>{
@@ -254,7 +254,7 @@ test('prepared administrative tasks open existing review workflows without execu
  assert.match(prep,/action:'schedule'/);
  assert.match(prep,/action:'invoice'/);
  assert.match(prep,/action:'payment'/);
- assert.match(ui,/if\(action\.action==='schedule'\)openSchedule\(\)/);
- assert.match(ui,/action\.action==='invoice'\)document\.getElementById\('field-invoice-draft'\)/);
- assert.match(ui,/action\.action==='payment'\)document\.getElementById\('field-payment-record'\)/);
+ assert.match(ui,/if\(action\.action==='schedule'\)\{setPanel\('plan'\);openSchedule\(\)/);
+ assert.match(ui,/action\.action==='invoice'\|\|action\.action==='payment'\)setPanel\('invoice'\)/);
+ assert.match(ui,/action\.action==='payment'\)setPanel\('invoice'\)/);
 });

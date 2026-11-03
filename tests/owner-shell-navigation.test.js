@@ -10,10 +10,10 @@ test('owner mobile shell has one persistent entry to secondary navigation',()=>{
   assert.match(source,/setMobileNav\(v=>!v\)/);
 });
 test('mobile dock keeps Today, Requests and Jobs as primary actions',()=>{
-  assert.match(source,/\['Dashboard','Requests','Work'\]\.includes\(s\.key\)/);
+  assert.match(source,/\['Dashboard','Requests','Calendar','Work'\]\.includes\(s\.key\)/);
   assert.match(source,/\{key:'Dashboard',label:'Today'/);
   assert.match(source,/\{key:'Requests',label:'Requests'/);
-  assert.match(source,/\{key:'Calendar',label:'Calendar'/);
+  assert.match(source,/\{key:'Calendar',label:'Schedule'/);
   assert.match(source,/onClick=\{\(\)=>navigate\(s\.key\)\}/);
   assert.doesNotMatch(source,/className="topbar-actions"[^\n]*\{operational&&<button/);
 });

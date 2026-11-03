@@ -34,7 +34,7 @@ test('changed addresses discard delayed results and uncertain submission prevent
 test('an address-check outage never disables the customer submit button',async()=>{
  const h=harness(async()=>{throw Error('synthetic outage');});h.click();await tick();assert.match(h.result().textContent,/keep your entry and continue/);assert.equal(h.form.querySelector('button[type=submit]').disabled,false);assert.equal(h.form.querySelector('#street').value,input.street);h.dom.window.close();
 });
-test('public address endpoint enforces same origin, valid address inputs and the durable read quota before Census',async()=>{
+test('public address endpoint enforces same origin, bounded inputs and the durable read quota before Census',async()=>{
  const priorFetch=globalThis.fetch,priorEnv={CRM_AVAILABILITY_URL:process.env.CRM_AVAILABILITY_URL,CRM_AVAILABILITY_BYPASS_SECRET:process.env.CRM_AVAILABILITY_BYPASS_SECRET,VERCEL:process.env.VERCEL};
  Object.assign(process.env,{CRM_AVAILABILITY_URL:'https://synthetic.vercel.app/api/public-availability',CRM_AVAILABILITY_BYPASS_SECRET:'s'.repeat(40),VERCEL:'0'});
  let calls=[];globalThis.fetch=async(url,options)=>{calls.push(String(url));if(String(url).includes('/api/website-guard')){const payload=JSON.parse(options.body);assert.equal(payload.operation,'availability');assert.ok(!options.body.includes(input.street));return response({allowed:true});}return response({result:{addressMatches:[match]}});};
@@ -43,6 +43,7 @@ test('public address endpoint enforces same origin, valid address inputs and the
  try{
   assert.equal((await invoke({...request,headers:{...request.headers,origin:'https://other.invalid'}})).statusCode,403);assert.equal(calls.length,0);
   assert.equal((await invoke({...request,body:{...input,state:'ZZ'}})).statusCode,400);assert.equal(calls.length,0);
+  const outside=await invoke({...request,body:{...input,state:'DC'}});assert.equal(outside.statusCode,200);assert.equal(outside.value.status,'no_match');assert.equal(calls.length,2);calls=[];
   const result=await invoke(request);assert.equal(result.statusCode,200);assert.equal(result.value.status,'match');assert.equal(result.headers['Cache-Control'],'no-store');assert.equal(calls.length,2);assert.ok(calls[1].startsWith('https://geocoding.geo.census.gov/'));
   calls=[];globalThis.fetch=async()=>{calls.push('guard');return new Response(JSON.stringify({allowed:false}),{status:429});};assert.equal((await invoke(request)).statusCode,429);assert.deepEqual(calls,['guard']);
  }finally{globalThis.fetch=priorFetch;for(const [name,value] of Object.entries(priorEnv)){if(value===undefined)delete process.env[name];else process.env[name]=value;}}

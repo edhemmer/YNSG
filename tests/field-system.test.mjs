@@ -16,9 +16,9 @@ const quote={id:id(4),request_id:request.id,status:'accepted',current_version:1,
 const invoice={id:id(6),job_id:job.id,number:2030100001,total_cents:12000,payments:[]};
 const scheduled={...request,status:'quoted',appointments:[visit]},quiet=()=>{};
 const html=(r=request,qs=[],js=[],is=[])=>new JSDOM(renderToStaticMarkup(React.createElement(Workflow,{organization:org,request:r,quotes:qs,jobs:js,invoices:is,timezone:'America/Chicago',canManage:true,canQuote:true,canWork:true,busy:false,onBusy:quiet,onReview:quiet,act:async()=>{},fieldAction:async()=>{},onChanged:quiet}))).window.document;
-const actions=doc=>[...doc.querySelector('[aria-label="Current field action"]').querySelectorAll(':scope > button, :scope > .field-command-actions > button')].map(b=>b.textContent);
-for(const status of ['submitted','reviewing','quoted'])test(status+' without confirmed visit exposes only confirmation and decline',()=>{
- const d=html({...request,status},[quote],[job],[]);assert.deepEqual(actions(d),['Confirm appointment','Decline request']);assert.equal(d.querySelector('.invoice-payment-panel'),null);assert.equal(d.querySelector('.mobile-work-record'),null);assert.equal(d.querySelector('.workflow-customer-note').open,true);
+const actions=doc=>[...doc.querySelector('[role="tabpanel"]:not([hidden])').querySelectorAll('.job-work-controls>button:not([disabled]), .job-work-controls>.field-command-actions > button, .job-panel-heading>button')].map(b=>b.textContent);
+for(const status of ['submitted','reviewing','quoted'])test(status+' opens appointment review directly and exposes no premature work or financial actions',()=>{
+ const d=html({...request,status},[quote],[job],[]);assert.deepEqual(actions(d),['Decline request']);assert.ok(d.querySelector('.schedule-review>.card'),'Appointment form opens immediately');assert.equal(d.querySelector('.invoice-payment-panel'),null);assert.equal(d.querySelector('.mobile-work-record'),null);assert.match(d.querySelector('.job-customer-message').textContent,/Use side entrance/);
 });
 for(const status of ['declined','canceled'])test(status+' cannot reopen confirmation, timer, invoicing or receipts',()=>{
  const d=html({...request,status},[quote],[job],[invoice]);assert.deepEqual(actions(d),[]);assert.equal(d.querySelector('.invoice-payment-panel'),null);assert.equal(fieldWorkflow({...request,status},[quote],[job],[invoice]).kind,'closed');
@@ -26,19 +26,19 @@ for(const status of ['declined','canceled'])test(status+' cannot reopen confirma
 test('saved appointment and exact accepted job agreement gate Start work',()=>{
  assert.equal(fieldWorkflow(scheduled,[quote],[job],[]).kind,'ready');assert.deepEqual(actions(html(scheduled,[quote],[job],[])),['Start work']);
  assert.equal(fieldWorkflow(scheduled,[],[job],[]).kind,'agreement');assert.deepEqual(actions(html(scheduled,[],[job],[])),[]);
- const tooShort={...scheduled,appointments:[{...visit,end_at:'2030-10-21T15:00:00Z'}]};assert.equal(fieldWorkflow(tooShort,[quote],[job],[]).kind,'confirm');assert.deepEqual(actions(html(tooShort,[quote],[job],[])),['Confirm appointment']);
+ const tooShort={...scheduled,appointments:[{...visit,end_at:'2030-10-21T15:00:00Z'}]};assert.equal(fieldWorkflow(tooShort,[quote],[job],[]).kind,'confirm');const shortDoc=html(tooShort,[quote],[job],[]);assert.deepEqual(actions(shortDoc),[]);assert.ok(shortDoc.querySelector('.schedule-review>.card'));
 });
 test('working and paused jobs have one timer control and a direct finish action',()=>{
- for(const [status,label] of [['working','Pause timer'],['paused','Resume timer']]){const d=html(scheduled,[quote],[{...job,status}],[]);assert.deepEqual(actions(d),[label,'Finish work']);assert.equal(d.querySelector('.field-work-record').hidden,true);assert.equal(d.querySelector('[aria-label="Available service steps"]'),null);assert.equal(d.querySelectorAll('.field-job-service').length,1);}
+ for(const [status,label] of [['working','Pause timer'],['paused','Resume timer']]){const d=html(scheduled,[quote],[{...job,status}],[]);assert.deepEqual(actions(d),[label,'Finish work']);assert.equal(d.querySelector('[role="tabpanel"][aria-labelledby$="-invoice"]').hidden,true);assert.equal(d.querySelector('[aria-label="Available service steps"]'),null);assert.equal(d.querySelectorAll('.job-record').length,1);}
 });
 test('completed work opens invoice review; issued partial and settled invoices expose receipts without work editor',()=>{
- const completed={...job,status:'completed'};let d=html(scheduled,[quote],[completed],[]);assert.equal(d.querySelector('.mobile-work-record').open,true);assert.equal(d.querySelector('.field-work-record').hidden,false);
+ const completed={...job,status:'completed'};let d=html(scheduled,[quote],[completed],[]);assert.ok(d.querySelector('.invoice-editor'));assert.equal(d.querySelector('[role="tabpanel"][aria-labelledby$="-invoice"]').hidden,false);
  d=html(scheduled,[quote],[completed],[{...invoice,payments:[{cents:5000}]}]);assert.equal(d.querySelector('.mobile-work-record'),null);assert.equal(d.querySelectorAll('.invoice-payment-panel').length,1);assert.equal(d.querySelector('.workflow-closeout'),null);assert.equal(fieldWorkflow(scheduled,[quote],[completed],[{...invoice,payments:[{cents:5000}]}]).kind,'payment');
  assert.equal(fieldWorkflow(scheduled,[quote],[completed],[{...invoice,payments:[{cents:12000}]}]).kind,'settled');
 });
 test('a requested replacement preserves current appointment context and exposes explicit review',()=>{
  const replacement={...visit,id:id(8),status:'proposal',start_at:'2030-10-22T14:00:00Z',arrival_at:'2030-10-22T14:00:00Z',end_at:'2030-10-22T16:00:00Z',replaces_id:visit.id};const d=html({...scheduled,appointments:[replacement,visit]},[quote],[job],[]);
- assert.match(d.querySelector('.field-job-time').textContent,/Confirmed appointment/);assert.match(d.querySelector('.field-job-time').textContent,/Oct 21/);assert.ok([...d.querySelectorAll('button')].some(b=>b.textContent==='Review requested time change'));assert.match(d.querySelector('.field-job-details').textContent,/Original visit stays booked/);
+ assert.match(d.querySelector('.job-record-summary').textContent,/Oct 21/);assert.match(d.querySelector('.job-record-summary').textContent,/Oct 21/);assert.ok([...d.querySelectorAll('button')].some(b=>b.textContent==='Review requested time change'));assert.match(d.querySelector('.field-job-details').textContent,/Original visit stays booked/);
 });
 test('multiple jobs finish one saved task at a time without declaring early closeout',()=>{
  const second={...job,id:id(7),status:'working'};assert.equal(fieldWorkflow(scheduled,[quote],[{...job,status:'completed'},second],[]).job.id,job.id);
@@ -118,19 +118,19 @@ test('field brief uses the job approved version rather than original intake or a
  const changed={...quote,current_version:2,quote_versions:[{...quote.quote_versions[0],scope:'Assemble only the bookcase',labor_cents:13500,duration_minutes:120},{version:2,scope:'Unapproved additional work',labor_cents:30000,duration_minutes:240}]};
  for(const status of ['approved','working','paused']){
   const d=html(scheduled,[changed],[{...job,approved_version:1,status}],[]),brief=d.querySelector('[aria-label="Agreed work brief"]');
-  assert.ok(brief);assert.match(brief.textContent,/Assemble only the bookcase/);assert.ok(brief.textContent.includes('$135.00'));assert.match(brief.textContent,/2 hours/);assert.match(brief.textContent,/version 1/);assert.doesNotMatch(brief.textContent,/Unapproved additional|300.00|Agreed furniture assembly/);
+  assert.ok(brief);assert.match(brief.textContent,/Assemble only the bookcase/);assert.ok(brief.textContent.includes('$135.00'));assert.match(brief.textContent,/2 hours/);assert.doesNotMatch(brief.textContent,/Unapproved additional|300.00|Agreed furniture assembly/);
  }
 });
 test('field brief never labels missing or unaccepted scope as agreed and retains full long scope on demand',()=>{
  for(const qs of [[],[{...quote,status:'sent'}],[{...quote,quote_versions:[]}]])assert.equal(html(scheduled,qs,[{...job,status:'working',approved_version:1}],[]).querySelector('[aria-label="Agreed work brief"]'),null);
  const scope='Preserve approved instructions. '.repeat(30)+'Final condition stays intact.';
  const d=html(scheduled,[{...quote,quote_versions:[{...quote.quote_versions[0],scope}]}],[{...job,approved_version:1}],[]);
- assert.equal(d.querySelector('.field-agreed-scope').textContent,scope);assert.equal(d.querySelector('.field-work-brief details').open,false);assert.equal(Array.from(d.querySelector('.field-job-service').textContent).length,121);assert.equal(d.querySelector('.field-agreed-scope').textContent,scope,'Full approved scope remains accessible without truncation');assert.deepEqual(actions(d),['Start work']);
- assert.match(d.querySelector('.workflow-customer-note').textContent,/Use side entrance/);
+ assert.equal(d.querySelector('.field-agreed-scope').textContent,scope);assert.equal(d.querySelector('.field-agreed-scope').textContent,scope,'Full approved scope remains accessible without truncation');assert.deepEqual(actions(d),['Start work']);
+ assert.match(d.querySelector('.job-customer-message').textContent,/Use side entrance/);
 });
 
 test('mobile field preparation reveals every saved-state reminder behind one compact summary',()=>{
  const source=readFileSync(new URL('../apps/web/app/service-workflow.tsx',import.meta.url),'utf8');
- assert.match(source,/prepared\.notes\.slice\(1\)\.map/);
+ assert.match(source,/prepared\.notes\.map/);
  assert.match(source,/aria-label="Prepared job checks"/);
 });

@@ -1,3 +1,4 @@
+import {ownerCommandMessages} from './owner-command-messages.ts';
 import { googleMessages } from "./google-messages.ts";
 import {schedulingMessages} from './scheduling-errors.ts';
 // Only reviewed messages reach product screens. Provider text, exception messages,
@@ -13,6 +14,7 @@ const messages:Record<string,string>={
  RECONNECT_REQUIRED:'Google access expired or was revoked. Reconnect in Settings.',
 };
 const approved=new Set([
+ ...Object.values(ownerCommandMessages),
  'Choose a password different from your current password.',
  'Choose a stronger password with at least 10 characters.',
  'Open a new password reset email to verify your account before changing the password.',

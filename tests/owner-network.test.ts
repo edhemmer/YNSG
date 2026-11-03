@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {createHash,webcrypto} from 'node:crypto';
-import {networkProfile,networkMutation,networkQuery} from '../apps/web/lib/owner-network-contract.js';
+import {normalizeNetworkUrl,networkProfile,networkMutation,networkQuery} from '../apps/web/lib/owner-network-contract.js';
 import {prepareNetwork,readPendingNetwork,savePendingNetwork,clearPendingNetwork,verifyNetworkReceipt,networkResolution,referralText,networkPhoneUri} from '../apps/web/lib/owner-network-recovery.js';
 import {referralHints} from '../apps/web/lib/owner-support.js';
 const organization='20000000-0000-4000-8000-000000000001',actor='00000000-0000-4000-8000-000000000001',id='a1000000-0000-4000-8000-000000000001',key='a2000000-0000-4000-8000-000000000001';
@@ -9,3 +9,5 @@ test('recovery stores metadata only and binds the exact UTF-8 body, company, key
 test('referral copy excludes all private evidence and suggestions never claim a contact is vetted',()=>{const text=referralText(profile as never);assert.match(text,/Synthetic Contact\nTest trades\n5550000000/);assert.doesNotMatch(text,/PRIVATE|social|vetting|vetted|insured|licensed/i);assert.deepEqual(referralHints(['Smart lock installation','Door hardware']),['Locksmith','Carpentry']);assert.deepEqual(referralHints(['Unknown custom task']),[]);});
 
 test('tap-to-call keeps an extension separate from the main telephone number',()=>{assert.equal(networkPhoneUri('+1 (555) 000-0000 x23'),'tel:+15550000000;ext=23');assert.equal(networkPhoneUri('(555) 000-0000'),'tel:5550000000');});
+
+test('Rolodex accepts bare domains before command creation while unsafe schemes stay invalid',()=>{assert.equal(normalizeNetworkUrl('example.com'),'https://example.com');assert.equal(normalizeNetworkUrl('www.example.com'),'https://www.example.com');assert.equal(normalizeNetworkUrl('http://example.com'),'http://example.com');assert.equal(normalizeNetworkUrl(''),'');assert.equal(networkProfile.safeParse({...profile,website:normalizeNetworkUrl('javascript:alert(1)')}).success,false);assert.equal(networkProfile.parse({...profile,website:normalizeNetworkUrl('example.com')}).website,'https://example.com');});

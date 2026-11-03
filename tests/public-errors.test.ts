@@ -1,3 +1,4 @@
+import {ownerCommandMessages} from '../apps/web/lib/owner-command-messages.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -21,3 +22,5 @@ test('public website form filters injected diagnostics but retains reviewed vali
  assert.equal(safe('Please check the required fields and try again.'),'Please check the required fields and try again.');
  assert.match(safe({message:'Failed to fetch'}),/could not confirm/);assert.match(safe(null),/815-680-1775/);
 });
+
+test('reviewed owner command errors survive UI sanitization without exposing unknown provider errors',()=>{for(const message of Object.values(ownerCommandMessages))assert.equal(publicError(Error(message)),message);});

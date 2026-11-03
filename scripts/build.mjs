@@ -28,6 +28,8 @@ await cp(join(source,'home-service-picker.js'),join(output,'home-service-picker.
 await cp(join(source,'booking-journey.js'),join(output,'booking-journey.js'));
 await cp(join(source,'address-check.js'),join(output,'address-check.js'));
 await cp(join(source,'city-postal-codes.js'),join(output,'city-postal-codes.js'));
+await mkdir(join(output,'packages','domain'),{recursive:true});
+await cp(join(root,'packages','domain','service-geography.mjs'),join(output,'packages','domain','service-geography.mjs'));
 await cp(join(source,'neighbor-carousel.js'),join(output,'neighbor-carousel.js'));
 await cp(join(source,'seasonal-services.js'),join(output,'seasonal-services.js'));
 await cp(join(source,'public-ui.js'),join(output,'public-ui.js'));
@@ -47,19 +49,19 @@ const pages = {
   services: ['Home & Yard Services', 'Lawn mowing, leaf cleanup, mulch, furniture assembly and small cleanouts near St. Charles, Campton Hills, Geneva, Elburn and DeKalb, IL.', 'services'],
   'service-area': ['Service Area: DeKalb to St. Charles', 'Home and yard services for DeKalb, Sycamore, Elburn, Lily Lake, Campton Hills, Geneva and St. Charles, IL. See services and request an appointment.', 'service-area'],
   pricing: ['Pricing & Community Rate', 'Home and yard labor is $60 per person per hour, or $45 Community Rate. A two-hour minimum applies to the first person. See rates and examples.', 'pricing'],
-  'careers/small-home-jobs': ['Handyman & Small Home Job Opportunities in DeKalb, IL', 'Bring your furniture assembly, household hardware and practical home-job skills to YNSG in DeKalb, Elburn, St. Charles and nearby communities. Explore the role and apply online.', 'careers-home-support'],
-  'careers/yard-work': ['Yard Work Opportunities in DeKalb, IL', 'Explore local lawn, garden, leaf management and seasonal yard-work opportunities with YNSG in DeKalb, Elburn, St. Charles and nearby communities. Share your experience online.', 'careers-yard-support'],
-  careers: ['Home & Yard Careers in DeKalb, IL', 'Share your hands-on home and yard skills with Your Neighborhood Service Guy in DeKalb, Elburn, St. Charles and nearby communities. Veterans encouraged; all qualified applicants welcome.', 'careers'],
-  about: ['About Your Neighborhood Service Guy', 'Meet the owner of Your Neighborhood Service Guy, offering small home jobs, lawn and seasonal yard services around DeKalb, Elburn, St. Charles and nearby Illinois communities.', 'about'],
-  request: ['Request a Service Appointment', 'Request home or yard service around DeKalb, Elburn, Campton Hills, St. Charles and nearby Illinois communities. No account needed. We review your request and confirm appointments after approval.', 'request'],
+  'careers/small-home-jobs': ['Handyman & Small Home Job Opportunities in DeKalb, IL', 'Bring furniture assembly and practical home-job skills to YNSG in DeKalb, Elburn, St. Charles and nearby communities. Explore the role and apply online.', 'careers-home-support'],
+  'careers/yard-work': ['Yard Work Opportunities in DeKalb, IL', 'Explore lawn, garden and seasonal yard-work opportunities with YNSG in DeKalb, Elburn, St. Charles and nearby communities. Share your experience online.', 'careers-yard-support'],
+  careers: ['Home & Yard Careers in DeKalb, IL', 'Bring your home and yard skills to YNSG in DeKalb, Elburn, St. Charles and nearby communities. Veterans encouraged; all qualified applicants welcome.', 'careers'],
+  about: ['About Your Neighborhood Service Guy', 'Meet Your Neighborhood Service Guy: small home jobs, lawn care and seasonal yard services in DeKalb, Elburn, St. Charles and nearby Illinois communities.', 'about'],
+  request: ['Request a Service Appointment', 'Request home or yard service in DeKalb, Elburn, Campton Hills, St. Charles and nearby communities. No account needed. We confirm appointments after approval.', 'request'],
   'cleanout-dekalb-il': ['Home Cleanouts | DeKalb to St. Charles', 'Request manageable garage, basement and storage cleanouts in DeKalb, Elburn, St. Charles and nearby communities. Disposal fees may apply.', 'cleanout-dekalb-il'],
   'handyman-dekalb-il': ['Small Handyman Jobs | DeKalb to St. Charles', 'Bring your small home jobs together: furniture assembly, shelving, household setup and minor repairs in DeKalb, Elburn, St. Charles or nearby communities.', 'handyman-dekalb-il'],
   'lawn-mowing-dekalb-il': ['Lawn Mowing in DeKalb, IL', 'One less job on your weekend list. Request lawn mowing, trimming and edging in DeKalb, Elburn, St. Charles or nearby communities. One-time and recurring care.', 'lawn-mowing-dekalb-il'],
   'leaf-cleanup-dekalb-il': ['Leaf Management in DeKalb, IL', 'Seasonal leaf management with a plan that fits your yard. Tell us what you need in DeKalb, Elburn, St. Charles or nearby communities and request a visit.', 'leaf-cleanup-dekalb-il'],
   'snow-removal-dekalb-il': ['Residential Snow Removal in DeKalb, IL', 'Request residential snow clearing in DeKalb, Elburn, St. Charles or nearby communities. Tell us which driveway, walkway or home entry needs attention.', 'snow-removal-dekalb-il'],
-  'mulch-delivery-spreading-dekalb-il': ['Mulch Pickup, Delivery & Spreading in DeKalb, IL', 'Mulch pickup, delivery and spreading in DeKalb, Elburn, St. Charles and nearby communities. Already have mulch? Request spreading help.', 'mulch-delivery-spreading-dekalb-il'],
+  'mulch-delivery-spreading-dekalb-il': ['Mulch Pickup, Delivery & Spreading in DeKalb, IL', 'Arrange mulch pickup, delivery and spreading in DeKalb, Elburn, St. Charles and nearby communities. Already have mulch? Request spreading help.', 'mulch-delivery-spreading-dekalb-il'],
   'mulch-yard-cleanup-dekalb-il': ['Mulch & Yard Cleanup in DeKalb, IL', 'A little help for your outdoor list: mulch, hand weeding, small planting and garden-bed cleanup in DeKalb, Elburn, St. Charles and nearby communities.', 'mulch-yard-cleanup-dekalb-il'],
-  'concrete-pressure-washing-dekalb-il': ['Concrete Pressure Washing in DeKalb, IL', 'Request ground-level concrete washing for driveways, walks and patios in DeKalb, Elburn, St. Charles and nearby communities. Subject to surface review.', 'concrete-pressure-washing-dekalb-il'],
+  'concrete-pressure-washing-dekalb-il': ['Concrete Pressure Washing in DeKalb, IL', 'Refresh your driveway, walks or patio. Request ground-level concrete washing in DeKalb, Elburn, St. Charles and nearby communities. Surface review required.', 'concrete-pressure-washing-dekalb-il'],
   'farm-hand-dekalb-il': ['Farm Hand Services | DeKalb to St. Charles', 'Farm hand services for spring planting, fall harvest support and general farm work from DeKalb toward St. Charles and surrounding Illinois communities.', 'farm-hand-dekalb-il'],
   franchise: ['Franchise Opportunity', 'Explore a neighborhood service franchise with cloud technology, AI-supported administration, local marketing support and a proposed protected territory.', 'franchise'],
   privacy: ['Privacy Notice', 'How Your Neighborhood Service Guy handles information submitted through the website.', 'privacy'],
@@ -95,3 +97,6 @@ await writeFile(join(output,'sitemap.xml'),`<?xml version="1.0" encoding="UTF-8"
 await verifyLocalSeo(output);
 console.log(`Built ${Object.keys(pages).length} HTML pages.`);
 
+
+const {verifyBrowserModules}=await import('./check-browser-modules.mjs');
+await verifyBrowserModules(output);

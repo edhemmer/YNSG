@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 
 const source=readFileSync(new URL('../apps/web/app/workspace.tsx',import.meta.url),'utf8');
 test('opening a work detail dismisses the mobile workspace drawer',()=>{
- const body=source.split('function openWork(id:string)')[1]?.split('function openCustomer(id:string)')[0];
+ const body=source.split('function openWork(id:string,fromQueue=false)')[1]?.split('function openCustomer(id:string)')[0];
  assert.ok(body,'openWork handler exists');
  assert.match(source,/setCustomerFocus\(route.customer\);setMobileNav\(false\)/);
  assert.match(body,/section:'Work',request:id,customer:null/);

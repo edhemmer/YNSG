@@ -8,5 +8,5 @@ test('Jobs opens existing workspace records instead of reloading owner authentic
  assert.match(work,/onClick=\{\(\)=>onOpen\(j\.request\)\}/);
  assert.doesNotMatch(work,/href=\{'\/owner\?'/);
  assert.match(workspace,/onOpen=\{openWork\}/);
- assert.match(workspace,/function openWork\(id:string\)/);
+ assert.match(workspace,/function openWork\(id:string,fromQueue=false\)/);
 });
