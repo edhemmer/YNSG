@@ -1,8 +1,8 @@
 {
-  "observedOn": "2026-11-02",
+  "observedOn": "2026-11-03",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
   "sourceBranch": "codex/google-one-click-reconnect-20261102",
-  "sourceCommit": "de9936306d3fdea96244dbd61075c9c79b503ca6",
+  "sourceCommit": "e389f72ab634f9421d23e67e497799e90361ec58",
   "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
   "repositoryMigrations": [
     {
@@ -464,6 +464,11 @@
       "file": "20261102130040_google_one_click_reconnect.sql",
       "name": "google_one_click_reconnect",
       "historyVersion": "20261102131651"
+    },
+    {
+      "file": "20261103001828_field_job_clock.sql",
+      "name": "field_job_clock",
+      "historyVersion": "20261103001828"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -496,11 +501,5 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": [
-    {
-      "file": "20261102230000_field_job_clock.sql",
-      "name": "field_job_clock",
-      "status": "not_applied_to_connected_supabase"
-    }
-  ]
+  "pendingUnappliedMigrations": []
 }
