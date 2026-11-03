@@ -1,6 +1,7 @@
 // Render the actual built public pages with isolated HTTP failures. No real
 // messages, slot holds, external providers or production records are used.
 import assert from 'node:assert/strict';
+import {existsSync} from 'node:fs';
 import http from 'node:http';
 import {readFile,readdir,mkdir,writeFile} from 'node:fs/promises';
 import {resolve,extname,sep} from 'node:path';
@@ -9,7 +10,7 @@ const require=createRequire(import.meta.url),{chromium,webkit}=require(process.e
 const root=resolve('dist'),output=resolve(process.env.YNSG_PUBLIC_OUTPUT||'/tmp/ynsg-public-review');await mkdir(output,{recursive:true});
 const server=http.createServer(async(req,res)=>{
  try{const pathname=new URL(req.url,'http://127.0.0.1').pathname;let file=resolve(root,'.'+pathname);if(file!==root&&!file.startsWith(root+sep))throw Error('PATH');if(!extname(file))file=resolve(file,'index.html');
-  const bytes=await readFile(file);res.setHeader('Content-Type',({'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml'})[extname(file)]||'application/octet-stream');res.end(bytes);
+  const bytes=await readFile(file);res.setHeader('Content-Type',({'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.mjs':'text/javascript','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml'})[extname(file)]||'application/octet-stream');res.end(bytes);
  }catch{res.statusCode=404;res.end('Not found');}
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port,results=[],errors=[];let browser;
@@ -21,7 +22,7 @@ try{
    for(const path of ['/','/services']){await page.goto(origin+path);await page.waitForFunction(expected=>document.querySelector('[data-seasonal-services]')?.firstElementChild?.dataset.seasonService===expected,first);const count=await page.locator('[data-seasonal-services]>article').count();assert.equal(count,path==='/'?9:10);for(const img of await page.locator('[data-seasonal-services] img').all()){await img.scrollIntoViewIfNeeded();await page.waitForFunction(async el=>{try{await el.decode();return el.complete&&el.naturalWidth>0}catch{return false}},await img.elementHandle())}assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);if(path==='/services'&&first==='leaf')await page.screenshot({path:output+'/'+engine+'-seasonal-services-'+width+'.png',fullPage:true});}
    assert.equal(writes,0);await page.close();
   }
-  const paths=process.argv.includes('--home-only')?['/']:['/',...(await readdir(root,{withFileTypes:true})).filter(e=>e.isDirectory()&&e.name!=='assets').map(e=>'/'+e.name)];
+  const paths=process.argv.includes('--home-only')?['/']:['/',...(await readdir(root,{withFileTypes:true})).filter(e=>e.isDirectory()&&existsSync(resolve(root,e.name,'index.html'))).map(e=>'/'+e.name)];
   const cases=[320,390,768,1366].flatMap(width=>paths.flatMap(path=>['light','dark'].map(theme=>({width,path,theme}))));
   cases.push(...paths.map(path=>({width:390,path,theme:'light',largeText:true})));
   for(const {width,path,theme,largeText} of cases.filter(c=>!process.argv.includes('--large-only')||c.largeText)){

@@ -40,3 +40,5 @@
 .company-workspace .job-desk-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.company-workspace .job-desk-toolbar .work-return{margin:0}
 
 @media(max-width:760px){.company-workspace .job-record-kicker{display:none}.company-workspace .job-record-header{padding:16px}.company-workspace .job-record-summary{gap:6px 16px}.company-workspace .job-record-summary>span:nth-child(2){order:3;flex-basis:100%}.company-workspace .job-record-summary>span:nth-child(3){order:2}.company-workspace .job-record-summary>span:nth-child(4){order:2}.company-workspace .job-record-body{padding-top:16px}.company-workspace .job-work-controls .job-clock{margin-bottom:14px}}
+
+.company-workspace .request-manager .search-field input{padding-left:40px}
