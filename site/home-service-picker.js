@@ -21,7 +21,7 @@ export function homeServicePicker(doc){
   review.replaceChildren();
   for(const [id,item] of selected){const li=doc.createElement('li'),label=doc.createElement('span'),remove=doc.createElement('button');label.textContent=item.task;remove.type='button';remove.textContent='Remove';remove.setAttribute('aria-label','Remove '+item.task);remove.addEventListener('click',()=>{selected.delete(id);refresh();(selected.size?submit:fieldset.querySelector('summary')).focus();});li.append(label,remove);review.append(li);}
   for(const [id,input] of checks)input.checked=selected.has(id);
-  for(const {button,id,title} of buttons){if(!id)continue;const added=selected.has(id);button.setAttribute('aria-pressed',String(added));button.textContent=added?'Added · '+title.toLowerCase():'Add '+title.toLowerCase();}
+  for(const {button,id} of buttons){if(!id)continue;const added=selected.has(id);button.setAttribute('aria-pressed',String(added));button.textContent=added?'Selected ✓':'Choose service →';}
   submit.disabled=false;submit.textContent=selected.size?'Continue with '+selected.size+' '+(selected.size===1?'job':'jobs')+' →':'Choose your first job →';
   status.hidden=selected.size===0;
   status.textContent=selected.size?selected.size+' '+(selected.size===1?'job':'jobs')+' in one request. You can edit your choices next.':(panel.dataset.preferredService?'Pick one or more jobs.':'Choose a group or add from a card.');
@@ -44,9 +44,9 @@ export function homeServicePicker(doc){
  if(panel.dataset.preferredService)fieldset.append(otherServices);
  for(const link of doc.querySelectorAll('.home-service-book')){
   const params=new URL(link.href).searchParams,service=params.get('service'),task=params.get('task'),title=link.closest('article').querySelector('h3').textContent.trim();if(!Object.hasOwn(serviceCatalog,service))continue;
-  const button=doc.createElement('button');button.type='button';button.className=link.className;button.dataset.bookingHref=link.getAttribute('href');const exact=serviceCatalog[service].includes(task);button.textContent=exact?'Add '+title.toLowerCase():'Choose jobs →';if(!exact)button.setAttribute('aria-label','Choose jobs for '+title.toLowerCase());
+  const button=doc.createElement('button');button.type='button';button.className=link.className;button.dataset.bookingHref=link.getAttribute('href');const exact=serviceCatalog[service].includes(task);button.textContent='Choose service →';button.setAttribute('aria-label','Choose service: '+title);
   button.addEventListener('click',()=>{if(exact)toggle(service,task);else{const group=groups.get(service);group.open=true;group.querySelector('summary').focus();group.scrollIntoView({block:'center',behavior:'instant'});}});
-  buttons.push({button,id:exact?key(service,task):null,title});link.replaceWith(button);
+  buttons.push({button,id:exact?key(service,task):null});link.replaceWith(button);
  }
  form.addEventListener('submit',event=>{if(!selected.size){event.preventDefault();status.hidden=false;status.textContent='Choose a service group, then add the jobs you need.';const group=groups.get(panel.dataset.preferredService)||groups.values().next().value;group.open=true;group.querySelector('summary').focus();}});
  panel.querySelector('h3').textContent=panel.dataset.requestTitle||'Your service request';panel.querySelector('p').textContent='Choose jobs for one request.';
