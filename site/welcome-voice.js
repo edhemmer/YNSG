@@ -9,7 +9,7 @@ export function welcomeVoice(doc=document){
   const view=doc.defaultView;
   const session=view?.sessionStorage;
   const flag='ynsg-welcome-played-this-visit';
-  let tried=false, pending=false, stopped=false;
+  let pending=false, stopped=false;
   const markPlayed=()=>{try{session?.setItem(flag,'1');}catch{};detach();};
   const update=()=>{status.textContent=audio.paused?'Press Play to hear our welcome.':'Playing our welcome. Use the player to pause or replay.';};
   function detach(){doc.removeEventListener('click',onClick,true);doc.removeEventListener('keydown',onKeydown,true);}
@@ -21,7 +21,7 @@ export function welcomeVoice(doc=document){
   const alreadyPlayed=()=>{try{return session?.getItem(flag)==='1';}catch{return false;}};
   function attempt(){
     if(pending||stopped||alreadyPlayed()||!audio.paused||doc.visibilityState==='hidden')return;
-    tried=true;pending=true;
+    pending=true;
     try{
       const result=audio.play();
       if(result&&typeof result.then==='function')result.then(()=>{pending=false;markPlayed();},()=>{pending=false;status.textContent='Press Play to hear our welcome.';});
