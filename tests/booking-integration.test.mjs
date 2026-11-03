@@ -72,3 +72,29 @@ test('sidebar handoff continues at time, edits jobs deliberately and keeps the o
 test('preselected Something else asks only for its missing note, with an explicit route to edit jobs',()=>{
  const h=harness([], '?'+new URLSearchParams({job:JSON.stringify({service:'Something else',task:'Describe below'})}));assert.equal(h.stage(),1);assert.equal(h.form.querySelector('#service-picker').hidden,true);assert.match(h.form.querySelector('#service-heading').textContent,/note about/);h.form.querySelector('#description').value='A small job to review together.';h.click('#booking-services-next');assert.equal(h.stage(),2);h.click('.booking-edit-jobs');assert.equal(h.form.querySelector('#service-picker').hidden,false);h.dom.window.close();
 });
+
+test('every public booking category has a visible service title and reachable job choices',()=>{
+ const h=harness(),form=h.form;
+ const groups=[...form.querySelectorAll('.request-category')];
+ assert.equal(groups.length,Object.keys(serviceCatalog).length);
+ assert.deepEqual(groups.map(group=>group.querySelector('summary strong').textContent.trim()).sort(),
+  ['Home jobs','Lawn care','Yard & garden','Snow clearing','Concrete pressure washing','Cleanout & removal','Farm hand services','Something else'].sort());
+ for(const group of groups){
+  const label=group.querySelector('summary strong');
+  assert.ok(label&&label.textContent.trim()&&label.textContent!=='undefined','Every category requires a visible label');
+  assert.equal(group.querySelector('.category-action').textContent,'View jobs');
+  assert.ok(group.querySelectorAll('.service-option input').length>0,'A category must contain actual job choices');
+  group.querySelector('summary').click();
+  assert.equal(group.open,true,'Each category opens when tapped');
+ }
+ const cleanout=groups.find(group=>group.querySelector('summary strong').textContent==='Cleanout & removal');
+ cleanout.querySelector('.service-option input').click();
+ assert.match(form.querySelector('#service-count').textContent,/1 job selected/);
+ assert.equal(cleanout.querySelectorAll('input:checked').length,1);
+ h.dom.window.close();
+});
+test('mobile category layout keeps one-line View jobs and room for long category titles',()=>{
+ const css=readFileSync(new URL('../site/booking.css',import.meta.url),'utf8');
+ assert.match(css,/grid-template-columns:minmax\(0,1fr\) auto 24px/);
+ assert.match(css,/\.booking-card \.request-category > summary \.category-action\{[\s\S]*?white-space:nowrap/);
+});
