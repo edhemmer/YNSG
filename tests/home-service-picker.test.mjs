@@ -11,3 +11,22 @@ test('service gallery builds a single exact-job GET handoff and supports removal
 test('category cards expose actual jobs without assuming a task; selection is bounded',()=>{
  const {dom,doc}=setup();doc.querySelectorAll('.home-service-book')[2].click();assert.equal(doc.querySelectorAll('.service-request-panel input:checked').length,0);assert.equal(doc.querySelectorAll('.service-request-panel details[open]').length,1);for(const input of doc.querySelectorAll('.service-request-panel input'))input.click();assert.equal(doc.querySelectorAll('.service-request-panel input:checked').length,15);assert.match(doc.querySelector('[role=status]').textContent,/15 jobs/);dom.window.close();
 });
+
+test('all nine service cards have consistent action text while preserving specific job selection',()=>{
+ const staticDoc=new JSDOM(html).window.document;
+ const staticCards=[...staticDoc.querySelectorAll('.home-service-card')];
+ assert.equal(staticCards.length,9);
+ assert.ok(staticCards.every(card=>card.querySelector('.home-service-book').textContent.trim()==='Choose service →'));
+ const {dom,doc}=setup();const buttons=[...doc.querySelectorAll('.home-service-card .home-service-book')];
+ assert.equal(buttons.length,9);
+ assert.ok(buttons.every(button=>button.tagName==='BUTTON'&&button.textContent==='Choose service →'));
+ assert.ok(buttons.every(button=>button.getAttribute('aria-label')?.startsWith('Choose service: ')));
+ buttons[0].click();assert.equal(buttons[0].textContent,'Selected ✓');
+ assert.ok(buttons.slice(1).every(button=>button.textContent==='Choose service →'));
+ buttons[0].click();assert.equal(buttons[0].textContent,'Choose service →');
+ buttons[2].click();assert.equal(buttons[2].textContent,'Choose service →');
+ assert.equal(doc.querySelectorAll('.service-request-panel input:checked').length,0);
+ assert.equal(doc.querySelectorAll('.home-service-card .service-arrow').length,9);
+ assert.ok(doc.querySelector('.hero-buttons a[href="/request/"]').textContent.includes('Request service appointment'));
+ dom.window.close();
+});
