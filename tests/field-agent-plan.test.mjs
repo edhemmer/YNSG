@@ -28,12 +28,12 @@ test('follow-up is a draft only and never assumes appointment confirmation',()=>
  assert.doesNotMatch(source,/Prepared customer follow-up · not sent/);
 });
 
-test('agent follows saved quote approval rather than treating any quote as accepted',()=>{
+test('agent keeps a saved quote pending until it is agreed and prepared as a job',()=>{
  const confirmed={...base,appointments:[{status:'reserved'}]};
  const quote={id:'q1',request_id:base.id,status:'sent',current_version:1,quote_versions:[{version:1,scope:'Mow',labor_cents:12000,duration_minutes:120}]};
  const task=prepareAgentPlan(confirmed,[quote],[],[])[0];
  assert.equal(task?.kind,'quote');
- assert.match(task.title,/approval/i);
+ assert.match(task.title,/Prepare.*agreed quote/i);
 });
 test('agent does not offer work when approved job has no accepted quote version',()=>{
  const confirmed={...base,appointments:[{status:'reserved'}]};
