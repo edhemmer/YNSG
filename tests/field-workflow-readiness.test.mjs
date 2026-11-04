@@ -179,57 +179,29 @@ test('payment-stage balance discrepancy calls for fresh verification rather than
  assert.match(source,/Saved records show no remaining balance; refresh invoice details to resolve the discrepancy/);
 });
 
-test('customer agreement quick wording stays editable and requires an explicit owner save',()=>{
+test('normal work quote has one-step job preparation and a separate quote-only option',()=>{
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
- assert.match(source,/Record phone agreement/);
- assert.match(source,/Record in-person agreement/);
- assert.match(source,/Once the customer has accepted this work and amount/);
- assert.match(source,/value=\{evidence\} onChange/);
- assert.match(source,/disabled=\{evidence\.trim\(\)\.length<10\}/);
- assert.match(source,/Record customer agreement/);
+ assert.match(source,/Save agreed quote &amp; prepare job/);
+ assert.match(source,/Save quote only/);
+ assert.match(source,/command:agreed\?'SaveAgreedQuote':'PublishQuote'/);
+ assert.doesNotMatch(source,/Record phone agreement|Record in-person agreement|Record text or email agreement|<CustomerAgreement/);
 });
-
-test('agreement evidence disables repeated submits while a decision is pending',()=>{
- const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
- assert.match(source,/if\(attempted\|\|blocked\|\|needsReview\|\|versionChanged\)return;setAttempted\(true\)/);
- assert.match(source,/fieldset disabled=\{blocked\|\|attempted\|\|versionChanged\|\|needsReview\}/);
- assert.match(source,/else setNeedsReview\(true\)/);
- assert.match(source,/Check agreement/);
-});
-
-test('uncertain customer approval remains locked pending authoritative review',()=>{
- const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
- assert.match(source,/if\(attempted\|\|blocked\|\|needsReview\|\|versionChanged\)return/);
- assert.match(source,/Check the saved agreement before trying another action/);
-});
-
-test('changing estimate version invalidates open customer agreement approval',()=>{
- const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
- assert.match(source,/const \[draftVersion\]=useState\(quote\.current_version\)/);
- assert.match(source,/if\(attempted\|\|blocked\|\|needsReview\|\|versionChanged\)return/);
- assert.match(source,/version:draftVersion/);
- assert.match(source,/Review updated estimate/);
- assert.match(source,/fieldset disabled=\{blocked\|\|attempted\|\|versionChanged\|\|needsReview\}/);
-});
-
-test('revised quote keeps the original agreement version guard instead of silently accepting new terms',()=>{
- const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
- assert.match(source,/CustomerAgreement key=\{q\.id\}/);
- assert.match(source,/version:draftVersion/);
-});
-
-test('unsaved agreement tracking is scoped to its estimate version',()=>{
- const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
- assert.match(source,/useUnsavedEntry\('agreement-evidence:'\+quote\.id\+':'\+draftVersion,dirty\)/);
-});
-
-test('agreement cannot be recorded when its current quote version is absent',()=>{
+test('existing quotes require a real saved version before job preparation',()=>{
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
  assert.match(source,/q.status==='sent'&&!v&&<div className="note" role="alert">/);
- assert.match(source,/q.status==='sent'&&v&&<CustomerAgreement/);
- assert.match(source,/Do not record customer approval until the scope and price have been recovered/);
+ assert.match(source,/q.status==='sent'&&v&&<button type="button" disabled=\{blocked\}/);
+ assert.match(source,/command:'PrepareAgreedQuote',id:q.id,version:q.current_version/);
+ assert.match(source,/The saved quote version cannot be verified/);
 });
-
+test('an uncertain agreement save cannot create a second owner action without reconciliation',()=>{
+ const command=readFileSync('apps/web/app/use-field-command.ts','utf8');
+ assert.match(command,/if\(sending.current\)return false/);
+ assert.match(command,/if\(!attempt.current&&value\)attempt.current=value/);
+ assert.match(command,/setUnknown\(true\)/);
+ const form=readFileSync('apps/web/app/service-workflow.tsx','utf8');
+ assert.match(form,/decision\.unknown/);
+ assert.match(form,/Check saved action/);
+});
 test('Finish work brings the existing completion form into view without creating a second action flow',()=>{
  const source=readFileSync('apps/web/app/service-workflow.tsx','utf8');
  assert.match(source,/const workRecordRef=useRef<HTMLDivElement\|null>\(null\)/);
