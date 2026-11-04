@@ -48,8 +48,8 @@
 .company-workspace .field-current p{color:var(--os-muted);font-size:16px}
 
 /* Lists: rows share one surface and divide with a hairline. */
-.company-workspace .field-queue-row,[data-theme=dark] .company-workspace .field-queue-row.secondary{background:transparent!important;border:0!important;border-radius:12px;padding:14px 12px!important}
-.company-workspace .field-queue-row:hover,[data-theme=dark] .company-workspace .field-queue-row.secondary:hover{background:rgba(127,150,170,.1)!important}
+.company-workspace .field-queue-row,.company-workspace .field-queue-row.secondary,[data-theme=dark] .company-workspace .field-queue-row.secondary{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:12px;padding:14px 12px!important}
+.company-workspace .field-queue-row:hover,.company-workspace .field-queue-row.secondary:hover,[data-theme=dark] .company-workspace .field-queue-row.secondary:hover{background:rgba(127,150,170,.1)!important}
 .company-workspace .owner-job-entry{margin-bottom:16px}
 .company-workspace .field-queue-row+.field-queue-row{border-top:1px solid var(--os-border)!important;border-radius:0}
 
@@ -59,8 +59,8 @@
 .company-workspace .owner-job-entry>button,
 .company-workspace .workspace-main button[type=submit]:not(.secondary),
 .company-workspace .request-dialog button[type=submit]:not(.secondary){
-  background:linear-gradient(180deg,#3ddba0,var(--accent-strong))!important;color:#04130c!important;font-weight:650;border:0!important;border-radius:12px;
-  box-shadow:0 6px 16px -6px rgba(52,211,153,.55),inset 0 1px 0 rgba(255,255,255,.35);
+  background:var(--accent-strong)!important;color:#04130c!important;font-weight:600;border:0!important;border-radius:10px;
+  box-shadow:0 1px 2px rgba(0,0,0,.25);
 }
 .company-workspace .secondary,.company-workspace a.button.secondary{border-radius:12px;font-weight:550}
 [data-theme=dark] .company-workspace .secondary,[data-theme=dark] .company-workspace a.button.secondary{background:rgba(255,255,255,.06)!important;color:#e6edf3!important;border:1px solid rgba(255,255,255,.1)!important}
@@ -68,14 +68,39 @@
 .company-workspace .field-search input:focus{outline:2px solid rgba(52,211,153,.55);outline-offset:1px}
 
 /* Status and numbers. */
-.company-workspace .status-pill{font-size:14px;font-weight:650;letter-spacing:.02em;color:var(--accent);background:rgba(52,211,153,.12);border:0;padding:5px 10px;border-radius:999px}
-.company-workspace .field-glance li{padding:18px 20px}
-.company-workspace .field-glance strong{font-size:34px;font-weight:650;letter-spacing:-.03em}
+.company-workspace .status-pill{font-size:14px;font-weight:600;letter-spacing:0;color:var(--accent);background:rgba(52,211,153,.12);border:0;padding:4px 12px;border-radius:999px}
+.company-workspace:not(.signed-out) .field-glance{gap:0;background:var(--os-surface);border:1px solid var(--os-border);border-radius:16px;box-shadow:0 1px 2px rgba(16,24,40,.06);overflow:hidden}
+.company-workspace:not(.signed-out) .field-glance li{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:20px 24px}
+.company-workspace:not(.signed-out) .field-glance li+li{border-left:1px solid var(--os-border)!important}
+.company-workspace .field-glance strong{font-size:30px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .company-workspace .field-glance li:nth-child(2) strong{color:var(--attention)}
 .company-workspace .field-glance span{color:var(--os-muted);font-weight:500}
+@media(max-width:760px){.company-workspace:not(.signed-out) .field-glance li:nth-child(odd){border-left:0!important}.company-workspace:not(.signed-out) .field-glance li:nth-child(n+3){border-top:1px solid var(--os-border)!important}}
 
 @media(prefers-reduced-motion:no-preference){
   .company-workspace button,.company-workspace .field-queue-row{transition:background-color .15s ease,box-shadow .15s ease,transform .15s ease}
   .company-workspace .field-current-actions>button:hover{transform:translateY(-1px)}
 }
+
+/* Light theme: flat and quiet. White sidebar so the logo sits natively on white. */
+:root:not([data-theme=dark]) .company-workspace:not(.signed-out){--workspace-bg:#f6f7f9;--os-canvas:#f6f7f9;--border:#e7eaee;--os-border:#e7eaee;--muted:#667085;--os-muted:#667085;--accent:#047857;--accent-strong:#047857;background:#f6f7f9}
+:root:not([data-theme=dark]) .company-workspace .crm-sidebar{background:#fff!important;border-right:1px solid #e7eaee;color:#344054}
+:root:not([data-theme=dark]) .company-workspace .crm-sidebar *{color:inherit}
+:root:not([data-theme=dark]) .company-workspace .sidebar-brand img{box-shadow:none;border-radius:0;padding:0;background:transparent}
+:root:not([data-theme=dark]) .company-workspace .crm-sidebar nav button{color:#475467;font-weight:500}
+:root:not([data-theme=dark]) .company-workspace .crm-sidebar nav button:hover{background:#f2f4f7;color:#101828}
+:root:not([data-theme=dark]) .company-workspace .crm-sidebar nav button[aria-current=page]{background:#ecfdf3!important;color:#065f46!important;box-shadow:none;font-weight:600}
+:root:not([data-theme=dark]) .company-workspace .crm-topbar{background:rgba(255,255,255,.85)!important;border-bottom:1px solid #e7eaee}
+:root:not([data-theme=dark]) .company-workspace .workspace-main h1{font-size:28px;font-weight:600;color:#101828}
+:root:not([data-theme=dark]) .company-workspace:not(.signed-out) .field-queue-section,
+:root:not([data-theme=dark]) .company-workspace:not(.signed-out) .field-current{box-shadow:0 1px 2px rgba(16,24,40,.06)!important;border-radius:16px!important;border:1px solid #e7eaee!important;background:#fff!important}
+:root:not([data-theme=dark]) .company-workspace .field-current-actions>button,
+:root:not([data-theme=dark]) .company-workspace .field-current .actions>button:not(.secondary),
+:root:not([data-theme=dark]) .company-workspace .owner-job-entry>button,
+:root:not([data-theme=dark]) .company-workspace .workspace-main button[type=submit]:not(.secondary){background:#047857!important;color:#fff!important;box-shadow:0 1px 2px rgba(16,24,40,.18)!important}
+:root:not([data-theme=dark]) .company-workspace .secondary,:root:not([data-theme=dark]) .company-workspace a.button.secondary{background:#fff!important;border:1px solid #d0d5dd!important;color:#344054!important;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+:root:not([data-theme=dark]) .company-workspace .status-pill{background:#ecfdf3;color:#067647;border:1px solid #abefc6}
+:root:not([data-theme=dark]) .company-workspace .field-glance strong{color:#101828}
+:root:not([data-theme=dark]) .company-workspace .field-search input{background:#fff;border:1px solid #d0d5dd;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+
 @media print{.company-workspace .field-queue-section,.company-workspace .field-current{box-shadow:none!important}}
