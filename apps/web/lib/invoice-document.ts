@@ -26,7 +26,7 @@ export function invoiceDocument(invoice:{id?:string;credits?:InvoiceCredit[];num
   if(!raw||typeof raw!=="object"||Array.isArray(raw))throw Error("INVALID_INVOICE_RECIPIENT");
   const value=raw as Record<string,unknown>;
   const field=(key:string,required=true)=>{const v=value[key];if(typeof v!=="string"||(required&&!v.trim()))throw Error("INVALID_INVOICE_RECIPIENT");return v};
-  recipient={name:field("name"),email:field("email",false),phone:field("phone",false),street:field("street"),city:field("city"),region:field("region"),postalCode:field("postalCode",false)};
+  recipient={name:field("name"),email:field("email",value.contactOptional!==true),phone:field("phone",value.contactOptional!==true),street:field("street"),city:field("city"),region:field("region"),postalCode:field("postalCode",false)};
  }
  const businessEmail=typeof cfg?.notificationRecipient==="string"?cfg.notificationRecipient:"";
  const credits=invoice.credits||[],credited=creditTotal(credits);

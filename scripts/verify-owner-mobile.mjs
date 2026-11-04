@@ -63,7 +63,7 @@ try{
   }
   // Inbox confirmation opens scheduling directly, without a preliminary status write.
   {
-   const {page,writes}=await mount('new',390,'light','quick');await page.getByRole('button',{name:'Confirm appointment',exact:true}).click();await page.locator('select[name="visitTime"]').waitFor();assert.equal(writes.length,0);await layout(page,engine+' inbox direct scheduling');await page.close();
+   const {page,writes}=await mount('new',390,'light','quick');await page.getByRole('button',{name:'Confirm appointment',exact:true}).click();await page.locator('input[name="visitTime"]').waitFor();assert.equal(writes.length,0);await layout(page,engine+' inbox direct scheduling');await page.close();
   }
   // Jobs entry obeys the same saved milestones and has a direct decline route.
   for(const width of [320,390,768])for(const state of ['new','retained','confirmed','working','completed','issued','paid','canceled']){
@@ -90,9 +90,9 @@ try{
   }
   // Opening confirmation does not write status; alternate-time flow is deliberate.
   {
-   const {page,writes,controls,fixture}=await mount('new');await page.getByRole('button',{name:'Confirm appointment',exact:true}).click();await page.locator('select[name="visitTime"]').waitFor();assert.equal(writes.length,0);await layout(page,engine+' scheduling');
-   await page.waitForFunction(()=>document.querySelector('select[name="visitTime"]').options.length>1);
-   const option=await page.locator('select[name="visitTime"] option').nth(1).getAttribute('value');await page.locator('select[name="visitTime"]').selectOption(option);
+   const {page,writes,controls,fixture}=await mount('new');await page.getByRole('button',{name:'Confirm appointment',exact:true}).click();await page.locator('input[name="visitTime"]').waitFor();assert.equal(writes.length,0);await layout(page,engine+' scheduling');
+   
+   await page.locator('input[name="visitTime"]').fill('10:00');
    controls.post=(route,req,url)=>{assert.equal(url.pathname,'/api/scheduling-review');fixture.data.requests[0].appointments=ownerFixture('confirmed').data.requests[0].appointments;return route.fulfill({json:{ok:true,result:{id:visitId,status:'reserved',revision:3},delivery:null}});};
    await page.getByRole('button',{name:'Schedule appointment',exact:true}).click();await page.getByRole('button',{name:'Prepare work & price',exact:true}).waitFor();assert.equal(writes.length,1);assert.equal(JSON.parse(writes[0].body).confirmImmediately,true);assert.equal(await page.getByLabel('Service radius advisory').count(),0);await page.getByRole('button',{name:'Prepare work & price',exact:true}).click();await page.getByRole('button',{name:'Save labor estimate',exact:true}).waitFor();assert.equal(await page.getByRole('link',{name:'Review work & customer approval',exact:true}).count(),0);await page.locator('#field-customer-agreement').waitFor();assert.equal(writes.length,1);await page.close();
   }

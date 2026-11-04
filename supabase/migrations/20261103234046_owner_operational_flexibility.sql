@@ -138,5 +138,6 @@ do $migration$ declare d text;old text;begin
  d:=pg_get_functiondef('private.freeze_invoice_recipient()'::regprocedure);
  old:=E' or length(trim(coalesce(submission->>''email'','''')))=0\n or length(trim(coalesce(submission->>''phone'','''')))=0';
  if strpos(d,old)=0 then raise exception 'recipient snapshot baseline changed';end if;
- execute replace(d,old,E' or (submission->>''source'' is distinct from ''owner'' and (length(trim(coalesce(submission->>''email'','''')))=0 or length(trim(coalesce(submission->>''phone'','''')))=0))');
+ d:=replace(d,old,E' or (submission->>''source'' is distinct from ''owner'' and (length(trim(coalesce(submission->>''email'','''')))=0 or length(trim(coalesce(submission->>''phone'','''')))=0))');
+ execute replace(d,'''name'',submission->>''name''','''contactOptional'',submission->>''source''=''owner'',''name'',submission->>''name''');
 end $migration$;

@@ -152,6 +152,7 @@ export function createPracticeStore(initial=seedPractice()){
     if(search)requests=requests.filter(r=>JSON.stringify(r.original_submission).toLowerCase().includes(search));
     return json({requests,quotes:state.quotes,jobs:state.jobs,invoices:state.invoices,preferences:[],checkedAt:new Date().toISOString(),total:requests.length,needsReview:state.requests.filter(r=>r.status==='submitted').length,page:0,hasMore:false});
    }
+   if(route==='/api/owner-recorded-work')return json({record:null});
    if(route==='/api/configuration')return json({configuration:{version:1,settings:{hourly:{standardCents:6000,communityCents:4500,minimumMinutes:120}}}});
    if(route==='/api/job-clock'){const j=found(state.jobs.find(j=>j.id===u.searchParams.get('job'))),clock=state.clocks?.[j.id];return json({organization:PRACTICE_ORG,job:j.id,actor:id(9,1),revision:j.revision,status:j.status,checkedAt:new Date().toISOString(),closedSeconds:Math.floor((clock?.closedMilliseconds||0)/1000),runningSince:j.status==='working'?(clock?.runningSince||state.createdAt):null});}
    if(route==='/api/invoice-draft'){const j=found(state.jobs.find(j=>j.id===u.searchParams.get('job')));const q=found(state.quotes.find(q=>q.id===j.quote_id)),approved=found(q.quote_versions.find(v=>v.version===j.approved_version));return json({crew:approved.crew||null,draft:state.drafts[j.id]||null,tax:{required:false,rules:[],valid:true,tax:null},readiness:{ready:true,reasons:[]}});}

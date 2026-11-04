@@ -59,9 +59,9 @@ test('work recording through invoice issue and document uses the real connected 
 test('scheduling and estimate agreement are operable with sample data',async()=>{
  const h=await mount();try{
   await openSample('Sample — New request');assert.ok(node.querySelector('.schedule-review'),'Appointment review opens without another click');
-  await until(()=>[...document.querySelectorAll('select[name="visitTime"] option')].some(option=>option.value),'Appointment time choices load');
-  const start=node.querySelector('select[name="visitTime"]');assert.ok(start);const option=[...start.options].find(o=>o.value);assert.ok(option);
-  await input('visitTime',option.value);await click('Schedule appointment');assert.match(node.textContent,/Work & estimate/);
+  await until(()=>document.querySelector('input[name="visitTime"]'),'Appointment manual time input loads');
+  const start=node.querySelector('input[name="visitTime"]');assert.ok(start);
+  await input('visitTime','10:00');await click('Schedule appointment');assert.match(node.textContent,/Work & estimate/);
   assert.doesNotMatch(node.textContent,/Google Calendar update queued/);
   await click('Save labor estimate');await until(()=>node.textContent.includes('Record text or email agreement'),'Agreement form becomes available after estimate save');await click('Record text or email agreement');assert.ok(getBrowserPractice().snapshot().jobs.some(j=>j.status==='approved'||j.status==='scheduled'));assert.equal(h.calls(),0);
  }finally{await h.close();}
