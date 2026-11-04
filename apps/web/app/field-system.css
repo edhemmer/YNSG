@@ -84,7 +84,7 @@
 .company-workspace:not(.signed-out) .field-desk>.field-search-disclosure,.company-workspace:not(.signed-out) .field-desk>.field-desk-links,.company-workspace:not(.signed-out) .field-desk>.note,.company-workspace:not(.signed-out) .field-desk>p[role=status]{grid-column:1/-1;margin:0}
 .company-workspace:not(.signed-out) .field-desk>.field-current{grid-column:1;margin:0;min-height:0;align-content:start;gap:12px;border:1px solid var(--os-border)!important;border-top:3px solid var(--os-accent)!important;border-left:1px solid var(--os-border)!important}
 .company-workspace:not(.signed-out) .field-desk>.field-queue-section{margin:0;min-width:0}
-.company-workspace:not(.signed-out) .field-desk>[aria-label="Requests awaiting a decision"]{grid-column:2;grid-row:2/span 2;align-self:start}
+.company-workspace:not(.signed-out) .field-desk>[aria-label="Requests awaiting a decision"]{grid-column:2;grid-row:span 2;align-self:start}
 .company-workspace:not(.signed-out) .field-desk>.field-later{grid-column:1}.company-workspace:not(.signed-out) .field-desk>[aria-label="Matching work"]{grid-column:1/-1}
 .company-workspace:not(.signed-out) .field-desk .section-heading{gap:12px;align-items:center;margin-bottom:12px}.company-workspace:not(.signed-out) .field-desk .section-heading h2{font-size:1rem;margin:0}.company-workspace:not(.signed-out) .field-desk .section-heading button{background:transparent;color:var(--os-muted);padding:8px}
 .company-workspace:not(.signed-out) .field-desk .field-queue-row{display:flex;gap:12px;align-items:center;padding:15px 0;text-align:left;width:100%;border:0;border-bottom:1px solid var(--os-border);border-radius:0;font-weight:400;background:transparent;color:var(--ink)}
@@ -128,10 +128,11 @@
 .company-workspace .sidebar-brand img{border-radius:14px;padding:6px;box-sizing:border-box;box-shadow:0 6px 18px #0004}
 
 /* Stage 2: Today at a glance and a loading skeleton in place of a blank screen. */
+.field-desk>.field-glance{grid-column:1/-1;margin:0}
 .field-glance{list-style:none;margin:0 0 18px;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .field-glance li{display:grid;gap:2px;padding:14px 16px;border:1px solid var(--border,#e2e7eb);border-radius:14px;background:var(--surface,#fff)}
 .field-glance strong{font-size:1.75rem;line-height:1.1;font-weight:750;font-variant-numeric:tabular-nums}
-.field-glance span{font-size:.85rem;color:var(--muted,#607180)}
+.field-glance span{font-size:.9rem;color:var(--muted,#607180)}
 .field-skeleton{display:grid;gap:12px;margin-top:14px}
 .field-skeleton span{display:block;height:84px;border-radius:14px;background:linear-gradient(90deg,var(--surface,#fff) 25%,var(--border,#e2e7eb) 50%,var(--surface,#fff) 75%);background-size:200% 100%;animation:field-shimmer 1.4s ease-in-out infinite}
 .field-skeleton span:first-child{height:140px}
