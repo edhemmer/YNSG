@@ -56,14 +56,14 @@ test('work recording through invoice issue and document uses the real connected 
   await click('Issue invoice · $120.00');assert.match(node.textContent,/Invoice /);assert.ok([...node.querySelectorAll('a')].some(a=>a.textContent.includes('Open invoice')));assert.equal(h.calls(),0);
  }finally{await h.close();}
 });
-test('scheduling and estimate agreement are operable with sample data',async()=>{
+test('scheduling and one-step agreed quote preparation work with sample data',async()=>{
  const h=await mount();try{
   await openSample('Sample — New request');assert.ok(node.querySelector('.schedule-review'),'Appointment review opens without another click');
   await until(()=>document.querySelector('input[name="visitTime"]'),'Appointment manual time input loads');
   const start=node.querySelector('input[name="visitTime"]');assert.ok(start);
   await input('visitTime','10:00');await click('Schedule appointment');assert.match(node.textContent,/Work & estimate/);
   assert.doesNotMatch(node.textContent,/Google Calendar update queued/);
-  await click('Save labor estimate');await until(()=>node.textContent.includes('Record text or email agreement'),'Agreement form becomes available after estimate save');await click('Record text or email agreement');assert.ok(getBrowserPractice().snapshot().jobs.some(j=>j.status==='approved'||j.status==='scheduled'));assert.equal(h.calls(),0);
+  await click('Save agreed quote & prepare job');await until(()=>getBrowserPractice().snapshot().jobs.some(j=>j.status==='approved'||j.status==='scheduled'),'Agreed quote creates a job without another approval screen');assert.ok(getBrowserPractice().snapshot().jobs.some(j=>j.status==='approved'||j.status==='scheduled'));assert.equal(h.calls(),0);
  }finally{await h.close();}
 });
 test('customer screen shows editable sample contacts and hides unavailable external actions',async()=>{

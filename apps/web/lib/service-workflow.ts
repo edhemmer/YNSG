@@ -21,7 +21,7 @@ export function serviceNextStep(request:InboxRequest,quotes:LinkedQuote[],jobs:L
  if(jobs.some(j=>j.status!=='canceled'&&!['approved','scheduled','en_route','arrived','working','paused','completed'].includes(j.status)))return {step:3,title:'Review the saved job status and agreement',detail:'This job is not in a verified ready-to-work state. Review the saved scope, approval and scheduling before starting.',action:'work'};
  if(jobs.some(j=>['approved','scheduled','en_route','arrived'].includes(j.status)))return {step:4,title:'Ready to start work',detail:'The agreed work and price are saved. Start the timer when work begins.',action:'work'};
  if(quotes.some(q=>q.status==='sent'))return {step:3,title:'Prepare the agreed quote as a job',detail:'Keep the quote on file until the customer agrees. One action then prepares the job without a separate approval form.',action:'work'};
- if(request.appointments.some(a=>visitState(a)==='reserved'))return {step:3,title:'Set the work and price',detail:'The appointment is confirmed. Save an agreed quote to prepare the job, or save a quote only if terms are still being discussed.',action:'work'};
+ if(request.appointments.some(a=>visitState(a)==='reserved'))return {step:3,title:'Agree on the work and price',detail:'The appointment is confirmed. Save an agreed quote to prepare the job, or save a quote only if terms are still being discussed.',action:'work'};
  return {step:2,title:request.appointments.some(a=>visitState(a)==='proposal')?'Confirm the requested appointment':'Choose the appointment time',detail:'Review the requested services and choose a valid time. Scheduling does not approve the price.',action:'schedule'};
 }
 
