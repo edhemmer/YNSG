@@ -15,6 +15,26 @@ export const ownerCommandSchema = z.discriminatedUnion("command", [
   }).strict(),
   z.object({
     ...base,
+    command:z.literal("SaveAgreedQuote"),
+    id:z.uuid(),
+    revision:z.number().int().positive(),
+    scope:z.string().min(10).max(5000),
+    minutes:z.number().int().min(1).max(1440),
+    rateCents:z.number().int().min(0).max(999999999).optional(),
+    totalCents:z.number().int().min(0).max(999999999).optional(),
+    crewSize:z.number().int().min(1).max(6).optional(),
+    community:z.boolean(),
+    eligibilityReviewed:z.boolean(),
+    customerId:z.uuid().nullable()
+  }).strict(),
+  z.object({
+    ...base,
+    command:z.literal("PrepareAgreedQuote"),
+    id:z.uuid(),
+    version:z.number().int().positive()
+  }).strict(),
+  z.object({
+    ...base,
     command: z.literal("PublishQuote"),
     id: z.uuid(),
     revision: z.number().int().positive(),

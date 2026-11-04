@@ -43,8 +43,9 @@ export async function POST(request: Request) {
           p_key: c.key,
         };
         break;
+      case "SaveAgreedQuote":
       case "PublishQuote":
-        name = "publish_flexible_quote";
+        name = c.command==="SaveAgreedQuote" ? "save_agreed_quote_and_prepare_job" : "publish_flexible_quote";
         args = {
           p_org: c.organizationId,
           p_request: c.id,
@@ -59,6 +60,10 @@ export async function POST(request: Request) {
           p_customer: c.customerId,
           p_key: c.key,
         };
+        break;
+      case "PrepareAgreedQuote":
+        name="prepare_agreed_quote_job";
+        args={p_org:c.organizationId,p_quote:c.id,p_version:c.version};
         break;
       case "ApproveQuote":
         name = "approve_quote";

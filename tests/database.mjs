@@ -21,6 +21,8 @@ try {
  for(const f of (await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')).sort())await db.exec(await readFile(`supabase/migrations/${f}`,'utf8'));
  const foundation=await readFile('tests/foundation.sql','utf8');
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/owner-operational-flexibility.sql','utf8'));
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/one-step-quote.sql','utf8'));
+
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/owner-same-day-scheduling.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/job-clock.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/careers.sql','utf8'));
