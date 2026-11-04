@@ -3,6 +3,11 @@ import {ownerOpenTimes} from '../packages/domain/owner-availability.ts';
 import {ownerVisitStart,ownerVisitDates} from '../apps/web/lib/visit-start.ts';
 import {crewTerms,crewBilledMinutes} from '../apps/web/lib/crew-billing.ts';
 import {recordOwnerWork,ownerRequestInput} from '../apps/web/lib/owner-work-contract.ts';
+import {schedulingFailure} from '../apps/web/lib/scheduling-errors.ts';
+test('a rejected past owner time remains editable instead of locking as an unknown booking',()=>{
+ const result=schedulingFailure('INVALID_OWNER_VISIT_TIME');assert.equal(result.status,409);assert.match(result.error,/Record completed work/);
+ assert.equal(schedulingFailure('unrecognized database failure').status,503);
+});
 test('owner capacity permits same-day after-hours short visits but keeps real conflicts',()=>{
  const clock=Date.parse('2026-11-03T23:00:00Z'),resource='operator';
  const input={clock,timezone:'America/Chicago',durationMinutes:60,windowEnd:clock+3600000,rules:{weekdays:[1],earliestStart:480,latestStart:900,endOfDay:1020,leadMinutes:1440,horizonMinutes:43200,bufferMinutes:0,selectionMinutes:10,proposalMinutes:120,pendingLimit:1},resources:[{id:resource,kind:'operator',status:'available'}],selectedResources:[resource],reservations:[],blocks:[],externalBusy:[],externalBusyVerifiedUntil:clock+60000};

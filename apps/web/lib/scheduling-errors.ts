@@ -15,6 +15,7 @@ export const schedulingMessages:Record<string,string>={
  FEASIBILITY_REVIEW_REQUIRED:'The review expired or changed. Refresh and review again.',
  DURATION_REVIEW_REQUIRED:'Review the quoted duration before scheduling. An accepted duration requires a change approval.',
  OUTSIDE_BOOKING_WINDOW:'Choose a date within your advance-notice and booking-window settings.',
+ INVALID_OWNER_VISIT_TIME:'Choose a current or future start and a visit length from 1 to 1440 minutes. For work already finished, use Record completed work.',
  OUTSIDE_OPERATING_HOURS:'Choose a start and duration inside your operating hours.',
  OWNER_BLOCK:'This time overlaps an owner block.',
  RESOURCE_UNAVAILABLE:'A selected resource is unavailable.',
