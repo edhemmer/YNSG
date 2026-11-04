@@ -506,5 +506,11 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": []
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261104013000_one_step_agreed_quote_job.sql",
+      "name": "one_step_agreed_quote_job",
+      "status": "not_applied_to_connected_supabase"
+    }
+  ]
 }
