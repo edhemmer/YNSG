@@ -1,5 +1,6 @@
 import {NextResponse} from 'next/server';
-import {authenticated,failure} from '../../../lib/session';
+import {authenticated,failure,sameOrigin} from '../../../lib/session';
+import {boundedText} from '../../../lib/bounded-request';
 import {serverDatabase} from '../../../lib/google-server';
 import {GET as prepare} from '../field-intelligence/route';
 import {z} from 'zod';
@@ -10,8 +11,9 @@ const input=z.object({organization:z.uuid(),request:z.uuid()});
 /** Refresh persisted owner-review proposals from an authorized, current read.
  * This never executes a prepared task or sends a communication. */
 export async function POST(request:Request){
+ if(!sameOrigin(request))return NextResponse.json({error:'Request not accepted.'},{status:403,headers});
  try{
-  const args=input.parse(await request.json());
+  const args=input.parse(JSON.parse(await boundedText(request,2000)));
   const {db,user}=await authenticated();
   const member=await db.from('memberships').select('role').eq('organization_id',args.organization).eq('user_id',user.id).is('revoked_at',null).in('role',['owner','admin']).maybeSingle();
   if(member.error)throw Error('FAILED');
