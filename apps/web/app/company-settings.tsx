@@ -335,7 +335,7 @@ export default function CompanySettingsPanel({
   const catalogFocused=useRef(false);
   useEffect(()=>{if(!loading&&draft&&!catalogFocused.current&&focusServices){setSettingsSection('company-service-catalog');catalogFocused.current=true;requestAnimationFrame(()=>{const target=document.getElementById('company-service-catalog');target?.scrollIntoView({block:'start'});target?.focus({preventScroll:true});});}},[loading,draft,focusServices]);
   const statusCallback=useRef(onStatus);statusCallback.current=onStatus;
-  const reviewStatus=loading?'Checking settings…':unknown?'Save needs confirmation':pending?'Saving reviewed changes…':draft&&snapshot!==baseline?'Unsaved changes':!draft?(error?'Status unavailable':'Setup needed'):!draft.sellerVerified?'Confirm business identity':!draft.taxTreatmentVerified?'Review invoice tax setup':'Saved business settings';
+  const reviewStatus=loading?'Checking settings…':unknown?'Save needs confirmation':pending?'Saving reviewed changes…':draft&&snapshot!==baseline?'Unsaved changes':!draft?(error?'Status unavailable':'Setup needed'):!draft.sellerVerified?'Confirm business identity':!draft.taxTreatmentVerified?'Review invoice transaction-tax setup':'Saved business settings';
   useEffect(()=>{statusCallback.current?.(reviewStatus)},[reviewStatus]);
   const settingsFormId = "company-settings-" + organization;
   return (
@@ -574,9 +574,9 @@ export default function CompanySettingsPanel({
             </label>
           </fieldset>
           <fieldset data-settings-section="company-rates" hidden={settingsSection!=="company-rates"} disabled={pending||unknown}>
-            <legend>Tax setup</legend>
+            <legend>Invoice transaction-tax treatment (separate from income taxes)</legend>
             <label>
-              Tax review status
+              Invoice transaction-tax review status
               <select
                 value={
                   draft.taxTreatmentVerified &&
