@@ -474,6 +474,11 @@
       "file": "20261103234046_owner_operational_flexibility.sql",
       "name": "owner_operational_flexibility",
       "historyVersion": "20261104000658"
+    },
+    {
+      "file": "20261104013000_one_step_agreed_quote_job.sql",
+      "name": "one_step_agreed_quote_job",
+      "historyVersion": "20261104114532"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -506,11 +511,5 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": [
-    {
-      "file": "20261104013000_one_step_agreed_quote_job.sql",
-      "name": "one_step_agreed_quote_job",
-      "status": "not_applied_to_connected_supabase"
-    }
-  ]
+  "pendingUnappliedMigrations": []
 }
