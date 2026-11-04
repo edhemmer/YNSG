@@ -17,3 +17,46 @@
 .booking-summary ul{margin:.6rem 0;padding-left:1.25rem}.booking-summary li{margin:.35rem 0}.booking-summary p{margin:.5rem 0 0}.booking-summary .tiny{font-size:.875rem}
 
 .booking-step-complete span{background:#315941;color:#fff}.booking-summary .booking-edit-jobs{min-height:44px;margin:0 0 .4rem;text-decoration:underline}.booking-summary p{margin:.5rem 0 0}#booking-details-note:empty{display:none}
+
+/* Booking category rows: one consistent label, action, and plus/minus column.
+   Reserve room for the service name and keep the short action on one line. */
+.booking-card .request-category > summary{
+ display:grid;
+ grid-template-columns:minmax(0,1fr) auto 24px;
+ grid-template-rows:auto;
+ align-items:center;
+ gap:8px 12px;
+ min-width:0;
+}
+.booking-card .request-category > summary strong{
+ grid-column:1;
+ grid-row:1;
+ min-width:0;
+ overflow-wrap:break-word;
+ line-height:1.35;
+}
+.booking-card .request-category > summary .category-action{
+ grid-column:2;
+ grid-row:1;
+ margin:0;
+ white-space:nowrap;
+ font-size:14px;
+}
+.booking-card .request-category > summary .category-count{
+ grid-column:1/3;
+ grid-row:2;
+ margin:0;
+ justify-self:start;
+}
+.booking-card .request-category > summary .category-count:empty{display:none}
+.booking-card .request-category > summary:after{
+ grid-column:3;
+ grid-row:1;
+ justify-self:end;
+ align-self:center;
+}
+@media(max-width:390px){
+ .booking-card .request-category > summary{gap:6px 8px;padding:12px 10px}
+ .booking-card .request-category > summary strong{font-size:16px}
+ .booking-card .request-category > summary .category-action{font-size:13px}
+}
