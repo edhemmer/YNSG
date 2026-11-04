@@ -39,10 +39,10 @@ test('mileage rejects mismatched command receipts and malformed private reports'
 
 const settings={schemaVersion:1,displayName:'Synthetic',sellerLegalName:'Synthetic Seller',timezone:'America/Chicago',currency:'USD',region:'IL',policyVersion:'test',privacyVersion:'test',cities:['DeKalb'],brand:{navy:'#10283c',forest:'#315842',gold:'#edbd6b',cream:'#f8f6ef',ownerName:null,logoUrl:'https://example.invalid/logo.jpg'},sender:'owner@example.invalid',notificationRecipient:'owner@example.invalid',intakeEnabled:false,hourly:{standardCents:6000,communityCents:4500,minimumMinutes:120,incrementMinutes:30,partialExtension:null},scheduling:{weekdays:[1,2,3,4,5],earliestStart:480,latestStart:900,endOfDay:1020,bufferMinutes:30,selectionMinutes:10,proposalMinutes:120,leadMinutes:1440,horizonMinutes:43200,pendingLimit:1},sellerVerified:false,invoiceTerms:null,taxTreatmentVerified:false,laborTaxTreatment:'unreviewed',review:{enabled:false,url:null}};
 const config=()=>response({ready:true,configuration:{version:1,settings},catalog:[]});
-test('settings protect edits before preview and freeze every fieldset after an uncertain publish',async()=>{
+test('one-action settings save protects edits and freezes every fieldset after an uncertain publish',async()=>{
  const bodies=[];globalThis.fetch=async(_path,init)=>{if(!init?.method)return config();bodies.push(init.body);if(bodies.length===1)return response({error:'unknown'},503);return response({ok:true,result:{version:2}});};
  const h=await mount(Settings,{organization:org,name:'Synthetic'});
- try{assert.equal(h.leave(),true);await fill('Business name','Updated Synthetic Seller');assert.equal(h.leave(),false);await act(async()=>{node.querySelector('form').requestSubmit();await tick();});await act(async()=>{button('Publish reviewed settings').click();button('Publish reviewed settings').click();await tick();});assert.equal(bodies.length,1);assert.ok(button('Check saved settings result'));assert.ok([...node.querySelectorAll('fieldset')].every(f=>f.matches(':disabled')));await click('Check saved settings result');assert.equal(bodies[1],bodies[0]);assert.equal(h.leave(),true);}finally{await h.close();}
+ try{assert.equal(h.leave(),true);await fill('Business name','Updated Synthetic Seller');assert.equal(h.leave(),false);await act(async()=>{node.querySelector('form').requestSubmit();await tick();});await act(async()=>{node.querySelector('form').requestSubmit();node.querySelector('form').requestSubmit();await tick();});assert.equal(bodies.length,1);assert.ok(button('Check saved settings result'));assert.ok([...node.querySelectorAll('fieldset')].every(f=>f.matches(':disabled')));await click('Check saved settings result');assert.equal(bodies[1],bodies[0]);assert.equal(h.leave(),true);}finally{await h.close();}
 });
 test('settings read outage offers a retry rather than pretending no configuration exists',async()=>{
  let fail=true;globalThis.fetch=async()=>fail?response({error:'unavailable'},503):config();const h=await mount(Settings,{organization:org,name:'Synthetic'});
@@ -50,7 +50,7 @@ test('settings read outage offers a retry rather than pretending no configuratio
 });
 test('late settings publication cannot update another company',async()=>{
  const pending=deferred();globalThis.fetch=async(_path,init)=>init?.method?pending.promise:config();const h=await mount(Settings,{organization:org,name:'Synthetic'});
- try{await fill('Business name','Pending Synthetic Seller');await act(async()=>{node.querySelector('form').requestSubmit();await tick();});await act(async()=>button('Publish reviewed settings').click());await h.render({organization:other,name:'Other'});await act(async()=>{pending.resolve(response({ok:true,result:{version:2}}));await tick();});assert.equal(node.querySelector('[name=sellerLegalName]').value,'Synthetic Seller');assert.doesNotMatch(node.textContent,/version 2 published/);}finally{await h.close();}
+ try{await fill('Business name','Pending Synthetic Seller');await act(async()=>{node.querySelector('form').requestSubmit();await tick();});await h.render({organization:other,name:'Other'});await act(async()=>{pending.resolve(response({ok:true,result:{version:2}}));await tick();});assert.equal(node.querySelector('[name=sellerLegalName]').value,'Synthetic Seller');assert.doesNotMatch(node.textContent,/version 2 published/);}finally{await h.close();}
 });
 test('invoice delivery locks an uncertain send, rejects malformed receipts, and preserves exact retry',async()=>{
  const bodies=[];globalThis.fetch=async(_path,init)=>{if(!init?.method)return response({enabled:true,recipient:'customer@example.invalid',status:'not_requested',paidStatus:'not_queued'});bodies.push(init.body);return bodies.length===1?response({delivery:{id:'invalid',status:'accepted'}}):response({delivery:{id,status:'pending'}});};const h=await mount(Delivery,{organization:org,invoice:id});
@@ -96,4 +96,18 @@ test('company change can read mileage while a previous company save is pending',
 test('delegate read denial clears private rows and blocks permission changes',async()=>{
  let denied=false;globalThis.fetch=async()=>denied?response({error:'forbidden'},403):response({delegates:[{user:id,email:'delegate@example.invalid',canApprove:false,canViewBilling:false,revoked:false,expired:false}]});const h=await mount(Delegates,{organization:org,customer:id});
  try{assert.match(node.textContent,/delegate@example.invalid/);denied=true;await click('Refresh account access');assert.doesNotMatch(node.textContent,/delegate@example.invalid/);assert.equal(button('Allow approval'),undefined);}finally{await h.close();}
+});
+
+test('settings save reveals the invalid section and sends no command until corrected',async()=>{
+ const bodies=[];globalThis.fetch=async(_path,init)=>{if(init?.method){bodies.push(init.body);return response({ok:true,result:{version:2}});}return config();};
+ const previousFrame=globalThis.requestAnimationFrame,previousScroll=HTMLElement.prototype.scrollIntoView;globalThis.requestAnimationFrame=callback=>{callback();return 0;};HTMLElement.prototype.scrollIntoView=()=>{};
+ const h=await mount(Settings,{organization:org,name:'Synthetic'});
+ try{
+  await click('Rates & invoices');await fill('Standard hourly rate ($)','0');await click('Business');
+  assert.equal(node.querySelector('[name="hourly.standardCents"]').closest('fieldset').hidden,true);
+  await act(async()=>{node.querySelector('form').requestSubmit();await tick();});
+  assert.equal(bodies.length,0);assert.equal(node.querySelector('[name="hourly.standardCents"]').closest('fieldset').hidden,false);assert.equal(node.querySelector('[name="hourly.standardCents"]').getAttribute('aria-invalid'),'true');
+  await fill('Standard hourly rate ($)','60');await act(async()=>{node.querySelector('form').requestSubmit();await tick();});
+  assert.equal(bodies.length,1);assert.equal(JSON.parse(bodies[0]).settings.hourly.standardCents,6000);assert.match(node.textContent,/Settings version 2 published/);
+ }finally{await h.close();globalThis.requestAnimationFrame=previousFrame;HTMLElement.prototype.scrollIntoView=previousScroll;}
 });

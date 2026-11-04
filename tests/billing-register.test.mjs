@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {JSDOM} from 'jsdom';
+const dom=new JSDOM('<div id="root"></div>',{url:'https://example.invalid/owner'});
+for(const key of ['window','document','HTMLElement','Event','MouseEvent'])globalThis[key]=dom.window[key];
+Object.defineProperty(globalThis,'navigator',{value:dom.window.navigator,configurable:true});globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+const require=createRequire(new URL('../apps/web/package.json',import.meta.url)),React=require('react');globalThis.React=React;
+const {act}=React,{createRoot}=require('react-dom/client');
+const {default:Register}=await import('../apps/web/app/billing-register.tsx');
+const org='20000000-0000-4000-8000-000000000001',id='30000000-0000-4000-8000-000000000001',other='30000000-0000-4000-8000-000000000002';
+const node=document.querySelector('#root'),tick=()=>new Promise(resolve=>setImmediate(resolve));
+const invoices=[{id,job_id:id,number:1,total_cents:12000,issued_at:'2026-11-03T01:00:00Z',snapshot:{recipient:{name:'Ada North',street:'100 Synthetic Lane'},scope:'Synthetic shelf assembly'},payments:[{cents:5000}]},{id:other,job_id:other,number:2,total_cents:12000,issued_at:'',snapshot:{recipient:{name:'Ben South'},scope:'Synthetic yard care'},payments:[{cents:12000}]}];
+async function mount(extra={}){const root=createRoot(node),reads=[];let opened;globalThis.fetch=async(path,init)=>{assert.notEqual(init?.method,'POST','Register must not write merely from opening, filtering or searching');reads.push(String(path));return Response.json({enabled:true,recipient:'customer@example.invalid',status:'not_requested',paidStatus:'not_queued'});};await act(async()=>{root.render(React.createElement(Register,{organization:org,timezone:'America/Chicago',invoices,links:{[id]:{request:id}},admin:{},canManage:true,canFinance:false,blocked:false,onOpen:value=>opened=value,onCustomer:()=>{},onChanged:()=>{},...extra}));await tick();});return {reads,opened:()=>opened,close:()=>act(async()=>root.unmount())};}
+async function change(element,value){await act(async()=>{Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element),'value').set.call(element,value);element.dispatchEvent(new Event(element.tagName==='SELECT'?'change':'input',{bubbles:true}));await tick();});}
+async function toggle(row,open){await act(async()=>{row.open=open;row.dispatchEvent(new Event('toggle'));await tick();await tick();});}
+
+test('invoice register searches loaded immutable snapshots and filters verified outstanding amounts without writes',async()=>{const h=await mount({canManage:false});try{assert.equal(h.reads.length,0);let rows=[...node.querySelectorAll('.money-invoice')];assert.match(rows[0].textContent,/\$70.00/);assert.match(rows[1].textContent,/Date unavailable/);await change(node.querySelector('select'),'due');assert.equal(rows[0].hidden,false);assert.equal(rows[1].hidden,true);await change(node.querySelector('select'),'settled');assert.equal(rows[0].hidden,true);assert.equal(rows[1].hidden,false);await change(node.querySelector('select'),'all');await change(node.querySelector('input'),'ada shelf');assert.equal(rows[0].hidden,false);assert.equal(rows[1].hidden,true);assert.equal(h.reads.length,0);}finally{await h.close();}});
+
+test('opening an invoice reads its tools once, retains reviewed email state through collapse, and opens the linked job',async()=>{const h=await mount();try{assert.equal(h.reads.length,0);const row=node.querySelector('.money-invoice');await toggle(row,true);assert.equal(h.reads.filter(path=>path.startsWith('/api/invoice-delivery')).length,1);const check=row.querySelector('input[type=checkbox]');assert.ok(check);await act(async()=>check.click());assert.equal(check.checked,true);await toggle(row,false);await toggle(row,true);assert.equal(row.querySelector('input[type=checkbox]'),check);assert.equal(check.checked,true);assert.equal(h.reads.length,1);await act(async()=>[...row.querySelectorAll('button')].find(button=>button.textContent==='Open job').click());assert.equal(h.opened(),id);}finally{await h.close();}});

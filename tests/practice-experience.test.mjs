@@ -59,16 +59,16 @@ test('work recording through invoice issue and document uses the real connected 
 test('scheduling and estimate agreement are operable with sample data',async()=>{
  const h=await mount();try{
   await openSample('Sample — New request');assert.ok(node.querySelector('.schedule-review'),'Appointment review opens without another click');
-  await until(()=>[...document.querySelectorAll('select[name="visitTime"] option')].some(option=>option.value),'Appointment time choices load');
-  const start=node.querySelector('select[name="visitTime"]');assert.ok(start);const option=[...start.options].find(o=>o.value);assert.ok(option);
-  await input('visitTime',option.value);await click('Schedule appointment');assert.match(node.textContent,/Work & estimate/);
+  await until(()=>document.querySelector('input[name="visitTime"]'),'Appointment manual time input loads');
+  const start=node.querySelector('input[name="visitTime"]');assert.ok(start);
+  await input('visitTime','10:00');await click('Schedule appointment');assert.match(node.textContent,/Work & estimate/);
   assert.doesNotMatch(node.textContent,/Google Calendar update queued/);
   await click('Save labor estimate');await until(()=>node.textContent.includes('Record text or email agreement'),'Agreement form becomes available after estimate save');await click('Record text or email agreement');assert.ok(getBrowserPractice().snapshot().jobs.some(j=>j.status==='approved'||j.status==='scheduled'));assert.equal(h.calls(),0);
  }finally{await h.close();}
 });
 test('customer screen shows editable sample contacts and hides unavailable external actions',async()=>{
  const h=await mount();try{
-  await click('Customers');assert.match(node.textContent,/Sample — New request/);
+  await click('Customers');await until(()=>node.textContent.includes('Sample — New request'),'Sample customer directory finishes loading');assert.match(node.textContent,/Sample — New request/);
   const card=[...node.querySelectorAll('button')].find(b=>b.querySelector('strong')?.textContent==='Sample — New request');assert.ok(card);await act(async()=>{card.click();await settle();});
   await until(()=>node.textContent.includes('sample1@example.invalid'),'Sample contact details loaded');assert.match(node.textContent,/sample1@example.invalid/);assert.match(node.textContent,/Account invitations, delegates, attachments and file transfers are disabled/);assert.equal(node.querySelector('input[type="file"]'),null);assert.equal(h.calls(),0);
  }finally{await h.close();}

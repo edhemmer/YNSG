@@ -5,7 +5,7 @@ import {calendarFacts} from "../../../lib/calendar-authority";
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { companySettings, DomainError } from '../../../../../packages/contracts/index';
-import { openTimesToReview } from '../../../../../packages/domain/availability';
+import { ownerOpenTimes } from '../../../../../packages/domain/owner-availability';
 import { authorizeGoogle } from '../../../lib/google-server';
 import { GoogleFailure } from '../../../lib/google-core';
 export const dynamic = 'force-dynamic';
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     const snapshot = snapshotSchema.parse(response.data);
     if (!query.has('resources')) return json({ resources: snapshot.resources, timezone: snapshot.settings.timezone });
     const selectedResources = z.array(z.uuid()).min(1).max(30).parse(query.get('resources')!.split(','));
-    const durationMinutes = z.coerce.number().int().min(120).max(1440).multipleOf(30).parse(query.get('durationMinutes') || '120');
+    const durationMinutes = z.coerce.number().int().min(1).max(1440).parse(query.get('durationMinutes') || '120');
     const clock = Date.now();
     const replacement=query.get('replacement');
     let originalReservations:{resourceId:string;start:string;end:string}[]=[];
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
     const rules = snapshot.settings.scheduling;
     const day=query.has('day')?z.string().regex(/^\d{4}-\d{2}-\d{2}$/).parse(query.get('day')):null;
     const windowStart=day?Math.max(clock,localInstant(day+'T00:00',snapshot.settings.timezone)):clock;
-    const windowEnd = Math.min(clock + rules.horizonMinutes * 60000,clock+30*24*60*60000,day?localInstant(addDays(day,1)+'T00:00',snapshot.settings.timezone)-1:clock+7*24*60*60000);
+    const windowEnd = day?localInstant(addDays(day,1)+'T00:00',snapshot.settings.timezone)-1:clock+7*24*60*60000;
     if(windowEnd<=windowStart)return json({times:[],checkedAt:new Date(clock).toISOString(),validUntil:new Date(clock+60000).toISOString(),configurationVersion:snapshot.configurationVersion,scheduleRevision:snapshot.scheduleRevision,timezone:snapshot.settings.timezone,windowEnd:new Date(windowEnd).toISOString(),reserved:false});
     const buffer = (rules.bufferMinutes ?? 0) * 60000;
     const external = await calendarFacts(org,
@@ -56,7 +56,7 @@ export async function GET(request: Request) {
     // A response is a short-lived observation, never a claim on capacity. Hold/approval must recheck.
     const checkedAt = Date.parse(external.checkedAt);
     const now = Date.now();
-    const times = openTimesToReview({
+    const times = ownerOpenTimes({
       clock: now, timezone: snapshot.settings.timezone, durationMinutes, rules,
       resources: snapshot.resources, selectedResources,
       reservations: replacementAvailability(snapshot.reservations,originalReservations).map(r => ({ resourceId: r.resourceId, start: Date.parse(r.start), end: Date.parse(r.end) })),

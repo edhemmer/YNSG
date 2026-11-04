@@ -58,5 +58,5 @@
 @media(max-width:390px){
  .booking-card .request-category > summary{gap:6px 8px;padding:12px 10px}
  .booking-card .request-category > summary strong{font-size:16px}
- .booking-card .request-category > summary .category-action{font-size:13px}
+ .booking-card .request-category > summary .category-action{font-size:14px}
 }

@@ -5,6 +5,14 @@ import type { CompanySettings } from '../../../packages/contracts/index.ts';
 
 export type VisitHours = Pick<CompanySettings['scheduling'], 'weekdays' | 'earliestStart' | 'latestStart' | 'endOfDay'>;
 export const visitDateError = 'Choose a valid visit date and an available start time.';
+export function ownerVisitStart(date:FormDataEntryValue|null,time:FormDataEntryValue|null):string{
+ if(typeof date!=='string'||typeof time!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date)||!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)||!Number.isFinite(Date.parse(date+'T12:00Z'))||new Date(date+'T12:00Z').toISOString().slice(0,10)!==date)throw Error(visitDateError);
+ return date+'T'+time;
+}
+export function ownerVisitDates(timezone:string,clock=Date.now()):string[]{
+ const today=localMinute(clock,timezone).slice(0,10);
+ return Array.from({length:5},(_,i)=>addDays(today,i));
+}
 export function visitTimes(date: string, hours: VisitHours): string[] {
   try {
     return publicStartMinutes(date, hours).map(minute => `${String(Math.floor(minute / 60)).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}`);

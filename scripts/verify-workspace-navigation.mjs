@@ -102,6 +102,7 @@ try{
   {
    const {page,writes}=await mount({state:'working',path:'?section=Requests'});await heading(page,'Requests');
    await page.getByRole('button',{name:'Open Morgan Synthetic Neighbor request',exact:true}).click();await heading(page,'Job');
+   assert.equal(await page.locator('.crm-mobile-dock').getByRole('button',{name:'Requests',exact:true}).getAttribute('aria-current'),'page');
    await page.getByRole('button',{name:'Back to Requests',exact:true}).click();await heading(page,'Requests');
    await go(page,'Jobs');await heading(page,'Jobs');await page.getByRole('button',{name:'Open job',exact:true}).click();await heading(page,'Job');
    await page.getByRole('button',{name:'All jobs',exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'Back to Requests',exact:true}).count(),0);
@@ -161,7 +162,7 @@ try{
    await page.getByRole('button',{name:'Clear',exact:true}).click();await page.getByRole('button',{name:'Continue job',exact:true}).waitFor();
    await page.addStyleTag({content:'html{font-size:16px!important}'});
    await page.getByLabel('Search loaded jobs, visits and requests').fill('morgan assembly');
-   await page.locator('[aria-label="Matching work"] .field-queue-row').filter({hasText:'Working job'}).click();await heading(page,'Job');await page.getByRole('button',{name:'Back to Today',exact:true}).waitFor();assert.equal(await page.getByRole('tab',{name:'Work',exact:true}).getAttribute('aria-selected'),'true');const brief=page.getByRole('tabpanel',{name:'Work',exact:true});assert.match(await brief.textContent(),/Assemble a small bookcase/);await layout(page,engine+' one field job '+width+' '+theme);await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' agreed work 200% '+width+' '+theme);await page.addStyleTag({content:'html{font-size:16px!important}'});if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-job-full.png',fullPage:true});if(width===390&&theme==='light')await page.locator('.field-job').screenshot({path:output+'/'+engine+'-field-job.png'});
+   await page.locator('[aria-label="Matching work"] .field-queue-row').filter({hasText:'Working job'}).click();await heading(page,'Job');await page.getByRole('button',{name:'Back to Today',exact:true}).waitFor();assert.equal(await page.getByRole('tab',{name:'Work',exact:true}).getAttribute('aria-selected'),'true');if(width===390){const action=page.getByRole('button',{name:'Finish work',exact:true});await action.waitFor();const actionBounds=await action.boundingBox(),dockBounds=await page.locator('.crm-mobile-dock').boundingBox();assert.ok(actionBounds&&dockBounds&&actionBounds.y+actionBounds.height<=dockBounds.y,'Finish work must be visible above the phone dock without scrolling');}const brief=page.getByRole('tabpanel',{name:'Work',exact:true});assert.match(await brief.textContent(),/Assemble a small bookcase/);await layout(page,engine+' one field job '+width+' '+theme);await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' agreed work 200% '+width+' '+theme);await page.addStyleTag({content:'html{font-size:16px!important}'});if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-job-full.png',fullPage:true});if(width===390&&theme==='light')await page.locator('.field-job').screenshot({path:output+'/'+engine+'-field-job.png'});
    await go(page,'Marketing');await heading(page,'Marketing');await page.locator('.marketing-assistant').waitFor();assert.equal(await page.locator('.field-desk,.field-job').count(),0);assert.equal(writes.length,0);await page.close();
   }
   for(const width of [320,375,390,430,768,1366])for(const theme of ['light','dark']){
@@ -196,23 +197,27 @@ try{
   for(const width of [320,390,1366])for(const theme of ['light','dark']){
    const {page,writes}=await mount({width,theme,path:'?section=Settings',google:'disconnected'});await heading(page,'Settings');
    const settingsPanel=page.getByRole('region',{name:'Business settings'});
-   await settingsPanel.getByText('Confirm business identity',{exact:true}).waitFor();
-   assert.equal(await settingsPanel.locator('.settings-section').count(),4);assert.equal(await page.getByText('Business preferences',{exact:true}).count(),0);assert.equal(await settingsPanel.locator('.settings-section[open]').count(),0);
+   await settingsPanel.getByRole('button',{name:'Connect Google',exact:true}).waitFor();
+   assert.equal(await settingsPanel.getByRole('navigation',{name:'Settings categories'}).count(),1);assert.equal(await settingsPanel.locator('.settings-section[open]').count(),0);
    assert.equal(await settingsPanel.getByRole('button',{name:'Connect Google',exact:true}).count(),1);
    assert.equal(await page.getByRole('complementary',{name:'Google connection notice'}).count(),0);
    assert.equal(await settingsPanel.locator('.settings-status li').count(),3);
    assert.equal(await settingsPanel.getByRole('textbox').count(),0);
    await layout(page,engine+' settings '+width+' '+theme);assert.deepEqual((await auditReadability(page)).failures,[],engine+' settings text readability '+width+' '+theme);
    if(width===390||width===1366)await page.screenshot({path:output+'/'+engine+'-settings-'+width+'-'+theme+'.png',fullPage:true});
-   const business=settingsPanel.locator('.settings-section').first();await business.locator(':scope>summary').click();
-   await business.getByLabel(/^Business name/).fill('Synthetic retained company draft');await business.locator(':scope>summary').click();
-   await settingsPanel.getByText('Unsaved changes',{exact:true}).waitFor();page.once('dialog',dialog=>dialog.dismiss());await go(page,'Requests');await heading(page,'Settings');
-   await business.locator(':scope>summary').click();assert.equal(await business.getByLabel(/^Business name/).inputValue(),'Synthetic retained company draft');await business.locator(':scope>summary').click();
-   const email=settingsPanel.locator('.settings-section').nth(1);await email.locator(':scope>summary').click();
-   await email.getByText('Email delivery controls',{exact:true}).click();await email.getByRole('button',{name:'Send a test email',exact:true}).waitFor();
-   await email.locator(':scope>summary').click();
+   const categories=settingsPanel.getByRole('navigation',{name:'Settings categories'});await categories.getByRole('button',{name:'Business',exact:true}).click();
+   const business=settingsPanel.locator('.company-settings');await business.getByLabel(/^Business name/).fill('Synthetic retained company draft');
+   const sections=business.getByRole('navigation',{name:'Business settings sections'});await sections.getByRole('button',{name:'Schedule',exact:true}).click();assert.equal(await business.getByLabel(/^Business name/).isVisible(),false);await business.getByLabel('Time between appointments (minutes)',{exact:false}).fill('35');
+   await sections.getByRole('button',{name:'Business',exact:true}).click();assert.equal(await business.getByLabel(/^Business name/).inputValue(),'Synthetic retained company draft');
+   await categories.getByRole('button',{name:'Connections',exact:true}).click();page.once('dialog',dialog=>dialog.dismiss());await go(page,'Requests');await heading(page,'Settings');
+   await categories.getByRole('button',{name:'Business',exact:true}).click();assert.equal(await business.getByLabel(/^Business name/).inputValue(),'Synthetic retained company draft');await sections.getByRole('button',{name:'Schedule',exact:true}).click();assert.equal(await business.getByLabel('Time between appointments (minutes)',{exact:false}).inputValue(),'35');
+   await categories.getByRole('button',{name:'Connections',exact:true}).click();const email=settingsPanel.locator('#settings-delivery');await email.locator(':scope>summary').click();
+   await email.getByText('Email delivery controls',{exact:true}).click();await email.getByRole('button',{name:'Send a test email',exact:true}).waitFor();await email.locator(':scope>summary').click();
    await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' settings 200% '+width+' '+theme);
    assert.equal(writes.length,0);await page.close();results.push(engine+' settings concise status, single Google action, preserved draft and reachable delivery controls '+width+' '+theme);
+  }
+  {
+   const {page,writes,control}=await mount({width:390,path:'?section=Settings&setup=services'});await page.getByLabel('Business settings sections',{exact:true}).waitFor();const business=page.locator('.company-settings');await business.getByRole('navigation',{name:'Business settings sections'}).getByRole('button',{name:'Business',exact:true}).click();await business.getByLabel(/^Business name/).fill('Synthetic one-action save');control.post=(route,req,url)=>{assert.equal(url.pathname,'/api/configuration');assert.equal(req.postDataJSON().expectedVersion,1);return route.fulfill({json:{ok:true,result:{version:2}}});};await business.getByRole('button',{name:'Save changes',exact:true}).click();await business.getByText('Settings version 2 published.',{exact:false}).waitFor();assert.equal(writes.length,1);assert.equal(JSON.parse(writes[0].body).settings.sellerLegalName,'Synthetic one-action save');assert.equal(await business.getByRole('button',{name:'Save changes',exact:true}).isDisabled(),true);await page.close();results.push(engine+' one-action settings publish retains canonical version and saved confirmation');
   }
   {
    const {page,writes}=await mount({path:'?section=Snapshot'});const planner=page.locator('.growth-planner');await planner.locator(':scope>summary').click();assert.match(await planner.getByRole('definition').allTextContents().then(x=>x.join(' ')),/70/);await planner.locator('.growth-scale>summary').click();await planner.getByText('Scenario costs and capacity, not a forecast',{exact:true}).waitFor();assert.match(await planner.textContent(),/11 \/ 22/);await planner.getByLabel('Average completed job revenue ($)',{exact:true}).fill('0');await planner.getByRole('status').waitFor();assert.equal(await planner.locator('.growth-scale .growth-results').count(),0);await planner.getByRole('button',{name:'Reset example assumptions'}).click();await planner.locator('.growth-scale .growth-results').waitFor();await page.setViewportSize({width:320,height:844});await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' growth plan 320px 200% text');assert.equal(writes.length,0);await page.close();results.push(engine+' growth assumptions, invalid-input guard and paid crew capacity model');

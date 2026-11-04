@@ -1,17 +1,16 @@
 'use client';
 import {ownerCommandMessages} from '../lib/owner-command-messages';
 import GrowthPlanner from './growth-planner';
+import {OwnerRequestEntry} from './owner-work-entry';
 import GoogleConnectionNotice from './google-connection-notice';
 import type {CompanionContext} from '../lib/job-companion';
 import dynamic from 'next/dynamic';
 import DeferredTool from './deferred-tool';
 
 import type {InvoiceCredit} from '../lib/invoice-credit-contract';
-import {creditTotal} from '../lib/invoice-credit-contract';
 
 import {createWorkspaceHistory,readWorkspaceRoute,workspaceRouteUrl,workspaceSectionAllowed,workspaceHome,type WorkspaceRoute} from "../lib/workspace-navigation";
 import {readJobRecovery,saveJobRecovery,clearJobRecovery,verifyJobActionResult,jobActionResponse,type PendingJobAction} from "../lib/job-action-recovery";
-import {invoiceNumber} from "../lib/invoice-number";
 import { publicError } from "../lib/public-errors";
 import {companyTheme} from "../lib/company-brand";
 import Icon from './crm-icons';
@@ -26,9 +25,7 @@ import ServiceWorkflow from './service-workflow';
 import OwnerWork from './owner-work';
 import {EntrySafety,useEntrySafety,useBlockedEntry} from './entry-safety';
 import ScheduledInvoice from './scheduled-invoice';
-import InvoicePayments from './invoice-payments';
-import RelatedCustomerFiles from './related-customer-files';
-import InvoiceDelivery from './invoice-delivery';
+import BillingRegister from './billing-register';
 import CalendarBlocks from './calendar-blocks';
 import RecurringVisits from './recurring-visits';
 import MonthCalendar from './month-calendar';
@@ -127,10 +124,6 @@ type Data = {
   pagination:{page:number;hasMore:boolean;appointmentFrom:string};
   features?:{productionWorkflows:boolean};
 };
-const usd = (v: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
-    v / 100,
-  );
 async function api(path: string, value?: unknown) {
   const res = await sessionFetch(path, {
     ...(value
@@ -180,7 +173,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
   const [page,setPage]=useState(0);
   const [accessRevision,setAccessRevision]=useState(0);
   const [isMobile,setIsMobile]=useState(false);
-  useEffect(()=>{const query=window.matchMedia('(max-width:760px)');const change=()=>setIsMobile(query.matches);change();query.addEventListener('change',change);return()=>query.removeEventListener('change',change);},[]);
+  useEffect(()=>{const query=window.matchMedia('(max-width:1024px)');const change=()=>setIsMobile(query.matches);change();query.addEventListener('change',change);return()=>query.removeEventListener('change',change);},[]);
   const [networkSupport,setNetworkSupport]=useState<{organization:string;tasks:string[];context?:CompanionContext;initialView?:'learn'|'refer'}|null>(null);
   const openSupport=(tasks:string[],context?:CompanionContext,initialView:'learn'|'refer'='refer')=>setNetworkSupport({organization:org,tasks,context,initialView});
   const [activeRequest,setActiveRequest]=useState<string|null>(null);
@@ -426,12 +419,13 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
   )?.role;
   const operational = ["owner", "admin", "dispatcher"].includes(role || "");
   const finance = ["owner", "admin", "bookkeeper"].includes(role || "");
+  const navigationSection=section==='Work'&&workRequest&&workOrigin?.organization===org&&workOrigin.request===workRequest&&canSeeSection({key:workOrigin.section})?workOrigin.section:section;
   return (
     <div className={`company-workspace${session ? "" : " signed-out"}`} style={companyTheme(data?.brand)}>
       {session&&data&&<aside className={'crm-sidebar'+(mobileNav?' is-open':'')} aria-label="Business navigation" inert={isMobile&&!mobileNav}>
         <a className="sidebar-brand" href="/" onClick={e=>{e.preventDefault();navigate(role==='technician'?'Work':role==='bookkeeper'?'Money':role==='dispatcher'?'Requests':'Dashboard');}}>{/your neighborhood service guy/i.test(data.company.display_name)?<img src="/brand/ynsg-logo.jpg" alt="Your Neighborhood Service Guy — Home & Yard"/>:<span className="company-mark"><Icon name="leaf"/>{data.company.display_name}</span>}</a>
         <p className="sidebar-caption">Field operations</p>
-        <nav aria-label="Workspace"><p className="nav-group-label">Workflow</p>{primarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span>{s.key==='Requests'&&data.requests.some(r=>r.status==='submitted')&&<i className="nav-attention" aria-label="New requests"/>}</button>)}{secondarySections.some(canSeeSection)&&<details className="sidebar-more" open={secondarySections.some(s=>s.key===section)}><summary><Icon name="settings"/><span>Office & tools</span></summary>{secondarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span></button>)}</details>}{finance&&<a className="workspace-tax-link" href={"/owner/taxes?"+new URLSearchParams({organization:org})} onClick={e=>{if(pending||invoiceBusy||!canLeave())e.preventDefault();}}><Icon name="money"/><span>Taxes</span></a>}</nav>
+        <nav aria-label="Workspace"><p className="nav-group-label">Workflow</p>{primarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} aria-current={navigationSection===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span>{s.key==='Requests'&&data.requests.some(r=>r.status==='submitted')&&<i className="nav-attention" aria-label="New requests"/>}</button>)}{secondarySections.some(canSeeSection)&&<details className="sidebar-more" open={secondarySections.some(s=>s.key===navigationSection)}><summary><Icon name="settings"/><span>Office & tools</span></summary>{secondarySections.filter(canSeeSection).map(s=><button key={s.key} aria-label={s.label} aria-current={navigationSection===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span></button>)}</details>}{finance&&<a className="workspace-tax-link" href={"/owner/taxes?"+new URLSearchParams({organization:org})} onClick={e=>{if(pending||invoiceBusy||!canLeave())e.preventDefault();}}><Icon name="money"/><span>Taxes</span></a>}</nav>
         <div className="sidebar-footer"><span className="sidebar-profile">{session.email.slice(0,2).toUpperCase()}</span><div><strong>{role==='owner'?'Business owner':'Team workspace'}</strong><small>{session.email}</small></div></div>
       </aside>}
       {session&&<header className="crm-topbar"><div className="topbar-context">{session.memberships.length>1?(<div className="company-switcher" hidden={session.memberships.length===1}><label htmlFor="company">Switch business</label>
@@ -456,7 +450,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
                     </option>
                   ))}
                 </select></div>):<strong>{data?.company.display_name||'Service workspace'}</strong>}</div><div className="topbar-actions"><ThemeToggle/>{['owner','admin'].includes(role||'')&&<button className="icon-button secondary" aria-label="Activity and messages" onClick={()=>navigate('Activity')}><Icon name="bell"/></button>}<button className="icon-button secondary" aria-label="Sign out" onClick={async()=>{if(pending||invoiceBusy||!canLeave())return;if(!window.confirm('Sign out of your workspace?'))return;try{sessionSequence.current++;await api('/api/session',{action:'logout'});sessionSequence.current++;initialWorkspaceChosen.current=false;setSession(null);setNetworkSupport(null);setSessionUnavailable(false);reloadSequence.current++;retryKeys.current.clear();setData(null);setOrg('');setActiveRequest(null);setWorkRequest(null);setCustomerFocus(null);}catch(e){setError(publicError(e));}}}><Icon name="logout"/></button></div></header>}
-      {session&&data&&<nav className="crm-mobile-dock" aria-label="Quick workspace navigation">{primarySections.filter(s=>['Dashboard','Requests','Calendar','Work'].includes(s.key)&&canSeeSection(s)).map(s=><button key={s.key} aria-label={s.label} type="button" aria-current={section===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span>{s.key==='Requests'&&data.requests.some(r=>r.status==='submitted')&&<i className="dock-attention" aria-label="New requests"/>}</button>)}{secondarySections.some(canSeeSection)&&<button type="button" aria-label="More workspace tools" aria-expanded={mobileNav} aria-current={!['Dashboard','Requests','Calendar','Work'].includes(section)?'page':undefined} onClick={()=>setMobileNav(v=>!v)}><Icon name="menu"/><span>More</span></button>}</nav>}
+      {session&&data&&<nav className="crm-mobile-dock" aria-label="Quick workspace navigation">{primarySections.filter(s=>['Dashboard','Requests','Calendar','Work'].includes(s.key)&&canSeeSection(s)).map(s=><button key={s.key} aria-label={s.label} type="button" aria-current={navigationSection===s.key?'page':undefined} onClick={()=>navigate(s.key)}><Icon name={s.icon}/><span>{s.label}</span>{s.key==='Requests'&&data.requests.some(r=>r.status==='submitted')&&<i className="dock-attention" aria-label="New requests"/>}</button>)}{secondarySections.some(canSeeSection)&&<button type="button" aria-label="More workspace tools" aria-expanded={mobileNav} aria-current={!['Dashboard','Requests','Calendar','Work'].includes(navigationSection)?'page':undefined} onClick={()=>setMobileNav(v=>!v)}><Icon name="menu"/><span>More</span></button>}</nav>}
       <main className={`shell${session?' workspace-main':''}`} id="main">
 
         <div className="workspace-feedback">
@@ -509,6 +503,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
                       </h1>
                       <div className="heading-actions"><span className="tiny">{new Intl.DateTimeFormat('en-US',{timeZone:data.company.timezone,dateStyle:'full'}).format(new Date())}</span><button className="secondary" onClick={()=>void refresh()}><Icon name="refresh"/>Refresh</button></div>
                     </div>}
+                    {['owner','admin'].includes(role||'')&&['Dashboard','Requests','Calendar','Work'].includes(section)&&!workRequest&&<OwnerRequestEntry organization={org} submit={act} blocked={pending||invoiceBusy} onBusy={setInvoiceBusy} onCreated={openWork}/>}
                     {(page>0||data.pagination.hasMore)&&(section==='Money'||(section==='Customers'&&!['owner','admin'].includes(role||''))) && <div className="actions record-pages" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1} · 50 records per page</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>}
 
                     {section!=='Settings'&&['owner','admin'].includes(role||'')&&<GoogleConnectionNotice key={'google-notice:'+org} organization={org} onSetup={()=>{setGoogleSetupOpen(true);navigate('Settings')}}/>}
@@ -542,43 +537,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
                     {section === "Money" && (
                       <>
 
-                        {!data.invoices.length && (
-                          <div className="card">
-                            <h2>No issued invoices</h2>
-                            <p>
-                              Complete approved work to create an invoice after
-                              business name, payment terms and tax treatment
-                              are configured.
-                            </p>
-                          </div>
-                        )}
-                        {data.invoices.map((i) => {
-                          const balance =
-                            i.total_cents - creditTotal(i.credits) -
-                            i.payments.reduce((n, p) => n + p.cents, 0);
-                          return (
-                            <details className="card money-invoice" key={i.id}>
-                              <summary><span><strong>Invoice {invoiceNumber(i.number)}</strong><span>{i.snapshot?.recipient?.name||'Customer on issued invoice'}</span></span><span className="money-invoice-balance"><strong>{usd(balance)}</strong><span>{balance===0?'Settled':'Remaining'}</span></span></summary>
-                              <div className="money-invoice-actions">
-                              <span className="badge">
-                                {i.total_cents === 0
-                                  ? "No charge"
-                                  : balance === 0
-                                  ? creditTotal(i.credits)>0?"Settled with credit":"Paid"
-                                  : balance < i.total_cents
-                                    ? creditTotal(i.credits)>0?"Balance due after credits":"Partially paid"
-                                    : "Unpaid"}
-                              </span>
-                              {data.invoiceAdmin?.[i.id]?.archived&&<span className="badge">Archived</span>}{data.invoiceAdmin?.[i.id]?.cardPending&&<span className="badge">Card payment pending</span>}
-                              <p>{[i.snapshot?.recipient?.street,i.snapshot?.recipient?.city].filter(Boolean).join(', ')}</p><p>{i.snapshot?.scope}</p>
-                              <a href={'/invoice?'+new URLSearchParams({organization:org,invoice:i.id})}>View / print invoice</a>
-                              {['owner','admin'].includes(role||'')&&<details><summary>Email invoice</summary><InvoiceDelivery organization={org} invoice={i.id}/></details>}
-                              {['owner','admin'].includes(role||'')&&(i.customer_id||data.jobs.find(j=>j.id===i.job_id)?.customer_id)&&<RelatedCustomerFiles organization={org} customer={i.customer_id||data.jobs.find(j=>j.id===i.job_id)!.customer_id} targets={[{kind:'invoice',id:i.id},{kind:'job',id:i.job_id}]} disabled={pending||invoiceBusy} onManage={()=>openCustomer(i.customer_id||data.jobs.find(j=>j.id===i.job_id)!.customer_id)}/>}
-                              {finance&&<InvoicePayments organization={org} invoice={i.id} totalCents={i.total_cents} timezone={data.company.timezone} onChanged={()=>void refresh()}/>}
-                              </div>
-                            </details>
-                          );
-                        })}
+                        <BillingRegister key={org} organization={org} timezone={data.company.timezone} invoices={data.invoices} admin={data.invoiceAdmin} canManage={['owner','admin'].includes(role||'')} canFinance={finance} blocked={pending||invoiceBusy} onOpen={openWork} onCustomer={openCustomer} onChanged={()=>void refresh()} links={Object.fromEntries(data.invoices.map(invoice=>{const job=data.jobs.find(job=>job.id===invoice.job_id);const quote=data.quotes.find(quote=>quote.id===job?.quote_id);return [invoice.id,{request:quote?.request_id,customer:invoice.customer_id||job?.customer_id}];}))}/>
                         <details className="card money-pending"><summary>Scheduled work · pending invoices</summary><p>See the appointment and agreed labor estimate while work is waiting. Issued invoices appear below.</p>{data.requests.filter(r=>data.appointments.some(a=>a.request_id===r.id&&a.status==='reserved'&&!data.invoices.some(i=>i.job_id===a.job_id))).map(r=><ScheduledInvoice key={r.id} request={{...r,appointments:data.appointments.filter(a=>a.request_id===r.id)}} quotes={data.quotes.filter(q=>q.request_id===r.id)} jobs={data.jobs} timezone={data.company.timezone} busy={pending} onOpen={()=>openWork(r.id)}/>)}{!data.requests.some(r=>data.appointments.some(a=>a.request_id===r.id&&a.status==='reserved'&&!data.invoices.some(i=>i.job_id===a.job_id)))&&<p>No pending invoices on this records page. Open Calendar to review other scheduled visits.</p>}</details>
                         {finance && <p><a href={"/owner/taxes?"+new URLSearchParams({organization:org})}>Taxes · rules, due dates, payments and exports</a></p>}
                         {finance && <DeferredTool key={"expenses:"+org} label="Expenses & cash activity"><FinanceActivity key={org} organization={org} companyName={data.company.display_name} timezone={data.company.timezone}/></DeferredTool>}
