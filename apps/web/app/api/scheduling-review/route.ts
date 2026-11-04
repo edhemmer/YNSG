@@ -34,7 +34,8 @@ async function context(db:Awaited<ReturnType<typeof authorizeGoogle>>['db'],org:
  if(r.error)throw new Error(r.error.message);
  const quotes=await db.from('quotes').select('current_version,quote_versions(version,duration_minutes)').eq('organization_id',org).eq('request_id',request);
  if(quotes.error)throw Error('SCOPE_UNAVAILABLE');
- const minimumDurationMinutes=Math.max(1,...quotes.data.map(q=>q.quote_versions.find(v=>v.version===q.current_version)?.duration_minutes||1));
+ const durations=quotes.data.map(q=>q.quote_versions.find(v=>v.version===q.current_version)?.duration_minutes).filter((v):v is number=>typeof v==='number'&&v>0);
+ const minimumDurationMinutes=durations.length?Math.max(...durations):120;
  return {...r.data,minimumDurationMinutes};
 }
 function failed(e:unknown){
