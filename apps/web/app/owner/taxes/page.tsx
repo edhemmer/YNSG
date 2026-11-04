@@ -94,10 +94,10 @@ function TaxPage({organization:org}:{organization:string}){
  {syncNeeded&&<p role="status">The change was saved. Refresh saved tax records to reconcile the current view before another change.</p>}
  {accessNeeded&&<p><a href="/owner" target="_blank" rel="noopener noreferrer">Open sign-in in another tab</a>, then return here to check this saved attempt.</p>}
  {accessDenied&&<p role="alert">Your account cannot open these tax records. Restore access and refresh. Unfinished entries stay in this screen.</p>}
+ <BusinessIncomeRecords organization={org} year={year}/>
  <div style={{display:accessDenied?'none':undefined}}>
  {data&&<>
  {stale&&<p role="status">These totals are from the last saved view. Refresh before using or exporting them.</p>}
- <BusinessIncomeRecords organization={org} year={year}/>
  <section className="card" aria-labelledby="income-estimate-payments"><h2 id="income-estimate-payments">Estimated income-tax payments</h2><div className="metric-grid">
  <p>Federal estimated tax payments recorded<br/><strong>{money(active.filter(r=>r.recordType==='payment'&&r.data.kind==='federal_estimated').reduce((s,r)=>s+(r.data.amountCents||0),0))}</strong></p>
  <p>Illinois income-tax payments recorded<br/><strong>{money(active.filter(r=>r.recordType==='payment'&&r.data.kind==='state_income').reduce((s,r)=>s+(r.data.amountCents||0),0))}</strong></p>

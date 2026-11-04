@@ -32,3 +32,12 @@ test('invoice transaction tax still has its own explicit review controls',()=>{
  assert.match(invoice,/Review separate invoice transaction-tax rules/);
  assert.match(invoice,/readiness\?\.ready!==true/);
 });
+
+test('income records can load without the separate tax-payment ledger and mileage can fail independently',()=>{
+ const page=read('apps/web/app/owner/taxes/page.tsx');
+ const dataBlock=page.indexOf('{data&&<>');
+ assert.ok(page.indexOf('<BusinessIncomeRecords organization={org} year={year}/>')<dataBlock);
+ const component=read('apps/web/app/owner/taxes/business-income-records.tsx');
+ assert.match(component,/const mileage=raw&&/);
+ assert.match(component,/Mileage could not be verified/);
+});
