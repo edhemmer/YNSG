@@ -2,15 +2,17 @@ import {NextResponse} from 'next/server';
 import {z} from 'zod';
 import {GET as readIntelligence} from '../../field-intelligence/route';
 import {suggestFieldPreparation} from '../../../../lib/field-agent-ai';
-import {authenticated,failure} from '../../../../lib/session';
+import {authenticated,failure,sameOrigin} from '../../../../lib/session';
+import {boundedText} from '../../../../lib/bounded-request';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 const headers={'Cache-Control':'private, no-store'};
 const input=z.object({organization:z.uuid(),request:z.uuid()});
 /** Explicit owner-only advisory. Never executes a job, sends email or writes state. */
 export async function POST(request:Request){
+ if(!sameOrigin(request))return NextResponse.json({error:'Request not accepted.'},{status:403,headers});
  try{
-  const args=input.parse(await request.json());
+  const args=input.parse(JSON.parse(await boundedText(request,2000)));
   const {db,user}=await authenticated();
   const access=await db.from('memberships').select('role').eq('organization_id',args.organization).eq('user_id',user.id).is('revoked_at',null).in('role',['owner','admin']).maybeSingle();
   if(access.error)throw Error('ACCESS_UNVERIFIED');

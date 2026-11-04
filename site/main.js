@@ -172,6 +172,7 @@ if(form){
   });
 
   const journey=bookingJourney({form,resumeSelected:selected.size>0,services:()=>[...selected.values()],requestData:()=>pendingSubmission?.data||Object.fromEntries(new FormData(form))});
+  const heroCopy=(()=>{const hero=document.querySelector('.booking-hero');return hero?{heading:hero.querySelector('h1'),intro:hero.querySelector('p:not(.overline)'),headingText:hero.querySelector('h1').textContent,introText:hero.querySelector('p:not(.overline)').textContent}:null;})();
   if(selected.size&&!pendingSubmission){const hero=document.querySelector('.booking-hero');if(hero){hero.querySelector('h1').textContent='Continue your service request';hero.querySelector('p:not(.overline)').textContent=journey.currentStep()===2?'Your jobs are selected. Choose a preferred time or have us arrange one, then add your details.':'Your jobs are selected. Add a short note about the other work so we can review it with you.';}}
   addressCheck(form);
   form.addEventListener('submit',async event=>{
@@ -210,6 +211,8 @@ if(form){
       recovery.clear();clearServiceSelection(tabStorage);
       form.dataset.deliveryUnknown='false';
       form.hidden=true;
+      // The page heading must stop describing an unfinished request once it has been sent.
+      if(heroCopy){heroCopy.heading.textContent=heroCopy.headingText;heroCopy.intro.textContent=heroCopy.introText;}
       const success=document.querySelector('#form-success');
       success.hidden=false;
       success.querySelector('h3').setAttribute('tabindex','-1');

@@ -35,19 +35,19 @@ export async function GET(request: Request) {
           "id,request_id,customer_id,current_version,revision,status,quote_versions(version,scope,labor_cents,duration_minutes)",
         )
         .eq("organization_id", org)
-        .order("id")
+        .order("created_at", { ascending: false }).order("id")
         .range(from,to),
       db
         .from("jobs")
         .select("id,customer_id,quote_id,approved_version,status,revision")
         .eq("organization_id", org)
-        .order("id")
+        .order("created_at", { ascending: false }).order("id")
         .range(from,to),
       db
         .from("invoices")
         .select("id,customer_id,job_id,number,total_cents,issued_at,snapshot")
         .eq("organization_id", org)
-        .order("id")
+        .order("issued_at", { ascending: false }).order("id")
         .range(from,to),
       db
         .from("outbox")
