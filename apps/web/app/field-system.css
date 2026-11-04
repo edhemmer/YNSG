@@ -119,3 +119,10 @@
 .company-workspace:not(.signed-out) .billing-register .money-invoice>summary>span{grid-area:auto}.company-workspace:not(.signed-out) .billing-register .money-invoice>summary::after{display:block;grid-area:auto;content:'›';position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:24px;color:var(--os-muted)}.company-workspace:not(.signed-out) .billing-register .money-invoice-actions{margin-top:0}.company-workspace:not(.signed-out) .field-current>.status-pill{justify-self:start}.company-workspace:not(.signed-out) .field-current>p,.company-workspace:not(.signed-out) .field-current>h2{margin:0}.company-workspace:not(.signed-out) .field-current>.actions{margin:8px 0 0}.company-workspace:not(.signed-out) .field-desk-links button{flex:none}
 
 .company-workspace:not(.signed-out) #main h1[tabindex="-1"]:focus{outline:none}
+
+/* Stage 1 polish: legible calendar chips, readable job status, deliberate logo plaque. */
+.company-workspace .calendar-cell-visits .calendar-mini-visit{display:grid;gap:2px;align-items:start}
+.company-workspace .calendar-cell-visits .calendar-mini-visit small{display:none}
+.company-workspace .calendar-cell-visits .calendar-mini-visit strong{min-width:0}
+[data-theme=dark] .company-workspace .owner-job-status{color:#8fd1a5}
+.company-workspace .sidebar-brand img{border-radius:14px;padding:6px;box-sizing:border-box;box-shadow:0 6px 18px #0004}
