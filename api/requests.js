@@ -1,4 +1,5 @@
 import {websiteGuard,websiteRequest} from '../lib/website-guard.js';
+import {publicFailure} from '../lib/public-failure.js';
 import {appointmentSelection} from '../lib/appointment-window.js';
 import { randomUUID } from 'node:crypto';
 import { saveCrmRequest, IntakeFailure } from '../lib/public-intake.js';
@@ -41,7 +42,7 @@ export default async function handler(req,res){
     if(!hold||typeof hold!=='object'||Array.isArray(hold)||!/^[a-f0-9]{64}$/.test(hold.token||'')||typeof hold.clientKey!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(hold.clientKey))return fail(res,409,'That time is no longer available. Please choose another time.');
     heldSelection={mode:selection.mode,start:selection.start,token:hold.token,clientKey:hold.clientKey};
   }
-  try{await websiteGuard(req,'request',{key:raw.requestKey,email:data.email});}catch(error){if(error.status===429)res.setHeader('Retry-After','3600');return fail(res,error.status||503,error.message);}
+  try{await websiteGuard(req,'request',{key:raw.requestKey,email:data.email});}catch(error){const out=publicFailure(error);if(out.status===429)res.setHeader('Retry-After','3600');return fail(res,out.status,out.message);}
   const id=raw.requestKey || randomUUID();
   if(process.env.CRM_INTAKE_ENABLED==='true'&&!heldSelection){
     try {
@@ -54,5 +55,5 @@ export default async function handler(req,res){
     }
   }
   try{return res.status(200).json(await websiteRequest(req,{...data,services:normalized},id,process.env,fetch,heldSelection));}
-  catch(error){return fail(res,error.status||503,error.message||'We couldn’t save your request. Please try again, or call 815-680-1775.');}
+  catch(error){const out=publicFailure(error);return fail(res,out.status,out.message);}
 }
