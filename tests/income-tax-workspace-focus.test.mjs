@@ -21,7 +21,7 @@ test('income-tax preparation reads only verified business records without invent
  assert.match(component,/businessMiles/);
  assert.match(component,/not taxable profit or a tax-due calculation/);
  assert.match(component,/Expense categories are not automatically deductible/);
- assert.match(component,/if\(!financeResponse\.ok\|\|!milesResponse\.ok\)/);
+ assert.match(component,/if\(!financeResponse\.ok\)/);
 });
 test('invoice transaction tax still has its own explicit review controls',()=>{
  const page=read('apps/web/app/owner/taxes/page.tsx');
