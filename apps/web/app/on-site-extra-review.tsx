@@ -18,7 +18,7 @@ export default function OnSiteExtraReview(){
  const result=reviewOnSiteExtra({work,expectedMinutes:expected,remainingMinutes:remaining,additionalMaterialsCents:material,materialsApproved,scopeReviewed:scope,customerPriceApproved:price,accessSafe});
  return <details className="card" aria-label="Review an additional job requested on site">
   <summary>Customer asks for another small job?</summary>
-  <p>Check the extra work before saying yes. Nothing here books extra time, changes the invoice, or records customer approval. Use the existing scope, quote and approval workflow afterward.</p>
+  <p>Check the extra work before saying yes. Nothing here books extra time, changes the invoice, or records customer approval. Review and record any changed scope or price before proceeding.</p>
   <label>Additional job<select value={work} onChange={e=>setWork(e.target.value as OnSiteExtraInput['work'])}>{choices.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select></label>
   <label>Estimated extra work minutes<input type="number" min={15} max={480} step={15} value={expected} onChange={e=>setExpected(Math.max(15,Math.min(480,Number(e.target.value)||15)))}/></label>
   <label>Available minutes before the next commitment<input type="number" min={0} max={720} step={15} value={remaining} onChange={e=>setRemaining(Math.max(0,Math.min(720,Number(e.target.value)||0)))}/></label>

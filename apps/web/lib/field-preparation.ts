@@ -18,7 +18,7 @@ export function prepareFieldBrief(request:InboxRequest,quotes:LinkedQuote[],jobs
  if(requestTasks(request.original_submission).some(t=>/cleanout|household item removal/i.test((t.task||'')+' '+(t.service||''))))notes.push('Review item sizes, stairs and access; separate belongings to keep. Confirm the removal plan and any disposal fees before loading. Exclude hazardous materials, large appliances and excessively heavy items.');
  if(requestTasks(request.original_submission).some(t=>/smart lock|door hardware/i.test(t.task||'')))notes.push('Confirm the lock model, customer-supplied hardware and compatibility with the existing door. No hardwiring or work requiring a license or permit. Test ordinary locking and safe exit with the customer; do not record access codes or passwords.');
  if(!visit&&pendingProposal)notes.push('A proposed appointment still needs an explicit scheduling decision.');
- if(visit&&quotes.length===0)notes.push('Prepare the estimate and record customer agreement before starting work.');
+ if(visit&&quotes.length===0)notes.push('Save the agreed work and price to prepare the job before starting work.');
  if(working)notes.push('Work is in progress; verify recorded time and materials before completion.');
  if(paused)notes.push('Paused work must be resumed or reviewed before recording completion.');
  if(invoices.length&&workflow.balance>0)notes.push('Outstanding balance remains. Record only money actually received.');
@@ -28,7 +28,7 @@ export function prepareFieldBrief(request:InboxRequest,quotes:LinkedQuote[],jobs
  const preparedActions:{label:string;ownerApproval:boolean;action:'schedule'|'review'|'agreement'|'invoice'|'payment'}[]=[];
  if(!visit&&pendingProposal)preparedActions.push({label:'Review proposed appointment and travel window',ownerApproval:true,action:'schedule'});
  if(!request.original_submission.street?.trim()||!request.original_submission.city?.trim())preparedActions.push({label:'Verify missing service address before dispatch',ownerApproval:true,action:'review'});
- if(visit&&!quotes.some(q=>q.status==='accepted'))preparedActions.push({label:'Prepare scope and estimate for customer approval',ownerApproval:true,action:'agreement'});
+ if(visit&&!quotes.some(q=>q.status==='accepted'))preparedActions.push({label:'Prepare work and price for agreement',ownerApproval:true,action:'agreement'});
  if(jobs.some(j=>j.status==='completed'&&!invoices.some(i=>i.job_id===j.id)))preparedActions.push({label:'Prepare charges for invoice review',ownerApproval:true,action:'invoice'});
  if(invoices.length&&workflow.balance>0)preparedActions.push({label:'Review outstanding invoices and verified receipts',ownerApproval:true,action:'payment'});
  return {next:workflow.next.title,phase:workflow.phase,services:tasks.slice(0,3),extraServices:Math.max(0,tasks.length-3),notes,preparedActions,hasConfirmedVisit:Boolean(visit),requiresOwnerDecision:!workflow.settled};
