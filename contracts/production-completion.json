@@ -204,7 +204,7 @@
         "WEB-05",
         "WEB-06"
       ],
-      "nextAction": "Review the shared job frame, origin-preserving navigation, tablet field navigation, focused single-save settings and invoice register against docs/production/field-os-restructure-2026-11-03.md. Complete the actual owner phone/iPad acceptance and performance measurements; passing synthetic browser checks alone does not close experience acceptance.",
+      "nextAction": "Review the shared job frame, origin-preserving navigation, tablet field navigation, focused single-save settings and invoice register against docs/production/field-os-restructure-2026-11-03.md. November 4 replaces report-style customer intelligence with compact cards, service-count chips, clear search and record actions; see docs/production/customer-workspace-design-2026-11-04.md. Complete the actual owner phone/iPad acceptance and performance measurements; passing synthetic browser checks alone does not close experience acceptance.",
       "acceptance": "Approved brand; restrained visible navigation; clear primary action/status; light/dark; no clipped financial amounts; labels, focus, large text, screen readers, keyboard and reduced motion. Meet measured task/performance targets or fix scope.",
       "requiredEvidence": "Device/browser matrix, sanitized captures, task measurements and elderly/disabled participant findings.",
       "evidence": []

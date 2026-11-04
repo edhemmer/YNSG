@@ -1,4 +1,8 @@
 /* Field application design system. Public pages use their existing styles. */
+.company-workspace:not(.signed-out) .workspace-main button.secondary{border:1px solid var(--os-border);background:var(--os-surface);box-shadow:0 1px 2px #10283c08,inset 0 1px #ffffff08}
+.company-workspace:not(.signed-out) .workspace-main button.secondary:hover:not(:disabled){background:var(--os-canvas);border-color:var(--os-muted);filter:none}
+.company-workspace:not(.signed-out) .workspace-main button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.company-workspace:not(.signed-out) .workspace-main button:active:not(:disabled){transform:translateY(1px)}
 .company-workspace{--font-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;--os-accent:#315842;--os-canvas:#f3f5f7;--os-surface:#fff;--os-muted:#526575;--os-border:#dce3e9;font:400 1rem/1.5 var(--font-ui);font-synthesis:none;background:var(--os-canvas)}
 [data-theme=dark] .company-workspace{--os-canvas:#101920;--os-surface:#192630;--os-muted:#b2c3d0;--os-border:#344652}
 .company-workspace:not(.signed-out) :is(h1,h2,h3,h4){font-family:var(--font-ui);font-weight:600;letter-spacing:-.025em;line-height:1.3;margin-top:0}
