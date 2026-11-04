@@ -1,8 +1,10 @@
 import {z} from "zod";
 import {recordExpenseCommand,reverseExpenseCommand} from './expense-contract.ts';
 import {paymentCorrection} from './payment-correction-contract.ts';
+import {createOwnerRequest,recordOwnerWork} from './owner-work-contract.ts';
 const base = { organizationId: z.uuid(), key: z.string().min(16).max(128) };
 export const ownerCommandSchema = z.discriminatedUnion("command", [
+  createOwnerRequest,recordOwnerWork,
   z.object({
     ...base,
     command: z.literal("ReviewRequest"),
@@ -17,7 +19,9 @@ export const ownerCommandSchema = z.discriminatedUnion("command", [
     id: z.uuid(),
     revision: z.number().int().positive(),
     scope: z.string().min(10).max(5000),
-    minutes: z.number().int().min(120).max(1440).multipleOf(30),
+    minutes: z.number().int().min(1).max(1440),
+    rateCents: z.number().int().min(0).max(999999999).optional(),
+    totalCents: z.number().int().min(0).max(999999999).optional(),
     crewSize: z.number().int().min(1).max(6).optional(),
     community: z.boolean(),
     eligibilityReviewed: z.boolean(),

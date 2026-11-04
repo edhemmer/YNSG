@@ -1,0 +1,9 @@
+# Owner operational repair — November 3, 2026
+
+The owner reported a real completed out-of-town leaf job that could neither be scheduled today nor recorded. Public lead-time, hours, slot length and minimum-charge rules had incorrectly become owner operational constraints. This directive supersedes dated appointment-first and mandatory-minimum instructions for owner-entered work. Public website design and booking policy are unchanged.
+
+Authenticated owner scheduling accepts minute-based durations, manual times, today/start-now and dates outside public booking hours/notice/horizon. Actual resource, calendar, block, travel, role, revision and replay checks remain canonical. Verified owner evidence is distinguished from public booking evidence in SQL, not by a browser bypass flag.
+
+Owner estimates use actual minutes and an editable rate, including short visits. Previously accepted quote terms and issued invoices remain immutable. New-job entry accepts work locations outside marketing towns, with optional contact methods. Completed-work entry records real past times without fabricating an appointment, running timer, customer approval, invoice or payment. Price and actual agreement can be recorded together to prepare the ordinary invoice; work can also be saved before agreement. Paper invoicing does not require email; email delivery still does.
+
+Validation: isolated empty-schema migration and SQL lifecycle fixtures cover out-of-area intake, one-hour completed work, work-only save, exact replay, actual agreement, canonical closed time, invoice issuance and cross-tenant denial. A separate owner same-day scheduling fixture retains 24-hour public notice while reserving a one-hour owner visit at the current minute. Release CI and production migration/deployment verification remain required. No real customer record was mutated for QA.

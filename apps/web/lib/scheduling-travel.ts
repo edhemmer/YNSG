@@ -23,6 +23,8 @@ export async function schedulingTravel(db:SupabaseClient,org:string,requestId:st
   const previous=day.filter(a=>Date.parse(a.end_at)<=start).sort((a,b)=>Date.parse(b.end_at)-Date.parse(a.end_at))[0];
   const next=day.filter(a=>Date.parse(a.start_at)>=end).sort((a,b)=>Date.parse(a.start_at)-Date.parse(b.start_at))[0];
   for(const [side,a] of [['before',previous],['after',next]] as const){if(!a)continue;
+   // A completed historical stop is not the operator's current location.
+   if(side==='before'&&Date.parse(a.end_at)<=Date.now())continue;
    if(a.arrival_at!==a.start_at)throw Error('ROUTE_PICKUP_REVIEW');
    adjacent.push({side,appointment:a});
   }

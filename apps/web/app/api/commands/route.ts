@@ -29,6 +29,10 @@ export async function POST(request: Request) {
     let name: string;
     let args: Record<string, unknown>;
     switch (c.command) {
+      case 'CreateOwnerRequest':
+        name='create_owner_request';args={p_org:c.organizationId,p_input:c.input,p_key:c.key};break;
+      case 'RecordOwnerWork':
+        name='record_owner_work';args={p_org:c.organizationId,p_request:c.id,p_revision:c.revision,p_start:c.startAt,p_end:c.endAt,p_description:c.description,p_total:c.totalCents,p_agreement:c.agreement,p_key:c.key};break;
       case "ReviewRequest":
         name = c.status==='declined'&&c.reason ? "decline_service_request_with_message" : "review_service_request";
         args = {
@@ -40,14 +44,16 @@ export async function POST(request: Request) {
         };
         break;
       case "PublishQuote":
-        name = c.crewSize===undefined?"publish_hourly_quote":"publish_hourly_crew_quote";
+        name = "publish_flexible_quote";
         args = {
           p_org: c.organizationId,
           p_request: c.id,
           p_revision: c.revision,
           p_scope: c.scope,
           p_minutes: c.minutes,
-          ...(c.crewSize===undefined?{}:{p_people:c.crewSize}),
+          p_people:c.crewSize||1,
+          p_rate:c.rateCents??null,
+          p_total:c.totalCents??null,
           p_community: c.community,
           p_eligibility_reviewed: c.eligibilityReviewed,
           p_customer: c.customerId,

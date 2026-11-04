@@ -1,6 +1,7 @@
 'use client';
 import {ownerCommandMessages} from '../lib/owner-command-messages';
 import GrowthPlanner from './growth-planner';
+import {OwnerRequestEntry} from './owner-work-entry';
 import GoogleConnectionNotice from './google-connection-notice';
 import type {CompanionContext} from '../lib/job-companion';
 import dynamic from 'next/dynamic';
@@ -502,6 +503,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
                       </h1>
                       <div className="heading-actions"><span className="tiny">{new Intl.DateTimeFormat('en-US',{timeZone:data.company.timezone,dateStyle:'full'}).format(new Date())}</span><button className="secondary" onClick={()=>void refresh()}><Icon name="refresh"/>Refresh</button></div>
                     </div>}
+                    {['owner','admin'].includes(role||'')&&['Dashboard','Requests','Calendar','Work'].includes(section)&&!workRequest&&<OwnerRequestEntry organization={org} submit={act} blocked={pending||invoiceBusy} onBusy={setInvoiceBusy} onCreated={openWork}/>}
                     {(page>0||data.pagination.hasMore)&&(section==='Money'||(section==='Customers'&&!['owner','admin'].includes(role||''))) && <div className="actions record-pages" aria-label="Record pages"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>Previous records</button><span>Page {page+1} · 50 records per page</span><button disabled={!data.pagination.hasMore} onClick={()=>setPage(p=>p+1)}>Next records</button></div>}
 
                     {section!=='Settings'&&['owner','admin'].includes(role||'')&&<GoogleConnectionNotice key={'google-notice:'+org} organization={org} onSetup={()=>{setGoogleSetupOpen(true);navigate('Settings')}}/>}
