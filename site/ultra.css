@@ -4,19 +4,6 @@
 html{scroll-behavior:smooth}
 body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 
-/* Header: one compact sticky row so the first screen belongs to the offer, not the logo. */
-.site-header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.88);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--u-line);box-shadow:none}
-.site-header .header-row{min-height:76px;gap:28px;padding-block:8px;display:flex;align-items:center;justify-content:flex-start}
-.site-header .brand{width:auto;flex:none}
-.site-header .brand img{width:104px;height:auto;max-width:none;display:block}
-.nav-desktop{display:flex;gap:6px;margin-left:8px}
-.nav-desktop a{padding:10px 14px;border-radius:999px;font-weight:600;text-decoration:none;color:var(--u-navy);transition:background-color .18s ease}
-.nav-desktop a:hover{background:#eef3ef}
-.nav-desktop a[aria-current]{background:#e6efe8;text-decoration:none}
-.header-actions{margin-left:auto;display:flex;align-items:center;gap:16px}
-.nav-request{border-radius:999px;padding-inline:22px;box-shadow:0 8px 20px -8px rgba(16,40,60,.55);transition:transform .18s ease,box-shadow .18s ease}
-.nav-request:hover{transform:translateY(-1px);box-shadow:0 12px 24px -8px rgba(16,40,60,.6)}
-
 /* Hero. */
 .premium-hero{background:linear-gradient(180deg,var(--u-paper) 0%,#f3f6f1 100%)}
 body:has(.home-services) .hero-layout{padding-block:44px 36px;gap:56px;align-items:center}
@@ -40,12 +27,6 @@ body:has(.home-services) .hero-layout{padding-block:44px 36px;gap:56px;align-ite
 }
 :focus-visible{outline:3px solid var(--u-sun);outline-offset:3px;border-radius:6px}
 
-@media(max-width:760px){
- .site-header .header-row{flex-wrap:wrap;min-height:64px;gap:8px 12px}
- .site-header .brand img{width:78px}
- .header-actions{display:flex;gap:10px}
- .header-actions .call-link{display:inline-flex}
- .nav-desktop{display:none}
 }
 
 /* Hero actions sit side by side; the visual aligns with the headline. */
@@ -61,13 +42,3 @@ body:has(.home-services) .hero-layout{align-items:start}
 @media(max-width:760px){.premium-hero .hero-buttons .button{width:100%}}
 @media(min-width:900px){.premium-hero .hero-layout{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)!important;align-items:start!important}}
 .premium-hero .hero-buttons .button{padding-inline:22px}
-
-/* Phones: Call and Request stay one tap away on every page. */
-@media(max-width:850px){
- body .mobile-rail{display:flex!important;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--u-line);box-shadow:0 -8px 24px -12px rgba(16,40,60,.3)}
- body .mobile-rail a{border-radius:999px;min-height:52px;white-space:nowrap}
- body .mobile-rail a:last-child{white-space:normal;line-height:1.15;font-size:.95rem;padding-inline:12px;min-width:0;flex:1}
- body .mobile-rail a:first-child{flex:0 0 auto;flex-direction:row;padding-inline:20px;gap:8px}
- body:not(.booking-page){padding-bottom:100px}
- body:has(#request-form:focus-within) .mobile-rail,body.booking-page .mobile-rail{display:none!important}
-}
