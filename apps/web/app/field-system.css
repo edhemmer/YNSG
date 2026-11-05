@@ -171,3 +171,7 @@
 .company-workspace:not(.signed-out) .field-desk .field-queue-row>.field-row-avatar+span{flex:1;min-width:0}
 /* Keep the floating New job button from covering the last line of any screen. */
 .company-workspace:not(.signed-out) .field-desk{padding-bottom:96px}
+/* Record paging is a quiet control, not a primary action. */
+.company-workspace .record-pages{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0 16px}
+.company-workspace .record-pages>span{font-size:.9rem;color:var(--os-muted,#4a5b6b)}
+.company-workspace .record-pages button.secondary{min-height:40px;padding:8px 16px}
