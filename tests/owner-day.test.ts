@@ -56,3 +56,12 @@ test('on-my-way text only prefills the owner\'s own messages and never exposes u
  assert.equal(ownerInitials('  Madonna '),'M');
  assert.equal(ownerInitials('   '),'•');
 });
+import {ownerReviewText,ownerReviewUrl} from '../apps/web/lib/owner-day.ts';
+test('review request text opens the owner phone with the review link and refuses bad input',()=>{
+ const url=ownerReviewUrl('a933d657-14d3-46b6-85e6-21d973e4ed97');
+ assert.equal(url,'https://g.page/r/CWxW2KabD1UWECE/review');assert.equal(ownerReviewUrl('someone-else'),null);
+ const link=ownerReviewText('(815) 555-0100','Pat Jones',url)!;
+ assert.ok(link.startsWith('sms:8155550100?&body='));const body=decodeURIComponent(link.split('body=')[1]!);
+ assert.ok(body.startsWith('Hi Pat,'));assert.ok(body.includes(url!));
+ assert.equal(ownerReviewText('nope','Pat',url),null);assert.equal(ownerReviewText('8155550100','Pat',null),null);assert.equal(ownerReviewText('8155550100','Pat','http://x.test'),null);
+});
