@@ -103,4 +103,9 @@
 :root:not([data-theme=dark]) .company-workspace .field-glance strong{color:#101828}
 :root:not([data-theme=dark]) .company-workspace .field-search input{background:#fff;border:1px solid #d0d5dd;box-shadow:0 1px 2px rgba(16,24,40,.05)}
 
+/* List rows share one surface; a light-theme .secondary rule must not box them. */
+:root:not([data-theme=dark]) .company-workspace .field-queue-row.secondary{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:12px;color:inherit!important}
+:root:not([data-theme=dark]) .company-workspace .field-queue-row.secondary:hover{background:#f2f4f7!important}
+:root:not([data-theme=dark]) .company-workspace .field-queue-row.secondary+.field-queue-row.secondary{border-top:1px solid #e7eaee!important;border-radius:0}
+
 @media print{.company-workspace .field-queue-section,.company-workspace .field-current{box-shadow:none!important}}
