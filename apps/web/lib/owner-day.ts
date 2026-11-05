@@ -21,6 +21,17 @@ export function ownerStopCall(phone:string):string|null{
  return 'tel:'+(value.startsWith('+')?'+':'')+digits;
 }
 
+/** Owner-confirmed public review links, keyed by organization. Only https links are ever used. */
+const REVIEW_LINKS:Record<string,string>={'a933d657-14d3-46b6-85e6-21d973e4ed97':'https://g.page/r/CWxW2KabD1UWECE/review'};
+export function ownerReviewUrl(organization:string):string|null{const url=REVIEW_LINKS[organization];return url&&url.startsWith('https://')?url:null}
+/** One-tap review request from the owner's own phone; nothing is sent until the owner taps send. */
+export function ownerReviewText(phone:string,name:string,url:string|null):string|null{
+ const call=ownerStopCall(phone);
+ if(!call||!url||!url.startsWith('https://'))return null;
+ const first=name.trim().split(/\s+/)[0]||'there';
+ const body='Hi '+first+', thanks again for having Your Neighborhood Service Guy out. If you were happy with the work, a quick Google review helps our small local business a lot: '+url+' Thank you!';
+ return 'sms:'+call.slice(4)+'?&body='+encodeURIComponent(body);
+}
 /** Opens the owner's own messaging app with a pre-filled note; nothing is sent until the owner taps send. */
 export function ownerStopText(phone:string,name:string):string|null{
  const call=ownerStopCall(phone);
