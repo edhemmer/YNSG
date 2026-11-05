@@ -139,3 +139,8 @@
 @keyframes field-shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
 @media(prefers-reduced-motion:reduce){.field-skeleton span{animation:none}}
 @media(max-width:760px){.field-glance{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Stat tiles are buttons: reset the global green button so label contrast never depends on later layers. */
+.company-workspace .field-glance li>button{background:transparent;color:var(--ink,#10283c);border:0;border-radius:0;min-height:0;width:100%;padding:16px 20px;text-align:left;font:inherit;cursor:pointer;display:block;transition:none}
+.company-workspace .field-glance li>button:hover{background:rgba(127,150,170,.1)}
+.company-workspace .field-glance li>button strong,.company-workspace .field-glance li>button span{display:block}
