@@ -166,3 +166,12 @@
 .company-workspace .owner-job-entry>button:first-child:disabled{background:#6b7f76}
 .company-workspace .owner-job-entry>form.card{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:58;width:min(640px,100vw);max-height:88vh;overflow:auto;margin:0;border-radius:20px 20px 0 0;box-shadow:0 -18px 48px rgba(10,20,30,.28);padding-bottom:calc(24px + env(safe-area-inset-bottom))}
 @media(max-width:760px){.company-workspace .owner-job-entry>button:first-child{right:16px;bottom:calc(84px + env(safe-area-inset-bottom))}}
+/* Initials badge stays a circle: the generic "first span grows" row rule must not stretch it. */
+.company-workspace:not(.signed-out) .field-desk .field-queue-row>.field-row-avatar{flex:none;width:40px;min-width:40px;height:40px;border-radius:50%}
+.company-workspace:not(.signed-out) .field-desk .field-queue-row>.field-row-avatar+span{flex:1;min-width:0}
+/* Keep the floating New job button from covering the last line of any screen. */
+.company-workspace:not(.signed-out) .field-desk{padding-bottom:96px}
+/* Record paging is a quiet control, not a primary action. */
+.company-workspace .record-pages{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0 16px}
+.company-workspace .record-pages>span{font-size:.9rem;color:var(--os-muted,#4a5b6b)}
+.company-workspace .record-pages button.secondary{min-height:40px;padding:8px 16px}

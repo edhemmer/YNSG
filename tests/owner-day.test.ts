@@ -65,3 +65,11 @@ test('review request text opens the owner phone with the review link and refuses
  assert.ok(body.startsWith('Hi Pat,'));assert.ok(body.includes(url!));
  assert.equal(ownerReviewText('nope','Pat',url),null);assert.equal(ownerReviewText('8155550100','Pat',null),null);assert.equal(ownerReviewText('8155550100','Pat','http://x.test'),null);
 });
+import {daysSince,rebookDue,ownerRebookText} from '../apps/web/lib/owner-day.ts';
+test('rebook helpers flag customers after 45 quiet days and build a safe prefilled text',()=>{
+ const now=new Date('2026-11-05T12:00:00Z');
+ assert.equal(daysSince('2026-09-26T12:00:00Z',now),40);assert.equal(daysSince(null,now),null);assert.equal(daysSince('garbage',now),null);
+ assert.equal(rebookDue('2026-09-20T12:00:00Z',now),true);assert.equal(rebookDue('2026-10-20T12:00:00Z',now),false);assert.equal(rebookDue(null,now),false);
+ const link=ownerRebookText('815-555-0100','Pat Jones')!;assert.ok(link.startsWith('sms:8155550100?&body='));assert.ok(decodeURIComponent(link).includes('Hi Pat,'));
+ assert.equal(ownerRebookText('x','Pat'),null);
+});
