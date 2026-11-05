@@ -5,7 +5,7 @@ import {OwnerRequestEntry} from './owner-work-entry';
 import GoogleConnectionNotice from './google-connection-notice';
 import type {CompanionContext} from '../lib/job-companion';
 import dynamic from 'next/dynamic';
-import DeferredTool from './deferred-tool';
+import BillingTabs from './billing-tabs';
 
 import type {InvoiceCredit} from '../lib/invoice-credit-contract';
 
@@ -535,15 +535,11 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
 
                     </div></div>}
                     {section === "Money" && (
-                      <>
-
-                        <BillingRegister key={org} organization={org} timezone={data.company.timezone} invoices={data.invoices} admin={data.invoiceAdmin} canManage={['owner','admin'].includes(role||'')} canFinance={finance} blocked={pending||invoiceBusy} onOpen={openWork} onCustomer={openCustomer} onChanged={()=>void refresh()} links={Object.fromEntries(data.invoices.map(invoice=>{const job=data.jobs.find(job=>job.id===invoice.job_id);const quote=data.quotes.find(quote=>quote.id===job?.quote_id);return [invoice.id,{request:quote?.request_id,customer:invoice.customer_id||job?.customer_id}];}))}/>
-                        <details className="card money-pending"><summary>Scheduled work · pending invoices</summary><p>See the appointment and agreed labor estimate while work is waiting. Issued invoices appear below.</p>{data.requests.filter(r=>data.appointments.some(a=>a.request_id===r.id&&a.status==='reserved'&&!data.invoices.some(i=>i.job_id===a.job_id))).map(r=><ScheduledInvoice key={r.id} request={{...r,appointments:data.appointments.filter(a=>a.request_id===r.id)}} quotes={data.quotes.filter(q=>q.request_id===r.id)} jobs={data.jobs} timezone={data.company.timezone} busy={pending} onOpen={()=>openWork(r.id)}/>)}{!data.requests.some(r=>data.appointments.some(a=>a.request_id===r.id&&a.status==='reserved'&&!data.invoices.some(i=>i.job_id===a.job_id)))&&<p>No pending invoices on this records page. Open Calendar to review other scheduled visits.</p>}</details>
-                        {finance && <p><a href={"/owner/taxes?"+new URLSearchParams({organization:org})}>Income taxes · estimates, records and payments</a></p>}
-                        {finance && <DeferredTool key={"expenses:"+org} label="Expenses & cash activity"><FinanceActivity key={org} organization={org} companyName={data.company.display_name} timezone={data.company.timezone}/></DeferredTool>}
-                        {finance && <DeferredTool key={"mileage:"+org} label="Mileage & trips"><MileageActivity key={'mileage:'+org} organization={org} timezone={data.company.timezone}/></DeferredTool>}
-
-                      </>
+                      <BillingTabs taxesHref={finance?"/owner/taxes?"+new URLSearchParams({organization:org}):undefined} tabs={[
+                        {key:'invoices',label:'Invoices',render:()=>(<BillingRegister key={org} organization={org} timezone={data.company.timezone} invoices={data.invoices} admin={data.invoiceAdmin} canManage={['owner','admin'].includes(role||'')} canFinance={finance} blocked={pending||invoiceBusy} onOpen={openWork} onCustomer={openCustomer} onChanged={()=>void refresh()} links={Object.fromEntries(data.invoices.map(invoice=>{const job=data.jobs.find(job=>job.id===invoice.job_id);const quote=data.quotes.find(quote=>quote.id===job?.quote_id);return [invoice.id,{request:quote?.request_id,customer:invoice.customer_id||job?.customer_id}];}))}/>)},
+                        {key:'waiting',label:'Waiting to invoice',badge:data.requests.filter(r=>data.appointments.some(a=>a.request_id===r.id&&a.status==='reserved'&&!data.invoices.some(i=>i.job_id===a.job_id))).length,render:()=>(<div className="money-pending"><p>See the appointment and agreed labor estimate while work is waiting. Issued invoices appear below.</p>{data.requests.filter(r=>data.appointments.some(a=>a.request_id===r.id&&a.status==='reserved'&&!data.invoices.some(i=>i.job_id===a.job_id))).map(r=><ScheduledInvoice key={r.id} request={{...r,appointments:data.appointments.filter(a=>a.request_id===r.id)}} quotes={data.quotes.filter(q=>q.request_id===r.id)} jobs={data.jobs} timezone={data.company.timezone} busy={pending} onOpen={()=>openWork(r.id)}/>)}{!data.requests.some(r=>data.appointments.some(a=>a.request_id===r.id&&a.status==='reserved'&&!data.invoices.some(i=>i.job_id===a.job_id)))&&<p>No pending invoices on this records page. Open Calendar to review other scheduled visits.</p>}</div>)},
+                        ...(finance?[{key:'expenses',label:'Expenses',render:()=>(<FinanceActivity key={org} organization={org} companyName={data.company.display_name} timezone={data.company.timezone}/>)},{key:'mileage',label:'Mileage',render:()=>(<MileageActivity key={'mileage:'+org} organization={org} timezone={data.company.timezone}/>)}]:[]),
+                      ]}/>
                     )}
 
                   </>
