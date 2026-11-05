@@ -43,3 +43,16 @@ export function ownerStopText(phone:string,name:string):string|null{
 export function ownerInitials(name:string):string{
  return name.trim().split(/\s+/).filter(Boolean).slice(0,2).map(w=>(w[0]||'').toUpperCase()).join('')||'•';
 }
+
+/** Days since the customer last asked for service; null when unknown. */
+export function daysSince(iso:string|null,now:Date=new Date()):number|null{if(!iso)return null;const t=new Date(iso).getTime();if(!Number.isFinite(t))return null;return Math.max(0,Math.floor((now.getTime()-t)/86400000))}
+/** A past customer is due for a friendly nudge after 45 days without a request. */
+export function rebookDue(lastRequestedAt:string|null,now:Date=new Date(),afterDays=45):boolean{const d=daysSince(lastRequestedAt,now);return d!==null&&d>=afterDays}
+/** One-tap "ready for another visit?" text from the owner's own phone; nothing is sent until the owner taps send. */
+export function ownerRebookText(phone:string,name:string):string|null{
+ const call=ownerStopCall(phone);
+ if(!call)return null;
+ const first=name.trim().split(/\s+/)[0]||'there';
+ const body='Hi '+first+', it\'s Your Neighborhood Service Guy. Want me to get you on the schedule for another visit? Just reply with what you need done and a few days that work.';
+ return 'sms:'+call.slice(4)+'?&body='+encodeURIComponent(body);
+}
