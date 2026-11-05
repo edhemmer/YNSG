@@ -93,6 +93,9 @@ for(const [slug,[title,description]] of Object.entries(pages)){
   await mkdir(path,{recursive:true});
   await writeFile(join(path,'index.html'),standardizeRequestButtons(layout(slug,title,description,body)).replace(/href="\/([a-z-]+(?:\/[a-z-]+)*)\/(?=[?#"])/g,'href="/$1'));
 }
+// Unknown URLs get a helpful, non-indexed page instead of a dead end.
+const notFoundBody='<section class="section"><div class="shell"><p class="overline">Page not found</p><h1>We could not find that page.</h1><p>The link may be old or mistyped. These will get you back on track.</p><p class="hero-buttons"><a class="button button-dark" href="/request/">Request service appointment</a> <a class="button" href="/services/">See our services</a> <a class="button" href="tel:'+businessIdentity.phoneE164+'">Call '+businessIdentity.phoneDisplay+'</a></p></div></section>';
+await writeFile(join(output,'404.html'),standardizeRequestButtons(layout('not-found','Page not found','This page could not be found. Request home and yard service, browse our services or call us.',notFoundBody)).replace(/<link rel="canonical"[^>]*>/,'<meta name="robots" content="noindex">').replace(/<script type="application\/ld\+json">[^<]*<\/script>/,''));
 await writeFile(join(output,'robots.txt'),'User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: https://www.yourneighborhoodserviceguy.com/sitemap.xml\n');
 await writeFile(join(output,'sitemap.xml'),`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${Object.keys(pages).map(slug=>`<url><loc>${canonicalUrl(slug)}</loc><lastmod>${new Date().toISOString().slice(0,10)}</lastmod></url>`).join('')}</urlset>`);
 await verifyLocalSeo(output);
