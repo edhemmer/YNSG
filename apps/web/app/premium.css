@@ -103,4 +103,18 @@
 :root:not([data-theme=dark]) .company-workspace .field-glance strong{color:#101828}
 :root:not([data-theme=dark]) .company-workspace .field-search input{background:#fff;border:1px solid #d0d5dd;box-shadow:0 1px 2px rgba(16,24,40,.05)}
 
+/* List rows share one surface; a light-theme .secondary rule must not box them. */
+:root:not([data-theme=dark]) .company-workspace .field-queue-row.secondary{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:12px;color:inherit!important}
+:root:not([data-theme=dark]) .company-workspace .field-queue-row.secondary:hover{background:#f2f4f7!important}
+:root:not([data-theme=dark]) .company-workspace .field-queue-row.secondary+.field-queue-row.secondary{border-top:1px solid #e7eaee!important;border-radius:0}
+
+/* Clickable panels: whole card and every stat tile open their items. */
+.company-workspace .field-current.is-clickable,.company-workspace .field-queue-row{cursor:pointer}
+.company-workspace .field-current.is-clickable:hover{border-color:var(--accent)!important}
+.company-workspace:not(.signed-out) .field-glance li{padding:0!important}
+.company-workspace:not(.signed-out) .field-glance li>button{background:transparent!important;color:inherit!important;border:0!important;box-shadow:none!important;border-radius:0!important;text-align:left;font:inherit;min-height:0;box-sizing:border-box;display:block;width:100%;height:100%;padding:20px 24px;cursor:pointer;font-family:var(--font-ui);transition:none!important}
+.company-workspace:not(.signed-out) .field-glance li>button:hover{background:rgba(127,150,170,.1)!important}
+.company-workspace .field-glance li>button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.company-workspace .field-glance li>button strong,.company-workspace .field-glance li>button span{display:block}
+
 @media print{.company-workspace .field-queue-section,.company-workspace .field-current{box-shadow:none!important}}

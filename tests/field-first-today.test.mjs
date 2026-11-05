@@ -68,7 +68,7 @@ test('Today selects the chronological next arrival despite unordered route respo
 });
 
 test('Today makes a pending customer decision the main action when there is no job or visit',()=>{
- assert.match(s,/pending\.length\?<section className="field-current card" aria-label="Next request decision">/);
+ assert.match(s,/pending\.length\?<section className="field-current card is-clickable" aria-label="Next request decision"/);
  assert.match(s,/onOpen\(pending\[0\]!\.id\)/);
  assert.match(s,/No unfinished work, upcoming appointments, or requests requiring a decision in the loaded queue/);
 });
@@ -76,7 +76,7 @@ test('Today makes a pending customer decision the main action when there is no j
 test('an open customer decision outranks invoice-only work when no active visit is underway',()=>{
  assert.match(s,/const next=activeWork\|\|\(!stops\.length&&!pending\.length\?shownWork\[0\]:null\)/);
  assert.match(s,/const remainingWork=shownWork\.filter/);
- assert.match(s,/pending\.length\?<section className="field-current card" aria-label="Next request decision"/);
+ assert.match(s,/pending\.length\?<section className="field-current card is-clickable" aria-label="Next request decision"/);
 });
 
 test('Today preserves the first upcoming visit in the secondary queue when active work owns primary card',()=>{
