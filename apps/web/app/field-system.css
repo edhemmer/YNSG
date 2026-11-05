@@ -176,7 +176,7 @@
 .company-workspace .record-pages>span{font-size:.9rem;color:var(--os-muted,#4a5b6b)}
 .company-workspace .record-pages button.secondary{min-height:40px;padding:8px 16px}
 /* Customer directory: avatar, name, quiet detail line, open arrow — left aligned like the Today rows. */
-.company-workspace .customer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.company-workspace .customer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}
 .company-workspace:not(.signed-out) button.customer-directory-card{display:grid;grid-template-columns:40px 1fr auto;grid-template-rows:auto auto;column-gap:14px;row-gap:2px;align-items:center;text-align:left;padding:14px 16px;min-height:72px;background:var(--os-surface,#fff);border:1px solid var(--os-border,#dfe5ea);border-radius:14px;color:var(--ink,#10283c);font:inherit;cursor:pointer}
 .company-workspace:not(.signed-out) button.customer-directory-card:hover{border-color:#9dbfae;background:#f6faf8}
 .company-workspace:not(.signed-out) button.customer-directory-card .customer-avatar{grid-row:1/3;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:.9rem;font-weight:700;background:#e3efe8;color:#0b4a2f}
@@ -189,3 +189,23 @@
 [data-theme=dark] .company-workspace:not(.signed-out) button.customer-directory-card>span:nth-of-type(2){color:#a9bccb}
 [data-theme=dark] .company-workspace:not(.signed-out) button.customer-directory-card>span:last-child{color:#bdf0d6}
 @media(max-width:520px){.company-workspace .customer-grid{grid-template-columns:1fr}.company-workspace:not(.signed-out) button.customer-directory-card>span:last-child{display:none}.company-workspace:not(.signed-out) button.customer-directory-card{grid-template-columns:40px 1fr}}
+/* Billing: one focused panel at a time instead of six stacked sections. */
+.company-workspace:not(.signed-out) .billing-tabs{display:block}
+.company-workspace:not(.signed-out) .billing-tablist{display:flex;gap:6px;overflow-x:auto;padding:4px;margin:0 0 16px;background:#eef2f1;border-radius:14px;scrollbar-width:none}
+.company-workspace:not(.signed-out) .billing-tablist::-webkit-scrollbar{display:none}
+.company-workspace:not(.signed-out) button.billing-tab,.company-workspace:not(.signed-out) a.billing-tab{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 16px;border:0;border-radius:10px;background:transparent;color:#35495a;font:inherit;font-size:.95rem;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap}
+.company-workspace:not(.signed-out) button.billing-tab:hover,.company-workspace:not(.signed-out) a.billing-tab:hover{background:#e1e9e6}
+.company-workspace:not(.signed-out) button.billing-tab[aria-selected="true"]{background:#fff;color:#0b4a2f;box-shadow:0 1px 3px rgba(16,40,60,.14)}
+.company-workspace:not(.signed-out) .billing-tab-badge{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#0b6b45;color:#fff;font-size:.875rem;font-weight:700}
+.company-workspace:not(.signed-out) .billing-panel[hidden]{display:none}
+.company-workspace:not(.signed-out) .billing-panel>.money-pending{display:grid;gap:12px}
+[data-theme=dark] .company-workspace:not(.signed-out) .billing-tablist{background:#13202b}
+[data-theme=dark] .company-workspace:not(.signed-out) button.billing-tab,[data-theme=dark] .company-workspace:not(.signed-out) a.billing-tab{color:#c4d3de}
+[data-theme=dark] .company-workspace:not(.signed-out) button.billing-tab:hover,[data-theme=dark] .company-workspace:not(.signed-out) a.billing-tab:hover{background:#1b2c3a}
+[data-theme=dark] .company-workspace:not(.signed-out) button.billing-tab[aria-selected="true"]{background:#223647;color:#bdf0d6;box-shadow:none}
+[data-theme=dark] .company-workspace:not(.signed-out) .billing-tab-badge{background:#2f9e6e;color:#04140d}
+
+/* The "Open customer →" label stays for screen readers; sighted users get a clean arrow. */
+.company-workspace:not(.signed-out) button.customer-directory-card>span:last-child{font-size:0;line-height:0}
+.company-workspace:not(.signed-out) button.customer-directory-card>span:last-child::after{content:"→";font-size:1.25rem;line-height:1}
+@media(max-width:520px){.company-workspace:not(.signed-out) button.customer-directory-card>span:last-child{display:block}.company-workspace:not(.signed-out) button.customer-directory-card{grid-template-columns:40px 1fr auto}}

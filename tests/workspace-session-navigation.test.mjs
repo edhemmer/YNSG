@@ -66,7 +66,7 @@ test('transient session outage retains the current workflow without requesting s
 test('invoice screen starts compact and keeps expense/mileage tools after invoice rows',async()=>{
  const h=await mount('?section=Money');
  try{
-  const invoice=h.w.document.querySelector('.money-invoice'),tools=h.w.document.querySelectorAll('.money-tools');assert.ok(invoice);assert.equal(invoice.open,false);assert.equal(tools.length,2);assert.ok(invoice.compareDocumentPosition(tools[0])&h.w.Node.DOCUMENT_POSITION_FOLLOWING);assert.match(invoice.querySelector('summary').textContent,/\$70.00/);assert.equal(h.writes.length,0);
+  const doc=h.w.document,invoice=doc.querySelector('.money-invoice'),tabs=[...doc.querySelectorAll('[role=tab]')].map(t=>t.textContent.trim().replace(/\d+$/,''));assert.ok(invoice);assert.equal(invoice.open,false);assert.deepEqual(tabs,['Invoices','Waiting to invoice','Expenses','Mileage']);const panels=['invoices','waiting','expenses','mileage'].map(k=>doc.getElementById('billing-panel-'+k));assert.ok(panels.every(Boolean));assert.equal(panels[0].hidden,false);assert.ok(panels.slice(1).every(p=>p.hidden));assert.ok(panels[0].compareDocumentPosition(panels[2])&h.w.Node.DOCUMENT_POSITION_FOLLOWING);assert.ok(panels[0].contains(invoice));assert.match(invoice.querySelector('summary').textContent,/\$70.00/);assert.equal(h.writes.length,0);
  }finally{h.close();}
 });
 test('outgoing record response cannot overwrite the newly selected company',async()=>{
