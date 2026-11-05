@@ -5,7 +5,7 @@ export function declineExplanation(reason:DeclineReason){
 }
 export const YNSG_ORGANIZATION='a933d657-14d3-46b6-85e6-21d973e4ed97';
 export function futureProjectInvitation(organization?:string){return organization===YNSG_ORGANIZATION?`I’d welcome the chance to help with a future project. My services include:\n• Lawn mowing, trimming and leaf management\n• Hand weeding, mulch spreading, planting and small bush trimming\n• Furniture assembly, organizing and small home jobs\n• Ground-level concrete pressure washing\n• Residential driveway and sidewalk snow clearing\n\nSee services and limits:\nhttps://www.yourneighborhoodserviceguy.com/services\n\nThanks again for thinking of Your Neighborhood Service Guy.\nWe’re Here to Help.\n815-680-1775`:'';}
-export function declineSignature(organization?:string){return organization===YNSG_ORGANIZATION?'Best regards,\nEd Hemmer\nYour Neighborhood Service Guy\n815-680-1775\nwww.yourneighborhoodserviceguy.com':'';}
+export function declineSignature(organization?:string){return organization===YNSG_ORGANIZATION?'Best regards,\nEd Hemmer\nYour Neighborhood Service Guy\n815-680-1775\nYourNeighborhoodServiceGuy.com':'';}
 export function serviceNotOfferedDraft(name:string,organization:string){return {subject:'Thank you for thinking of Your Neighborhood Service Guy',body:`Hi ${name.trim().split(/\s+/)[0]||'there'},\n\nThank you for reaching out to Your Neighborhood Service Guy.\n\n${declineExplanation('service')}\n\n${futureProjectInvitation(organization)}\n\n${declineSignature(organization)}`};}
 export function emailDraftUrl(email:string,subject:string,body:string){
  if(!/^[^\s@<>?,;:\r\n]+@[^\s@<>?,;:\r\n]+\.[^\s@<>?,;:\r\n]+$/.test(email)||/[\r\n]/.test(subject))return null;

@@ -51,4 +51,4 @@ export function decodePolyline(encoded:string):Point[]{
  const value=()=>{let result=0,shift=0,b=0;do{if(i>=encoded.length||shift>30)throw Error('INVALID_POLYLINE');b=encoded.charCodeAt(i++)-63;if(b<0||b>63)throw Error('INVALID_POLYLINE');result|=(b&31)<<shift;shift+=5;}while(b>=32);return result&1?~(result>>1):result>>1;};
  while(i<encoded.length){lat+=value();lng+=value();const p={lat:lat/1e5,lng:lng/1e5};if(Math.abs(p.lat)>90||Math.abs(p.lng)>180)throw Error('INVALID_POLYLINE');points.push(p);}return points;
 }
-export const routeColors=['#2563eb','#7c3aed','#0891b2','#be185d','#b45309','#15803d'];
+export const routeColors=['#042440','#416833','#a8640a','#3d6b8f','#6e5536','#6b7a1e'];

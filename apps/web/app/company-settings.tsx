@@ -79,9 +79,9 @@ function template(organization: string): CompanySettings {
     privacyVersion: "ynsg-2026-10-02",
     cities: [...priorityServiceCities],
     brand: {
-      navy: "#10283c",
-      forest: "#315842",
-      gold: "#edbd6b",
+      navy: "#042440",
+      forest: "#416833",
+      gold: "#f3ac39",
       cream: "#f8f6ef",
       ownerName: organization === "a933d657-14d3-46b6-85e6-21d973e4ed97" ? "Ed Hemmer" : null,
       logoUrl: "https://www.yourneighborhoodserviceguy.com/assets/logo.jpg",

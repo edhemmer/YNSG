@@ -3,35 +3,35 @@
    it never changes behavior, copy or layout structure. */
 
 .company-workspace:not(.signed-out){
-  --font-ui:var(--font-inter),Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-  --accent:#34d399;--accent-strong:#22b985;--attention:#f5c26b;
-  font-family:var(--font-ui);letter-spacing:-.005em;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  --font-ui:var(--font-outfit),Outfit,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --accent:#94c583;--accent-strong:#7dae6c;--attention:#f3ac39;
+  font-family:var(--font-ui);letter-spacing:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
 }
 .company-workspace button,.company-workspace input,.company-workspace select,.company-workspace textarea{font-family:var(--font-ui)}
 
 /* Dark: deep neutral canvas, one elevated surface, hairline borders. */
 [data-theme=dark] .company-workspace:not(.signed-out){
-  --workspace-bg:#0a0f14;--surface:#111922;--border:rgba(255,255,255,.1);--muted:#9aabba;
-  --os-canvas:#0a0f14;--os-surface:#111922;--os-border:rgba(255,255,255,.1);--os-muted:#9aabba;--os-accent:#34d399;
-  background:radial-gradient(1200px 600px at 70% -10%,#12202b 0%,#0a0f14 60%);
+  --workspace-bg:#090f16;--surface:#0e1925;--border:rgba(255,255,255,.1);--muted:#97abc0;
+  --os-canvas:#090f16;--os-surface:#0e1925;--os-border:rgba(255,255,255,.1);--os-muted:#97abc0;--os-accent:#94c583;
+  background:radial-gradient(1200px 600px at 70% -10%,#0f2030 0%,#090f16 60%);
 }
 /* Light: soft paper canvas, white surfaces, quiet shadows. */
 :root:not([data-theme=dark]) .company-workspace:not(.signed-out){
-  --workspace-bg:#f3f5f7;--surface:#fff;--border:rgba(16,40,60,.1);--muted:#566676;
-  --os-canvas:#f3f5f7;--os-surface:#fff;--os-border:rgba(16,40,60,.1);--os-muted:#566676;--os-accent:#0f9f6e;--accent:#0f9f6e;--accent-strong:#0b8a5e;--attention:#b7791f;
+  --workspace-bg:#f3f5f7;--surface:#fff;--border:rgba(4,36,64,.1);--muted:#51667c;
+  --os-canvas:#f3f5f7;--os-surface:#fff;--os-border:rgba(4,36,64,.1);--os-muted:#51667c;--os-accent:#669656;--accent:#669656;--accent-strong:#548344;--attention:#b47b16;
 }
 
 /* Type scale: confident page titles, quiet labels. */
-.company-workspace .workspace-main h1{font-size:34px;font-weight:650;letter-spacing:-.025em;line-height:1.1;margin:0}
-.company-workspace h2,.company-workspace h3{font-weight:600;letter-spacing:-.015em}
+.company-workspace .workspace-main h1{font-size:34px;font-weight:650;letter-spacing:-.01em;line-height:1.1;margin:0}
+.company-workspace h2,.company-workspace h3{font-weight:600;letter-spacing:-.005em}
 .company-workspace .field-search label,.company-workspace .field-search-disclosure summary{font-size:14px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--os-muted)}
 
 /* Chrome. */
-.company-workspace .crm-sidebar{background:#0d141b!important;border-right:1px solid rgba(255,255,255,.06)}
-.company-workspace .crm-sidebar nav button{background:transparent;border:0;border-radius:10px;color:#9fb0bf;font-weight:550;padding:10px 12px}
+.company-workspace .crm-sidebar{background:#0b141e!important;border-right:1px solid rgba(255,255,255,.06)}
+.company-workspace .crm-sidebar nav button{background:transparent;border:0;border-radius:10px;color:#9cb0c5;font-weight:550;padding:10px 12px}
 .company-workspace .crm-sidebar nav button:hover{background:rgba(255,255,255,.06);color:#fff}
-.company-workspace .crm-sidebar nav button[aria-current=page]{background:rgba(52,211,153,.12)!important;color:#eafaf3!important;box-shadow:inset 3px 0 0 var(--accent)}
-[data-theme=dark] .company-workspace .crm-topbar{background:rgba(10,15,20,.72)!important;backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.06)}
+.company-workspace .crm-sidebar nav button[aria-current=page]{background:rgba(148,197,131,.12)!important;color:#ecfbe7!important;box-shadow:inset 3px 0 0 var(--accent)}
+[data-theme=dark] .company-workspace .crm-topbar{background:rgba(9,15,22,.72)!important;backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.06)}
 .company-workspace .sidebar-brand img{box-shadow:0 6px 18px rgba(0,0,0,.35)}
 
 /* Surfaces: depth instead of nested boxes. */
@@ -39,17 +39,17 @@
 .company-workspace:not(.signed-out) .field-current,
 .company-workspace:not(.signed-out) .field-glance li{
   background:var(--os-surface)!important;border:1px solid var(--os-border)!important;border-radius:18px!important;
-  box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 12px 32px -14px rgba(10,20,30,.45)!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 12px 32px -14px rgba(7,20,33,.45)!important;
 }
 .company-workspace:not(.signed-out) .field-queue-section,
 .company-workspace:not(.signed-out) .field-current{padding:26px!important}
-[data-theme=dark] .company-workspace:not(.signed-out) .field-current{background:linear-gradient(160deg,#16222c 0%,#111922 70%)!important;border-color:rgba(52,211,153,.3)!important}
-.company-workspace .field-current h2{font-size:30px;letter-spacing:-.025em;margin:6px 0 0}
+[data-theme=dark] .company-workspace:not(.signed-out) .field-current{background:linear-gradient(160deg,#132230 0%,#0e1925 70%)!important;border-color:rgba(148,197,131,.3)!important}
+.company-workspace .field-current h2{font-size:30px;letter-spacing:-.01em;margin:6px 0 0}
 .company-workspace .field-current p{color:var(--os-muted);font-size:16px}
 
 /* Lists: rows share one surface and divide with a hairline. */
 .company-workspace .field-queue-row,.company-workspace .field-queue-row.secondary,[data-theme=dark] .company-workspace .field-queue-row.secondary{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:12px;padding:14px 12px!important}
-.company-workspace .field-queue-row:hover,.company-workspace .field-queue-row.secondary:hover,[data-theme=dark] .company-workspace .field-queue-row.secondary:hover{background:rgba(127,150,170,.1)!important}
+.company-workspace .field-queue-row:hover,.company-workspace .field-queue-row.secondary:hover,[data-theme=dark] .company-workspace .field-queue-row.secondary:hover{background:rgba(122,150,178,.1)!important}
 .company-workspace .owner-job-entry{margin-bottom:16px}
 .company-workspace .field-queue-row+.field-queue-row{border-top:1px solid var(--os-border)!important;border-radius:0}
 
@@ -59,20 +59,20 @@
 .company-workspace .owner-job-entry>button,
 .company-workspace .workspace-main button[type=submit]:not(.secondary),
 .company-workspace .request-dialog button[type=submit]:not(.secondary){
-  background:var(--accent-strong)!important;color:#04130c!important;font-weight:600;border:0!important;border-radius:10px;
+  background:var(--accent-strong)!important;color:#061302!important;font-weight:600;border:0!important;border-radius:10px;
   box-shadow:0 1px 2px rgba(0,0,0,.25);
 }
 .company-workspace .secondary,.company-workspace a.button.secondary{border-radius:12px;font-weight:550}
 [data-theme=dark] .company-workspace .secondary,[data-theme=dark] .company-workspace a.button.secondary{background:rgba(255,255,255,.06)!important;color:#e6edf3!important;border:1px solid rgba(255,255,255,.1)!important}
-.company-workspace .field-search input{background:rgba(127,150,170,.08);border:1px solid var(--os-border);border-radius:12px;padding:13px 16px;font-size:16px}
-.company-workspace .field-search input:focus{outline:2px solid rgba(52,211,153,.55);outline-offset:1px}
+.company-workspace .field-search input{background:rgba(122,150,178,.08);border:1px solid var(--os-border);border-radius:12px;padding:13px 16px;font-size:16px}
+.company-workspace .field-search input:focus{outline:2px solid rgba(148,197,131,.55);outline-offset:1px}
 
 /* Status and numbers. */
-.company-workspace .status-pill{font-size:14px;font-weight:600;letter-spacing:0;color:var(--accent);background:rgba(52,211,153,.12);border:0;padding:4px 12px;border-radius:999px}
-.company-workspace:not(.signed-out) .field-glance{gap:0;background:var(--os-surface);border:1px solid var(--os-border);border-radius:16px;box-shadow:0 1px 2px rgba(16,24,40,.06);overflow:hidden}
+.company-workspace .status-pill{font-size:14px;font-weight:600;letter-spacing:0;color:var(--accent);background:rgba(148,197,131,.12);border:0;padding:4px 12px;border-radius:999px}
+.company-workspace:not(.signed-out) .field-glance{gap:0;background:var(--os-surface);border:1px solid var(--os-border);border-radius:16px;box-shadow:0 1px 2px rgba(6,25,44,.06);overflow:hidden}
 .company-workspace:not(.signed-out) .field-glance li{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:20px 24px}
 .company-workspace:not(.signed-out) .field-glance li+li{border-left:1px solid var(--os-border)!important}
-.company-workspace .field-glance strong{font-size:30px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.company-workspace .field-glance strong{font-size:30px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
 .company-workspace .field-glance li:nth-child(2) strong{color:var(--attention)}
 .company-workspace .field-glance span{color:var(--os-muted);font-weight:500}
 @media(max-width:760px){.company-workspace:not(.signed-out) .field-glance li:nth-child(odd){border-left:0!important}.company-workspace:not(.signed-out) .field-glance li:nth-child(n+3){border-top:1px solid var(--os-border)!important}}
@@ -83,25 +83,25 @@
 }
 
 /* Light theme: flat and quiet. White sidebar so the logo sits natively on white. */
-:root:not([data-theme=dark]) .company-workspace:not(.signed-out){--workspace-bg:#f6f7f9;--os-canvas:#f6f7f9;--border:#e7eaee;--os-border:#e7eaee;--muted:#667085;--os-muted:#667085;--accent:#047857;--accent-strong:#047857;background:#f6f7f9}
-:root:not([data-theme=dark]) .company-workspace .crm-sidebar{background:#fff!important;border-right:1px solid #e7eaee;color:#344054}
+:root:not([data-theme=dark]) .company-workspace:not(.signed-out){--workspace-bg:#f6f7f9;--os-canvas:#f6f7f9;--border:#e7eaee;--os-border:#e7eaee;--muted:#5b738a;--os-muted:#5b738a;--accent:#416833;--accent-strong:#416833;background:#f6f7f9}
+:root:not([data-theme=dark]) .company-workspace .crm-sidebar{background:#fff!important;border-right:1px solid #e7eaee;color:#2a4259}
 :root:not([data-theme=dark]) .company-workspace .crm-sidebar *{color:inherit}
 :root:not([data-theme=dark]) .company-workspace .sidebar-brand img{box-shadow:none;border-radius:0;padding:0;background:transparent}
-:root:not([data-theme=dark]) .company-workspace .crm-sidebar nav button{color:#475467;font-weight:500}
-:root:not([data-theme=dark]) .company-workspace .crm-sidebar nav button:hover{background:#f2f4f7;color:#101828}
-:root:not([data-theme=dark]) .company-workspace .crm-sidebar nav button[aria-current=page]{background:#ecfdf3!important;color:#065f46!important;box-shadow:none;font-weight:600}
+:root:not([data-theme=dark]) .company-workspace .crm-sidebar nav button{color:#3f556c;font-weight:500}
+:root:not([data-theme=dark]) .company-workspace .crm-sidebar nav button:hover{background:#f2f4f7;color:#06192c}
+:root:not([data-theme=dark]) .company-workspace .crm-sidebar nav button[aria-current=page]{background:#edfee7!important;color:#305d1e!important;box-shadow:none;font-weight:600}
 :root:not([data-theme=dark]) .company-workspace .crm-topbar{background:rgba(255,255,255,.85)!important;border-bottom:1px solid #e7eaee}
-:root:not([data-theme=dark]) .company-workspace .workspace-main h1{font-size:28px;font-weight:600;color:#101828}
+:root:not([data-theme=dark]) .company-workspace .workspace-main h1{font-size:28px;font-weight:600;color:#06192c}
 :root:not([data-theme=dark]) .company-workspace:not(.signed-out) .field-queue-section,
-:root:not([data-theme=dark]) .company-workspace:not(.signed-out) .field-current{box-shadow:0 1px 2px rgba(16,24,40,.06)!important;border-radius:16px!important;border:1px solid #e7eaee!important;background:#fff!important}
+:root:not([data-theme=dark]) .company-workspace:not(.signed-out) .field-current{box-shadow:0 1px 2px rgba(6,25,44,.06)!important;border-radius:16px!important;border:1px solid #e7eaee!important;background:#fff!important}
 :root:not([data-theme=dark]) .company-workspace .field-current-actions>button,
 :root:not([data-theme=dark]) .company-workspace .field-current .actions>button:not(.secondary),
 :root:not([data-theme=dark]) .company-workspace .owner-job-entry>button,
-:root:not([data-theme=dark]) .company-workspace .workspace-main button[type=submit]:not(.secondary){background:#047857!important;color:#fff!important;box-shadow:0 1px 2px rgba(16,24,40,.18)!important}
-:root:not([data-theme=dark]) .company-workspace .secondary,:root:not([data-theme=dark]) .company-workspace a.button.secondary{background:#fff!important;border:1px solid #d0d5dd!important;color:#344054!important;box-shadow:0 1px 2px rgba(16,24,40,.05)}
-:root:not([data-theme=dark]) .company-workspace .status-pill{background:#ecfdf3;color:#067647;border:1px solid #abefc6}
-:root:not([data-theme=dark]) .company-workspace .field-glance strong{color:#101828}
-:root:not([data-theme=dark]) .company-workspace .field-search input{background:#fff;border:1px solid #d0d5dd;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+:root:not([data-theme=dark]) .company-workspace .workspace-main button[type=submit]:not(.secondary){background:#416833!important;color:#fff!important;box-shadow:0 1px 2px rgba(6,25,44,.18)!important}
+:root:not([data-theme=dark]) .company-workspace .secondary,:root:not([data-theme=dark]) .company-workspace a.button.secondary{background:#fff!important;border:1px solid #cdd6df!important;color:#2a4259!important;box-shadow:0 1px 2px rgba(6,25,44,.05)}
+:root:not([data-theme=dark]) .company-workspace .status-pill{background:#edfee7;color:#437132;border:1px solid #baeea9}
+:root:not([data-theme=dark]) .company-workspace .field-glance strong{color:#06192c}
+:root:not([data-theme=dark]) .company-workspace .field-search input{background:#fff;border:1px solid #cdd6df;box-shadow:0 1px 2px rgba(6,25,44,.05)}
 
 /* List rows share one surface; a light-theme .secondary rule must not box them. */
 :root:not([data-theme=dark]) .company-workspace .field-queue-row.secondary{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:12px;color:inherit!important}
@@ -113,7 +113,7 @@
 .company-workspace .field-current.is-clickable:hover{border-color:var(--accent)!important}
 .company-workspace:not(.signed-out) .field-glance li{padding:0!important}
 .company-workspace:not(.signed-out) .field-glance li>button{background:transparent!important;color:inherit!important;border:0!important;box-shadow:none!important;border-radius:0!important;text-align:left;font:inherit;min-height:0;box-sizing:border-box;display:block;width:100%;height:100%;padding:20px 24px;cursor:pointer;font-family:var(--font-ui);transition:none!important}
-.company-workspace:not(.signed-out) .field-glance li>button:hover{background:rgba(127,150,170,.1)!important}
+.company-workspace:not(.signed-out) .field-glance li>button:hover{background:rgba(122,150,178,.1)!important}
 .company-workspace .field-glance li>button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .company-workspace .field-glance li>button strong,.company-workspace .field-glance li>button span{display:block}
 

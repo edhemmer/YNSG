@@ -24,7 +24,7 @@ export function productionSamples(settings:Record<string,any>,org:string,recipie
  let messages:SampleMessage[]=[];
  function add(id:string,label:string,audience:'owner'|'customer',m:{subject:string;body:string;html:string},pdf=false){
  const note='SAMPLE ONLY — '+audience+' template: '+label+'. No appointment, bill or payment has been created. Customer appointment buttons open a public demonstration and cannot act on a customer record. The review button opens the real public review page; do not submit a review for this sample.';
- messages.push({id,label,audience,to:recipient,subject:'[SAMPLE '+audience.toUpperCase()+'] '+m.subject,body:note+'\n\n'+m.body,html:m.html.replace(/(<body[^>]*>)/,'$1<div style="background:#fff3cd;color:#10283c;padding:18px;font:16px Arial">'+note+'</div>'),...(pdf?{pdf:true}:{})});
+ messages.push({id,label,audience,to:recipient,subject:'[SAMPLE '+audience.toUpperCase()+'] '+m.subject,body:note+'\n\n'+m.body,html:m.html.replace(/(<body[^>]*>)/,'$1<div style="background:#fff1df;color:#042440;padding:18px;font:16px Arial">'+note+'</div>'),...(pdf?{pdf:true}:{})});
  }
  const owner=ownerRequestEmail(request,request.services,run,company,'',url,identity);
  add('request.owner_notification','New service request','owner',{subject:company+' New Request',body:owner.text,html:owner.html});

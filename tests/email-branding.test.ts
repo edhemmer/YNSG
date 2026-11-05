@@ -24,7 +24,7 @@ test('shared email branding escapes identity, rejects unsafe URLs, and preserves
  for(const logoUrl of ['javascript:alert(1)','http://example.invalid/logo.png','https://user:password@example.invalid/logo.png'])assert.throws(()=>emailLayout('Business','Title','Preview','',{logoUrl}));
  assert.throws(()=>emailSignedText('Body',{ownerName:'Owner\nInjected'}));
  assert.equal(emailSignedText('Body',{ownerName:'Another Owner'}),'Body\n\nBest Regards,\nAnother Owner');
- assert.equal(companySettings.shape.brand.safeParse({navy:'#10283c',forest:'#315842',gold:'#edbd6b',cream:'#f8f6ef',ownerName:'Owner',logoUrl:'javascript:bad'}).success,false);
+ assert.equal(companySettings.shape.brand.safeParse({navy:'#042440',forest:'#416833',gold:'#f3ac39',cream:'#f8f6ef',ownerName:'Owner',logoUrl:'javascript:bad'}).success,false);
 });
 test('test, decline, owner request and appointment emails share HTML logo and matching text signature',()=>{
  const identity=YNSG_EMAIL_IDENTITY,company='Your Neighborhood Service Guy';

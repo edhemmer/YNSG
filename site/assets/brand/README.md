@@ -7,3 +7,5 @@ Current master: ynsg-logo-tagline-website.svg. It embeds the original approved l
 Digital contact details remain separate in lib/business-identity.js. Previously issued invoices and other retained financial records are historical evidence and are not regenerated when contact details change.
 
 The cleanout service uses the v3 trailer illustration, whose sign contains the logo, tagline and website without a phone number. The towing assembly and setting were digitally edited; do not describe it as an unedited job photograph.
+
+Write the web address as **YourNeighborhoodServiceGuy.com** on all social media and print, with a capital at the start of each word and no `www.` or `https://`, so it's easy to read at a glance. Links and code can stay lowercase.
