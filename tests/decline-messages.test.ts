@@ -4,11 +4,11 @@ import {declineExplanation,declineReasons,emailDraftUrl,declineSignature,futureP
 import {requestDeclinedMessage} from '../apps/web/lib/request-message.ts';
 import {appointmentMessage} from '../apps/web/lib/appointment-message.ts';
 test('reason messages distinguish scheduling, unavailable services and geography without claiming a new appointment',()=>{
- assert.match(declineSignature(YNSG_ORGANIZATION),/Ed Hemmer\nYour Neighborhood Service Guy\n815-680-1775\nwww.yourneighborhoodserviceguy.com/);
+ assert.match(declineSignature(YNSG_ORGANIZATION),/Ed Hemmer\nYour Neighborhood Service Guy\n815-680-1775\nYourNeighborhoodServiceGuy.com/);
  assert.equal(declineSignature('other-business'),'');
  assert.equal(declineReasons.length,4);assert.match(declineExplanation('time'),/schedule is flexible/);assert.match(declineExplanation('service'),/outside the services/);assert.match(declineExplanation('area'),/outside the area/);assert.equal(declineExplanation('other'),'');
  const message=requestDeclinedMessage('Your Neighborhood Service Guy',{name:'Synthetic <Customer>',email:'test@example.invalid'},undefined,declineExplanation('service'),YNSG_ORGANIZATION);
- assert.match(message.body,/Best regards,\nEd Hemmer\nYour Neighborhood Service Guy\n815-680-1775\nwww.yourneighborhoodserviceguy.com/);assert.equal((message.body.match(/Ed Hemmer/g)||[]).length,1);
+ assert.match(message.body,/Best regards,\nEd Hemmer\nYour Neighborhood Service Guy\n815-680-1775\nYourNeighborhoodServiceGuy.com/);assert.equal((message.body.match(/Ed Hemmer/g)||[]).length,1);
  assert.ok(message.body.includes(declineExplanation('service')));assert.match(message.body,/future project/);assert.ok(message.html.includes('href="https://www.yourneighborhoodserviceguy.com/services"'));assert.ok(!message.html.includes('Synthetic <Customer>'));
  for(const term of ['Faucet','toilet','thermostat','smart lock'])assert.ok(!message.body.includes(term));
  assert.match(futureProjectInvitation(YNSG_ORGANIZATION),/leaf management/);assert.doesNotMatch(futureProjectInvitation(YNSG_ORGANIZATION),/leaf cleanup/);assert.equal(futureProjectInvitation('other-business'),'');assert.ok(!requestDeclinedMessage('Another Business',{email:'test@example.invalid'},undefined,'Custom explanation','other-business').body.includes('yourneighborhoodserviceguy.com'));
