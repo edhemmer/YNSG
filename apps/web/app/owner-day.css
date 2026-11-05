@@ -3,7 +3,7 @@
 
 /* A visit brief should scan in seconds; status, time and context have separate roles. */
 .workflow-header{padding-bottom:20px;border-bottom:1px solid var(--line)}
-.workflow-header h2{margin:6px 0 10px;font-size:clamp(1.5rem,3vw,2rem);letter-spacing:-.025em;line-height:1.2;overflow-wrap:anywhere}
+.workflow-header h2{margin:6px 0 10px;font-size:clamp(1.5rem,3vw,2rem);letter-spacing:-.01em;line-height:1.2;overflow-wrap:anywhere}
 .workflow-header>p:not(.eyebrow){color:var(--muted,var(--ink));margin:8px 0 16px}
 .workflow-services{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:16px 0;padding:0}
 .workflow-services li{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:var(--paper);font-size:16px;line-height:1.5;overflow-wrap:anywhere;min-width:0;max-width:100%}
@@ -23,10 +23,10 @@
 .day-route-header h3{margin:0}
 .day-route-status{display:inline-flex;align-items:center;gap:8px;border-radius:999px;border:1px solid var(--line);padding:8px 13px;font-size:14px;font-weight:700;line-height:1.4}
 .day-route-status::before{content:"";display:block;width:9px;height:9px;border-radius:50%;background:currentColor;flex:none}
-.day-route-ready{color:#165d40;background:#ecf7f0;border-color:#a9d8bd}
-.day-route-review{color:#82450a;background:#fff4df;border-color:#e4c48c}
-.route-summary-review{border-left:4px solid #b77521;padding-left:16px}
-.route-summary-ready{border-left:4px solid #28704c;padding-left:16px}
+.day-route-ready{color:#2f5c1d;background:#ecf8e9;border-color:#acdb9c}
+.day-route-review{color:#764e00;background:#fff3e4;border-color:#f2bf78}
+.route-summary-review{border-left:4px solid #b27912;padding-left:16px}
+.route-summary-ready{border-left:4px solid #406e2f;padding-left:16px}
 @media(max-width:600px){.day-route-header{align-items:flex-start;flex-direction:column}.day-route-status{font-size:14px}}
 
 /* Field shortcuts stay optional; the primary job action remains dominant. */
