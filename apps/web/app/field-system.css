@@ -196,7 +196,7 @@
 .company-workspace:not(.signed-out) button.billing-tab,.company-workspace:not(.signed-out) a.billing-tab{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 16px;border:0;border-radius:10px;background:transparent;color:#35495a;font:inherit;font-size:.95rem;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap}
 .company-workspace:not(.signed-out) button.billing-tab:hover,.company-workspace:not(.signed-out) a.billing-tab:hover{background:#e1e9e6}
 .company-workspace:not(.signed-out) button.billing-tab[aria-selected="true"]{background:#fff;color:#0b4a2f;box-shadow:0 1px 3px rgba(16,40,60,.14)}
-.company-workspace:not(.signed-out) .billing-tab-badge{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#0b6b45;color:#fff;font-size:.8rem;font-weight:700}
+.company-workspace:not(.signed-out) .billing-tab-badge{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#0b6b45;color:#fff;font-size:.875rem;font-weight:700}
 .company-workspace:not(.signed-out) .billing-panel[hidden]{display:none}
 .company-workspace:not(.signed-out) .billing-panel>.money-pending{display:grid;gap:12px}
 [data-theme=dark] .company-workspace:not(.signed-out) .billing-tablist{background:#13202b}

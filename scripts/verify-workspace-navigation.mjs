@@ -62,7 +62,7 @@ async function go(page,label){
 async function layout(page,label){
  const failures=await page.evaluate(()=>{
   const fail=[];if(document.documentElement.scrollWidth>innerWidth+1)fail.push('horizontal overflow');
-  for(const el of document.querySelectorAll('.money-invoice>summary,.money-tools>summary,.money-pending>summary')){if(!el.getClientRects().length)continue;const r=el.getBoundingClientRect();if(r.height<44||r.left<0||r.right>innerWidth+1)fail.push('invoice summary clipped or too small');}
+  for(const el of document.querySelectorAll('.money-invoice>summary')){if(!el.getClientRects().length)continue;const r=el.getBoundingClientRect();if(r.height<44||r.left<0||r.right>innerWidth+1)fail.push('invoice summary clipped or too small');}
   for(const el of document.querySelectorAll('.money-invoice>summary>span:first-child'))if(el.getClientRects().length&&el.getBoundingClientRect().width<120)fail.push('invoice identity squeezed into a narrow column');
   for(const el of document.querySelectorAll('.timer-recovery button')){const r=el.getBoundingClientRect();if(r.height<44||r.left<0||r.right>innerWidth+1)fail.push('timer recovery control clipped or too small');}
   return fail;
@@ -125,24 +125,24 @@ try{
   }results.push(engine+' denied deep links sanitized for all staff roles');
   {
    const {page,reads,writes}=await mount({path:'?section=Money'});
-   const expense=page.locator('.money-tools').filter({has:page.locator('summary').filter({hasText:'Expenses & cash activity'})});
-   const mileage=page.locator('.money-tools').filter({has:page.locator('summary').filter({hasText:'Mileage & trips'})});
+   const expense=page.locator('#billing-panel-expenses'),expenseTab=page.getByRole('tab',{name:'Expenses',exact:true}),invoicesTab=page.getByRole('tab',{name:'Invoices',exact:true});
+   const mileage=page.locator('#billing-panel-mileage');
    assert.equal(reads.filter(path=>/^\/api\/(finance-activity|mileage)\?/.test(path)).length,0);
    assert.equal(await expense.locator('input').count(),0);assert.equal(await mileage.locator('input').count(),0);
-   await expense.locator(':scope > summary').click();await expense.getByText('Record a paid business expense',{exact:true}).click();await expense.getByLabel('Vendor',{exact:true}).fill('Synthetic retained draft');
+   await expenseTab.click();await expense.getByText('Record a paid business expense',{exact:true}).click();await expense.getByLabel('Vendor',{exact:true}).fill('Synthetic retained draft');
    const expenseReads=reads.filter(path=>path.startsWith('/api/finance-activity?')).length;assert.equal(expenseReads,1);
-   await expense.locator(':scope > summary').click();
+   await invoicesTab.click();
    page.once('dialog',dialog=>dialog.dismiss());await go(page,'Requests');await heading(page,'Billing');
-   await expense.locator(':scope > summary').click();assert.equal(await expense.getByLabel('Vendor',{exact:true}).inputValue(),'Synthetic retained draft');
+   await expenseTab.click();assert.equal(await expense.getByLabel('Vendor',{exact:true}).inputValue(),'Synthetic retained draft');
    assert.equal(reads.filter(path=>path.startsWith('/api/finance-activity?')).length,expenseReads);
    assert.equal(reads.filter(path=>path.startsWith('/api/mileage?')).length,0);
    page.once('dialog',dialog=>dialog.accept());await page.getByLabel('Switch business').selectOption(company2);await heading(page,'Billing');
-   assert.equal(await page.locator('.money-tools input').count(),0);
+   assert.equal(await page.locator('#billing-panel-expenses input,#billing-panel-mileage input').count(),0);
    assert.equal(writes.length,0);await page.close();results.push(engine+' tools defer reads, retain collapsed drafts and guard company/navigation changes');
   }
   for(const width of [320,375,390,430,768,1366])for(const theme of ['light','dark']){
    const {page,writes}=await mount({width,theme,path:'?section=Money'});await heading(page,'Billing');
-   assert.equal(await page.locator('.money-invoice:not([open])').count(),1);assert.equal(await page.locator('.money-tools[open]').count(),0);
+   assert.equal(await page.locator('.money-invoice:not([open])').count(),1);assert.equal(await page.getByRole('tab',{selected:true}).count(),1);
    await layout(page,engine+' money '+width+' '+theme);
    if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-money-closed.png',fullPage:true});
    await page.locator('.money-invoice>summary').click();await page.getByRole('link',{name:'View / print invoice'}).waitFor();await layout(page,engine+' expanded invoice '+width+' '+theme);
