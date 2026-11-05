@@ -216,7 +216,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
             start: appointment.data.arrival_at,
             company: config.data.settings.displayName,
             address: [request.data.original_submission.street, request.data.original_submission.city].filter(Boolean).join(", ") || null,
-            phone: identity?.phone ?? null,
+            phone: (identity as {phone?:string|null}|undefined)?.phone ?? null,
           });
         } catch { calendar = undefined; }
       }
