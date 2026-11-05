@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {ownerDayQuery,ownerDayResponse,ownerDayLabel,ownerStopDirections,ownerStopCall} from '../apps/web/lib/owner-day.ts';
+import {ownerDayQuery,ownerDayResponse,ownerDayLabel,ownerStopDirections,ownerStopCall,ownerStopText,ownerInitials} from '../apps/web/lib/owner-day.ts';
 import {readOwnerDay} from '../apps/web/lib/owner-day-read.ts';
 import type {SupabaseClient} from '@supabase/supabase-js';
 const call={id:'10000000-0000-4000-8000-000000000001',requestId:'10000000-0000-4000-8000-000000000002',startAt:'2030-10-16T13:00:00Z',arrivalAt:'2030-10-16T14:00:00Z',endAt:'2030-10-16T17:00:00Z',name:'Synthetic',address:'Test address',phone:'5550100',tasks:['Assembly']};
@@ -43,4 +43,16 @@ test('field shortcuts produce safe user-invoked call and navigation links',()=>{
  assert.equal(ownerStopCall('+1 815 555 0100'),'tel:+18155550100');
  assert.equal(ownerStopCall('not a number'),null);
  assert.equal(ownerStopCall('555'),null);
+});
+
+test('on-my-way text only prefills the owner\'s own messages and never exposes unsafe input',()=>{
+ const link=ownerStopText('(815) 555-0100','Joe Hemmer')!;
+ assert.ok(link.startsWith('sms:8155550100?&body='));
+ assert.match(decodeURIComponent(link.split('body=')[1]!),/^Hi Joe, this is Your Neighborhood Service Guy\./);
+ assert.equal(ownerStopText('+1 815 555 0100','Ann')!.startsWith('sms:+18155550100?'),true);
+ assert.equal(ownerStopText('not a number','Joe'),null);
+ assert.match(decodeURIComponent(ownerStopText('8155550100','  ')!.split('body=')[1]!),/^Hi there,/);
+ assert.equal(ownerInitials('joe hemmer'),'JH');
+ assert.equal(ownerInitials('  Madonna '),'M');
+ assert.equal(ownerInitials('   '),'•');
 });

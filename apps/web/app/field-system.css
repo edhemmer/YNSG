@@ -144,3 +144,18 @@
 .company-workspace .field-glance li>button{background:transparent;color:var(--ink,#10283c);border:0;border-radius:0;min-height:0;width:100%;padding:16px 20px;text-align:left;font:inherit;cursor:pointer;display:block;transition:none}
 .company-workspace .field-glance li>button:hover{background:rgba(127,150,170,.1)}
 .company-workspace .field-glance li>button strong,.company-workspace .field-glance li>button span{display:block}
+
+/* Field mode: the next stop is the hero; who, what, where and the one-tap actions are visible at a glance. */
+.company-workspace .field-current{position:relative}
+.company-workspace .field-avatar{position:absolute;top:22px;right:22px;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:1.1rem;font-weight:700;letter-spacing:.02em;background:#e3efe8;color:#0b4a2f}
+[data-theme=dark] .company-workspace .field-avatar,[data-theme=dark] .company-workspace .field-row-avatar{background:#1c3a2e;color:#bdf0d6}
+.company-workspace .field-stop-time{font-size:1.5rem;font-weight:650;margin:10px 0 2px;color:var(--ink)}
+.company-workspace .field-chips{list-style:none;margin:10px 0 4px;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.company-workspace .field-chips li{font-size:.9rem;font-weight:550;padding:5px 12px;border-radius:999px;background:#eef2f5;color:#2b3b49}
+[data-theme=dark] .company-workspace .field-chips li{background:#1b2732;color:#d5e0e9}
+.company-workspace .field-address{margin:6px 0 0;font-size:1.05rem}
+.company-workspace .field-current .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.company-workspace .field-current .actions>button,.company-workspace .field-current .actions>a{min-height:52px;flex:1 1 140px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:1rem}
+.company-workspace .field-row-avatar{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:.9rem;font-weight:700;background:#e3efe8;color:#0b4a2f}
+.company-workspace .field-queue-row:has(.field-row-avatar){display:flex;align-items:center;gap:14px;text-align:left}
+.company-workspace .field-row-avatar+span{flex:1;min-width:0}

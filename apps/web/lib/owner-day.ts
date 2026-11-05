@@ -20,3 +20,15 @@ export function ownerStopCall(phone:string):string|null{
  if(digits.length<7||digits.length>15)return null;
  return 'tel:'+(value.startsWith('+')?'+':'')+digits;
 }
+
+/** Opens the owner's own messaging app with a pre-filled note; nothing is sent until the owner taps send. */
+export function ownerStopText(phone:string,name:string):string|null{
+ const call=ownerStopCall(phone);
+ if(!call)return null;
+ const first=name.trim().split(/\s+/)[0]||'there';
+ const body="Hi "+first+", this is Your Neighborhood Service Guy. I'm on my way to your service visit now.";
+ return 'sms:'+call.slice(4)+'?&body='+encodeURIComponent(body);
+}
+export function ownerInitials(name:string):string{
+ return name.trim().split(/\s+/).filter(Boolean).slice(0,2).map(w=>(w[0]||'').toUpperCase()).join('')||'•';
+}
