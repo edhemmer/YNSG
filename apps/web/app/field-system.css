@@ -144,3 +144,25 @@
 .company-workspace .field-glance li>button{background:transparent;color:var(--ink,#10283c);border:0;border-radius:0;min-height:0;width:100%;padding:16px 20px;text-align:left;font:inherit;cursor:pointer;display:block;transition:none}
 .company-workspace .field-glance li>button:hover{background:rgba(127,150,170,.1)}
 .company-workspace .field-glance li>button strong,.company-workspace .field-glance li>button span{display:block}
+
+/* Field mode: the next stop is the hero; who, what, where and the one-tap actions are visible at a glance. */
+.company-workspace .field-current{position:relative}
+.company-workspace .field-avatar{position:absolute;top:22px;right:22px;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:1.1rem;font-weight:700;letter-spacing:.02em;background:#e3efe8;color:#0b4a2f}
+[data-theme=dark] .company-workspace .field-avatar,[data-theme=dark] .company-workspace .field-row-avatar{background:#1c3a2e;color:#bdf0d6}
+.company-workspace .field-stop-time{font-size:1.5rem;font-weight:650;margin:10px 0 2px;color:var(--ink)}
+.company-workspace .field-chips{list-style:none;margin:10px 0 4px;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.company-workspace .field-chips li{font-size:.9rem;font-weight:550;padding:5px 12px;border-radius:999px;background:#eef2f5;color:#2b3b49}
+[data-theme=dark] .company-workspace .field-chips li{background:#1b2732;color:#d5e0e9}
+.company-workspace .field-address{margin:6px 0 0;font-size:1.05rem}
+.company-workspace .field-current .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.company-workspace .field-current .actions>button,.company-workspace .field-current .actions>a{min-height:52px;flex:1 1 140px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:1rem}
+.company-workspace .field-row-avatar{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:.9rem;font-weight:700;background:#e3efe8;color:#0b4a2f}
+.company-workspace .field-queue-row:has(.field-row-avatar){display:flex;align-items:center;gap:14px;text-align:left}
+.company-workspace .field-row-avatar+span{flex:1;min-width:0}
+
+/* New job: a thumb-reach floating action; the form opens as a bottom sheet instead of pushing the page down. */
+.company-workspace .owner-job-entry{margin:0}
+.company-workspace .owner-job-entry>button:first-child{position:fixed;right:24px;bottom:24px;z-index:55;min-height:56px;padding:0 26px;border-radius:999px;background:#047857;color:#fff;font-size:1rem;font-weight:650;border:0;box-shadow:0 10px 28px rgba(4,120,87,.38)}
+.company-workspace .owner-job-entry>button:first-child:disabled{background:#6b7f76}
+.company-workspace .owner-job-entry>form.card{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:58;width:min(640px,100vw);max-height:88vh;overflow:auto;margin:0;border-radius:20px 20px 0 0;box-shadow:0 -18px 48px rgba(10,20,30,.28);padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+@media(max-width:760px){.company-workspace .owner-job-entry>button:first-child{right:16px;bottom:calc(84px + env(safe-area-inset-bottom))}}
