@@ -33,6 +33,9 @@ test('Local business identity and geography are consistent across indexable page
     assert.ok(!('aggregateRating' in business));
     assert.ok(!('review' in business));
     assert.ok(!('address' in business), 'Do not invent a business street address');
+    assert.deepEqual(business.image,[WEBSITE_ORIGIN+'/assets/logo.jpg',WEBSITE_ORIGIN+'/assets/neighbors-social.jpg']);
+    assert.equal(business.priceRange,'$45-$60 per person per hour');
+    assert.ok(!('sameAs' in business),'sameAs is only published for owner-confirmed profile URLs');
   }
 });
 

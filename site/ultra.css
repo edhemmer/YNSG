@@ -1,0 +1,44 @@
+/* Ultra layer: loaded after premium.css. Tokens, type, depth and motion for the public site.
+   It does not change copy or behavior. */
+:root{--u-navy:#10283c;--u-forest:#2f5b3f;--u-sun:#edbd6b;--u-paper:#fbfaf6;--u-ink:#18303f;--u-line:#e3e8e4;--u-radius:18px;--u-shadow:0 1px 2px rgba(16,40,60,.06),0 12px 32px -16px rgba(16,40,60,.28)}
+html{scroll-behavior:smooth}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+/* Hero. */
+.premium-hero{background:linear-gradient(180deg,var(--u-paper) 0%,#f3f6f1 100%)}
+body:has(.home-services) .hero-layout{padding-block:44px 36px;gap:56px;align-items:center}
+.premium-hero .hero-local{margin:0 0 14px}
+.brand-tagline{width:clamp(200px,18vw,250px)}
+.premium-hero h1{font-size:clamp(2.4rem,5vw,3.9rem);line-height:1.04;letter-spacing:-.035em}
+.premium-hero .hero-lead{font-size:1.15rem}
+
+/* Surfaces. */
+.home-service-card,.service-request-panel,.card{border-radius:var(--u-radius)}
+.home-service-card{box-shadow:var(--u-shadow);transition:transform .25s ease,box-shadow .25s ease;overflow:hidden}
+.home-service-card:hover{transform:translateY(-4px);box-shadow:0 2px 4px rgba(16,40,60,.06),0 22px 44px -18px rgba(16,40,60,.34)}
+.service-panel-image{transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.home-service-card:hover .service-panel-image{transform:scale(1.04)}
+.button,a.button{transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease}
+
+/* Reveal on scroll (added by public-ui.js; without script everything stays visible). */
+@media(prefers-reduced-motion:no-preference){
+ .u-reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.2,1)}
+ .u-reveal.u-in{opacity:1;transform:none}
+}
+:focus-visible{outline:3px solid var(--u-sun);outline-offset:3px;border-radius:6px}
+
+}
+
+/* Hero actions sit side by side; the visual aligns with the headline. */
+.premium-hero .hero-buttons{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.premium-hero .hero-buttons .button{border-radius:999px;min-height:52px;padding-inline:26px;display:inline-flex;align-items:center;justify-content:center}
+.premium-hero .hero-buttons .button-dark{box-shadow:0 10px 24px -10px rgba(16,40,60,.6)}
+.premium-hero .hero-buttons .hero-call{background:#fff;border:1px solid #cfd9d2;color:var(--u-navy)}
+.premium-hero .hero-buttons .hero-call:hover{border-color:var(--u-forest);transform:translateY(-1px)}
+body:has(.home-services) .hero-layout{align-items:start}
+.premium-hero .hero-local{margin-bottom:0}
+.premium-hero .hero-foot{max-width:640px}
+.premium-hero .welcome-voice{margin-top:22px}
+@media(max-width:760px){.premium-hero .hero-buttons .button{width:100%}}
+@media(min-width:900px){.premium-hero .hero-layout{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)!important;align-items:start!important}}
+.premium-hero .hero-buttons .button{padding-inline:22px}
