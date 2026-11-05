@@ -15,7 +15,7 @@ test('identity belongs to the organization, never a matching display name, and b
  assert.deepEqual(emailIdentity({},'another-business'),{logoUrl:null,ownerName:''});
  const identity=emailIdentity({brand:{ownerName:'Another Owner',logoUrl:'https://example.invalid/logo.png'}},'another-business');
  assert.equal(identity.ownerName,'Another Owner');assert.ok(!JSON.stringify(identity).includes('Hemmer'));
- assert.deepEqual(emailIdentity({brand:{ownerName:null,logoUrl:null}},'a933d657-14d3-46b6-85e6-21d973e4ed97'),{logoUrl:null,ownerName:''});
+ assert.deepEqual(emailIdentity({brand:{ownerName:null,logoUrl:null}},'a933d657-14d3-46b6-85e6-21d973e4ed97'),{logoUrl:null,ownerName:'',phone:YNSG_EMAIL_IDENTITY.phone,website:YNSG_EMAIL_IDENTITY.website});
 });
 test('shared email branding escapes identity, rejects unsafe URLs, and preserves readable image fallback',()=>{
  const html=emailLayout('A & B','Message','Preview','<p>Contents</p>',{ownerName:'Owner <script>',logoUrl:'https://example.invalid/logo.png?a=1&b=2'});
@@ -33,7 +33,8 @@ test('test, decline, owner request and appointment emails share HTML logo and ma
  const owner=ownerRequestEmail({name:'Synthetic',phone:'5550000000',email:'test@example.invalid',street:'100 Test St',city:'DeKalb'},[{service:'Yard',task:'Weeds'}],'test-id',company,'IL',null,identity);
  const appointment=appointmentMessage({kind:'appointment.confirmation',company,identity,recipient:'test@example.invalid',notificationRecipient:'owner@example.invalid',request:{name:'Synthetic',street:'100 Test St',city:'DeKalb'},arrivalAt:'2026-10-07T14:00Z',timezone:'America/Chicago',ownerUrl:'https://example.invalid/owner',manageUrl:'https://example.invalid/manage',confirmUrl:'https://example.invalid/confirm',rescheduleUrl:'https://example.invalid/reschedule'});
  for(const message of [testMessage,declined,{...owner,body:owner.text},appointment]){
-  assert.ok(message.html.includes(identity.logoUrl!));assert.ok(message.html.includes('Ed Hemmer'));
+  assert.ok(message.html.includes(identity.logoUrl!));if(message.body===owner.text){assert.ok(!message.body.includes('Best Regards'));continue}
+  assert.ok(message.html.includes('Ed Hemmer'));
   assert.ok(message.body.endsWith('Best Regards,\nEd Hemmer'));
  }
  assert.equal(testMessage.subject,company+' — Email connection test');assert.ok(!testMessage.body.includes('Your existing website'));
