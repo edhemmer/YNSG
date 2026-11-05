@@ -8,6 +8,7 @@ import {delayMessage} from './delay-message';
 import {ownerRequestUrl} from './email-links';
 import {customerRequestEmail} from '../../../lib/customer-request-email.js';
 import {emailIdentity} from '../../../lib/email-layout.js';
+import {visitInviteIcs} from "./calendar-ics";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { accessToken } from "./google-server";
 import { emailRaw, sendEmail, GoogleFailure, hash } from "./google-core";
@@ -53,6 +54,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
     let to: string, subject: string, body: string;
     let html: string | undefined, replyTo: string | undefined = config.data.settings.sender;
     let attachment: {filename:string;bytes:Uint8Array} | undefined;
+    let calendar: string | undefined;
     if (item.kind === "request.owner_notification") {
       to = config.data.settings.notificationRecipient;
       subject = config.data.settings.displayName + " New Request";
@@ -206,6 +208,18 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
           : {}),
       });
       ({ to, subject, body, html } = rendered);
+      if (item.kind === "appointment.confirmation") {
+        try {
+          calendar = visitInviteIcs({
+            appointmentId: item.object_id,
+            revision: appointment.data.revision,
+            start: appointment.data.arrival_at,
+            company: config.data.settings.displayName,
+            address: [request.data.original_submission.street, request.data.original_submission.city].filter(Boolean).join(", ") || null,
+            phone: identity?.phone ?? null,
+          });
+        } catch { calendar = undefined; }
+      }
     }
     let raw: string;
     try {
@@ -214,6 +228,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
         ...(html === undefined ? {} : { html }),
         ...(replyTo === undefined ? {} : { replyTo }),
         ...(attachment === undefined ? {} : { attachment }),
+        ...(calendar === undefined ? {} : { calendar }),
       });
     } catch {
       continue;
@@ -227,7 +242,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
     let status = "needs_reconciliation",
       providerId: string | null = null;
     try {
-      providerId = service?await sendBusinessEmail(org,item.id,{to,subject,body,html,replyTo,attachment}):await sendEmail(token, raw);
+      providerId = service?await sendBusinessEmail(org,item.id,{to,subject,body,html,replyTo,attachment,...(calendar===undefined?{}:{calendar})}):await sendEmail(token, raw);
       status = "accepted";
     } catch (e) {
       if (typeof (e as {status?:number})?.status==='number' && (e as {status:number}).status >= 400 && (e as {status:number}).status < 500)
