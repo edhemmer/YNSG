@@ -217,7 +217,7 @@ export function emailRaw(
   subject: string,
   body: string,
   messageId: string,
-  options: { fromName?: string; html?: string; replyTo?: string; attachment?: { filename: string; bytes: Uint8Array } } = {},
+  options: { fromName?: string; html?: string; replyTo?: string; attachment?: { filename: string; bytes: Uint8Array }; calendar?: string } = {},
 ) {
   for (const address of [from, to, ...(options.replyTo ? [options.replyTo] : [])])
     if (!/^[^\s<>@\r\n]+@[^\s<>@\r\n]+\.[^\s<>@\r\n]+$/.test(address))
@@ -239,6 +239,12 @@ export function emailRaw(
     const mixed="ynsg-mixed-"+messageId;
     const encoded=Buffer.from(attachment.bytes).toString("base64").match(/.{1,76}/g)?.join("\r\n")||"";
     content=`Content-Type: multipart/mixed; boundary="${mixed}"\r\n\r\n--${mixed}\r\n${content}\r\n--${mixed}\r\nContent-Type: application/pdf; name="${attachment.filename}"\r\nContent-Disposition: attachment; filename="${attachment.filename}"\r\nContent-Transfer-Encoding: base64\r\n\r\n${encoded}\r\n--${mixed}--\r\n`;
+  }
+  if(options.calendar){
+    const ics=options.calendar;
+    if(ics.length>20000||!ics.startsWith("BEGIN:VCALENDAR\r\n")||!ics.includes("END:VCALENDAR"))throw new GoogleFailure("INVALID_ATTACHMENT");
+    const cal="ynsg-cal-"+messageId;
+    content=`Content-Type: multipart/mixed; boundary="${cal}"\r\n\r\n--${cal}\r\n${content}\r\n--${cal}\r\nContent-Type: text/calendar; charset=UTF-8; method=PUBLISH; name="visit.ics"\r\nContent-Disposition: attachment; filename="visit.ics"\r\nContent-Transfer-Encoding: base64\r\n\r\n${encode(ics)}\r\n--${cal}--\r\n`;
   }
   return Buffer.from(
     `From: ${sender}\r\nTo: ${to}\r\n${options.replyTo ? `Reply-To: ${options.replyTo}\r\n` : ""}Subject: =?UTF-8?B?${Buffer.from(subject).toString("base64")}?=\r\nMessage-ID: <${messageId}@ynsg.invalid>\r\nMIME-Version: 1.0\r\n${content}`,
