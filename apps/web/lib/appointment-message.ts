@@ -43,8 +43,8 @@ function appointmentText(v: AppointmentMessageInput) {
     timeZone: v.timezone,
   }).format(new Date(v.arrivalAt));
   const services = v.request.services?.length
-    ? v.request.services
-        .map((s) => s.service + (s.task ? ": " + s.task : ""))
+    ? [...v.request.services.reduce((groups, s) => groups.set(s.service, [...(groups.get(s.service) || []), ...(s.task ? [s.task] : [])]), new Map<string, string[]>())]
+        .map(([service, tasks]) => service + (tasks.length ? ": " + tasks.join(", ") : ""))
         .join("\n")
     : (v.request.service || "Work details require review") + (v.request.task ? ": " + v.request.task : "");
   const address = [v.request.street, v.request.city].filter(Boolean).join(", ");
@@ -82,7 +82,7 @@ function appointmentText(v: AppointmentMessageInput) {
       subject: reminder
         ? "Reminder: your service appointment"
         : "Your appointment is confirmed",
-      body: `Hi ${v.request.name || "there"},\n\n${reminder ? "Just a reminder about your appointment with" : "Your appointment is booked with"} ${v.company}.\n\nArrival: ${when}\n${work}\n\nPlease confirm you’ll be there:\n${v.confirmUrl}\n\nNeed another time?\n${v.rescheduleUrl}\nYour current appointment stays booked until a replacement is approved.\n\nYou can review your appointment before making any changes. We’ll discuss any additional work with you first.\n\n${reminder ? "Need to reach us before the visit? Just reply to this email. If you need to reschedule, please email us immediately. You can also use the rescheduling link above." : "Reply to this email if you need to reach us."}`,
+      body: `Hi ${v.request.name || "there"},\n\n${reminder ? "Just a reminder about your appointment with" : "Your appointment is booked with"} ${v.company}.\n\nArrival: ${when}\n${work}\n\nPlease confirm you’ll be there:\n${v.confirmUrl}\n\nNeed another time?\n${v.rescheduleUrl}\nYour current appointment stays booked until a replacement is approved.\n\nYou can review your appointment before making any changes. We’ll discuss any additional work with you first.\n\n${reminder ? `Need to reach us before the visit? Reply to this email${v.identity?.phone ? " or call " + v.identity.phone : ""}. To change the time, use the “Request another time” button above.` : "Reply to this email if you need to reach us."}`,
     };
   }
   const declinedTime = v.kind === "appointment.declined_time";
@@ -129,7 +129,8 @@ export function appointmentMessage(v: AppointmentMessageInput) {
   return parts.join('');
  }).join('');
  const signature=v.kind.startsWith('appointment.declined_')?declineSignature(v.organization):'';
- const signedIdentity=signature?{...v.identity,ownerName:''}:v.identity;
+ const ownerMail=v.kind.startsWith('appointment.owner_')||v.kind==='appointment.reschedule_requested';
+ const signedIdentity=ownerMail?{...v.identity,audience:'owner' as const}:signature?{...v.identity,ownerName:''}:v.identity;
  const signedBody=signature?message.body+'\n\n'+signature:message.body;
  return {...message,body:emailSignedText(signedBody,signedIdentity),html:emailLayout(v.company,titles[v.kind],message.subject,content+(signature?emailParagraph(signature):''),signedIdentity)};
 }
