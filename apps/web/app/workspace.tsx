@@ -36,6 +36,7 @@ import {useCallback, useEffect, useRef, useState } from "react";
 function PanelLoading(){return <p role="status">Opening workspace tools…</p>;}
 const OwnerSettings=dynamic(()=>import('./owner-settings'),{loading:PanelLoading});
 const BusinessSnapshot=dynamic(()=>import('./business-snapshot'),{loading:PanelLoading});
+const GrowthScorecard=dynamic(()=>import('./growth-scorecard'),{loading:PanelLoading});
 const FinanceActivity=dynamic(()=>import('./finance-activity'),{loading:PanelLoading});
 const MileageActivity=dynamic(()=>import('./mileage-activity'),{loading:PanelLoading});
 const CustomerServiceInsights=dynamic(()=>import('./customer-service-insights'),{loading:PanelLoading});
@@ -510,7 +511,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
                     {section==='Dashboard'&&['owner','admin'].includes(role||'')&&<CommandCenter key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest} onNavigate={navigate}/>}
                     {section==='Requests'&&operational&&<RequestInbox fieldMode={['owner','admin'].includes(role||'')} key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest} canManage={['owner','admin'].includes(role||'')}/>}
                     {section==='Activity'&&['owner','admin'].includes(role||'')&&<NotificationAttention key={org} organization={org} timezone={data.company.timezone} onRequest={openWork} onSettings={()=>navigate('Settings')}/>}
-                    {section === "Snapshot" && ["owner","admin"].includes(role||"") && <><p><a className="button secondary" href={'/task-time?'+new URLSearchParams({organization:org})}>Task time &amp; monthly job-type results ↗</a></p><GrowthPlanner key={'growth:'+org}/><BusinessSnapshot key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={navigate}/></>}
+                    {section === "Snapshot" && ["owner","admin"].includes(role||"") && <><p><a className="button secondary" href={'/task-time?'+new URLSearchParams({organization:org})}>Task time &amp; monthly job-type results ↗</a></p><GrowthScorecard key={'scorecard:'+org} organization={org} revision={reloadSequence.current}/><GrowthPlanner key={'growth:'+org}/><BusinessSnapshot key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={navigate}/></>}
                     {section === "Calendar" && ['owner','admin'].includes(role||'') && <>
                       <div className="calendar-inbox-link"><div><strong>New requests start in your inbox.</strong><span>Review proposed times here; schedule requests without a time from Requests.</span></div><button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/>Open requests</button></div><MonthCalendar key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest}/>
                     </>}

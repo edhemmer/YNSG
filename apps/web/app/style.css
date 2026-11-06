@@ -373,3 +373,15 @@ html[data-theme=dark] .request-dialog .detail-tabs button{color:#b3c2cd}html[dat
 
 /* One job workspace: current action stays together, supporting records stay alongside it. */
 .field-job{max-width:1200px}.field-job-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:24px}.field-job-main,.field-job-context{min-width:0;display:flex;flex-direction:column;gap:16px}.field-job-context{border-top:1px solid var(--border);padding-top:20px}.field-job-context>h3{font-size:1.1rem;margin:0}.field-job-context .lead-assignment{box-shadow:none;margin:0;padding:16px}.field-job-context .workflow-supporting{margin:0}.work-return{align-self:flex-start}.field-job-context p{overflow-wrap:anywhere}@media(min-width:1200px){.field-job-layout{grid-template-columns:minmax(0,1fr) minmax(260px,300px)}.field-job-context{border-top:0;border-left:1px solid var(--border);padding:0 0 0 20px}.field-job-context .lead-assignment{border:0;padding:0}.field-job-context .field-contact-actions{flex-wrap:wrap}}
+/* Growth scorecard (Snapshot) */
+.growth-scorecard{display:grid;gap:12px;margin-bottom:16px}
+.growth-scorecard h2{margin:0}
+.growth-scorecard h3{margin:12px 0 0;font-size:1rem}
+.scorecard-gates{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.scorecard-gates li{display:grid;gap:2px;padding:12px;border:1px solid var(--border);border-radius:8px}
+.scorecard-gates li.is-met{border-color:var(--green);background:color-mix(in srgb,var(--green) 8%,transparent)}
+.scorecard-gates span{font-size:14px;color:var(--muted)}
+.scorecard-gates .scorecard-progress{color:var(--ink);font-weight:600}
+.scorecard-reviews{display:grid;gap:4px}
+.scorecard-reviews label{display:grid;gap:4px;font-weight:600;max-width:220px}
+.scorecard-reviews span,.scorecard-note{font-size:14px;color:var(--muted);font-weight:400}

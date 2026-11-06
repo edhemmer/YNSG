@@ -24,4 +24,9 @@ export function orderSeasonalServices(doc,date=new Date()){
  }
  for(const note of doc.querySelectorAll('[data-seasonal-note]'))note.textContent=seasonalServices(date).label+' Browse every service below; we review timing with you.';
 }
-if(typeof document!=='undefined')orderSeasonalServices(document);
+// Time-limited offers carry data-show-until="YYYY-MM-DD" (last day shown, Central time) and remove themselves afterward.
+export function hideExpiredOffers(doc,date=new Date()){
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).format(date);
+ for(const el of doc.querySelectorAll('[data-show-until]')){const until=el.getAttribute('data-show-until');if(/^\d{4}-\d{2}-\d{2}$/.test(until)&&today>until)el.remove();}
+}
+if(typeof document!=='undefined'){orderSeasonalServices(document);hideExpiredOffers(document);}
