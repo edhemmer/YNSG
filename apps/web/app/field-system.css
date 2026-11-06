@@ -230,3 +230,12 @@
 [data-theme=dark] .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-state p,[data-theme=dark] .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-schedule{color:#a9bccb}
 [data-theme=dark] .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-schedule strong{color:#e8f1f7}
 @media(max-width:520px){.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-row{grid-template-columns:minmax(0,1fr);grid-template-areas:"person" "state" "schedule" "action"}.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-state{justify-self:start;text-align:left}.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-action{justify-self:stretch;justify-content:flex-start}}
+/* Phone pass (from a real iPhone screenshot): compact New job button, one-line section action, aligned queue rows. */
+.company-workspace:not(.signed-out) .field-queue-section .section-heading>button{flex:none;white-space:nowrap}
+.company-workspace:not(.signed-out) .field-queue-section .section-heading>div,.company-workspace:not(.signed-out) .field-queue-section .section-heading>h2{flex:1;min-width:0}
+.company-workspace:not(.signed-out) .field-desk .field-queue-list{list-style:none;margin:0;padding:0}
+.company-workspace:not(.signed-out) .field-desk .field-queue-row{padding-left:0;padding-right:0}
+@media(max-width:760px){
+ .company-workspace:not(.signed-out) .owner-job-entry>button:first-child{position:fixed;width:56px;min-width:56px;height:56px;min-height:56px;padding:0;overflow:hidden;white-space:nowrap;text-indent:-300px;right:16px;bottom:calc(88px + env(safe-area-inset-bottom))}
+ .company-workspace:not(.signed-out) .owner-job-entry>button:first-child::before{content:"+";position:absolute;inset:0;display:grid;place-items:center;text-indent:0;font-size:2rem;font-weight:400;line-height:1}
+}
