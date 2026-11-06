@@ -57,7 +57,7 @@ type RequestRecord = {
   status: string;
   revision: number;
   created_at: string;
-  original_submission: {name:string;phone:string;email:string;street:string;city:string;service?:string;task?:string;description?:string;preferredTime?:string;communityRate?:string;services?:{service:string;task:string}[]};
+  original_submission: {name:string;phone:string;email:string;street:string;city:string;service?:string;task?:string;description?:string;preferredTime?:string;communityRate?:string;leadSource?:string;services?:{service:string;task:string}[]};
 };
 type Quote = {
   id: string;

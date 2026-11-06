@@ -1,0 +1,13 @@
+set local role service_role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+select public.submit_service_request('20000000-0000-4000-8000-000000000001','lead-source-key-0001',repeat('b',64),'{"service":"Lawn care","name":"Synthetic Source Test","phone":"5550000000","email":"source@example.invalid","street":"100 Test Street","city":"DeKalb","postalCode":"60115","description":"Synthetic lead source request","communityRate":"No","leadSource":"Nextdoor"}');
+select public.submit_service_request('20000000-0000-4000-8000-000000000001','lead-source-key-0002',repeat('c',64),'{"service":"Lawn care","name":"Synthetic No Source","phone":"5550000000","email":"nosource@example.invalid","street":"100 Test Street","city":"DeKalb","postalCode":"60115","description":"Synthetic request without source","communityRate":"No"}');
+reset role;
+select pg_temp.assert_true((select count(*)=2 from public.service_requests),'requests with and without a lead source both save');
+select pg_temp.assert_true((select original_submission->>'leadSource'='Nextdoor' from public.service_requests where original_submission->>'name'='Synthetic Source Test'),'lead source survives in the immutable submission');
+select pg_temp.assert_true((select not (original_submission ? 'leadSource') from public.service_requests where original_submission->>'name'='Synthetic No Source'),'lead source stays optional');
+set local role service_role;
+do $$begin begin perform public.submit_service_request('20000000-0000-4000-8000-000000000001','lead-source-key-0003',repeat('d',64),'{"service":"Lawn care","name":"Synthetic Bad Source","phone":"5550000000","email":"bad@example.invalid","street":"100 Test Street","city":"DeKalb","postalCode":"60115","description":"Synthetic bad source","communityRate":"No","leadSource":"Billboard on Mars"}');raise exception 'TEST FAILED unknown lead source';exception when raise_exception then if sqlerrm<>'VALIDATION' then raise;end if;end;end$$;
+do $$begin begin perform public.submit_service_request('20000000-0000-4000-8000-000000000001','lead-source-key-0004',repeat('e',64),'{"service":"Lawn care","name":"Synthetic Bad Type","phone":"5550000000","email":"type@example.invalid","street":"100 Test Street","city":"DeKalb","postalCode":"60115","description":"Synthetic bad type","communityRate":"No","leadSource":["Facebook"]}');raise exception 'TEST FAILED non-string lead source';exception when raise_exception then if sqlerrm<>'VALIDATION' then raise;end if;end;end$$;
+reset role;
+rollback;
