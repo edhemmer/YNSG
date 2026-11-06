@@ -61,3 +61,24 @@ test('a finished phone touch or swipe can start a blocked welcome, but not on a 
  doc.querySelector('#browse').dispatchEvent(new dom.window.Event('touchend',{bubbles:true}));await micro();assert.equal(calls,2);
  dom.window.close();
 });
+test('the big welcome button plays and pauses directly, without double-triggering the page listener',async()=>{
+ const dom=new JSDOM('<div data-welcome-voice><button type="button" data-welcome-play><span class="welcome-play-icon">▶</span><span data-welcome-play-label>Hear our 44-second welcome</span></button><audio controls></audio><p data-welcome-voice-status></p></div>',{url:'https://example.test'});
+ const doc=dom.window.document,audio=doc.querySelector('audio');let calls=0,pauses=0,paused=true;
+ Object.defineProperty(audio,'paused',{get:()=>paused});
+ audio.play=()=>{calls++;paused=false;audio.dispatchEvent(new dom.window.Event('play'));return Promise.resolve();};
+ audio.pause=()=>{pauses++;paused=true;audio.dispatchEvent(new dom.window.Event('pause'));};
+ welcomeVoice(doc);await micro();const initial=calls;
+ // Simulate a browser that blocked the initial attempt.
+ paused=true;
+ const button=doc.querySelector('[data-welcome-play]');
+ button.click();await micro();
+ assert.equal(calls,initial+1,'one play per tap');
+ assert.match(button.textContent,/Pause welcome/);assert.equal(button.getAttribute('aria-pressed'),'true');
+ button.click();await micro();assert.equal(pauses,1);assert.match(button.textContent,/Hear our 44-second welcome/);
+ dom.window.close();
+});
+test('homepage shows the big welcome button inside the welcome panel',async()=>{
+ const html=await load('site/pages/home.html');const doc=new JSDOM(html).window.document;
+ const button=doc.querySelector('[data-welcome-voice] button[data-welcome-play][aria-controls="ynsg-welcome-audio"]');
+ assert.ok(button);assert.match(button.textContent,/Hear our 44-second welcome/);
+});
