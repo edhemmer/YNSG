@@ -88,3 +88,6 @@ body .home-service-pills,body .service-pills{margin:var(--s2) 0}
  body .reliability-grid h3{font-size:1rem!important;margin-bottom:4px!important}
  body .reliability-grid p{font-size:.9375rem!important;line-height:1.5!important}
 }
+
+/* Request buttons keep one consistent width (pinned by the public layout check) */
+body .hero-buttons .button,body .hero-buttons .service-request-button{width:min(288px,calc(100vw - 100px))!important;align-self:flex-start}
