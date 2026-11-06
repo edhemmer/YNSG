@@ -474,3 +474,5 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
 .job-guide-note{font-size:.92rem;color:var(--muted)}
 @media(max-width:590px){.job-guide th,.job-guide td{padding:10px 12px}}
 .job-plan{padding-left:1.3em}.job-plan li{margin-bottom:12px;line-height:1.65}
+.job-guide-disclosure{margin:18px 0;padding:16px 18px;border-left:4px solid var(--gold);background:var(--paper);border-radius:10px}
+.job-guide-disclosure p{margin:0;font-size:1rem;line-height:1.6}

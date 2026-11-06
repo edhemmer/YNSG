@@ -11,6 +11,7 @@ test('homepage publishes clear hourly terms and links to complete pricing',()=>{
  assert.match(pricingPage,/\$70 <span>\/ person \/ hour<\/span>/);
  assert.match(pricingPage,/id="job-time-guide"/);
  assert.match(pricingPage,/not-to-exceed cap/);
+ assert.match(pricingPage,/Times and costs shown are estimates only/);
  assert.match(pricingPage,/\$45 <span>\/ person \/ hour<\/span>/);
  assert.match(pricingPage,/First-person two-hour minimum/);
  assert.match(pricingPage,/three people each working one hour/);
