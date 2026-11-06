@@ -279,4 +279,15 @@
  .company-workspace:not(.signed-out) .job-workspace .job-record-panel label{margin-bottom:10px}
  .company-workspace:not(.signed-out) .job-workspace .job-record-panel textarea{min-height:96px}
  .company-workspace:not(.signed-out) .job-workspace .job-record-panel .tiny{margin:6px 0 0}
+/* Requests on phones: two compact lines per card instead of four stacked blocks */
+.company-workspace:not(.signed-out) .request-show-more{width:100%;margin-top:12px}
+@media(max-width:520px){
+ .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"person state" "schedule schedule" "action action";gap:8px 10px;padding:14px}
+ .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-state{justify-self:end;text-align:right}
+ .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-state p,
+ .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-schedule small{display:none}
+ .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-schedule{padding-top:8px;border-top:1px solid var(--os-border)}
+ .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-action{justify-self:stretch}
+ .company-workspace:not(.signed-out) .request-manager .inbox-tools>.tiny,.company-workspace:not(.signed-out) .request-manager .inbox-summary>.tiny{display:none}
+ .company-workspace:not(.signed-out) .request-manager .inbox-summary{margin:6px 0}
 }
