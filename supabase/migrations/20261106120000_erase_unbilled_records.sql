@@ -41,7 +41,7 @@ begin
  q_ids:=array(select id from public.quotes where organization_id=p_org and request_id=p_id);
  j_ids:=array(
   select id from public.jobs where organization_id=p_org and quote_id=any(q_ids)
-  union select job_id from public.owner_work_records where organization_id=p_org and request_id=p_id and job_id is not null
+  union select job_id from private.owner_work_records where organization_id=p_org and request_id=p_id and job_id is not null
   union select job_id from public.appointments where organization_id=p_org and request_id=p_id and job_id is not null);
  a_ids:=array(select id from public.appointments where organization_id=p_org and (request_id=p_id or job_id=any(j_ids)));
  l_ids:=array(select id from private.customer_request_links where organization_id=p_org and (request_id=p_id or appointment_id=any(a_ids)));
