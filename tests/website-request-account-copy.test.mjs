@@ -49,5 +49,5 @@ test('all published website pages and operational contact fallbacks use the curr
  for(const file of ['../scripts/build.mjs','../site/main.js','../lib/website-availability.js','../lib/public-intake.js','../api/requests.js'])
   assert.doesNotMatch(readFileSync(new URL(file,import.meta.url),'utf8'),oldPhone,file+' has retired contact details');
  const hero=readFileSync(new URL('../site/pages/home.html',import.meta.url),'utf8');
- assert.match(hero,/href="tel:\+18156801775">Press to call 815-680-1775<\/a>/);
+ assert.match(hero,/href="tel:\+18156801775">Call 815-680-1775<\/a>/);
 });

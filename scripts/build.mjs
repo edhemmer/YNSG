@@ -46,7 +46,7 @@ if(!/<datalist id="nearby-cities">[\s\S]*?<\/datalist>/.test(formTemplate))throw
 const form=formTemplate.replace(/<datalist id="nearby-cities">[\s\S]*?<\/datalist>/,targetDatalist);
 const serviceManifest=JSON.parse(await readFile(join(source,'assets','services','image-manifest.json'),'utf8'));
 const pages = {
-  '': ['Lawn & Home Services | DeKalb to St. Charles, IL', 'Lawn care, yard cleanup, mulch spreading and small home jobs in DeKalb, Elburn, Campton Hills, Geneva and St. Charles, IL. Request service online.', 'home'],
+  '': ['Lawn & Home Services | DeKalb to St. Charles, IL', 'Lawn care, leaf cleanup, mulch and small home jobs in DeKalb, Sycamore, Geneva, St. Charles and nearby IL. Clear rates. Request service online.', 'home'],
   services: ['Home & Yard Services', 'Lawn mowing, leaf cleanup, mulch, furniture assembly and small cleanouts near St. Charles, Campton Hills, Geneva, Elburn and DeKalb, IL.', 'services'],
   'service-area': ['Service Area: DeKalb to St. Charles', 'Home and yard services for DeKalb, Sycamore, Elburn, Lily Lake, Campton Hills, Geneva and St. Charles, IL. See services and request an appointment.', 'service-area'],
   pricing: ['Pricing & Community Rate', 'Home and yard labor is $60 per person per hour, or $45 Community Rate. A two-hour minimum applies to the first person. See rates and examples.', 'pricing'],
