@@ -457,3 +457,20 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
 .welcome-voice-transcript-copy{max-height:260px;overflow-y:auto;padding:9px 5px 0 0}
 .welcome-voice-transcript-copy p{font-size:.9rem;line-height:1.55;color:#354c55;margin:0 0 10px}
 @media(max-width:520px){.welcome-voice{padding:12px;margin-bottom:17px}.welcome-voice-heading span:not(.welcome-voice-icon){font-size:.78rem}}
+
+/* Job time guide (pricing) */
+.job-guide-section{background:var(--cream)}
+.job-guide-group{margin-top:28px}
+.job-guide-group h3{font-size:1.3rem;margin:0 0 10px;color:var(--navy)}
+.job-guide-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
+.job-guide{width:100%;border-collapse:collapse;font-size:1rem;min-width:520px}
+.job-guide th,.job-guide td{padding:12px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+.job-guide tbody tr:last-child th,.job-guide tbody tr:last-child td{border-bottom:0}
+.job-guide thead th{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--paper)}
+.job-guide tbody th{font-weight:600;color:var(--navy)}
+.job-guide tbody th span{display:block;font-weight:400;font-size:.88rem;color:var(--muted);margin-top:2px}
+.job-guide td{white-space:nowrap;font-variant-numeric:tabular-nums}
+.job-guide td:last-child{color:var(--forest);font-weight:600}
+.job-guide-note{font-size:.92rem;color:var(--muted)}
+@media(max-width:590px){.job-guide th,.job-guide td{padding:10px 12px}}
+.job-plan{padding-left:1.3em}.job-plan li{margin-bottom:12px;line-height:1.65}

@@ -49,7 +49,7 @@ const pages = {
   '': ['Lawn & Home Services | DeKalb to St. Charles, IL', 'Lawn care, yard cleanup, mulch spreading and small home jobs in DeKalb, Elburn, Campton Hills, Geneva and St. Charles, IL. Request service online.', 'home'],
   services: ['Home & Yard Services', 'Lawn mowing, leaf cleanup, mulch, furniture assembly and small cleanouts near St. Charles, Campton Hills, Geneva, Elburn and DeKalb, IL.', 'services'],
   'service-area': ['Service Area: DeKalb to St. Charles', 'Home and yard services for DeKalb, Sycamore, Elburn, Lily Lake, Campton Hills, Geneva and St. Charles, IL. See services and request an appointment.', 'service-area'],
-  pricing: ['Pricing & Community Rate', 'Home and yard labor is $60 per person per hour, or $45 Community Rate. A two-hour minimum applies to the first person. See rates and examples.', 'pricing'],
+  pricing: ['Pricing & Community Rate', 'Home and yard labor is $70 per person per hour, or $45 Community Rate. See our job time guide for typical hours and costs on common jobs.', 'pricing'],
   'careers/small-home-jobs': ['Handyman & Small Home Job Opportunities in DeKalb, IL', 'Bring furniture assembly and practical home-job skills to YNSG in DeKalb, Elburn, St. Charles and nearby communities. Explore the role and apply online.', 'careers-home-support'],
   'careers/yard-work': ['Yard Work Opportunities in DeKalb, IL', 'Explore lawn, garden and seasonal yard-work opportunities with YNSG in DeKalb, Elburn, St. Charles and nearby communities. Share your experience online.', 'careers-yard-support'],
   careers: ['Home & Yard Careers in DeKalb, IL', 'Bring your home and yard skills to YNSG in DeKalb, Elburn, St. Charles and nearby communities. Veterans encouraged; all qualified applicants welcome.', 'careers'],
