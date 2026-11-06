@@ -230,3 +230,6 @@
 [data-theme=dark] .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-state p,[data-theme=dark] .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-schedule{color:#a9bccb}
 [data-theme=dark] .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-schedule strong{color:#e8f1f7}
 @media(max-width:520px){.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-row{grid-template-columns:minmax(0,1fr);grid-template-areas:"person" "state" "schedule" "action"}.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-state{justify-self:start;text-align:left}.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-action{justify-self:stretch;justify-content:flex-start}}
+/* Job screen: tabs always switch; quick-duration chips stay compact on phones */
+.company-workspace .job-record .duration-chips{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 14px}
+.company-workspace .job-record .duration-chips>button{flex:0 0 auto;width:auto;min-width:64px;min-height:44px;padding:0 16px;font-size:.9375rem}
