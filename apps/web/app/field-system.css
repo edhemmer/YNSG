@@ -230,6 +230,9 @@
 [data-theme=dark] .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-state p,[data-theme=dark] .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-schedule{color:#a9bccb}
 [data-theme=dark] .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-schedule strong{color:#e8f1f7}
 @media(max-width:520px){.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-row{grid-template-columns:minmax(0,1fr);grid-template-areas:"person" "state" "schedule" "action"}.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-state{justify-self:start;text-align:left}.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-action{justify-self:stretch;justify-content:flex-start}}
+/* Job screen: tabs always switch; quick-duration chips stay compact on phones */
+.company-workspace .job-record .duration-chips{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 14px}
+.company-workspace .job-record .duration-chips>button{flex:0 0 auto;width:auto;min-width:64px;min-height:44px;padding:0 16px;font-size:.9375rem}
 /* Phone pass (from a real iPhone screenshot): compact New job button, one-line section action, aligned queue rows. */
 .company-workspace:not(.signed-out) .field-queue-section .section-heading>button{flex:none;white-space:nowrap}
 .company-workspace:not(.signed-out) .field-queue-section .section-heading>div,.company-workspace:not(.signed-out) .field-queue-section .section-heading>h2{flex:1;min-width:0}
@@ -239,3 +242,23 @@
  .company-workspace:not(.signed-out) .owner-job-entry>button:first-child{position:fixed;width:56px;min-width:56px;height:56px;min-height:56px;padding:0;overflow:hidden;white-space:nowrap;text-indent:-300px;right:16px;bottom:calc(88px + env(safe-area-inset-bottom))}
  .company-workspace:not(.signed-out) .owner-job-entry>button:first-child::before{content:"+";position:absolute;inset:0;display:grid;place-items:center;text-indent:0;font-size:2rem;font-weight:400;line-height:1}
 }
+/* Premium layer: one header, card, pill, motion and number system for every owner screen */
+.company-workspace:not(.signed-out) .workspace-main{font-variant-numeric:tabular-nums}
+.company-workspace:not(.signed-out) .workspace-main>.list-heading{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:6px 16px;margin:0 0 18px;padding:0 0 14px;border-bottom:1px solid var(--os-border)}
+.company-workspace:not(.signed-out) .workspace-main>.list-heading h1{margin:0;font-size:clamp(1.625rem,5.2vw,2.125rem);line-height:1.15;font-weight:650;letter-spacing:-.015em}
+.company-workspace:not(.signed-out) .workspace-main>.list-heading .heading-actions{width:auto;flex:1 1 220px;justify-content:flex-end;gap:12px;min-width:0}
+.company-workspace:not(.signed-out) .workspace-main>.list-heading .heading-actions .tiny{font-size:.875rem;color:var(--os-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.company-workspace:not(.signed-out) .workspace-main>.list-heading .heading-actions button{flex:none;min-height:40px;padding:0 14px;font-size:.9375rem}
+.company-workspace:not(.signed-out) .status-pill{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:2px 12px;border-radius:999px;font-size:.875rem;font-weight:600;line-height:1.3;white-space:nowrap}
+.company-workspace:not(.signed-out) .card{border:1px solid var(--os-border);background:var(--os-surface)}
+.company-workspace:not(.signed-out) .workspace-main :is(button,a.button){transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease,transform .12s ease}
+.company-workspace:not(.signed-out) .workspace-main :is(button,a.button):not(:disabled):active{transform:scale(.985)}
+.company-workspace:not(.signed-out) .workspace-main :is(input:not([type=checkbox]):not([type=radio]),select,textarea){min-height:48px;font-size:1rem;border:1px solid var(--os-border);background:var(--os-surface)}
+.company-workspace:not(.signed-out) .workspace-main :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus{border-color:var(--os-accent);outline:2px solid var(--os-accent);outline-offset:0}
+.company-workspace:not(.signed-out) .workspace-main :is(h2,h3){letter-spacing:-.01em;font-weight:600}
+@media(max-width:760px){
+ .company-workspace:not(.signed-out) .workspace-main>.list-heading{align-items:center}
+ .company-workspace:not(.signed-out) .workspace-main>.list-heading .heading-actions{flex-basis:100%;justify-content:space-between;order:2}
+ .company-workspace:not(.signed-out) .workspace-main>.list-heading h1{order:1}
+}
+@media(prefers-reduced-motion:reduce){.company-workspace:not(.signed-out) .workspace-main :is(button,a.button){transition:none}.company-workspace:not(.signed-out) .workspace-main :is(button,a.button):active{transform:none}}
