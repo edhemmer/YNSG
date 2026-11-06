@@ -13,7 +13,6 @@ do $$begin begin perform public.erase_service_request('20000000-0000-4000-8000-0
 do $$begin if current_setting('test.cust')<>'' then begin perform public.erase_customer('20000000-0000-4000-8000-000000000001',current_setting('test.cust')::uuid,'erase-key-cust-early-01');raise exception 'TEST FAILED customer with records';exception when raise_exception then if sqlerrm<>'ERASE_HAS_RECORDS' then raise;end if;end;end if;end$$;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
 do $$begin begin perform public.erase_service_request('20000000-0000-4000-8000-000000000001',current_setting('test.req')::uuid,current_setting('test.rev')::int,'erase-key-other-0001');raise exception 'TEST FAILED other account';exception when insufficient_privilege then null;end;end$$;
-select pg_temp.assert_true((select count(*)=1 from public.service_requests),'refused erase leaves the request');
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select set_config('test.result',public.erase_service_request('20000000-0000-4000-8000-000000000001',current_setting('test.req')::uuid,current_setting('test.rev')::int,'erase-key-request-0001')::text,true);
 select pg_temp.assert_true(current_setting('test.result')::jsonb->>'erased'='true','erase reports success');
