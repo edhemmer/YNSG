@@ -209,3 +209,8 @@
 .company-workspace:not(.signed-out) button.customer-directory-card>span:last-child{font-size:0;line-height:0}
 .company-workspace:not(.signed-out) button.customer-directory-card>span:last-child::after{content:"→";font-size:1.25rem;line-height:1}
 @media(max-width:520px){.company-workspace:not(.signed-out) button.customer-directory-card>span:last-child{display:block}.company-workspace:not(.signed-out) button.customer-directory-card{grid-template-columns:40px 1fr auto}}
+/* Requests list: same green circular initials as Today and Customers. */
+.company-workspace:not(.signed-out) .request-avatar{flex:none;width:40px;height:40px;border-radius:50%;display:inline-grid;place-items:center;font-size:.9rem;font-weight:700;background:#e3efe8;color:#0b4a2f}
+[data-theme=dark] .company-workspace:not(.signed-out) .request-avatar{background:#1c3a2e;color:#bdf0d6}
+/* Paging sits under the list it belongs to. */
+.company-workspace:not(.signed-out) .billing-panel .record-pages{margin:16px 0 0}
