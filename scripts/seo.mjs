@@ -8,7 +8,7 @@ export const canonicalUrl=slug=>WEBSITE_ORIGIN+(slug?'/'+slug:'/');
 const titles={
  '':'Lawn & Home Services | DeKalb to St. Charles, IL',
  services:'Lawn, Yard & Home Services | Fox Valley IL',
- pricing:'Home & Yard Rates in DeKalb, IL',
+ pricing:'Home & Yard Rates in DeKalb, IL | No Trip Charges',
  'careers/small-home-jobs':'Handyman & Small Home Job Opportunities in DeKalb, IL',
  'careers/yard-work':'Yard Work Opportunities in DeKalb, IL',
  careers:'Home & Yard Careers in DeKalb, IL',
@@ -21,6 +21,7 @@ const titles={
  'lawn-mowing-dekalb-il':'Lawn Mowing in DeKalb, IL',
  'leaf-cleanup-dekalb-il':'Leaf Management in DeKalb, IL',
  'snow-removal-dekalb-il':'Residential Snow Removal in DeKalb, IL',
+ 'realtors-property-managers':'Listing Prep & Rental Turnovers | DeKalb, IL',
  'mulch-delivery-spreading-dekalb-il':'Mulch Pickup, Delivery & Spreading in DeKalb, IL',
  'mulch-yard-cleanup-dekalb-il':'Mulch & Yard Cleanup in DeKalb, IL',
  'concrete-pressure-washing-dekalb-il':'Concrete Pressure Washing in DeKalb, IL',
@@ -37,13 +38,26 @@ export const localServicePages={
  'mulch-yard-cleanup-dekalb-il':{name:'Mulch spreading and garden-bed cleanup',description:'Mulch spreading, hand weeding and small garden-bed jobs. Customers prepay the supplier for arranged mulch pickup.'},
  'concrete-pressure-washing-dekalb-il':{name:'Concrete pressure washing',description:'Ground-level residential concrete driveway, walkway and patio washing with customer-supplied accessible outdoor water.'},
 };
+// Published on /pricing/; tests keep these in sync with the visible page.
+export const publishedRates=Object.freeze({standard:70,community:45});
 export function seo(slug,title,description,media=null){
  const url=canonicalUrl(slug),origin=WEBSITE_ORIGIN+'/';
  const areaServed=serviceCities.map(name=>({'@type':'City',name:name+', Illinois',containedInPlace:{'@type':'State',name:'Illinois'}}));
- const organization={'@type':['LocalBusiness','HomeAndConstructionBusiness'],'@id':origin+'#business',name:legalBusinessName,alternateName:brand,legalName:businessIdentity.legalName,url:origin,logo:origin+'assets/logo.jpg',telephone:'+1-'+businessIdentity.phoneDisplay,image:[origin+'assets/logo.jpg',origin+'assets/neighbors-social.jpg'],priceRange:'$45-$70 per person per hour',...(businessIdentity.profiles.length?{sameAs:[...businessIdentity.profiles]}:{}),contactPoint:{'@type':'ContactPoint',telephone:'+1-'+businessIdentity.phoneDisplay,contactType:'customer service',availableLanguage:'en'},description:'Owner-operated home and yard services based near DeKalb, Illinois, serving communities toward St. Charles. Published rates, approved estimate caps and no trip charges.',slogan:'We’re Here to Help.',areaServed};
+ const organization={'@type':['LocalBusiness','HomeAndConstructionBusiness'],'@id':origin+'#business',name:legalBusinessName,alternateName:brand,legalName:businessIdentity.legalName,url:origin,logo:origin+'assets/logo.jpg',telephone:'+1-'+businessIdentity.phoneDisplay,image:[origin+'assets/logo.jpg',origin+'assets/neighbors-social.jpg'],priceRange:'$45-$70 per person per hour',...(businessIdentity.profiles.length?{sameAs:[...businessIdentity.profiles]}:{}),contactPoint:{'@type':'ContactPoint',telephone:'+1-'+businessIdentity.phoneDisplay,contactType:'customer service',availableLanguage:'en'},description:'Owner-operated home and yard services based near DeKalb, Illinois, serving communities toward St. Charles. Published rates, approved estimate caps and no trip charges.',hasMap:businessIdentity.googleReviewUrl.replace(/\/review$/,''),slogan:'We’re Here to Help.',areaServed};
  const pageId=url+'#page',breadcrumbId=url+'#breadcrumb';
  const graph=[organization,{'@type':'WebSite','@id':origin+'#website',url:origin,name:brand,publisher:{'@id':organization['@id']},inLanguage:'en-US'},{'@type':slug==='careers'?'CollectionPage':'WebPage','@id':pageId,url,name:titles[slug]||title,description,isPartOf:{'@id':origin+'#website'},about:{'@id':organization['@id']},inLanguage:'en-US',...(slug?{breadcrumb:{'@id':breadcrumbId}}:{})}];
  if(media){const imageId=url+'#service-image';graph.push({'@type':'ImageObject','@id':imageId,url:WEBSITE_ORIGIN+media.src,contentUrl:WEBSITE_ORIGIN+media.src,width:media.width,height:media.height,caption:media.alt});graph.find(node=>node['@id']===pageId).primaryImageOfPage={'@id':imageId};}
+ if(slug==='pricing'){
+  const catalogId=url+'#rates';
+  graph.find(node=>node['@id']===pageId).mainEntity={'@id':catalogId};
+  const offer=(key,name,price,description)=>({'@type':'Offer','@id':url+'#'+key,name,description,offeredBy:{'@id':organization['@id']},areaServed,priceSpecification:{'@type':'UnitPriceSpecification',price,priceCurrency:'USD',unitCode:'HUR',unitText:'per person per hour',description:'First-person two-hour minimum. No trip charges.'}});
+  graph.push({'@type':'OfferCatalog','@id':catalogId,name:'Hourly home and yard labor',itemListElement:[offer('standard-rate','Standard rate',publishedRates.standard,'Hourly home and yard labor, billed per person for actual worked time.'),offer('community-rate','Community Rate',publishedRates.community,'Hourly home and yard labor for seniors age 70 or older, veterans, single parents and folks with disabilities.')]});
+ }
+ if(slug==='realtors-property-managers'){
+  const partnerId=url+'#service';
+  graph.find(node=>node['@id']===pageId).mainEntity={'@id':partnerId};
+  graph.push({'@type':'Service','@id':partnerId,url,name:'Listing prep and rental turnover help',serviceType:'Property turnover and listing preparation',description:'Pre-listing punch lists, curb appeal, cleanouts, rental turnovers and seasonal upkeep for realtors, landlords and property managers.',audience:{'@type':'BusinessAudience',audienceType:'Realtors, landlords and property managers'},provider:{'@id':organization['@id']},areaServed,mainEntityOfPage:{'@id':pageId}});
+ }
  const service=localServicePages[slug];
  if(service){
   const serviceId=url+'#service';
