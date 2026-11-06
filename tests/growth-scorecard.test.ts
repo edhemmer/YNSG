@@ -33,10 +33,10 @@ test('phase follows the playbook gates and the current week never counts toward 
  assert.equal(growthScorecard({completedJobs:12,reviews:5,weeks:empty}).phase,'Build');
  const full=[41,40,45,42,0].map((hours,i)=>({week:`w${i}`,hours}));
  const ready=growthScorecard({completedJobs:60,reviews:20,weeks:full});
- assert.equal(ready.phase,'First hire');assert.equal(ready.gates[1].met,true);
+ assert.equal(ready.phase,'First hire');assert.equal(ready.gates[1]!.met,true);
  const currentOnly=[30,41,40,45,90].map((hours,i)=>({week:`w${i}`,hours}));
- assert.equal(growthScorecard({completedJobs:60,reviews:20,weeks:currentOnly}).gates[1].met,false);
- assert.match(growthScorecard({completedJobs:3,reviews:null,weeks:empty}).gates[0].progress,/3 of 10 jobs · reviews not entered/);
+ assert.equal(growthScorecard({completedJobs:60,reviews:20,weeks:currentOnly}).gates[1]!.met,false);
+ assert.match(growthScorecard({completedJobs:3,reviews:null,weeks:empty}).gates[0]!.progress,/3 of 10 jobs · reviews not entered/);
  assert.equal(scorecardTargets.reviewGoal,50);
  assert.throws(()=>growthScorecard({completedJobs:-1,reviews:0,weeks:empty}));
 });
