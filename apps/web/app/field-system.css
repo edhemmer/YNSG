@@ -214,3 +214,19 @@
 [data-theme=dark] .company-workspace:not(.signed-out) .request-avatar{background:#1c3a2e;color:#bdf0d6}
 /* Paging sits under the list it belongs to. */
 .company-workspace:not(.signed-out) .billing-panel .record-pages{margin:16px 0 0}
+/* Requests: one card layout for every width — who and what on top, when and the next step below. */
+.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-columns{display:none}
+.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-list{display:grid;gap:10px}
+.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-row{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"person state" "schedule action";gap:10px 16px;align-items:start;padding:16px 18px;background:#fff;border:1px solid #dfe5ea;border-radius:14px;cursor:pointer}
+.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-row:hover{border-color:#9dbfae;background:#f8fbf9}
+.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-person{grid-area:person;min-width:0}
+.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-state{grid-area:state;justify-self:end;text-align:right;min-width:0}
+.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-state p{margin:6px 0 0;font-size:.9rem;color:#4a5b6b}
+.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-schedule{grid-area:schedule;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;font-size:.9rem;color:#4a5b6b;min-width:0}
+.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-schedule strong{color:#10283c}
+.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-action{grid-area:action;justify-self:end;align-self:end;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+[data-theme=dark] .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-row{background:#13202b;border-color:#2a3d4d}
+[data-theme=dark] .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-row:hover{background:#172836;border-color:#3d6a56}
+[data-theme=dark] .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-state p,[data-theme=dark] .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-schedule{color:#a9bccb}
+[data-theme=dark] .company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-schedule strong{color:#e8f1f7}
+@media(max-width:520px){.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-row{grid-template-columns:minmax(0,1fr);grid-template-areas:"person" "state" "schedule" "action"}.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-state{justify-self:start;text-align:left}.company-workspace:not(.signed-out) .request-manager:not(.compact-inbox):not(.request-manager-rail) .request-record-action{justify-self:stretch;justify-content:flex-start}}
