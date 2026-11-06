@@ -43,6 +43,10 @@ export async function POST(request: Request) {
           p_key: c.key,
         };
         break;
+      case "EraseRequest":
+        name="erase_service_request";args={p_org:c.organizationId,p_id:c.id,p_revision:c.revision,p_key:c.key};break;
+      case "EraseCustomer":
+        name="erase_customer";args={p_org:c.organizationId,p_id:c.id,p_key:c.key};break;
       case "SaveAgreedQuote":
       case "PublishQuote":
         name = c.command==="SaveAgreedQuote" ? "save_agreed_quote_and_prepare_job" : "publish_flexible_quote";

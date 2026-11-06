@@ -10,9 +10,10 @@ test('service request clearly allows guest use and labels optional customer acco
  assert.match(page,/mode=signup/);
  assert.doesNotMatch(page,/continue below as a guest|Call or text/);
 });
-test('contact option matches actual phone action and visual grouping',()=>{
+test('contact option points to the single footer call link and keeps visual grouping',()=>{
  assert.match(page,/Have a question\?/);
- assert.match(page,/href="tel:\+18156801775"/);
+ assert.match(page,/Use the Call link at the bottom of this page/);
+ assert.doesNotMatch(page,/href="tel:/);
  assert.match(css,/request-side-group\+\.request-side-group/);
 });
 

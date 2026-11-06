@@ -87,3 +87,15 @@ body .home-service-pills,body .service-pills{margin:var(--s2) 0}
  body .home-service-card .home-service-book{min-height:0!important;height:auto!important;padding:0 14px 12px!important;align-self:start}
  body ul.service-benefits li{font-size:.75rem!important;padding:3px 9px!important}
 }
+
+/* Reliability section and hero lead: tighter on phones */
+@media(max-width:700px){
+ body .premium-hero .hero-lead{font-size:1.0625rem!important;line-height:1.55!important}
+ body .home-reliability{padding-block:32px!important}
+ body .home-reliability h2{font-size:1.5rem!important;max-width:none}
+ body .home-reliability-lead{font-size:1rem!important;line-height:1.55!important}
+ body .reliability-grid{gap:10px!important;margin:16px 0 18px!important}
+ body .reliability-grid article{padding:14px 16px!important}
+ body .reliability-grid h3{font-size:1rem!important;margin-bottom:4px!important}
+ body .reliability-grid p{font-size:.9375rem!important;line-height:1.5!important}
+}

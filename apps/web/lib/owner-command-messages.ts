@@ -21,5 +21,12 @@ export const ownerCommandMessages: Record<string, string> = {
   OVERPAYMENT_REQUIRES_REVIEW: "This amount exceeds the outstanding balance.",
   IDEMPOTENCY_CONFLICT:
     "This retry contains different information. Refresh before continuing.",
+  ERASE_HAS_BILLING:"This request has an invoice, so it cannot be deleted. Billing records are kept.",
+  ERASE_HAS_MILEAGE:"Mileage is recorded against this job. Reverse or move that mileage before deleting.",
+  ERASE_WORK_ACTIVE:"A work timer is still running on this job. Stop it before deleting.",
+  ERASE_MESSAGE_BUSY:"A message for this request is being sent right now. Try again in a minute.",
+  ERASE_RECURRING:"This request is part of a recurring series. Cancel the series instead of deleting it.",
+  ERASE_HAS_RECORDS:"This customer still has requests, quotes, jobs or invoices. Delete those first.",
+  ERASE_HAS_FILES:"This customer has uploaded files. Remove the files first.",
   ALREADY_REVERSED: "This expense has already been reversed. Refresh the report.",
 };

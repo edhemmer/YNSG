@@ -30,7 +30,7 @@ await sql(bootstrap);
 for(const path of (await readdir('supabase/migrations')).filter(p=>p.endsWith('.sql')).sort())await sql(await readFile('supabase/migrations/'+path,'utf8'));
 const foundation=await readFile('tests/foundation.sql','utf8'),prefix=foundation.split('set local role service_role;')[0];
 await sql(foundation);
-const fixtures=[...new Set([...testSource.matchAll(/readFile\('tests\/([^']+\.sql)'/g)].map(m=>m[1]))].filter(p=>!['foundation.sql','service-lifecycle.sql','approved-work-window.sql','recurring-series.sql','atomic-owner-visit.sql','mobile-notifications.sql'].includes(p));
+const fixtures=[...new Set([...testSource.matchAll(/readFile\('tests\/([^']+\.sql)'/g)].map(m=>m[1]))].filter(p=>!['foundation.sql','service-lifecycle.sql','approved-work-window.sql','recurring-series.sql','atomic-owner-visit.sql','mobile-notifications.sql','erase-records.sql'].includes(p));
 for(const file of fixtures){await sql(prefix+await withNetworkCatalog(await readFile('tests/'+file,'utf8')));console.log('PASS: native PostgreSQL '+file);}
 const marker="set local role service_role;\nselect set_config('request.jwt.claims','{\"role\":\"service_role\"}',true);\nselect public.website_slot_hold('20000000-0000-4000-8000-000000000001','select','70000000-0000-4000-8000-000000000006'";
 const booking=(await readFile('tests/independent-calendar.sql','utf8')).split(marker)[0];assert.ok(!booking.includes('rollback;'),'Booking fixture split changed');
@@ -42,6 +42,8 @@ await sql(prefix+(await readFile('tests/mobile-notifications.sql','utf8')).repla
 console.log('PASS: opt-in phone notifications, quiet hours, stale visit, revocation and unknown-result handling');
 await sql(prefix+booking+await readFile('tests/atomic-owner-visit.sql','utf8'));
 console.log('PASS: atomic work completion rollback, retry, timer closure and permissions');
+await sql(prefix+booking+await readFile('tests/erase-records.sql','utf8'));
+console.log('PASS: permanent delete of unbilled requests and customers, billing guard, retry, permissions and tamper-proof records');
 const lifecycle=await readFile('tests/service-lifecycle.sql','utf8');assert.ok(lifecycle.trim().endsWith('rollback;'));
 await sql(prefix+booking+lifecycle.replace(/rollback;\s*$/,'commit;'));
 console.log('PASS: canonical service → quote → work → invoice → split receipts committed in synthetic database');
