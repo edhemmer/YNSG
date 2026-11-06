@@ -1,5 +1,5 @@
 import type {InvoiceCredit} from './invoice-credit-contract.ts';
-export type Submission={name:string;phone:string;email:string;street:string;city:string;postalCode?:string;state?:string;region?:string;description?:string;preferredTime?:string;communityRate?:string;service?:string;task?:string;services?:{service:string;task:string}[]};
+export type Submission={name:string;phone:string;email:string;street:string;city:string;postalCode?:string;state?:string;region?:string;description?:string;preferredTime?:string;communityRate?:string;leadSource?:string;service?:string;task?:string;services?:{service:string;task:string}[]};
 export type Visit={id:string;request_id:string;job_id?:string|null;status:string;revision:number;start_at:string;end_at:string;arrival_at:string;expires_at:string|null;replaces_id:string|null;customer_response:string};
 export type InboxRequest={id:string;customer_id?:string|null;status:string;revision:number;created_at:string;original_submission:Submission;appointments:Visit[]};
 export type LinkedQuote={id:string;request_id:string;status:string;current_version:number;quote_versions:{version:number;scope:string;labor_cents:number;duration_minutes:number;crew?:import('./crew-billing.ts').CrewTerms}[]};

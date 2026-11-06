@@ -4,6 +4,8 @@ import {appointmentSelection} from '../lib/appointment-window.js';
 import { randomUUID } from 'node:crypto';
 import { saveCrmRequest, IntakeFailure } from '../lib/public-intake.js';
 import {serviceCatalog as tasks} from '../site/service-catalog.js';
+import {leadSources} from '../site/lead-sources.js';
+const knownSources = new Set(leadSources);
 const services = new Set(Object.keys(tasks));
 // Do not filter genuine inquiries by town: travel eligibility is an owner decision.
 const fail = (res,status,error) => res.status(status).json({error});
@@ -23,6 +25,11 @@ export default async function handler(req,res){
   if(req.headers['sec-fetch-site']==='cross-site')return fail(res,403,'Request not accepted.');
   if(Object.hasOwn(raw,'requestKey') && (typeof raw.requestKey!=='string' || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(raw.requestKey)))return fail(res,400,'Please refresh the page before sending your request.');
   const data={service:clean(raw.service,80),task:clean(raw.task,120),description:clean(raw.description,3000),name:clean(raw.name,120),phone:clean(raw.phone,35),email:clean(raw.email,254),street:clean(raw.street,200),city:clean(raw.city,80),preferredTime:clean(raw.preferredTime,180),communityRate:clean(raw.communityRate,10),website:clean(raw.website,200)};
+  // Optional marketing answer: blank is omitted; anything outside the fixed list is rejected.
+  const leadSource=clean(raw.leadSource,60);
+  // Forwarded only after the request_lead_source migration is applied (REQUEST_LEAD_SOURCE_ENABLED=true);
+  // until then the answer is validated and dropped so intake can never fail on it.
+  if(leadSource){if(!knownSources.has(leadSource))return fail(res,400,'Please check the required fields and try again.');if(process.env.REQUEST_LEAD_SOURCE_ENABLED==='true')data.leadSource=leadSource;}
   if(Object.hasOwn(raw,'postalCode')){data.postalCode=clean(raw.postalCode,5);if(!/^[0-9]{5}$/.test(data.postalCode))return fail(res,400,'Please check the required fields and try again.');}
   const hasServices=Object.hasOwn(raw,'services');
   const selections=hasServices ? raw.services : [{service:data.service,task:data.task}];

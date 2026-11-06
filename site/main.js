@@ -134,7 +134,7 @@ if(form){
   const recovery=requestRecovery(tabStorage),recovered=recovery.read();
   const draftNote=form.querySelector('#draft-note'),clearDraft=form.querySelector('#clear-draft');
   cityPostalPicker(form);
-  const contactFields=['description','name','phone','email','street','city','postalCode'];
+  const contactFields=['description','name','phone','email','street','city','postalCode','leadSource'];
   function saveDraft(){
     if(pendingSubmission||form.hidden)return;
     const data=Object.fromEntries(new FormData(form));

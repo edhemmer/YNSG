@@ -516,5 +516,11 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": []
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261106150000_request_lead_source.sql",
+      "name": "request_lead_source",
+      "status": "not_applied_to_connected_supabase"
+    }
+  ]
 }
