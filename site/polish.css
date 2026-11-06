@@ -91,3 +91,5 @@ body .home-service-pills,body .service-pills{margin:var(--s2) 0}
 
 /* Request buttons keep one consistent width (pinned by the public layout check) */
 body .hero-buttons .button,body .hero-buttons .service-request-button{width:min(288px,calc(100vw - 100px))!important;align-self:flex-start}
+body ul.service-benefits li{max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere;min-width:0}
+body .home-services .shell{min-width:0}
