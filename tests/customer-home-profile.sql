@@ -1,0 +1,24 @@
+-- Owner-only home profile: revision-checked saves, retry-safe keys, staff-only access, removed with the customer.
+insert into public.customers(organization_id,id,display_name) values('20000000-0000-4000-8000-000000000001','31000000-0000-4000-8000-000000000009','Synthetic Erase Profile');
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select pg_temp.assert_true((public.read_home_profile('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001')->>'revision')::int=0,'empty profile starts at revision 0');
+select pg_temp.assert_true((public.save_home_profile('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',0,'  Side gate, code from owner  ','Friendly dog, Max','Driveway is fine','Text before arriving','home-profile-key-0001')->>'revision')::int=1,'first save creates revision 1');
+select pg_temp.assert_true((public.save_home_profile('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',0,'  Side gate, code from owner  ','Friendly dog, Max','Driveway is fine','Text before arriving','home-profile-key-0001')->>'revision')::int=1,'same retry replays its result');
+select pg_temp.assert_true((select r->>'accessNotes'='Side gate, code from owner' and r->>'pets'='Friendly dog, Max' and (r->>'revision')::int=1 from (select public.read_home_profile('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001') r) x),'saved values are trimmed and readable');
+do $$begin begin perform public.save_home_profile('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',0,'Changed','','','','home-profile-key-0001');raise exception 'TEST FAILED changed replay';exception when raise_exception then if sqlerrm<>'IDEMPOTENCY_CONFLICT' then raise;end if;end;end$$;
+do $$begin begin perform public.save_home_profile('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',0,'Older screen','','','','home-profile-key-0002');raise exception 'TEST FAILED stale overwrite';exception when raise_exception then if sqlerrm<>'STALE_REVISION' then raise;end if;end;end$$;
+select pg_temp.assert_true((public.save_home_profile('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',1,'Side gate','Max is friendly','Driveway','Prefers mornings','home-profile-key-0003')->>'revision')::int=2,'current revision saves');
+do $$begin begin perform public.save_home_profile('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',2,repeat('a',501),'','','','home-profile-key-0004');raise exception 'TEST FAILED too long';exception when raise_exception then if sqlerrm<>'VALIDATION' then raise;end if;end;end$$;
+do $$begin begin perform public.read_home_profile('20000000-0000-4000-8000-000000000001','39999999-0000-4000-8000-000000000001');raise exception 'TEST FAILED unknown customer';exception when raise_exception then if sqlerrm<>'NOT_FOUND' then raise;end if;end;end$$;
+do $$begin begin perform 1 from private.customer_home_profiles;raise exception 'TEST FAILED direct table read';exception when insufficient_privilege then null;end;end$$;
+select public.save_home_profile('20000000-0000-4000-8000-000000000001','31000000-0000-4000-8000-000000000009',0,'Front door','','','','home-profile-key-0005');
+select public.erase_customer('20000000-0000-4000-8000-000000000001','31000000-0000-4000-8000-000000000009','home-profile-erase-key-01');
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
+do $$begin begin perform public.read_home_profile('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001');raise exception 'TEST FAILED non-staff read';exception when insufficient_privilege then null;end;end$$;
+do $$begin begin perform public.save_home_profile('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',2,'x','','','','home-profile-key-0006');raise exception 'TEST FAILED non-staff save';exception when insufficient_privilege then null;end;end$$;
+reset role;
+select pg_temp.assert_true((select count(*)=0 from private.customer_home_profiles where customer_id='31000000-0000-4000-8000-000000000009'),'erasing a customer removes their home profile');
+select pg_temp.assert_true((select count(*)=1 from private.customer_home_profiles where customer_id='30000000-0000-4000-8000-000000000001' and revision=2),'other profile untouched');
+select pg_temp.assert_true((select count(*)=2 from public.audit_events where action='customer.home_profile_saved' and object_id='30000000-0000-4000-8000-000000000001'),'each real save is audited once');
+rollback;

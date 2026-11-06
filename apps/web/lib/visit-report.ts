@@ -1,4 +1,4 @@
-import {safeEmailCta,emailRequestUrl,type EmailDraft} from './email-templates';
+import {safeEmailCta,emailRequestUrl,type EmailDraft} from './email-templates.ts';
 // Owner-written visit report sent from the owner's own email app (photos attached there).
 // Pure text assembly: no storage, no sending, no pricing. Every line is what the owner typed.
 export type VisitReport={customerName:string;visitDate:string;workDone:string;noticed:string;photosAttached:boolean;nextVisit:string;reviewLink:string};

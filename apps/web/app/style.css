@@ -393,3 +393,10 @@ html[data-theme=dark] .request-dialog .detail-tabs button{color:#b3c2cd}html[dat
 .visit-report-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .visit-report-preview{border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--surface)}
 .visit-report-preview pre{white-space:pre-wrap;font-family:inherit;margin:8px 0 0;line-height:1.55}
+/* Home profile (owner-only "before you arrive") */
+.home-profile{display:grid;gap:10px;border-left:4px solid var(--gold)}
+.home-profile-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.home-profile-head h3{margin:0}
+.home-profile-list{display:grid;gap:8px;margin:0}.home-profile-list div{display:grid;gap:2px}
+.home-profile-list dt{font-size:14px;color:var(--muted);font-weight:600}.home-profile-list dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.home-profile-form{display:grid;gap:12px}.home-profile-form label{display:grid;gap:4px}
+.home-profile-actions{display:flex;gap:8px;flex-wrap:wrap}
