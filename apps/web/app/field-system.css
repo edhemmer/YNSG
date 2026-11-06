@@ -262,3 +262,21 @@
  .company-workspace:not(.signed-out) .workspace-main>.list-heading h1{order:1}
 }
 @media(prefers-reduced-motion:reduce){.company-workspace:not(.signed-out) .workspace-main :is(button,a.button){transition:none}.company-workspace:not(.signed-out) .workspace-main :is(button,a.button):active{transform:none}}
+/* Phone: fewer screens of scrolling on a job. The tab already names the panel, so repeated headings and copies of the scope go. */
+@media(max-width:760px){
+ .company-workspace:not(.signed-out) .job-workspace .job-record-panel{gap:12px}
+ .company-workspace:not(.signed-out) .job-workspace .job-record-panel[id$="-plan"] .job-panel-heading>div:first-child,
+ .company-workspace:not(.signed-out) .job-workspace .job-record-panel[id$="-invoice"] .job-panel-heading>div:first-child{display:none}
+ .company-workspace:not(.signed-out) .job-workspace .job-record-panel[id$="-plan"] .job-panel-heading,
+ .company-workspace:not(.signed-out) .job-workspace .job-record-panel[id$="-invoice"] .job-panel-heading{justify-content:flex-end;gap:0}
+ .company-workspace:not(.signed-out) .job-workspace .job-record-panel[id$="-plan"] .job-panel-heading:not(:has(button)),
+ .company-workspace:not(.signed-out) .job-workspace .job-record-panel[id$="-invoice"] .job-panel-heading:not(:has(button)){display:none}
+ .company-workspace:not(.signed-out) .job-workspace .job-record-panel[id$="-work"] .job-panel-heading h3{display:none}
+ .company-workspace:not(.signed-out) .job-workspace .job-record-body{padding:14px 12px}
+ .company-workspace:not(.signed-out) .job-workspace .job-record-panel>section,
+ .company-workspace:not(.signed-out) .job-workspace .job-record-panel>details{margin:0}
+ .company-workspace:not(.signed-out) .job-workspace .workflow-section{padding-top:14px}
+ .company-workspace:not(.signed-out) .job-workspace .job-record-panel label{margin-bottom:10px}
+ .company-workspace:not(.signed-out) .job-workspace .job-record-panel textarea{min-height:96px}
+ .company-workspace:not(.signed-out) .job-workspace .job-record-panel .tiny{margin:6px 0 0}
+}
