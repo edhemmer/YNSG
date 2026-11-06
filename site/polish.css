@@ -5,20 +5,9 @@ body section.section{padding-block:var(--s6)}
 @media(max-width:850px){body section.section{padding-block:var(--s5)}}
 @media(max-width:590px){body section.section{padding-block:var(--s4)}body .shell{width:calc(100% - 32px)}}
 
-/* Header: logo, links and call button on one slim row */
-body .site-header .header-row{min-height:0;padding-block:10px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px}
-body .site-header .brand{flex:none;width:auto}
-body .site-header .brand img{width:auto;height:64px;max-width:none;object-fit:contain}
-body .site-header .nav-desktop{display:flex;align-items:center;gap:24px;margin-right:auto}
-body .site-header .header-actions{display:flex;align-items:center;gap:16px}
+/* Header: the approved centered masthead stays (logo >=200px phone, >=300px desktop); only its padding is trimmed */
+body .site-header .header-row{padding-block:8px;row-gap:4px}
 @media(max-width:850px){
- body .site-header .brand img{height:48px}
- body .site-header .nav-mobile{display:flex!important;flex-wrap:nowrap!important;order:3;flex:1 0 100%;width:100%;margin:0;gap:0!important;justify-content:space-between;border-top:1px solid #e3e9e4}
- body .site-header .nav-mobile>a{flex:1 1 auto;min-height:40px!important;padding:6px 4px!important;font-size:.875rem!important;white-space:nowrap;justify-content:center;display:flex!important;border:0!important;background:transparent!important}
- body .site-header .nav-mobile>a[href="/request"]{display:none!important}
- body .site-header .header-actions{display:flex!important;margin-left:auto}
- body .site-header .header-actions .nav-request{display:none!important}
- body .site-header .header-actions .call-link{display:flex!important;min-height:44px;padding:4px 8px!important;font-weight:800}
  body .service-benefits{display:flex;flex-wrap:wrap;gap:6px 8px;margin:12px 0}
  body .service-benefits li{padding:4px 10px;font-size:.8125rem;min-height:0}
 }
