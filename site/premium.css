@@ -476,3 +476,13 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
 .job-plan{padding-left:1.3em}.job-plan li{margin-bottom:12px;line-height:1.65}
 .job-guide-disclosure{margin:18px 0;padding:16px 18px;border-left:4px solid var(--gold);background:var(--paper);border-radius:10px}
 .job-guide-disclosure p{margin:0;font-size:1rem;line-height:1.6}
+.home-promise{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:10px}
+.home-promise li{position:relative;padding-left:28px;line-height:1.55}
+.home-promise li::before{content:"✓";position:absolute;left:0;top:0;color:var(--forest);font-weight:700}
+.home-reliability{background:var(--paper)}
+.home-reliability h2{max-width:22ch}
+.home-reliability-lead{max-width:62ch;font-size:1.08rem;line-height:1.65}
+.reliability-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px;margin:24px 0 28px}
+.reliability-grid article{border:1px solid var(--line);border-radius:14px;padding:20px;background:var(--cream)}
+.reliability-grid h3{font-size:1.1rem;margin:0 0 8px;color:var(--navy)}
+.reliability-grid p{margin:0;line-height:1.6}

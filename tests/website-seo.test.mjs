@@ -67,7 +67,7 @@ test('search landing pages provide specific guidance without imposing handyman-f
   assert.ok(html.includes('href="/pricing/"'));
   assert.match(html,/href="\/request\/(?:\?[^"]*)?"/);
  }
- assert.match(seo('', 'Page','Description').title,/Lawn & Home Services/);
+ assert.match(seo('', 'Page','Description').title,/Handyman, Lawn & Yard Help/);
 });
 
 test('main service categories link directly to detailed local landing pages',async()=>{
