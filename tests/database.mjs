@@ -84,6 +84,7 @@ try {
  await db.exec(foundation.split('set local role service_role;')[0]+booking+await readFile('tests/recurring-series.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+(await readFile('tests/mobile-notifications.sql','utf8')).replace('-- CANONICAL_BOOKING',()=>booking));
  await db.exec(foundation.split('set local role service_role;')[0]+booking+await readFile('tests/atomic-owner-visit.sql','utf8'));
+ await db.exec(foundation.split('set local role service_role;')[0]+booking+await readFile('tests/erase-records.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+booking+await readFile('tests/service-lifecycle.sql','utf8'));
  console.log('PASS: empty-schema migrations plus foundation, commercial, scheduling, Google, owner setup, operations, availability, reviewed scheduling, customer actions and mail dispatch PostgreSQL assertions (PGlite). Live auth, provider delivery, and multi-connection races require separate evidence.');
 }catch(error){console.error('Database check failed:',error.message, '\nContext:',error.where??'none');process.exitCode=1;}finally{await db.close();}

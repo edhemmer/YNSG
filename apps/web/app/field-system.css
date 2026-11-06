@@ -291,3 +291,14 @@
  .company-workspace:not(.signed-out) .request-manager .inbox-tools>.tiny,.company-workspace:not(.signed-out) .request-manager .inbox-summary>.tiny{display:none}
  .company-workspace:not(.signed-out) .request-manager .inbox-summary{margin:6px 0}
 }
+/* Permanent delete: quiet until asked, then a clear two-step confirm */
+.company-workspace .erase-record{margin-top:14px}
+.company-workspace .erase-card{border-color:var(--os-border)}
+.company-workspace .erase-confirm{display:grid;gap:12px;padding:14px;border:1px solid #b42318;border-radius:10px;background:#fef3f2;color:#55160c}
+.company-workspace .erase-confirm p{margin:0;font-size:.9375rem}
+.company-workspace .erase-actions{display:flex;flex-wrap:wrap;gap:8px}
+.company-workspace .erase-actions>button{flex:0 0 auto;width:auto;min-height:48px;padding:0 18px}
+.company-workspace .erase-actions>button.danger{background:#b42318;border-color:#b42318;color:#fff}
+.company-workspace .erase-record>button.danger-ghost{width:auto;min-height:44px;padding:0 16px}
+[data-theme=dark] .company-workspace .erase-confirm{background:#3b1f1c;border-color:#f97066;color:#ffd9d4}
+[data-theme=dark] .company-workspace .erase-actions>button.danger{background:#f97066;border-color:#f97066;color:#1b0a08}

@@ -13,6 +13,7 @@ import {fieldWorkflow} from '../lib/field-workflow';
 import {prepareFieldBrief} from '../lib/field-preparation';
 import RequestDetail from './request-detail';
 import SchedulingReviewPanel from './scheduling-review-panel';
+import EraseRecord from './erase-record';
 import Icon from './crm-icons';
 import {navigationUrl} from '../lib/day-plan';
 import {invoiceNumber} from '../lib/invoice-number';
@@ -33,7 +34,7 @@ import UnforeseenJobReview from './unforeseen-job-review';
 import {hiddenConditionPreflight} from '../lib/unforeseen-job-cost';
 type Job=LinkedJob;
 const money=(n:number)=>(n/100).toLocaleString('en-US',{style:'currency',currency:'USD'});
-export default function ServiceWorkflow({organization,request,quotes,jobs,invoices,timezone,canManage,canQuote,canWork,busy,onBusy,onReview,act,fieldAction,onChanged,onCustomer,onNetwork,companyName,officeTools=true}:{organization:string;request:InboxRequest;quotes:LinkedQuote[];jobs:Job[];invoices:LinkedInvoice[];timezone:string;canManage:boolean;canQuote:boolean;canWork:boolean;busy:boolean;onBusy:(v:boolean)=>void;onReview:()=>void;act:(value:Record<string,unknown>)=>Promise<unknown>;fieldAction:(job:Job,action:'start'|'pause'|'resume')=>Promise<boolean|void>;onChanged:()=>void;onCustomer?:(id:string)=>void;onNetwork?:(tasks:string[],context?:CompanionContext,initialView?:'learn'|'refer')=>void;companyName?:string;officeTools?:boolean}){
+export default function ServiceWorkflow({organization,request,quotes,jobs,invoices,timezone,canManage,canQuote,canWork,busy,onBusy,onReview,act,fieldAction,onChanged,onCustomer,onNetwork,companyName,officeTools=true,onErased}:{organization:string;request:InboxRequest;quotes:LinkedQuote[];jobs:Job[];invoices:LinkedInvoice[];timezone:string;canManage:boolean;canQuote:boolean;canWork:boolean;busy:boolean;onBusy:(v:boolean)=>void;onReview:()=>void;act:(value:Record<string,unknown>)=>Promise<unknown>;fieldAction:(job:Job,action:'start'|'pause'|'resume')=>Promise<boolean|void>;onChanged:()=>void;onCustomer?:(id:string)=>void;onNetwork?:(tasks:string[],context?:CompanionContext,initialView?:'learn'|'refer')=>void;companyName?:string;officeTools?:boolean;onErased?:()=>void}){
  useEffect(()=>{document.getElementById('job-title-'+request.id)?.focus({preventScroll:true});},[request.id]);
  const task=fieldWorkflow(request,quotes,jobs,invoices),{canLeave}=useEntrySafety();
  const [recordedWork,setRecordedWork]=useState(false);
@@ -133,6 +134,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
    {canManage&&(working||task.kind==='ready')&&<details className="workflow-supporting"><summary>Extra work or unexpected conditions</summary><OnSiteExtraReview/><UnforeseenJobReview/></details>}
   </details>
   <details className="workflow-history"><summary>Request history & agreements</summary><button type="button" className="secondary" disabled={blocked} onClick={onReview}>Open full request</button>{quotes.map(q=><p key={q.id}>Scope & price: {q.status.replaceAll('_',' ')} · {q.quote_versions.find(v=>v.version===q.current_version)?.scope}</p>)}{invoices.map(i=><p key={i.id}>Invoice {invoiceNumber(i.number)} · {money(i.total_cents)} · received {money(i.payments.reduce((sum,p)=>sum+p.cents,0))} · credits {money(creditTotal(i.credits))}</p>)}</details>
+   {canManage&&!['working'].includes(task.kind)&&(invoices.length===0?<EraseRecord label="Delete this request" disabled={blocked} consequence={'Removes this request'+(jobs.length||quotes.length?', its quote, job and notes':'')+(request.appointments.length?' and its visit':'')+'. It cannot be undone. If the visit is on your Google Calendar, delete that event there too.'} run={()=>act({command:'EraseRequest',id:request.id,revision:request.revision}) as Promise<{ok?:boolean}|undefined>} onDone={()=>onErased?.()}/>:<p className="tiny">This request has an invoice, so it is kept for your records.</p>)}
   </section>
   {declineOpen&&<RequestDetail onNetwork={onNetwork} companyName={companyName} organization={organization} requestId={request.id} timezone={timezone} canManage={canManage} initialPanel="decline" onClose={()=>setDeclineOpen(false)} onChanged={onChanged} onWork={()=>{setDeclineOpen(false);onChanged();}}/>}
  </JobWorkspace>;
