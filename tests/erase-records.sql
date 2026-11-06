@@ -3,7 +3,7 @@
 -- a customer only when nothing is left under it, and the tamper-proof rules still hold everywhere else.
 set local role authenticated;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
-select public.publish_hourly_quote('20000000-0000-4000-8000-000000000001',(select id from public.service_requests),(select revision from public.service_requests),'Synthetic agreed leaf management scope',120,false,false,null,'erase-price-01');
+select public.publish_hourly_quote('20000000-0000-4000-8000-000000000001',(select id from public.service_requests),(select revision from public.service_requests),'Synthetic agreed leaf management scope',120,false,false,null,'erase-price-key-01');
 select public.approve_quote('20000000-0000-4000-8000-000000000001',(select id from public.quotes),1,'Synthetic customer agreement for isolated local test');
 select set_config('test.req',(select id::text from public.service_requests),true);
 select set_config('test.rev',(select revision::text from public.service_requests),true);
