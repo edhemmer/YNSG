@@ -13,6 +13,8 @@ export const ownerCommandSchema = z.discriminatedUnion("command", [
     status: z.enum(["reviewing", "declined", "canceled"]),
     reason: z.string().trim().min(2).max(1000).optional(),
   }).strict(),
+  z.object({...base,command:z.literal("EraseRequest"),id:z.uuid(),revision:z.number().int().positive()}).strict(),
+  z.object({...base,command:z.literal("EraseCustomer"),id:z.uuid()}).strict(),
   z.object({
     ...base,
     command:z.literal("SaveAgreedQuote"),

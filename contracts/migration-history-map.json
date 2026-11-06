@@ -511,5 +511,11 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": []
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261106120000_erase_unbilled_records.sql",
+      "name": "erase_unbilled_records",
+      "status": "not_applied_to_connected_supabase"
+    }
+  ]
 }

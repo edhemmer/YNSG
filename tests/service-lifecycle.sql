@@ -176,4 +176,12 @@ set local role authenticated;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select pg_temp.assert_true(public.invoice_payment_context('20000000-0000-4000-8000-000000000001',current_setting('test.invoice_probe')::uuid)->>'canManage'='true','current owner retains financial management');
 
+-- Permanent delete must refuse a request whose job has an invoice, and change nothing.
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+do $$declare r public.service_requests;begin select * into r from public.service_requests limit 1;
+ begin perform public.erase_service_request('20000000-0000-4000-8000-000000000001',r.id,r.revision,'erase-key-billed-0001');raise exception 'TEST FAILED billed request erased';exception when raise_exception then if sqlerrm<>'ERASE_HAS_BILLING' then raise;end if;end;
+end$$;
+reset role;
+select pg_temp.assert_true((select count(*)>=1 from public.service_requests) and (select count(*)>=1 from public.invoices) and (select count(*)>=1 from public.payments),'billed request, invoice and payments survive a delete attempt');
 rollback;
