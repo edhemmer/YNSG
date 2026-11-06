@@ -45,3 +45,19 @@ test('keyboard activation can trigger a blocked autoplay retry',async()=>{
  doc.querySelector('#browse').dispatchEvent(new dom.window.KeyboardEvent('keydown',{key:'Enter',bubbles:true}));await micro();
  assert.equal(calls,2);dom.window.close();
 });
+test('Tab, arrow and page keys can start a blocked welcome; Escape and modifiers cannot',async()=>{
+ for(const [key,expected] of [['Tab',2],['ArrowDown',2],['PageDown',2],['Escape',1],['Shift',1]]){
+  const dom=fixture(),doc=dom.window.document,audio=doc.querySelector('audio');let calls=0;
+  audio.play=()=>{calls++;return Promise.reject(new Error('blocked'));};welcomeVoice(doc);await micro();
+  doc.querySelector('#browse').dispatchEvent(new dom.window.KeyboardEvent('keydown',{key,bubbles:true}));await micro();
+  assert.equal(calls,expected,key);dom.window.close();
+ }
+});
+test('a finished phone touch or swipe can start a blocked welcome, but not on a link',async()=>{
+ const dom=fixture(),doc=dom.window.document,audio=doc.querySelector('audio');let calls=0;
+ audio.play=()=>{calls++;return calls===1?Promise.reject(new Error('blocked')):Promise.resolve();};welcomeVoice(doc);await micro();
+ doc.querySelector('a').dispatchEvent(new dom.window.Event('touchend',{bubbles:true}));await micro();assert.equal(calls,1);
+ doc.querySelector('#browse').dispatchEvent(new dom.window.Event('touchend',{bubbles:true}));await micro();assert.equal(calls,2);
+ doc.querySelector('#browse').dispatchEvent(new dom.window.Event('touchend',{bubbles:true}));await micro();assert.equal(calls,2);
+ dom.window.close();
+});

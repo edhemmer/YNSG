@@ -12,7 +12,7 @@ export function welcomeVoice(doc=document){
   let pending=false, stopped=false;
   const markPlayed=()=>{try{session?.setItem(flag,'1');}catch{};detach();};
   const update=()=>{status.textContent=audio.paused?'Press Play to hear our welcome.':'Playing our welcome. Use the player to pause or replay.';};
-  function detach(){doc.removeEventListener('click',onClick,true);doc.removeEventListener('keydown',onKeydown,true);}
+  function detach(){doc.removeEventListener('click',onClick,true);doc.removeEventListener('keydown',onKeydown,true);doc.removeEventListener('touchend',onTouchend,true);}
   function pauseRequested(){stopped=true;detach();}
   audio.addEventListener('play',()=>{markPlayed();update();});
   audio.addEventListener('pause',()=>{if(!audio.ended)pauseRequested();update();});
@@ -34,10 +34,17 @@ export function welcomeVoice(doc=document){
     return Boolean(el&&!el.closest('audio, a[href], [role="link"], input, textarea, select, [contenteditable="true"]'));
   }
   function onClick(e){if(eligible(e.target))attempt();}
-  function onKeydown(e){if((e.key==='Enter'||e.key===' ')&&!e.repeat&&eligible(e.target))attempt();}
+  // Any real key that browsers treat as user activation (Tab, arrows, Page Down, Space, Enter...),
+  // except Escape and bare modifier keys, and never while typing in a field.
+  const ignoredKeys=new Set(['Escape','Shift','Control','Alt','Meta','CapsLock','Fn']);
+  function onKeydown(e){if(!ignoredKeys.has(e.key)&&!e.repeat&&eligible(e.target))attempt();}
+  // A finished phone touch, including a swipe-scroll, counts as activation in Chromium browsers;
+  // where a browser does not grant it, play() is rejected and the next tap or key retries.
+  function onTouchend(e){if(eligible(e.target))attempt();}
   if(!view||alreadyPlayed())return;
   doc.addEventListener('click',onClick,true);
   doc.addEventListener('keydown',onKeydown,true);
+  doc.addEventListener('touchend',onTouchend,{capture:true,passive:true});
   // A first attempt is optional and browser-controlled. A rejection does NOT disable
   // the later gesture-based attempt (unlike the previous implementation).
   if(doc.visibilityState!=='hidden'&&!view.navigator?.connection?.saveData&&!view.matchMedia?.('(prefers-reduced-motion: reduce)').matches)attempt();
