@@ -24,7 +24,8 @@ body .site-header .header-actions{display:flex;align-items:center;gap:16px}
 }
 
 /* Hero */
-body .hero .hero-local{display:none}
+body .hero .hero-local{display:block;margin:0 0 6px}
+body .premium-hero .brand-tagline{width:clamp(190px,50vw,250px)}
 body .hero.premium-hero{padding-block:var(--s5) var(--s5);min-height:0}
 body .hero .hero-layout{min-height:0;padding-block:0;gap:var(--s3) var(--s5);align-items:center}
 body .hero h1{margin:0 0 var(--s2);line-height:1.1}
