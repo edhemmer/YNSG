@@ -60,3 +60,5 @@
  .booking-card .request-category > summary strong{font-size:16px}
  .booking-card .request-category > summary .category-action{font-size:14px}
 }
+/* Reserve the step indicator's space while the booking script loads, so the form doesn't jump (CLS). */
+@media (scripting:enabled){.booking-progress[hidden]{display:flex!important;visibility:hidden}}
