@@ -11,3 +11,6 @@ Owner-supplied IMG_6833.jpeg and IMG_6835.jpeg edited with the built-in image ed
 
 ### Trailer correction v2
 Owner identified the missing tow tongue. Image edit mode: preserve the trailer and signage; widen the view to include a physically plausible full A-frame, jack, chains and coupler at the right/front; preserve outdoor driveway, no truck or dollies. The towing assembly is reconstructed because the original reference cropped it. Selected image exec-a9f2658d-fb6d-4d6d-96b0-d71a35dc6659.png; v2 responsive derivatives keep the complete frame. v1 retained as an earlier alternate, not used by pages.
+
+## Recent work gallery — 6 November 2026
+Owner-supplied real photographs of a fall mowing and cleanup job (home shown belongs to the owner as a service customer) (not AI-generated). Edits made at the owner's request, nothing else changed beyond cropping to 4:3 and resizing: the house number on the brick is blurred, and the phone number on the older yard sign in the front-walk photo was corrected to the current 815-680-1775. Published in /assets/work as 640 and 1280 pixel WebP files with all EXIF, GPS and other metadata removed. Photos showing a hand in frame or a duplicate view were left out.
