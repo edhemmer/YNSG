@@ -506,3 +506,11 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
 .meet-ed-inner{display:grid;gap:24px;align-items:center;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
 .meet-ed-video{margin:0}.meet-ed-video video{width:100%;height:auto;border-radius:16px;background:var(--navy);display:block}
 @media(max-width:760px){.meet-ed-inner{grid-template-columns:1fr}}
+/* Careers */
+.careers-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
+.career-role{border:1px solid var(--line);border-radius:16px;padding:24px;background:var(--paper);display:grid;gap:12px;align-content:start}
+.career-role h2{margin:0}.career-role p{margin:0}
+.career-facts{list-style:none;padding:0;margin:4px 0;display:flex;flex-wrap:wrap;gap:8px}
+.career-facts li{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.92rem;background:var(--cream)}
+.page-hero .career-facts{margin:16px 0}
+.careers-why{background:var(--cream)}
