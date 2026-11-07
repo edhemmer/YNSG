@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const id = z.uuid();
 export const money = z.number().int().min(0).max(999_999_999);
+export const leadSourceOptions = ['Google search or Maps','Facebook','Nextdoor','Friend, family or neighbor','Realtor or property manager','Saw our truck, sign or uniform','Flyer, card or door hanger','Returning customer','Other'] as const;
 export const requestService = z.object({service:z.string().trim().min(2).max(80),task:z.string().trim().max(120)}).strict();
 export const requestInput = z.object({
   service: z.string().trim().min(2).max(80).optional(), task: z.string().trim().max(120).optional(),
@@ -12,6 +13,7 @@ export const requestInput = z.object({
   postalCode:z.string().regex(/^[0-9]{5}$/).optional(),
   preferredTime: z.string().trim().max(180).default(''), communityRate: z.enum(['Yes','No']),
   website: z.string().max(200).default(''),
+  leadSource: z.enum(leadSourceOptions).optional(),
 }).strict().superRefine((v,ctx)=>{
   if(!v.services?.length && !v.service)ctx.addIssue({code:'custom',message:'Choose at least one service',path:['services']});
   if(v.services && new Set(v.services.map(x=>`${x.service}:${x.task}`)).size!==v.services.length)ctx.addIssue({code:'custom',message:'Remove duplicate selections',path:['services']});

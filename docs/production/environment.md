@@ -40,6 +40,8 @@ Names only. Never commit values. This inventory is generated from a scan of the 
 | `TRANSACTIONAL_EMAIL_FROM` | configuration (not secret by name) | `apps/web`, `lib/transactional-email.js` |
 | `YNSG_AI_MODEL` | configuration (not secret by name) | `apps/web` |
 | `CRM_INTAKE_ENABLED` | feature flag | `api/requests.js` |
+| `REQUEST_LEAD_SOURCE_ENABLED` | feature flag; set `true` only after migration `20261106150000_request_lead_source` is applied, otherwise the optional "How did you hear about us?" answer is validated and dropped | `api/requests.js` |
+| `PUBLISH_HOME_CARE_PLAN` | build-time feature flag; `true` publishes /home-care-plan/ and its footer link once the owner confirms plan pricing | `scripts/build.mjs` |
 | `GOOGLE_CALENDAR_WORKER_ENABLED` | feature flag | `apps/web` |
 | `GOOGLE_GMAIL_DELIVERY_ENABLED` | feature flag | `apps/web` |
 | `OWNER_PUSH_ENABLED` | feature flag | `apps/web` |
