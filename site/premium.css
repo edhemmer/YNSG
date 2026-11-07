@@ -494,3 +494,23 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
 .seasonal-offer-inner h2{margin:4px 0 8px}
 .seasonal-offer-inner p{max-width:60ch;margin:0}
 .service-season{border-left:4px solid var(--gold);padding-left:16px}
+/* Reviews (shown once 3+ real reviews exist) */
+.home-reviews{background:var(--paper)}
+.review-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px;margin:24px 0 12px}
+.review-card{margin:0;border:1px solid var(--line);border-radius:14px;padding:20px;background:var(--cream);display:grid;gap:10px}
+.review-card blockquote{margin:0}.review-card blockquote p{margin:0;line-height:1.65}
+.review-stars{margin:0;color:var(--gold);letter-spacing:2px;font-size:1.05rem}
+.review-card figcaption{font-size:.95rem;color:var(--muted)}
+.review-source{font-size:.92rem;color:var(--muted)}
+/* Meet Ed video (shown once the owner adds the file) */
+.meet-ed-inner{display:grid;gap:24px;align-items:center;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
+.meet-ed-video{margin:0}.meet-ed-video video{width:100%;height:auto;border-radius:16px;background:var(--navy);display:block}
+@media(max-width:760px){.meet-ed-inner{grid-template-columns:1fr}}
+/* Careers */
+.careers-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
+.career-role{border:1px solid var(--line);border-radius:16px;padding:24px;background:var(--paper);display:grid;gap:12px;align-content:start}
+.career-role h2{margin:0}.career-role p{margin:0}
+.career-facts{list-style:none;padding:0;margin:4px 0;display:flex;flex-wrap:wrap;gap:8px}
+.career-facts li{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.92rem;background:var(--cream)}
+.page-hero .career-facts{margin:16px 0}
+.careers-why{background:var(--cream)}
