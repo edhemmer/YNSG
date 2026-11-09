@@ -57,8 +57,8 @@ export default function OwnerServicePricing({value,onChange,approvedTotalCents,d
     <label>Hours worked (minutes)<input inputMode="numeric" type="number" min={1} max={1440} value={line.minutes} onChange={e=>change(i,{minutes:e.target.value})}/></label>
     <label>Normal hourly rate ($)<input inputMode="decimal" value={line.rate} onChange={e=>change(i,{rate:e.target.value})}/></label>
     <p>Normal charge: {standards[i]!==null?money(standards[i]!):'Enter time and rate'}</p>
-   </div>:<label>Standard charge ($)<input inputMode="decimal" placeholder="0.00" required value={line.standard} onChange={e=>change(i,{standard:e.target.value})}/></label>}
-   <label>Actual billed ($)<input inputMode="decimal" placeholder="0.00" required value={line.billed} onChange={e=>change(i,{billed:e.target.value})}/></label>
+   </div>:<label>Standard charge ($)<input name={"standard-"+i} inputMode="decimal" placeholder="0.00" required value={line.standard} onChange={e=>change(i,{standard:e.target.value})}/></label>}
+   <label>Actual billed ($)<input name={"billed-"+i} inputMode="decimal" placeholder="0.00" required value={line.billed} onChange={e=>change(i,{billed:e.target.value})}/></label>
   </fieldset>)}
   <div className="owner-price-summary">
    <p>Normal service value: <strong>{standardTotal===null?'Enter the standard charges':money(standardTotal)}</strong></p>
