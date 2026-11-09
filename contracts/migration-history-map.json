@@ -484,6 +484,11 @@
       "file": "20261106120000_erase_unbilled_records.sql",
       "name": "erase_unbilled_records",
       "historyVersion": "20261106125853"
+    },
+    {
+      "file": "20261109154000_owner_invoice_pricing.sql",
+      "name": "owner_invoice_pricing",
+      "historyVersion": "20261109142557"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -525,11 +530,6 @@
     {
       "file": "20261106170000_customer_home_profiles.sql",
       "name": "customer_home_profiles",
-      "status": "not_applied_to_connected_supabase"
-    },
-    {
-      "file": "20261109154000_owner_invoice_pricing.sql",
-      "name": "owner_invoice_pricing",
       "status": "not_applied_to_connected_supabase"
     }
   ]
