@@ -12,7 +12,9 @@ export const ownerPricingService=z.object({
 }).strict().superRefine((s,ctx)=>{
  if(s.billedCents>s.standardCents)ctx.addIssue({code:'custom',message:'Billed price cannot exceed standard price.'});
  if(s.method==='hourly'){
-  if(s.minutes===undefined||s.hourlyRateCents===undefined||hourlyCharge(s.minutes,s.hourlyRateCents)!==s.standardCents)ctx.addIssue({code:'custom',message:'Hourly standard charge must match the time and rate.'});
+  let correct=false;
+  if(s.minutes!==undefined&&s.hourlyRateCents!==undefined)try{correct=hourlyCharge(s.minutes,s.hourlyRateCents)===s.standardCents}catch{}
+  if(!correct)ctx.addIssue({code:'custom',message:'Hourly standard charge must match the time and rate.'});
  }else if(s.minutes!==undefined||s.hourlyRateCents!==undefined)ctx.addIssue({code:'custom',message:'Fixed charges cannot contain hourly calculation fields.'});
 });
 export const ownerPricingSchema=z.object({
