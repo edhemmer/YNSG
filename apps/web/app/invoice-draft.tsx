@@ -299,6 +299,7 @@ export default function InvoiceDraft({
                   required
                   readOnly={Boolean(l.waive)}
                   aria-label="Invoice charge in dollars"
+                  onFocus={event=>event.currentTarget.select()}
                   value={l.chargedAmount}
                   onChange={(e) =>
                     change(i, {
