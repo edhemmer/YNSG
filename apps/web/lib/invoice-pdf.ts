@@ -1,4 +1,3 @@
-import {billingLabel} from './invoice-billing.ts';
 import {PDFDocument,rgb,type PDFPage,type PDFFont} from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import {readFile} from 'node:fs/promises';
@@ -50,11 +49,10 @@ export async function invoicePdf(invoice:InvoiceDocument){
  y-=12;text('Services & charges',17,4,bold);work=true;tableHead();
  for(const item of invoice.lines){
   const description=wrap(item.description,365,11,bold);
-  const detail=wrap(billingLabel(item)+(item.recordedMinutes!==undefined?` · ${item.recordedMinutes} actual minutes recorded`:''),365,9);
-  const height=description.length*17+detail.length*14+24;if(height<=430)ensure(height);
+  const height=description.length*17+24;if(height<=430)ensure(height);
   let first=true;
   for(const value of description){ensure(17);draw(value,60,y,11,bold);if(first){const amount=item.chargedCents?money(item.chargedCents):'No charge';draw(amount,552-font.widthOfTextAtSize(amount,11),y,11);first=false;}y-=17;}
-  y-=3;for(const value of detail){ensure(14);draw(value,60,y,9,font,muted);y-=14;}
+
   y-=4;ensure(8);page.drawLine({start:{x:48,y},end:{x:564,y},thickness:.6,color:lineColor});y-=10;
  }
  work=false;
