@@ -77,7 +77,8 @@ begin
  job_revision=excluded.job_revision,breakdown=excluded.breakdown,created_by=excluded.created_by,updated_at=now();
  return result;
 end $body$;
-revoke all on function private.save_invoice_priced_labor(uuid,uuid,integer,jsonb,jsonb,text) from public,anon,authenticated,service_role;
+revoke all on function private.save_invoice_priced_labor(uuid,uuid,integer,jsonb,jsonb,text) from public,anon,service_role;
+grant execute on function private.save_invoice_priced_labor(uuid,uuid,integer,jsonb,jsonb,text) to authenticated;
 
 create or replace function public.save_invoice_priced_labor(
  p_org uuid,p_job uuid,p_revision integer,p_lines jsonb,p_breakdown jsonb,p_key text
@@ -95,7 +96,8 @@ begin
  select breakdown into snapshot from private.invoice_owner_pricing where organization_id=p_org and job_id=p_job;
  return snapshot;
 end $body$;
-revoke all on function private.invoice_owner_pricing_read(uuid,uuid) from public,anon,authenticated,service_role;
+revoke all on function private.invoice_owner_pricing_read(uuid,uuid) from public,anon,service_role;
+grant execute on function private.invoice_owner_pricing_read(uuid,uuid) to authenticated;
 
 create or replace function public.invoice_owner_pricing_read(p_org uuid,p_job uuid)
 returns jsonb language sql security invoker set search_path='' as $body$
