@@ -71,7 +71,8 @@ export default function InvoiceDraft({
     [loaded, setLoaded] = useState(false),
     [savedDraft, setSavedDraft] = useState(false);
   const [taxContext,setTaxContext]=useState<TaxContext|null>(null),[taxRule,setTaxRule]=useState(""),[taxEvidence,setTaxEvidence]=useState("");
-  const subtotal=lines.reduce((sum,line)=>sum+(invoiceChargeCents(line.chargedAmount)??0),0);
+  const validOwnerPricing=priceMode&&ownerPriceDraft?parsePriceDraft(ownerPriceDraft):null;
+  const subtotal=validOwnerPricing?pricingTotals(validOwnerPricing).billedCents:lines.reduce((sum,line)=>sum+(invoiceChargeCents(line.chargedAmount)??0),0);
   const selectedRule=taxContext?.rules.find(r=>r.id===taxRule);
   let taxPreview:{taxCents:number;totalCents:number;components:TaxComponent[]}|null=null;
   try{if(selectedRule)taxPreview=salesTax(subtotal,selectedRule);}catch{}
@@ -190,7 +191,7 @@ export default function InvoiceDraft({
     e.preventDefault();
     if(busy||blocked||draftUnknown||completionUncertain||issueUnknown||entryConflict||!currentRead||(!reviewed&&!streamlined))return;
     if(lines.some(line=>invoiceChargeCents(line.chargedAmount)===null)){setMessage('Enter valid amounts in dollars and cents.');return;}
-    const privatePricing=priceMode&&ownerPriceDraft?parsePriceDraft(ownerPriceDraft):null;
+    const privatePricing=validOwnerPricing;
     if(priceMode&&!privatePricing){setMessage('Finish the standard and actual price for each service. Nothing has been saved yet.');return;}
     if(privatePricing&&pricingTotals(privatePricing).billedCents>approvedTotalCents){setMessage('The final amount exceeds the approved labor estimate. Review the customer agreement before charging more.');return;}
     if(crew&&lines.some(line=>(priceMode?(privatePricing?pricingTotals(privatePricing).billedCents:0):(invoiceChargeCents(line.chargedAmount)??0))>0&&line.recordedMinutes<=0)){setMessage('Record the actual time worked before saving a billed labor charge.');return;}
