@@ -10,7 +10,7 @@ export function bookingJourney({form,services,requestData,resumeSelected=false})
  const noteEdit=form.ownerDocument.createElement('button');noteEdit.type='button';noteEdit.className='booking-text-button';noteEdit.textContent='Edit jobs';noteEdit.hidden=true;noteHome.before(noteEdit);
  noteEdit.addEventListener('click',()=>{if(!locked()){noteOnly=false;show(1);refresh();}});
  function serviceView(){if(!services().length)noteOnly=false;servicePicker.hidden=Boolean(noteOnly);noteEdit.hidden=!noteOnly;noteEdit.disabled=locked();serviceHeading.textContent=noteOnly?'A note about your other job':originalHeading;serviceIntro.textContent=noteOnly?'Your jobs are selected. Tell us a little about the other work before choosing a time.':originalIntro;}
- function placeNote(){if(!detailsNote)return;if(step===1&&description.required)noteHome.after(workNote);else detailsNote.append(workNote);}
+ function placeNote(){if(!detailsNote)return;const target=step===1&&description.required?noteHome.parentNode:detailsNote;if(workNote.parentNode===target)return;if(step===1&&description.required)noteHome.after(workNote);else detailsNote.append(workNote);}
  const locked=()=>form.dataset.deliveryUnknown==='true'||form.getAttribute('aria-busy')==='true'||form.dataset.appointmentHolding==='true';
  const farmDay=()=>services().some(job=>job.service==='Farm hand services');
  const message=form.querySelector('#form-message'),nextTime=form.querySelector('#booking-time-next'),summary=form.querySelector('#booking-summary');
