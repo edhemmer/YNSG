@@ -312,7 +312,7 @@ export default function InvoiceDraft({
                 />
               </label>
 
-              <details><summary>Time, rate & billing calculation (optional)</summary><label>Billing basis<select value={l.billingBasis} onChange={e=>change(i,{billingBasis:e.target.value as "fixed"|"hourly"})}><option value="fixed">{crew?'Adjusted labor amount':'Fixed approved amount'}</option><option value="hourly">Time × hourly rate</option></select></label>{l.billingBasis==="hourly"&&<><label>Billed minutes (may include the agreed minimum)<input type="number" min="0" max="1440" required readOnly={Boolean(crew)} value={l.billingMinutes} onChange={e=>change(i,{billingMinutes:Number(e.target.value)})}/></label><label>Rate for this person ($/hour)<input required inputMode="decimal" value={l.hourlyAmount} onChange={e=>change(i,{hourlyAmount:e.target.value})}/></label></>}
+              <details><summary>Rate calculation & other billing options</summary><label>Billing basis<select value={l.billingBasis} onChange={e=>change(i,{billingBasis:e.target.value as "fixed"|"hourly"})}><option value="fixed">{crew?'Adjusted labor amount':'Fixed approved amount'}</option><option value="hourly">Time × hourly rate</option></select></label>{l.billingBasis==="hourly"&&<><label>Billed minutes (may include the agreed minimum)<input type="number" min="0" max="1440" required readOnly={Boolean(crew)} value={l.billingMinutes} onChange={e=>change(i,{billingMinutes:Number(e.target.value)})}/></label><label>Rate for this person ($/hour)<input required inputMode="decimal" value={l.hourlyAmount} onChange={e=>change(i,{hourlyAmount:e.target.value})}/></label></>}
 {crew&&<label className="check"><input type="checkbox" checked={l.waive||false} onChange={e=>change(i,{waive:e.target.checked})}/>Waive this person's labor and record the reason below</label>}
               </details>              {(!mobile||invoiceChargeCents(l.chargedAmount)===0||Boolean(crew&&(l.billingBasis==='fixed'||invoiceChargeCents(l.hourlyAmount)!==crew.perPersonRateCents)))&&<label>
                 Reason for adjusted amount or no charge
@@ -338,7 +338,7 @@ export default function InvoiceDraft({
               </button>}
             </fieldset>
           ))}
-          {crew&&lines.some(line=>line.billingMinutes<0)&&<p role="alert">The first person worked beyond two hours. The saved agreement needs an extension billing policy before this time can be charged. Keep actual time unchanged and review the agreement.</p>}
+          {crew&&lines.some(line=>line.billingBasis==='hourly'&&line.billingMinutes<0)&&<p role="alert">The hourly calculation needs a reviewed extension billing policy. You can instead enter an agreed fixed amount with a reason while keeping the actual time on record.</p>}
           <button
             type="button"
             className="secondary"
