@@ -17,7 +17,11 @@ export function parsePriceDraft(draft:PriceDraft):OwnerPricing|null{
  const services=draft.services.map(line=>{
   const billedCents=invoiceChargeCents(line.billed);
   const minutes=Number(line.minutes),hourlyRateCents=invoiceChargeCents(line.rate);
-  const standardCents=line.method==='hourly'&&Number.isInteger(minutes)&&minutes>=1&&minutes<=1440&&hourlyRateCents!==null?hourlyCharge(minutes,hourlyRateCents):invoiceChargeCents(line.standard);
+  let standardCents=invoiceChargeCents(line.standard);
+  if(line.method==='hourly'){
+   standardCents=null;
+   if(Number.isInteger(minutes)&&minutes>=1&&minutes<=1440&&hourlyRateCents!==null)try{standardCents=hourlyCharge(minutes,hourlyRateCents);}catch{}
+  }
   return {description:line.description.trim(),method:line.method,standardCents,billedCents,...(line.method==='hourly'?{minutes,hourlyRateCents}:{})};
  });
  const result=ownerPricingSchema.safeParse({services,reason:draft.reason});
@@ -26,7 +30,7 @@ export function parsePriceDraft(draft:PriceDraft):OwnerPricing|null{
 export default function OwnerServicePricing({value,onChange,approvedTotalCents,disabled=false}:{value:PriceDraft;onChange:(next:PriceDraft)=>void;approvedTotalCents:number;disabled?:boolean}){
  const change=(i:number,patch:Partial<PriceDraftLine>)=>onChange({...value,services:value.services.map((s,j)=>j===i?{...s,...patch}:s)});
  const priced=parsePriceDraft(value);
- const standards=value.services.map(l=>l.method==='hourly'&&l.minutes!==''&&l.rate!==''?(()=>{try{return hourlyCharge(Number(l.minutes),invoiceChargeCents(l.rate)??0)}catch{return null}})():invoiceChargeCents(l.standard));
+ const standards=value.services.map(l=>l.method==='hourly'&&l.minutes!==''&&l.rate!==''?(()=>{const rate=invoiceChargeCents(l.rate),minutes=Number(l.minutes);if(rate===null||!Number.isInteger(minutes)||minutes<1||minutes>1440)return null;try{return hourlyCharge(minutes,rate)}catch{return null}})():invoiceChargeCents(l.standard));
  const standardTotal=standards.every(n=>n!==null)?standards.reduce<number>((s,n)=>s+(n??0),0):null;
  const actualTotal=value.services.map(l=>invoiceChargeCents(l.billed)).every(n=>n!==null)?value.services.reduce((s,l)=>s+(invoiceChargeCents(l.billed)??0),0):null;
  const update=(patch:Partial<PriceDraft>)=>onChange({...value,...patch});
