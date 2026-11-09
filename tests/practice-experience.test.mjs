@@ -53,6 +53,12 @@ test('work recording through invoice issue and document uses the real connected 
   await act(async()=>{Object.getOwnPropertyDescriptor(Object.getPrototypeOf(minutes),'value').set.call(minutes,'2:00');minutes.dispatchEvent(new Event('input',{bubbles:true}));await tick();});
 
   await click('Complete visit & review invoice');assert.match(node.textContent,/Invoice charges/);
+  // Practice uses two separately requested jobs. Each needs a standard and
+  // actually billed price before issue; the original approved total is $120.
+  await input('standard-0','60.00');await input('billed-0','60.00');
+  await input('standard-1','60.00');await input('billed-1','60.00');
+  await click('Save invoice amount');
+  await until(()=>[...node.querySelectorAll('button')].some(button=>button.textContent?.includes('Issue invoice · $120.00')&&!button.disabled),'Saved private pricing allows invoice issue');
   await click('Issue invoice · $120.00');assert.match(node.textContent,/Invoice /);assert.ok([...node.querySelectorAll('a')].some(a=>a.textContent.includes('Open invoice')));assert.equal(h.calls(),0);
  }finally{await h.close();}
 });
