@@ -251,7 +251,7 @@ export default function InvoiceDraft({
       {completionUncertain&&<button type="button" disabled={busy} onClick={checkCompletion}>Check saved work</button>}
       {draftUnknown&&<button type="button" disabled={busy} onClick={()=>void replayDraft()}>Check saved draft result</button>}
       {streamlined&&clockPrepared.current===organization+':'+job+':'+revision&&<p className="tiny">Time filled from the saved job timer, rounded to a minute. Review it before completing.</p>}
-      {streamlined&&<p className="invoice-action-explanation">{completed?"Issue the invoice when these charges are correct.":"Confirm actual work, time and charges to complete this visit."}</p>}
+      {streamlined&&<p className="invoice-action-explanation">{completed?"Check the description and amount, save any edits, then issue and email the invoice.":"Enter the work done and final amount to complete the visit."}</p>}
       <form className={streamlined?"invoice-workbench":undefined} onSubmit={save}>
         <fieldset disabled={busy || blocked || draftUnknown || completionUncertain || issueUnknown || !currentRead}>
           <legend>{completed?"Invoice draft":"Work record"}</legend>
@@ -291,26 +291,31 @@ export default function InvoiceDraft({
                 />}
               </label>
 <label>
-                Charge ($)
+                Invoice amount ($) — edit directly
                 <input
                   type="text"
                   inputMode="decimal"
                   pattern="[0-9]{1,7}(\.[0-9]{1,2})?"
                   required
-                  readOnly={l.billingBasis==="hourly"||Boolean(l.waive)}
+                  readOnly={Boolean(l.waive)}
+                  aria-label="Invoice charge in dollars"
                   value={l.chargedAmount}
                   onChange={(e) =>
                     change(i, {
+                      // A directly edited amount becomes a fixed labor charge.
+                      // Preserve the recorded minutes and require an explanation
+                      // whenever crew billing rules require one.
+                      billingBasis:"fixed",
                       chargedAmount: e.target.value,
                     })
                   }
                 />
               </label>
 
-              <details open={streamlined?undefined:!mobile||l.billingBasis==="hourly"||invoiceChargeCents(l.chargedAmount)===0}><summary>Billing options & no-charge reason</summary><label>Billing basis<select value={l.billingBasis} onChange={e=>change(i,{billingBasis:e.target.value as "fixed"|"hourly"})}><option value="fixed">{crew?'Adjusted labor amount':'Fixed approved amount'}</option><option value="hourly">Time × hourly rate</option></select></label>{l.billingBasis==="hourly"&&<><label>Billed minutes (may include the agreed minimum)<input type="number" min="0" max="1440" required readOnly={Boolean(crew)} value={l.billingMinutes} onChange={e=>change(i,{billingMinutes:Number(e.target.value)})}/></label><label>Rate for this person ($/hour)<input required inputMode="decimal" value={l.hourlyAmount} onChange={e=>change(i,{hourlyAmount:e.target.value})}/></label></>}
+              <details><summary>Time, rate & billing calculation (optional)</summary><label>Billing basis<select value={l.billingBasis} onChange={e=>change(i,{billingBasis:e.target.value as "fixed"|"hourly"})}><option value="fixed">{crew?'Adjusted labor amount':'Fixed approved amount'}</option><option value="hourly">Time × hourly rate</option></select></label>{l.billingBasis==="hourly"&&<><label>Billed minutes (may include the agreed minimum)<input type="number" min="0" max="1440" required readOnly={Boolean(crew)} value={l.billingMinutes} onChange={e=>change(i,{billingMinutes:Number(e.target.value)})}/></label><label>Rate for this person ($/hour)<input required inputMode="decimal" value={l.hourlyAmount} onChange={e=>change(i,{hourlyAmount:e.target.value})}/></label></>}
 {crew&&<label className="check"><input type="checkbox" checked={l.waive||false} onChange={e=>change(i,{waive:e.target.checked})}/>Waive this person's labor and record the reason below</label>}
               </details>              {(!mobile||invoiceChargeCents(l.chargedAmount)===0||Boolean(crew&&(l.billingBasis==='fixed'||invoiceChargeCents(l.hourlyAmount)!==crew.perPersonRateCents)))&&<label>
-                Reason for rate adjustment or no charge
+                Reason for adjusted amount or no charge
                 <input
                   required={invoiceChargeCents(l.chargedAmount) === 0||Boolean(crew&&(l.billingBasis==='fixed'||invoiceChargeCents(l.hourlyAmount)!==crew.perPersonRateCents))}
                   minLength={invoiceChargeCents(l.chargedAmount) === 0||Boolean(crew&&(l.billingBasis==='fixed'||invoiceChargeCents(l.hourlyAmount)!==crew.perPersonRateCents)) ? 2 : 0}
