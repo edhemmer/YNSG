@@ -21,12 +21,12 @@ function HourlyRateInput({cents,name,onAmountChange}:{cents:number;name:string;o
   useEffect(()=>{if(!editing)setValue(String(cents/100));},[cents,editing]);
   return <input
     required type="text" inputMode="decimal"
-    pattern="[0-9]+(\\.[0-9]{1,2})?"
+    pattern="[0-9]+(\.[0-9]{1,2})?"
     name={name} value={value}
     onFocus={()=>setEditing(true)}
     onChange={event=>{
       const next=event.target.value;
-      if(!/^\\d*(?:\\.\\d{0,2})?$/.test(next))return;
+      if(!/^\d*(?:\.\d{0,2})?$/.test(next))return;
       setValue(next);
       if(next!==''&&next!=='.')onAmountChange(Math.round(Number(next)*100));
     }}
