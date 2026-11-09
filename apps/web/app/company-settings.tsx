@@ -14,6 +14,25 @@ import { sessionFetch } from "../lib/session-fetch";
 import {useBlockedEntry,useUnsavedEntry} from "./entry-safety";
 import { clockLabel, clockOptions } from "../lib/settings-display";
 const settingsRead=z.object({ready:z.boolean(),configuration:z.object({version:z.number().int().positive(),settings:companySettings}).passthrough().nullable(),catalog:z.array(z.object({name:z.string(),scope:z.string(),exclusions:z.string(),compliance:z.enum(['review','approved','held']),pricing_mode:z.enum(['hourly','starting','quote','review'])}).strict()).max(100)}).strict();
+function HourlyRateInput({cents,name,onAmountChange}:{cents:number;name:string;onAmountChange:(value:number)=>void}) {
+  // Keep the displayed text separate from saved cents so clearing a rate does not insert 0.
+  const [value,setValue]=useState(String(cents/100));
+  const [editing,setEditing]=useState(false);
+  useEffect(()=>{if(!editing)setValue(String(cents/100));},[cents,editing]);
+  return <input
+    required type="text" inputMode="decimal"
+    pattern="[0-9]+(\\.[0-9]{1,2})?"
+    name={name} value={value}
+    onFocus={()=>setEditing(true)}
+    onChange={event=>{
+      const next=event.target.value;
+      if(!/^\\d*(?:\\.\\d{0,2})?$/.test(next))return;
+      setValue(next);
+      if(next!==''&&next!=='.')onAmountChange(Math.round(Number(next)*100));
+    }}
+    onBlur={()=>{setEditing(false);setValue(String(cents/100));}}
+  />;
+}
 const categories = [
   [
     "Lawn care",
@@ -491,41 +510,11 @@ export default function CompanySettingsPanel({
             <legend id="company-rates" tabIndex={-1}>Rates and invoices</legend>
             <label>
               Standard hourly rate ($)
-              <input
-                required
-                type="number"
-                min="0.01"
-                step="0.01"
-                name="hourly.standardCents"
-                value={draft.hourly.standardCents / 100}
-                onChange={(e) =>
-                  change({
-                    hourly: {
-                      ...draft.hourly,
-                      standardCents: Math.round(Number(e.target.value) * 100),
-                    },
-                  })
-                }
-              />
+              <HourlyRateInput name="hourly.standardCents" cents={draft.hourly.standardCents} onAmountChange={value=>change({hourly:{...draft.hourly,standardCents:value}})}/>
             </label>
             <label>
               Community hourly rate ($)
-              <input
-                required
-                type="number"
-                min="0.01"
-                step="0.01"
-                name="hourly.communityCents"
-                value={draft.hourly.communityCents / 100}
-                onChange={(e) =>
-                  change({
-                    hourly: {
-                      ...draft.hourly,
-                      communityCents: Math.round(Number(e.target.value) * 100),
-                    },
-                  })
-                }
-              />
+              <HourlyRateInput name="hourly.communityCents" cents={draft.hourly.communityCents} onAmountChange={value=>change({hourly:{...draft.hourly,communityCents:value}})}/>
             </label>
             <p>
               Only the first person has a two-hour minimum per combined visit.
