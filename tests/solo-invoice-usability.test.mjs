@@ -4,11 +4,14 @@ import {readFile} from 'node:fs/promises';
 
 test('field invoice allows the owner to directly edit the charge without removing billing history',async()=>{
  const source=await readFile(new URL('../apps/web/app/invoice-draft.tsx',import.meta.url),'utf8');
- assert.match(source,/Invoice amount \(\$\) — edit directly/);
+ assert.match(source,/Invoice amount \(\$\)/);
  assert.match(source,/billingBasis:"fixed",\s*chargedAmount: e\.target\.value/);
  assert.match(source,/Adjustment note \\(when the agreed rate changes or a charge is waived\\)/);
  assert.match(source,/Save invoice amount/);
  assert.match(source,/Issue invoice/);
+ assert.match(source,/invoice-tracked-work/);
+ assert.match(source,/defaultOpen=/);
+ assert.match(source,/Total to invoice/);
  assert.match(source,/recordedMinutes/);
  assert.match(source,/readiness\?\.ready/);
 });
