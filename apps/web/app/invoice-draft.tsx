@@ -178,6 +178,7 @@ export default function InvoiceDraft({
     e.preventDefault();
     if(busy||blocked||draftUnknown||completionUncertain||issueUnknown||entryConflict||!currentRead||(!reviewed&&!streamlined))return;
     if(lines.some(line=>invoiceChargeCents(line.chargedAmount)===null)){setMessage('Enter valid amounts in dollars and cents.');return;}
+    if(crew&&lines.some(line=>(invoiceChargeCents(line.chargedAmount)??0)>0&&line.recordedMinutes<=0)){setMessage('Add the actual time in Work time & records for each billed person. The amount you entered is preserved.');return;}
     try{
       const savedLines=lines.map(({chargedAmount,hourlyAmount,billingMinutes,billingBasis,timeInput:_timeInput,waive:_waive,...line})=>({...line,billingBasis,...(billingBasis==='hourly'?{billingMinutes,unitRateCents:invoiceChargeCents(hourlyAmount)}:{}),chargedCents:invoiceChargeCents(chargedAmount)}));
       if(savedLines.some(line=>line.chargedCents===null)){setMessage('Check every charge. No changes were made.');return;}
@@ -251,7 +252,7 @@ export default function InvoiceDraft({
       {completionUncertain&&<button type="button" disabled={busy} onClick={checkCompletion}>Check saved work</button>}
       {draftUnknown&&<button type="button" disabled={busy} onClick={()=>void replayDraft()}>Check saved draft result</button>}
       {streamlined&&clockPrepared.current===organization+':'+job+':'+revision&&<p className="tiny">Time filled from the saved job timer, rounded to a minute. Review it before completing.</p>}
-      {streamlined&&<p className="invoice-action-explanation">{completed?"Check the description and amount, save any edits, then issue and email the invoice.":"Enter the work done and final amount to complete the visit."}</p>}
+      {streamlined&&<p className="invoice-action-explanation">{completed?"Review the work and final amount. Save changes, issue the invoice, then email it.":"Confirm the work and amount. Your time record stays available below."}</p>}
       <form className={streamlined?"invoice-workbench":undefined} onSubmit={save}>
         <fieldset disabled={busy || blocked || draftUnknown || completionUncertain || issueUnknown || !currentRead}>
           <legend>{completed?"Invoice draft":"Work record"}</legend>
@@ -276,22 +277,8 @@ export default function InvoiceDraft({
                   onChange={(e) => change(i, { description: e.target.value })}
                 />
               </label>
-              <label>
-                {streamlined?'Time worked (hours:minutes)':'Actual minutes recorded'}
-                {streamlined?<input required type="text" inputMode="text" placeholder="1:20" pattern="[0-9]{1,2}:[0-5][0-9]" value={l.timeInput??workedTimeLabel(l.recordedMinutes)} onChange={e=>change(i,{timeInput:e.target.value,recordedMinutes:workedTimeMinutes(e.target.value)??-1})}/>:<input
-                  type="number"
-                  min="0"
-                  max="1440"
-                  step="1"
-                  required
-                  value={l.recordedMinutes}
-                  onChange={(e) =>
-                    change(i, { recordedMinutes: Number(e.target.value) })
-                  }
-                />}
-              </label>
 <label>
-                Invoice amount ($) — edit directly
+                Invoice amount ($)
                 <input
                   type="text"
                   inputMode="decimal"
@@ -313,10 +300,40 @@ export default function InvoiceDraft({
                 />
               </label>
 
+              {streamlined?<details className="invoice-tracked-work" defaultOpen={l.recordedMinutes<=0}>
+                <summary>Work time & records · {l.recordedMinutes>0?workedTimeLabel(l.recordedMinutes):'enter actual time'}</summary>
+              <label>
+                {streamlined?'Time worked (hours:minutes)':'Actual minutes recorded'}
+                {streamlined?<input required type="text" inputMode="text" placeholder="1:20" pattern="[0-9]{1,2}:[0-5][0-9]" value={l.timeInput??workedTimeLabel(l.recordedMinutes)} onChange={e=>change(i,{timeInput:e.target.value,recordedMinutes:workedTimeMinutes(e.target.value)??-1})}/>:<input
+                  type="number"
+                  min="0"
+                  max="1440"
+                  step="1"
+                  required
+                  value={l.recordedMinutes}
+                  onChange={(e) =>
+                    change(i, { recordedMinutes: Number(e.target.value) })
+                  }
+                />}
+              </label>
+              </details>:<>              <label>
+                {streamlined?'Time worked (hours:minutes)':'Actual minutes recorded'}
+                {streamlined?<input required type="text" inputMode="text" placeholder="1:20" pattern="[0-9]{1,2}:[0-5][0-9]" value={l.timeInput??workedTimeLabel(l.recordedMinutes)} onChange={e=>change(i,{timeInput:e.target.value,recordedMinutes:workedTimeMinutes(e.target.value)??-1})}/>:<input
+                  type="number"
+                  min="0"
+                  max="1440"
+                  step="1"
+                  required
+                  value={l.recordedMinutes}
+                  onChange={(e) =>
+                    change(i, { recordedMinutes: Number(e.target.value) })
+                  }
+                />}
+              </label></>}
               <details><summary>Rate calculation & other billing options</summary><label>Billing basis<select value={l.billingBasis} onChange={e=>change(i,{billingBasis:e.target.value as "fixed"|"hourly"})}><option value="fixed">{crew?'Adjusted labor amount':'Fixed approved amount'}</option><option value="hourly">Time × hourly rate</option></select></label>{l.billingBasis==="hourly"&&<><label>Billed minutes (may include the agreed minimum)<input type="number" min="0" max="1440" required readOnly={Boolean(crew)} value={l.billingMinutes} onChange={e=>change(i,{billingMinutes:Number(e.target.value)})}/></label><label>Rate for this person ($/hour)<input required inputMode="decimal" value={l.hourlyAmount} onChange={e=>change(i,{hourlyAmount:e.target.value})}/></label></>}
 {crew&&<label className="check"><input type="checkbox" checked={l.waive||false} onChange={e=>change(i,{waive:e.target.checked})}/>Waive this person's labor and record the reason below</label>}
               </details>              {(!mobile||invoiceChargeCents(l.chargedAmount)===0||Boolean(crew&&(l.billingBasis==='fixed'||invoiceChargeCents(l.hourlyAmount)!==crew.perPersonRateCents)))&&<label>
-                Reason for adjusted amount or no charge
+                Adjustment note (when the agreed rate changes or a charge is waived)
                 <input
                   required={invoiceChargeCents(l.chargedAmount) === 0||Boolean(crew&&(l.billingBasis==='fixed'||invoiceChargeCents(l.hourlyAmount)!==crew.perPersonRateCents))}
                   minLength={invoiceChargeCents(l.chargedAmount) === 0||Boolean(crew&&(l.billingBasis==='fixed'||invoiceChargeCents(l.hourlyAmount)!==crew.perPersonRateCents)) ? 2 : 0}
@@ -365,7 +382,7 @@ export default function InvoiceDraft({
           {lines.length > 0 && (
             <>
               <p>
-                Invoice labor total:{" "}
+                Total to invoice:{" "}
                 {lines.some(l=>invoiceChargeCents(l.chargedAmount)===null)?"Check the charge amounts":(lines.reduce((sum,l)=>sum+(invoiceChargeCents(l.chargedAmount)??0),0)/100).toLocaleString("en-US",{style:"currency",currency:"USD"})}
               </p>
               {!fieldMode&&completed&&taxContext?.required&&<section><h3>Invoice tax</h3><label>Reviewed rule for all recorded work<select value={taxRule} onChange={e=>{setTaxRule(e.target.value);setReviewed(false);}}><option value="">Choose the applicable rule</option>{taxContext.rules.map(r=><option key={r.id} value={r.id}>{r.label} — {r.city}, {r.state}</option>)}</select></label>{selectedRule&&<><p>{selectedRule.scope}</p><p>Effective {selectedRule.effectiveFrom} through {selectedRule.effectiveTo}. Verify county / district boundaries for this exact address.</p><a href={selectedRule.sourceUrl} target="_blank" rel="noopener noreferrer">Rule source</a></>}{taxPreview&&<><p>Subtotal {(subtotal/100).toLocaleString("en-US",{style:"currency",currency:"USD"})}</p>{taxPreview.components.map((c,i)=><p key={i}>{c.label} ({c.ratePpm/10000}%): {(c.taxCents/100).toLocaleString("en-US",{style:"currency",currency:"USD"})}</p>)}<p>Invoice total <strong>{(taxPreview.totalCents/100).toLocaleString("en-US",{style:"currency",currency:"USD"})}</strong></p></>}<label>Customer approval and jurisdiction review evidence<textarea value={taxEvidence} minLength={2} maxLength={1000} onChange={e=>{setTaxEvidence(e.target.value);setReviewed(false);}} placeholder="Record acceptance of subtotal plus tax, and verify that this rule applies to every work item and the service address."/></label></section>}
