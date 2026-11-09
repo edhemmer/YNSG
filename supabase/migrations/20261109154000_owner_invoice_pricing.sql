@@ -14,6 +14,23 @@ revoke all on private.invoice_owner_pricing from public,anon,authenticated,servi
 drop policy if exists invoice_owner_pricing_deny on private.invoice_owner_pricing;
 create policy invoice_owner_pricing_deny on private.invoice_owner_pricing to anon,authenticated using(false) with check(false);
 
+-- Immutable revisions keep historical calculations even when draft amounts change.
+create table if not exists private.invoice_owner_pricing_history (
+ organization_id uuid not null,
+ job_id uuid not null,
+ job_revision integer not null check(job_revision>0),
+ breakdown jsonb not null,
+ created_by uuid not null,
+ created_at timestamptz not null default now(),
+ primary key(organization_id,job_id,job_revision),
+ foreign key(organization_id,job_id) references public.jobs(organization_id,id)
+);
+alter table private.invoice_owner_pricing_history enable row level security;
+revoke all on private.invoice_owner_pricing_history from public,anon,authenticated,service_role;
+drop policy if exists invoice_owner_pricing_history_deny on private.invoice_owner_pricing_history;
+create policy invoice_owner_pricing_history_deny on private.invoice_owner_pricing_history
+ to anon,authenticated using(false) with check(false);
+
 create or replace function private.validate_invoice_owner_pricing(p_breakdown jsonb,p_lines jsonb)
 returns void language plpgsql set search_path='' as $body$
 declare item jsonb; standard_total bigint:=0; billed_total bigint:=0; labor_total bigint:=0;
@@ -75,6 +92,12 @@ begin
  values(p_org,p_job,(result->>'revision')::integer,p_breakdown,auth.uid())
  on conflict(organization_id,job_id) do update set
  job_revision=excluded.job_revision,breakdown=excluded.breakdown,created_by=excluded.created_by,updated_at=now();
+ insert into private.invoice_owner_pricing_history(organization_id,job_id,job_revision,breakdown,created_by)
+ values(p_org,p_job,(result->>'revision')::integer,p_breakdown,auth.uid())
+ on conflict(organization_id,job_id,job_revision) do nothing;
+ if exists(select 1 from private.invoice_owner_pricing_history h
+   where h.organization_id=p_org and h.job_id=p_job and h.job_revision=(result->>'revision')::integer
+   and h.breakdown<>p_breakdown) then raise exception 'IDEMPOTENCY_CONFLICT';end if;
  return result;
 end $body$;
 revoke all on function private.save_invoice_priced_labor(uuid,uuid,integer,jsonb,jsonb,text) from public,anon,service_role;
