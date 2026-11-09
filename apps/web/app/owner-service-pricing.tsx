@@ -63,7 +63,7 @@ export default function OwnerServicePricing({value,onChange,approvedTotalCents,d
   <div className="owner-price-summary">
    <p>Normal service value: <strong>{standardTotal===null?'Enter the standard charges':money(standardTotal)}</strong></p>
    <label>Final invoice total ($)<input inputMode="decimal" value={value.finalTotal} onChange={e=>update({finalTotal:e.target.value})}/></label>
-   <button type="button" className="secondary" disabled={disabled||standardTotal===null||invoiceChargeCents(value.finalTotal)===null||invoiceChargeCents(value.finalTotal)!>standardTotal} onClick={distribute}>Apply total across services</button>
+   <button type="button" className="secondary" disabled={disabled||standardTotal===null||invoiceChargeCents(value.finalTotal)===null||(invoiceChargeCents(value.finalTotal)??Infinity)>standardTotal} onClick={distribute}>Apply total across services</button>
    <p>Actual billed from service rows: <strong>{actualTotal===null?'Complete each service':money(actualTotal)}</strong></p>
    {priced&&<p>Owner-only discretionary reduction: <strong>{money(pricingTotals(priced).reductionCents)}</strong></p>}
    <label>Private pricing note<input maxLength={500} value={value.reason} onChange={e=>update({reason:e.target.value})}/></label>
