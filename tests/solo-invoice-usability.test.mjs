@@ -6,7 +6,7 @@ test('field invoice allows the owner to directly edit the charge without removin
  const source=await readFile(new URL('../apps/web/app/invoice-draft.tsx',import.meta.url),'utf8');
  assert.match(source,/Invoice amount \(\$\) — edit directly/);
  assert.match(source,/billingBasis:"fixed",\s*chargedAmount: e\.target\.value/);
- assert.match(source,/Reason for adjusted amount or no charge/);
+ assert.match(source,/Adjustment note \\(when the agreed rate changes or a charge is waived\\)/);
  assert.match(source,/Save invoice amount/);
  assert.match(source,/Issue invoice/);
  assert.match(source,/recordedMinutes/);
