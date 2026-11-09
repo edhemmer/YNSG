@@ -288,7 +288,7 @@ export default function InvoiceDraft({
             </p>
           )}
           {!streamlined&&crew&&<p className="note">Record each person's actual worked minutes. Only the first person has the two-hour minimum. Additional people have no separate minimum. Rates come from the saved agreement; final labor must stay within its approved amount. Do not multiply the visit timer by crew size.</p>}
-          {priceMode&&ownerPriceDraft&&<><OwnerServicePricing value={ownerPriceDraft} approvedTotalCents={approvedTotalCents} disabled={busy||blocked} onChange={next=>{manualWorkTouched.current=true;manualWorkTouchVersion.current++;setOwnerPriceDraft(next);setSavedDraft(false);setReviewed(false);}}/><details className="invoice-tracked-work" open={lines[0]?.recordedMinutes===0}><summary>Recorded job time · {lines[0]?.recordedMinutes?workedTimeLabel(lines[0].recordedMinutes):'not entered'}</summary><label>Actual time on this job (hours:minutes)<input type="text" inputMode="text" placeholder="2:00" value={lines[0]?.timeInput??workedTimeLabel(lines[0]?.recordedMinutes??0)} onChange={e=>change(0,{timeInput:e.target.value,recordedMinutes:workedTimeMinutes(e.target.value)??-1})}/></label></details></>}
+          {priceMode&&ownerPriceDraft&&<><OwnerServicePricing value={ownerPriceDraft} approvedTotalCents={approvedTotalCents} disabled={busy||blocked} onChange={next=>{manualWorkTouched.current=true;manualWorkTouchVersion.current++;setOwnerPriceDraft(next);setSavedDraft(false);setReviewed(false);}}/><details className="invoice-tracked-work"><summary>Recorded job time · {lines[0]?.recordedMinutes?workedTimeLabel(lines[0].recordedMinutes):'not entered'}</summary><label>Actual time on this job (hours:minutes)<input type="text" inputMode="text" placeholder="2:00" value={lines[0]?.timeInput??workedTimeLabel(lines[0]?.recordedMinutes??0)} onChange={e=>change(0,{timeInput:e.target.value,recordedMinutes:workedTimeMinutes(e.target.value)??-1})}/></label></details></>}
           {!priceMode&&lines.map((l, i) => (
             <fieldset key={i}>
               <legend>{crew?(i===0?'First person':'Additional person '+(i+1)):'Work item '+(i+1)}</legend>
@@ -325,7 +325,7 @@ export default function InvoiceDraft({
                 />
               </label>
 
-              {streamlined?<details className="invoice-tracked-work" open={l.recordedMinutes<=0}>
+              {streamlined?<details className="invoice-tracked-work">
                 <summary>Work time & records · {l.recordedMinutes>0?workedTimeLabel(l.recordedMinutes):'enter actual time'}</summary>
               <label>
                 {streamlined?'Time worked (hours:minutes)':'Actual minutes recorded'}
