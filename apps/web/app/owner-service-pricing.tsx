@@ -25,10 +25,15 @@ export function parsePriceDraft(draft:PriceDraft):OwnerPricing|null{
   return {description:line.description.trim(),method:line.method,standardCents,billedCents,...(line.method==='hourly'?{minutes,hourlyRateCents}:{})};
  });
  const result=ownerPricingSchema.safeParse({services,reason:draft.reason});
- return result.success?result.data:null;
+ if(!result.success)return null;
+ return invoiceChargeCents(draft.finalTotal)===pricingTotals(result.data).billedCents?result.data:null;
 }
 export default function OwnerServicePricing({value,onChange,approvedTotalCents,disabled=false}:{value:PriceDraft;onChange:(next:PriceDraft)=>void;approvedTotalCents:number;disabled?:boolean}){
- const change=(i:number,patch:Partial<PriceDraftLine>)=>onChange({...value,services:value.services.map((s,j)=>j===i?{...s,...patch}:s)});
+ const change=(i:number,patch:Partial<PriceDraftLine>)=>{
+  const services=value.services.map((s,j)=>j===i?{...s,...patch}:s);
+  const cents=services.map(line=>invoiceChargeCents(line.billed));
+  onChange({...value,services,...(Object.hasOwn(patch,'billed')?{finalTotal:cents.every(n=>n!==null)?amount(cents.reduce<number>((sum,n)=>sum+(n??0),0)):''}:{})});
+ };
  const priced=parsePriceDraft(value);
  const standards=value.services.map(l=>l.method==='hourly'&&l.minutes!==''&&l.rate!==''?(()=>{const rate=invoiceChargeCents(l.rate),minutes=Number(l.minutes);if(rate===null||!Number.isInteger(minutes)||minutes<1||minutes>1440)return null;try{return hourlyCharge(minutes,rate)}catch{return null}})():invoiceChargeCents(l.standard));
  const standardTotal=standards.every(n=>n!==null)?standards.reduce<number>((s,n)=>s+(n??0),0):null;
