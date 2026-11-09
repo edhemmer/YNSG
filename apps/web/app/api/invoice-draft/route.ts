@@ -1,3 +1,4 @@
+import {ownerPricingSchema,pricingTotals} from '../../../lib/owner-invoice-pricing';
 import {crewTerms} from '../../../lib/crew-billing';
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -20,8 +21,10 @@ export async function GET(request: Request) {
     if(record.error)throw record.error;
     const quote=await db.from('quote_versions').select('snapshot').eq('organization_id',org).eq('quote_id',record.data.quote_id).eq('version',record.data.approved_version).single();
     if(quote.error)throw quote.error;
+    const ownerPricing=await db.rpc('invoice_owner_pricing_read',{p_org:org,p_job:job});
+    if(ownerPricing.error&&ownerPricing.error.code!=='42501')throw ownerPricing.error;
     return NextResponse.json(
-      { draft: r.data, tax:tax.data,crew:quote.data.snapshot?.crew?crewTerms.parse(quote.data.snapshot.crew):null,readiness:invoiceIssuanceReadiness(quote.data.snapshot?.configuration||null,tax.data?.required===true) },
+      { draft: r.data, ownerPricing:ownerPricing.error?null:ownerPricing.data, tax:tax.data,crew:quote.data.snapshot?.crew?crewTerms.parse(quote.data.snapshot.crew):null,readiness:invoiceIssuanceReadiness(quote.data.snapshot?.configuration||null,tax.data?.required===true) },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e) {
@@ -35,18 +38,27 @@ export async function POST(request: Request) {
       { status: 403 },
     );
   try {
-    const v = parseInvoiceDraft(await request.text());
+    const raw=JSON.parse(await request.text());
+    const {ownerPricing:rawOwnerPricing,...draftData}=raw;
+    const v = parseInvoiceDraft(JSON.stringify(draftData));
+    const ownerPricing=rawOwnerPricing===undefined?null:ownerPricingSchema.parse(rawOwnerPricing);
+    if(ownerPricing&&pricingTotals(ownerPricing).billedCents!==v.lines.reduce((sum,line)=>sum+line.chargedCents,0))
+      return NextResponse.json({error:'Actual service charges must equal the invoice labor total.'},{status:400,headers:{'Cache-Control':'private, no-store'}});
     const { db } = await authenticated();
-    const r = await db.rpc("save_invoice_labor", {
+    const r = await db.rpc(ownerPricing?"save_invoice_priced_labor":"save_invoice_labor", {
       p_org: v.organization,
       p_job: v.job,
       p_revision: v.revision,
       p_lines: v.lines,
+      ...(ownerPricing?{p_breakdown:ownerPricing}:{}),
       p_key: v.key,
     });
     if(r.error){
       const named:Record<string,string>={
         CHANGE_ORDER_REQUIRED:'Charges exceed approved labor. Review the change order.',
+        INVALID_OWNER_PRICING:'Check each service\'s normal and actual charges.',
+        OWNER_PRICING_TOTAL_MISMATCH:'Service amounts must equal the invoice total.',
+        OWNER_DISCOUNT_REASON_REQUIRED:'Add a private note explaining the reduced charge.',
         STALE_REVISION:'Work changed. Refresh the saved job before modifying it.',
         TRANSITION:'The work record no longer accepts draft changes.',
         ADJUSTMENT_REASON_REQUIRED:'Add a reason for changing a person’s rate.',
