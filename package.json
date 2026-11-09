@@ -19,7 +19,8 @@
     "completion:report": "node scripts/check-production-completion.mjs --report",
     "completion:gate": "node scripts/check-production-completion.mjs",
     "certify:production": "node scripts/certify-production.mjs",
-    "lint": "oxlint -c .oxlintrc.json apps/web packages api lib site scripts tests"
+    "lint": "oxlint -c .oxlintrc.json apps/web packages api lib site scripts tests",
+    "verify:seo:live": "node scripts/check-live-indexability.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.2",
