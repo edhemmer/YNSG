@@ -1,4 +1,6 @@
 "use client";
+import OwnerServicePricing,{initialPriceDraft,parsePriceDraft,type PriceDraft} from './owner-service-pricing';
+import {pricingTotals} from '../lib/owner-invoice-pricing';
 import {workedTimeMinutes,workedTimeLabel} from '../lib/worked-time';
 import { publicError } from "../lib/public-errors";
 import { useEffectEvent, useEffect, useRef, useState } from "react";
@@ -37,6 +39,8 @@ export default function InvoiceDraft({
   fieldCanIssue=false,
   streamlined=false,
   trackedMinutes,
+  requestedServices=[],
+  approvedTotalCents=0,
 }: {
   organization: string;
   job: string;
@@ -53,8 +57,13 @@ export default function InvoiceDraft({
   fieldCanIssue?:boolean;
   streamlined?:boolean;
   trackedMinutes?:number;
+  requestedServices?:string[];
+  approvedTotalCents?:number;
 }) {
   const [crew,setCrew]=useState<CrewTerms|null>(null);
+  const [ownerPriceDraft,setOwnerPriceDraft]=useState<PriceDraft|null>(null);
+  const [pricingBaseline,setPricingBaseline]=useState('');
+  const priceMode=Boolean(completed&&ownerPriceDraft&&requestedServices.length&&(!crew||crew.plannedPeople===1));
   const [lines, setLines] = useState<Line[]>([]),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
@@ -80,7 +89,7 @@ export default function InvoiceDraft({
   const [readiness,setReadiness]=useState<{ready:boolean;reasons:string[]}|null>(null);
   const [loadRetry,setLoadRetry]=useState(0);
   const [entryBaseline,setEntryBaseline]=useState({lines:'[]',taxRule:'',taxEvidence:''}),[entryConflict,setEntryConflict]=useState(false);
-  const entryDirty=(loaded&&JSON.stringify(lines)!==entryBaseline.lines)||taxRule!==entryBaseline.taxRule||taxEvidence!==entryBaseline.taxEvidence;
+  const entryDirty=(loaded&&JSON.stringify(lines)!==entryBaseline.lines)||taxRule!==entryBaseline.taxRule||taxEvidence!==entryBaseline.taxEvidence||Boolean(loaded&&ownerPriceDraft&&JSON.stringify(ownerPriceDraft)!==pricingBaseline);
   const manualWorkTouched=useRef(false),manualWorkTouchVersion=useRef(0);
   const dirtyRef=useRef(false);dirtyRef.current=entryDirty;
   const loadedRevision=useRef<number|null>(null);
@@ -104,7 +113,7 @@ export default function InvoiceDraft({
     setBusy(false);onBusy(false);
     setLoaded(false);
     setSavedDraft(false);
-    setLines([]);setCrew(null);setReadiness(null);setTaxContext(null);if(!keepLocalTax){setTaxRule("");setTaxEvidence("");}
+    setLines([]);setCrew(null);setOwnerPriceDraft(null);setPricingBaseline('');setReadiness(null);setTaxContext(null);if(!keepLocalTax){setTaxRule("");setTaxEvidence("");}
     if(ownSaved.current?.revision!==revision)setReviewed(false);
     setMessage("");
     retry.current = null;
@@ -121,13 +130,16 @@ export default function InvoiceDraft({
           const sourceLines=d.draft?.lines?.length?d.draft.lines:agreedCrew?Array.from({length:agreedCrew.plannedPeople},(_,index)=>({crewPerson:index+1,description:index===0?(suggestedWork?.description&&suggestedWork.description.length<=1000?suggestedWork.description:'Record the work performed'):'Additional person labor',recordedMinutes:0,chargedCents:0,waiverReason:'',billingBasis:'hourly',billingMinutes:0,unitRateCents:agreedCrew.perPersonRateCents})):suggestedWork?[{...suggestedWork,description:suggestedWork.description.length<=1000?suggestedWork.description:'',recordedMinutes:0,waiverReason:''}]:[];
           const entryLines=sourceLines.map((line:{description:string;recordedMinutes:number;chargedCents:number;waiverReason:string;billingBasis?:"fixed"|"hourly";billingMinutes?:number;unitRateCents?:number;crewPerson?:number})=>({...((line.crewPerson!==undefined)?{crewPerson:line.crewPerson,waive:line.recordedMinutes>0&&line.chargedCents===0}:{}),billingBasis:line.billingBasis||"fixed",billingMinutes:line.billingMinutes??line.recordedMinutes,hourlyAmount:((line.unitRateCents??0)/100).toFixed(2),description:line.description,recordedMinutes:line.recordedMinutes,waiverReason:line.waiverReason,chargedAmount:(line.chargedCents/100).toFixed(2)}));
           setLines(entryLines);
+          const priceEligible=completed&&requestedServices.length>0&&(!agreedCrew||agreedCrew.plannedPeople===1);
+          const initialPricing=priceEligible?initialPriceDraft(requestedServices,d.ownerPricing||null,approvedTotalCents,entryLines.reduce((sum: number,item:Line)=>sum+(invoiceChargeCents(item.chargedAmount)??0),0)):null;
+          setOwnerPriceDraft(initialPricing);setPricingBaseline(JSON.stringify(initialPricing));
           setEntryBaseline({lines:JSON.stringify(entryLines),taxRule:d.tax?.valid?d.tax?.tax?.rule?.id||'':'',taxEvidence:d.tax?.valid?d.tax?.tax?.customerApprovalEvidence||'':''});loadedRevision.current=revision;
           setReadiness(d.readiness||null);
           if(!ownSaved.current||ownSaved.current.revision!==revision||ownSaved.current.lines!==invoiceDraftFingerprint(d.draft?.lines||[]))setReviewed(false);
           setTaxContext(d.tax);if(!keepLocalTax){setTaxRule(d.tax?.valid?d.tax?.tax?.rule?.id||"":"");setTaxEvidence(d.tax?.valid?d.tax?.tax?.customerApprovalEvidence||"":"");}
           setLoaded(true);
           setSavedDraft(
-            Boolean(d.draft?.lines?.length) && d.draft.jobRevision === revision,
+            Boolean(d.draft?.lines?.length) && d.draft.jobRevision === revision && (!priceEligible||Boolean(d.ownerPricing)),
           );
         }
       })
@@ -178,11 +190,22 @@ export default function InvoiceDraft({
     e.preventDefault();
     if(busy||blocked||draftUnknown||completionUncertain||issueUnknown||entryConflict||!currentRead||(!reviewed&&!streamlined))return;
     if(lines.some(line=>invoiceChargeCents(line.chargedAmount)===null)){setMessage('Enter valid amounts in dollars and cents.');return;}
-    if(crew&&lines.some(line=>(invoiceChargeCents(line.chargedAmount)??0)>0&&line.recordedMinutes<=0)){setMessage('Add the actual time in Work time & records for each billed person. The amount you entered is preserved.');return;}
+    const privatePricing=priceMode&&ownerPriceDraft?parsePriceDraft(ownerPriceDraft):null;
+    if(priceMode&&!privatePricing){setMessage('Finish the standard and actual price for each service. Nothing has been saved yet.');return;}
+    if(privatePricing&&pricingTotals(privatePricing).billedCents>approvedTotalCents){setMessage('The final amount exceeds the approved labor estimate. Review the customer agreement before charging more.');return;}
+    if(crew&&lines.some(line=>(priceMode?(privatePricing?pricingTotals(privatePricing).billedCents:0):(invoiceChargeCents(line.chargedAmount)??0))>0&&line.recordedMinutes<=0)){setMessage('Record the actual time worked before saving a billed labor charge.');return;}
     try{
-      const savedLines=lines.map(({chargedAmount,hourlyAmount,billingMinutes,billingBasis,timeInput:_timeInput,waive:_waive,...line})=>({...line,billingBasis,...(billingBasis==='hourly'?{billingMinutes,unitRateCents:invoiceChargeCents(hourlyAmount)}:{}),chargedCents:invoiceChargeCents(chargedAmount)}));
+      const savedLines=privatePricing?(()=>{
+        const first=lines[0];
+        if(!first)throw Error('NO_WORK');
+        const combined=privatePricing.services.map(item=>item.description).join(' & ');
+        if(combined.length>1000)throw Error('DESCRIPTION_TOO_LONG');
+        return [{...((first.crewPerson!==undefined)?{crewPerson:first.crewPerson}:{}),description:combined,recordedMinutes:first.recordedMinutes,
+          chargedCents:pricingTotals(privatePricing).billedCents,billingBasis:'fixed' as const,
+          waiverReason:privatePricing.reason.trim()||'Owner-approved service pricing'}];
+      })():lines.map(({chargedAmount,hourlyAmount,billingMinutes,billingBasis,timeInput:_timeInput,waive:_waive,...line})=>({...line,billingBasis,...(billingBasis==='hourly'?{billingMinutes,unitRateCents:invoiceChargeCents(hourlyAmount)}:{}),chargedCents:invoiceChargeCents(chargedAmount)}));
       if(savedLines.some(line=>line.chargedCents===null)){setMessage('Check every charge. No changes were made.');return;}
-      const value={organization,job,revision,lines:savedLines};
+      const value={organization,job,revision,lines:savedLines,...(privatePricing?{ownerPricing:privatePricing}:{})};
       const fingerprint=JSON.stringify(value);
       if(retry.current?.fingerprint!==fingerprint)retry.current={fingerprint,key:crypto.randomUUID()};
       if(completeOnSave&&!completed){completionAttempt.current={body:JSON.stringify({...value,key:retry.current.key,reviewed:true}),revision};await checkCompletion();return;}
@@ -264,7 +287,8 @@ export default function InvoiceDraft({
             </p>
           )}
           {!streamlined&&crew&&<p className="note">Record each person's actual worked minutes. Only the first person has the two-hour minimum. Additional people have no separate minimum. Rates come from the saved agreement; final labor must stay within its approved amount. Do not multiply the visit timer by crew size.</p>}
-          {lines.map((l, i) => (
+          {priceMode&&ownerPriceDraft&&<><OwnerServicePricing value={ownerPriceDraft} approvedTotalCents={approvedTotalCents} disabled={busy||blocked} onChange={next=>{manualWorkTouched.current=true;manualWorkTouchVersion.current++;setOwnerPriceDraft(next);setSavedDraft(false);setReviewed(false);}}/><details className="invoice-tracked-work" defaultOpen={lines[0]?.recordedMinutes===0}><summary>Recorded job time · {lines[0]?.recordedMinutes?workedTimeLabel(lines[0].recordedMinutes):'not entered'}</summary><label>Actual time on this job (hours:minutes)<input type="text" inputMode="text" placeholder="2:00" value={lines[0]?.timeInput??workedTimeLabel(lines[0]?.recordedMinutes??0)} onChange={e=>change(0,{timeInput:e.target.value,recordedMinutes:workedTimeMinutes(e.target.value)??-1})}/></label></details></>}
+          {!priceMode&&lines.map((l, i) => (
             <fieldset key={i}>
               <legend>{crew?(i===0?'First person':'Additional person '+(i+1)):'Work item '+(i+1)}</legend>
               <label>
@@ -357,7 +381,7 @@ export default function InvoiceDraft({
             </fieldset>
           ))}
           {crew&&lines.some(line=>line.billingBasis==='hourly'&&line.billingMinutes<0)&&<p role="alert">The hourly calculation needs a reviewed extension billing policy. You can instead enter an agreed fixed amount with a reason while keeping the actual time on record.</p>}
-          <button
+          {!priceMode&&<button
             type="button"
             className="secondary"
             disabled={busy || lines.length >= (crew?6:50)}
@@ -378,12 +402,12 @@ export default function InvoiceDraft({
             }}
           >
             {crew?'Add another person':'Add work item'}
-          </button>
+          </button>}
           {lines.length > 0 && (
             <>
               <p>
                 Total to invoice:{" "}
-                {lines.some(l=>invoiceChargeCents(l.chargedAmount)===null)?"Check the charge amounts":(lines.reduce((sum,l)=>sum+(invoiceChargeCents(l.chargedAmount)??0),0)/100).toLocaleString("en-US",{style:"currency",currency:"USD"})}
+                {priceMode?(ownerPriceDraft&&parsePriceDraft(ownerPriceDraft)?(pricingTotals(parsePriceDraft(ownerPriceDraft)! ).billedCents/100).toLocaleString("en-US",{style:"currency",currency:"USD"}):"Complete service prices"):lines.some(l=>invoiceChargeCents(l.chargedAmount)===null)?"Check the charge amounts":(lines.reduce((sum,l)=>sum+(invoiceChargeCents(l.chargedAmount)??0),0)/100).toLocaleString("en-US",{style:"currency",currency:"USD"})}
               </p>
               {!fieldMode&&completed&&taxContext?.required&&<section><h3>Invoice tax</h3><label>Reviewed rule for all recorded work<select value={taxRule} onChange={e=>{setTaxRule(e.target.value);setReviewed(false);}}><option value="">Choose the applicable rule</option>{taxContext.rules.map(r=><option key={r.id} value={r.id}>{r.label} — {r.city}, {r.state}</option>)}</select></label>{selectedRule&&<><p>{selectedRule.scope}</p><p>Effective {selectedRule.effectiveFrom} through {selectedRule.effectiveTo}. Verify county / district boundaries for this exact address.</p><a href={selectedRule.sourceUrl} target="_blank" rel="noopener noreferrer">Rule source</a></>}{taxPreview&&<><p>Subtotal {(subtotal/100).toLocaleString("en-US",{style:"currency",currency:"USD"})}</p>{taxPreview.components.map((c,i)=><p key={i}>{c.label} ({c.ratePpm/10000}%): {(c.taxCents/100).toLocaleString("en-US",{style:"currency",currency:"USD"})}</p>)}<p>Invoice total <strong>{(taxPreview.totalCents/100).toLocaleString("en-US",{style:"currency",currency:"USD"})}</strong></p></>}<label>Customer approval and jurisdiction review evidence<textarea value={taxEvidence} minLength={2} maxLength={1000} onChange={e=>{setTaxEvidence(e.target.value);setReviewed(false);}} placeholder="Record acceptance of subtotal plus tax, and verify that this rule applies to every work item and the service address."/></label></section>}
               {!streamlined&&<label>
