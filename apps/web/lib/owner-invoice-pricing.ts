@@ -34,8 +34,9 @@ export function allocateActualCents(standardCents:number[],totalCents:number){
  if(!standardCents.length||standardCents.some(n=>!Number.isSafeInteger(n)||n<0)||!Number.isSafeInteger(totalCents)||totalCents<0)return null;
  const total=standardCents.reduce((a,b)=>a+b,0);
  if(totalCents>total||total===0)return null;
- const pieces=standardCents.map((n,i)=>({i,base:Math.floor(n*totalCents/total),remainder:n*totalCents%total}));
- let remainder=totalCents-pieces.reduce((sum,p)=>sum+p.base,0);
- for(const p of [...pieces].sort((a,b)=>b.remainder-a.remainder||a.i-b.i)){if(remainder--<=0)break;p.base+=1;}
+ const denominator=BigInt(total);
+ const pieces=standardCents.map((n,i)=>({i,base:Number(BigInt(n)*BigInt(totalCents)/denominator),remainder:BigInt(n)*BigInt(totalCents)%denominator}));
+ let leftover=totalCents-pieces.reduce((sum,p)=>sum+p.base,0);
+ for(const p of [...pieces].sort((a,b)=>a.remainder===b.remainder?a.i-b.i:a.remainder>b.remainder?-1:1)){if(leftover<=0)break;p.base+=1;leftover--;}
  return pieces.map(p=>p.base);
 }
