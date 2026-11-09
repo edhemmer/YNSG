@@ -140,7 +140,7 @@ export default function InvoiceDraft({
           setTaxContext(d.tax);if(!keepLocalTax){setTaxRule(d.tax?.valid?d.tax?.tax?.rule?.id||"":"");setTaxEvidence(d.tax?.valid?d.tax?.tax?.customerApprovalEvidence||"":"");}
           setLoaded(true);
           setSavedDraft(
-            Boolean(d.draft?.lines?.length) && d.draft.jobRevision === revision && (!priceEligible||Boolean(d.ownerPricing)),
+            Boolean(d.draft?.lines?.length) && d.draft.jobRevision === revision && (!priceEligible||requestedServices.length===1||Boolean(d.ownerPricing)),
           );
         }
       })
