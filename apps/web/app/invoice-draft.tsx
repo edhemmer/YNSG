@@ -420,7 +420,7 @@ export default function InvoiceDraft({
                 />
                 {fieldMode&&!fieldCanIssue?'I reviewed the recorded work, actual minutes, adjusted rates and reasons. The primary technician or office must review the final invoice.':completeOnSave&&!completed?'The work is finished. I reviewed the actual work, minutes and agreed labor charges.':'I reviewed the actual work, final charges and any applicable tax. Charges follow the customer’s accepted terms and approved price limit; the tax rule applies to the work and address.'}
               </label>}
-              {(!streamlined||!completed||entryDirty||!savedDraft)&&<button className={completed?"secondary":undefined} disabled={busy || entryConflict || (!reviewed&&!streamlined)}>{completeOnSave&&!completed?(streamlined?"Complete visit & review invoice":"Save work & complete visit"):(fieldMode&&!fieldCanIssue?"Save labor for owner review":streamlined?"Save invoice changes":"Save invoice draft")}</button>}
+              {(!streamlined||!completed||entryDirty||!savedDraft)&&<button className={completed?"secondary":undefined} disabled={busy || entryConflict || (!reviewed&&!streamlined)}>{completeOnSave&&!completed?(streamlined?"Complete visit & review invoice":"Save work & complete visit"):(fieldMode&&!fieldCanIssue?"Save labor for owner review":streamlined?"Save invoice amount":"Save invoice draft")}</button>}
               {(!fieldMode||fieldCanIssue) && completed && (
                 <button
                   type="button"
