@@ -14,3 +14,4 @@
 .invoice-pay{margin:18px 0;display:grid;gap:8px}.invoice-pay-button{min-height:56px;font-size:1.15rem;font-weight:700;width:100%;max-width:420px}
 @media print{.invoice-pay{display:none!important}}
 .working-price{margin-top:8px}.working-price p{margin:0}.working-price form{display:grid;gap:10px;max-width:360px}.working-price input{min-height:48px;font:inherit}
+.quick-services{display:grid;gap:8px}.quick-service{display:flex;gap:8px;align-items:center}.quick-service input{flex:1;min-width:0}
