@@ -6,6 +6,7 @@ export const servicePages={
  'leaf-cleanup-dekalb-il':{name:'Leaf management',service:'Lawn care',task:'Leaf management',image:'leaf-cleanup',related:['lawn-mowing-dekalb-il','mulch-yard-cleanup-dekalb-il','handyman-dekalb-il']},
  'mulch-yard-cleanup-dekalb-il':{name:'Yard & garden',service:'Yard & garden',task:'',image:'yard-garden',related:['mulch-delivery-spreading-dekalb-il','leaf-cleanup-dekalb-il','concrete-pressure-washing-dekalb-il']},
  'handyman-dekalb-il':{name:'Small home jobs',service:'Help around the home',task:'',image:'small-home-jobs',related:['cleanout-dekalb-il','mulch-yard-cleanup-dekalb-il','concrete-pressure-washing-dekalb-il']},
+ 'accessibility-home-safety-dekalb-il':{name:'Accessibility & home safety',service:'Accessibility & home safety',task:'',image:'accessibility',related:['handyman-dekalb-il','snow-removal-dekalb-il','cleanout-dekalb-il']},
  'snow-removal-dekalb-il':{name:'Snow clearing',service:'Snow clearing',task:'',image:'snow-clearing',related:['handyman-dekalb-il','leaf-cleanup-dekalb-il','lawn-mowing-dekalb-il']},
  'concrete-pressure-washing-dekalb-il':{name:'Concrete washing',service:'Concrete pressure washing',task:'',image:'concrete-washing',related:['mulch-yard-cleanup-dekalb-il','lawn-mowing-dekalb-il','handyman-dekalb-il']}
 };

@@ -36,7 +36,7 @@ test('partial payment screen accepts a sample receipt and shows exact paid close
 
   await click('Record received payment');assert.match(node.textContent,/No payment remains due/);assert.match(node.textContent,/Paid and saved/);
   assert.equal(getBrowserPractice().document(getBrowserPractice().snapshot().invoices[0].id).balanceCents,0);
-  const anchor=[...node.querySelectorAll('a')].find(a=>a.textContent.includes('Open invoice'));await act(async()=>{anchor.click();await settle();});assert.match(node.textContent,/SAMPLE/);assert.ok([...node.querySelectorAll('button')].some(b=>b.textContent==='Back to sample visit'));assert.equal(h.calls(),0);
+  const anchor=[...node.querySelectorAll('a')].find(a=>a.textContent.includes('Review invoice'));await act(async()=>{anchor.click();await settle();});assert.match(node.textContent,/SAMPLE/);assert.ok([...node.querySelectorAll('button')].some(b=>b.textContent==='Back to sample visit'));assert.equal(h.calls(),0);
  }finally{await h.close();}
 });
 test('practice prevents real calls and unknown operations and reset restores samples',async()=>{
@@ -53,7 +53,7 @@ test('work recording through invoice issue and document uses the real connected 
   await act(async()=>{Object.getOwnPropertyDescriptor(Object.getPrototypeOf(minutes),'value').set.call(minutes,'2:00');minutes.dispatchEvent(new Event('input',{bubbles:true}));await tick();});
 
   await click('Complete visit & review invoice');assert.match(node.textContent,/Invoice charges/);
-  await click('Issue invoice · $120.00');assert.match(node.textContent,/Invoice /);assert.ok([...node.querySelectorAll('a')].some(a=>a.textContent.includes('Open invoice')));assert.equal(h.calls(),0);
+  await click('Issue invoice · $120.00');assert.match(node.textContent,/Invoice /);assert.ok([...node.querySelectorAll('a')].some(a=>a.textContent.includes('Review invoice')));assert.equal(h.calls(),0);
  }finally{await h.close();}
 });
 test('scheduling and one-step agreed quote preparation work with sample data',async()=>{

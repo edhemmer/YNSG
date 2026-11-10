@@ -78,7 +78,7 @@ test('every public booking category has a visible service title and reachable jo
  const groups=[...form.querySelectorAll('.request-category')];
  assert.equal(groups.length,Object.keys(serviceCatalog).length);
  assert.deepEqual(groups.map(group=>group.querySelector('summary strong').textContent.trim()).sort(),
-  ['Home jobs','Lawn care','Yard & garden','Snow clearing','Concrete pressure washing','Cleanout & removal','Farm hand services','Something else'].sort());
+  ['Home jobs','Accessibility & safety','Lawn care','Yard & garden','Snow clearing','Concrete pressure washing','Cleanout & removal','Farm hand services','Something else'].sort());
  for(const group of groups){
   const label=group.querySelector('summary strong');
   assert.ok(label&&label.textContent.trim()&&label.textContent!=='undefined','Every category requires a visible label');

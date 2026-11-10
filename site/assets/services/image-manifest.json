@@ -203,6 +203,31 @@
           "sha256": "3f1f06e116c4071461aa8b94533127ebacadef8a0a28f3e778e38c4ebd15b4ac"
         }
       ]
+    },
+    {
+      "id": "accessibility",
+      "title": "Accessibility and home safety help in DeKalb, Sycamore and St. Charles",
+      "alt": "Your Neighborhood Service Guy kneeling beside a manual wheelchair to adjust it in a resident’s room.",
+      "creator": "Your Neighborhood Service Guy — HOME & YARD",
+      "rights": "© 2026 Your Neighborhood Service Guy. All rights reserved. Real job photograph; personal photos in the room are blurred.",
+      "generated_artwork": false,
+      "shirt_branding_review": "Real YNSG uniform with the approved logo and website; no faces shown",
+      "variants": [
+        {
+          "filename": "ynsg-accessibility-home-safety-960.webp",
+          "width": 960,
+          "height": 384,
+          "size_bytes": 54532,
+          "sha256": "d4192da21d2f2821000697626b19c78214109475e02db7144cb572693bb345a9"
+        },
+        {
+          "filename": "ynsg-accessibility-home-safety-640.webp",
+          "width": 640,
+          "height": 256,
+          "size_bytes": 24362,
+          "sha256": "accac49d69f1bb1ceb221df253a3239b7616883bbf337f37f697a2f581dd9939"
+        }
+      ]
     }
   ]
 }
