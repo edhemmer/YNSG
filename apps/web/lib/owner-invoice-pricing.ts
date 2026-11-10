@@ -10,7 +10,6 @@ export const ownerPricingService=z.object({
  minutes:z.number().int().min(1).max(1440).optional(),
  hourlyRateCents:amount.optional(),
 }).strict().superRefine((s,ctx)=>{
- if(s.billedCents>s.standardCents)ctx.addIssue({code:'custom',message:'Billed price cannot exceed standard price.'});
  if(s.method==='hourly'){
   let correct=false;
   if(s.minutes!==undefined&&s.hourlyRateCents!==undefined)try{correct=hourlyCharge(s.minutes,s.hourlyRateCents)===s.standardCents}catch{}
@@ -24,7 +23,6 @@ export const ownerPricingSchema=z.object({
  const standard=v.services.reduce((s,l)=>s+l.standardCents,0);
  const billed=v.services.reduce((s,l)=>s+l.billedCents,0);
  if(standard>999999999||billed>999999999)ctx.addIssue({code:'custom',message:'Amount exceeds the invoice limit.'});
- if(standard>billed&&v.reason.trim().length<2)ctx.addIssue({code:'custom',message:'Record a private reason for the reduced charge.'});
 });
 export type OwnerPricing=z.infer<typeof ownerPricingSchema>;
 export function pricingTotals(value:OwnerPricing){

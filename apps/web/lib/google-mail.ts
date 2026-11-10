@@ -30,6 +30,7 @@ type Intent = {
   lease_token: string;
   payload: Record<string, unknown>;
 };
+function invoicePayUrl(organization:string,invoice:string){const origin=process.env.APP_ORIGIN;if(!origin)return undefined;try{const url=new URL('/invoice',origin);if(url.protocol!=='https:')return undefined;url.search=new URLSearchParams({organization,invoice,return:'account'}).toString();return url.toString();}catch{return undefined;}}
 export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
   const config = await db
     .from("configuration_versions")
@@ -86,7 +87,7 @@ export async function dispatchGoogleMail(org: string, db: SupabaseClient) {
         const [complete] = await completeInvoicePayments(db,org,[invoice.data]);
         const document = invoiceDocument(complete!);
         const administration=await db.rpc("invoice_mail_admin",{p_org:org,p_invoice:item.object_id});if(administration.error)throw Error("INVOICE_ADMIN_UNAVAILABLE");document.dueDate=invoiceRecordState.pick({dueDate:true}).strict().parse(administration.data).dueDate;
-        const rendered = item.kind === "invoice.paid" ? paidInvoiceMessage(document,item.payload.review,identity) : invoiceMessage(document,identity);
+        const rendered = item.kind === "invoice.paid" ? paidInvoiceMessage(document,item.payload.review,identity) : invoiceMessage(document,identity,{payUrl:invoicePayUrl(org,item.object_id)});
         if(rendered.to !== item.payload.recipient) continue;
         ({to,subject,body,html} = rendered);
         if(item.kind === "invoice.delivery") attachment = {filename:`invoice-${document.number}.pdf`,bytes:await invoicePdf(document)};

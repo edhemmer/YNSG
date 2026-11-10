@@ -531,6 +531,11 @@
       "file": "20261106170000_customer_home_profiles.sql",
       "name": "customer_home_profiles",
       "status": "not_applied_to_connected_supabase"
+    },
+    {
+      "file": "20261110140000_owner_free_amount.sql",
+      "name": "owner_free_amount",
+      "status": "not_applied_to_connected_supabase"
     }
   ]
 }
