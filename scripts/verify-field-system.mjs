@@ -42,7 +42,7 @@ try{
    await job.getByText('No payment remains due.',{exact:true}).waitFor();assert.equal(await job.getByRole('button',{name:'Record received payment',exact:true}).count(),0);await layout(page,engine+' '+width+' '+theme+' settled');
    await page.addStyleTag({content:'html{font-size:32px!important}'});await layout(page,engine+' '+width+' '+theme+' settled 200% text');
    if(width===390&&theme==='light')await page.screenshot({path:output+'/'+engine+'-closed.png',fullPage:true});
-   await job.getByRole('link',{name:'Open invoice / download PDF',exact:true}).click();await page.getByText('SAMPLE',{exact:false}).first().waitFor();assert.ok(await page.getByRole('button',{name:'Back to sample visit',exact:true}).isVisible());results.push(engine+' '+width+' '+theme+' complete request → schedule → agreement → timer → work → issue → partial cash → Zelle → saved document');await page.close();
+   await job.getByRole('link',{name:'Review invoice / download PDF',exact:true}).click();await page.getByText('SAMPLE',{exact:false}).first().waitFor();assert.ok(await page.getByRole('button',{name:'Back to sample visit',exact:true}).isVisible());results.push(engine+' '+width+' '+theme+' complete request → schedule → agreement → timer → work → issue → partial cash → Zelle → saved document');await page.close();
   }
   await browser.close();browser=null;
  }

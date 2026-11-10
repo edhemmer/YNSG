@@ -124,7 +124,7 @@ test('accepted quote opens for jobs without invoices and uses canonical invoice 
  }
  for(const relation of [null,{id:'invoice',number:2026100001},[]]){
   const html=renderToStaticMarkup(React.createElement(ServiceWorkflow,{...props,jobs:[{id:'job',quote_id:'quote',revision:1,status:'completed',invoices:relation}],invoices:[{id:'invoice',job_id:'job',number:2026100001,total_cents:12000,payments:[]}]}));
-  assert.ok(html.includes('Open invoice / download PDF'));assert.ok(!html.includes('Invoice draft'));assert.ok(!html.includes('No invoice has been issued yet'));
+  assert.ok(html.includes('Review invoice / download PDF'));assert.ok(!html.includes('Invoice draft'));assert.ok(!html.includes('No invoice has been issued yet'));
  }
 });
 const {default:ScheduledInvoice}=await import('../apps/web/app/scheduled-invoice.tsx');
