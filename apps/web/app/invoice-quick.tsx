@@ -129,17 +129,17 @@ export default function InvoiceQuick({organization,job,revision,completed,blocke
  }
  function finish(text:string){setDone({stage:'done',text});setDirty(false);setMessage('');try{saved();}catch{}}
 
- if(loadError)return <section className="quick-invoice"><p role="alert">{message||'The invoice could not load.'}</p><button type="button" onClick={()=>setAttempts(n=>n+1)}>Try again</button></section>;
- if(!loaded)return <section className="quick-invoice"><p role="status">Loading invoice…</p></section>;
- if(done)return <section className="quick-invoice"><p role="status"><strong>{done.text}</strong></p></section>;
- return <section className="quick-invoice" aria-label="Invoice">
+ if(loadError)return <section className="invoice-editor quick-invoice"><p role="alert">{message||'The invoice could not load.'}</p><button type="button" onClick={()=>setAttempts(n=>n+1)}>Try again</button></section>;
+ if(!loaded)return <section className="invoice-editor quick-invoice"><p role="status">Loading invoice…</p></section>;
+ if(done)return <section className="invoice-editor quick-invoice"><p role="status"><strong>{done.text}</strong></p></section>;
+ return <section className="invoice-editor quick-invoice" aria-label="Invoice">
   <h3>{completed?'Invoice':'Finish the visit & invoice'}</h3>
   {ready?.ready===false&&<div className="note" role="status"><strong>One thing to set up before sending</strong><ul>{ready.reasons.map(r=><li key={r}>{r}</li>)}</ul><p>You can still save this.</p></div>}
   <form onSubmit={e=>{e.preventDefault();void run(true);}}>
    <fieldset disabled={busy||blocked}>
     {rows.map((row,i)=><div className="quick-row" key={i}>
      <label>What you did<textarea required minLength={2} maxLength={1000} rows={2} value={row.description} onChange={e=>edit(rows.map((r,j)=>j===i?{...r,description:e.target.value}:r))}/></label>
-     <label className="quick-amount">Amount ($)<input type="text" inputMode="decimal" autoComplete="off" required aria-label={rows.length>1?'Amount for line '+(i+1)+' in dollars':'Invoice amount in dollars'} value={row.amount} onFocus={e=>e.currentTarget.select()} onChange={e=>edit(rows.map((r,j)=>j===i?{...r,amount:e.target.value.replace(/[^0-9.]/g,'')}:r))}/></label>
+     <label className="quick-amount">Amount ($)<input type="text" name={"amount-"+i} inputMode="decimal" autoComplete="off" required aria-label={rows.length>1?'Amount for line '+(i+1)+' in dollars':'Invoice amount in dollars'} value={row.amount} onFocus={e=>e.currentTarget.select()} onChange={e=>edit(rows.map((r,j)=>j===i?{...r,amount:e.target.value.replace(/[^0-9.]/g,'')}:r))}/></label>
      {rows.length>1&&<button type="button" className="link" onClick={()=>edit(rows.filter((_,j)=>j!==i))}>Remove line</button>}
     </div>)}
     {rows.length<10&&<button type="button" className="link" onClick={()=>edit([...rows,{description:'',amount:''}])}>+ Add a line</button>}

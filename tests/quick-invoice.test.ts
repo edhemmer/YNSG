@@ -2,7 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';import {rea
 import {invoiceDocument} from '../apps/web/lib/invoice-document.ts';import {invoiceMessage} from '../apps/web/lib/invoice-message.ts';
 const base={number:12,issued_at:'2026-10-03T14:00:00Z',total_cents:4500,payments:[{cents:1500}],snapshot:{configuration:{sellerLegalName:'Test Company',invoiceTerms:'Pay by check or Zelle',timezone:'America/Chicago'},recipient:{name:'Pat',email:'customer@example.invalid',phone:'5550000000',street:'100 Test St',city:'Test City',region:'IL',postalCode:''},recordedWork:[{description:'Lawn',chargedCents:4500,recordedMinutes:60,waiverReason:''}]}};
 test('invoice email carries a Pay button only for an unpaid balance with a secure link',()=>{
- const url='https://app.example.invalid/invoice?organization=a&invoice=b';
+ const url='https://app.example.invalid/invoice?invoice=b';
  const unpaid=invoiceMessage(invoiceDocument(base),undefined,{payUrl:url});
  assert.match(unpaid.html,/Pay \$30\.00 now/);assert.ok(unpaid.html.includes(url));assert.ok(unpaid.body.includes('Pay online: '+url));
  assert.doesNotMatch(invoiceMessage(invoiceDocument(base),undefined,{payUrl:'http://insecure.example.invalid'}).html,/Pay \$/);

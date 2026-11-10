@@ -113,11 +113,12 @@ export function createPracticeStore(initial=seedPractice()){
       if(!Array.isArray(b.lines)||!b.lines.length||b.lines.length>50||b.lines.some((l:any)=>typeof l.description!=='string'||l.description.length<2||l.description.length>1000||!Number.isInteger(l.recordedMinutes)||l.recordedMinutes<0||!Number.isSafeInteger(l.chargedCents)||l.chargedCents<0))fail('Review the sample work lines.');
       const total=b.lines.reduce((n:number,l:WorkLine)=>n+l.chargedCents,0),q=found(state.quotes.find(q=>q.id===j.quote_id)),approved=found(q.quote_versions.find(v=>v.version===j.approved_version));
       if(approved.crew){const seen=new Set<number>();if(b.lines.length>6)fail('Review the sample crew.');for(const l of b.lines){if(!Number.isInteger(l.crewPerson)||l.crewPerson<1||l.crewPerson>b.lines.length||seen.has(l.crewPerson))fail('Review the sample crew.');seen.add(l.crewPerson);const waived=l.chargedCents===0&&l.waiverReason.trim().length>=2;if(l.billingBasis==='fixed'){if(l.waiverReason.trim().length<2||(l.chargedCents>0&&l.recordedMinutes===0))fail('Explain the adjusted labor amount and retain actual time.');continue;}if(l.billingBasis!=='hourly'||(l.unitRateCents!==approved.crew.perPersonRateCents&&l.waiverReason.trim().length<2)||l.billingMinutes!==(waived?0:crewBilledMinutes(l.recordedMinutes,l.crewPerson,approved.crew))||(!waived&&l.recordedMinutes===0))fail('Review actual person time and agreed billing terms.');}}else if(b.lines.some((l:WorkLine)=>l.crewPerson!==undefined))fail('This saved agreement does not use crew billing.');
-      if(total>approved.labor_cents)fail('Sample charges cannot exceed agreed labor.');
+      if(approved.crew&&total>approved.labor_cents)fail('Sample crew charges cannot exceed agreed labor.');
       if(route==='/api/visit-completion'){if(b.reviewed!==true)fail('Review the sample completion first.');j.status='completed';}
       if(b.ownerPricing){const priced=ownerPricingSchema.parse(b.ownerPricing);if(pricingTotals(priced).billedCents!==total)fail('The sample owner pricing does not match the invoice total.');}
       j.revision++;state.drafts[j.id]={lines:b.lines,jobRevision:j.revision,...(b.ownerPricing?{ownerPricing:ownerPricingSchema.parse(b.ownerPricing)}:{})};return {ok:true,result:{id:j.id,revision:j.revision,status:j.status,totalCents:total}};
      }
+     if(route==='/api/invoice-delivery')fail('Sample mode never sends email.');
      if(route==='/api/invoice-admin'){
       const c=invoiceRecordCommand.parse(b),i=invoiceFor(c.invoice),admin=found(state.admin[i.id]);revision(admin.revision,c.revision);Object.assign(admin,{revision:admin.revision+1,dueDate:c.dueDate,archived:c.archived});return {...admin,reason:c.reason};
      }

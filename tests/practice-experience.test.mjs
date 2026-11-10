@@ -49,17 +49,14 @@ test('practice prevents real calls and unknown operations and reset restores sam
 test('work recording through invoice issue and document uses the real connected components',async()=>{
  const h=await mount();try{
   await openSample('Sample — Work in progress');await click('Finish work');
-  const minutes=[...node.querySelectorAll('label')].find(l=>l.textContent.trim()==='Time worked (hours:minutes)')?.querySelector('input');assert.ok(minutes);
-  await act(async()=>{Object.getOwnPropertyDescriptor(Object.getPrototypeOf(minutes),'value').set.call(minutes,'2:00');minutes.dispatchEvent(new Event('input',{bubbles:true}));await tick();});
-
-  await click('Complete visit & review invoice');assert.match(node.textContent,/Invoice charges/);
-  // Practice uses two separately requested jobs. Each needs a standard and
-  // actually billed price before issue; the original approved total is $120.
-  await input('standard-0','60.00');await input('billed-0','60.00');
-  await input('standard-1','60.00');await input('billed-1','60.00');
-  await click('Save invoice amount');
-  await until(()=>[...node.querySelectorAll('button')].some(button=>button.textContent?.includes('Issue invoice · $120.00')&&!button.disabled),'Saved private pricing allows invoice issue');
-  await click('Issue invoice · $120.00');assert.match(node.textContent,/Invoice /);assert.ok([...node.querySelectorAll('a')].some(a=>a.textContent.includes('Open invoice')));assert.equal(h.calls(),0);
+  await until(()=>node.querySelector('input[name="amount-0"]'),'The one-screen invoice loads with the agreed estimate');
+  assert.match(node.textContent,/Only you see this/);
+  // The owner may charge above the estimate; the estimate stays as a private suggested value.
+  await input('amount-0','150.00');assert.match(node.textContent,/\$30\.00 above/);
+  await input('amount-0','120.00');
+  await click('Send invoice · $120.00');
+  await until(()=>[...node.querySelectorAll('a')].some(a=>a.textContent.includes('Open invoice')),'One button issues the invoice');
+  assert.equal(h.calls(),0);
  }finally{await h.close();}
 });
 test('scheduling and one-step agreed quote preparation work with sample data',async()=>{
