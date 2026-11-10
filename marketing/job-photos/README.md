@@ -1,0 +1,56 @@
+# YNSG Job Photo Library
+
+Real on-the-job photos of Ed in YNSG uniform, saved as a reusable source bucket for future marketing (Facebook Reels and posts, Google Business Profile, flyers, website).
+
+**Not deployed.** This folder sits outside `site/` and isn't part of the website build. Copy a photo into `site/assets/` only when a page actually uses it.
+
+## How these files were prepared
+- Exported as 2048px (long edge) JPEG, quality 86, which matches Facebook/Instagram upload sizes.
+- All camera metadata (EXIF, location, device) is stripped.
+- **14 and 15 (truck sign):** the phone number on the yard sign is painted over with the sign's navy. Brand rule: no phone on signage or marketing.
+- **02 (hallway wide):** the resident nameplate on the wall is blurred.
+- Dropped one file, a phone screenshot of photo 12 (same shot).
+- Logo colors aren't touched. The black-shirt photos (24, 27, 29) show the white-lettering logo, which is the approved dark-background version.
+
+## Permission before posting
+Photos 01–05 and 07–09 show customers' faces or the inside of their homes. Get each person's OK, ideally a quick text saying "yes, you can post it", before any of these go public. Without that OK, use the back-of-shirt or no-face shots.
+
+## Catalog
+
+| # | File | Scene | Best for | People / consent |
+|---|------|-------|----------|------------------|
+| 01 | `ynsg-care-wheelchair-greeting-hallway-01.jpg` | Greeting a senior resident in a wheelchair, hallway | Community Rate, "We're Here to Help" story post | Customer face: **consent needed** |
+| 02 | `ynsg-care-wheelchair-greeting-hallway-wide-02.jpg` | Same, wider; nameplate blurred | Hero/story image, Community Rate | Customer face: **consent needed** |
+| 03 | `ynsg-care-wheelchair-repair-03.jpg` | Kneeling, working on a wheelchair in a resident's room | Small-repairs, "no job too small" | Private room: **consent needed** |
+| 04 | `ynsg-care-wheelchair-repair-wide-04.jpg` | Same, wide | Same | Private room: **consent needed** |
+| 05 | `ynsg-care-wheelchair-repair-05.jpg` | Same, mid shot | Same | Private room: **consent needed** |
+| 06 | `ynsg-brand-shirt-closeup-06.jpg` | Close-up of shirt logo while working (low light) | Brand/uniform detail, story backgrounds | No faces |
+| 07 | `ynsg-greeting-porch-handshake-07.jpg` | Front-porch handshake with a senior homeowner | Trust/arrival post, GBP, website "Meet Ed" | Customer face: **consent needed** |
+| 08 | `ynsg-greeting-porch-handshake-08.jpg` | Same, logo very sharp | Strongest trust shot; ads | Customer face: **consent needed** |
+| 09 | `ynsg-greeting-porch-arrival-09.jpg` | Walking up to greet at door | Same | Customer face: **consent needed** |
+| 10 | `ynsg-yard-leaf-cleanup-driveway-after-10.jpg` | Clean driveway, **AFTER** (pairs with 17) | Before/after carousel | No people |
+| 11 | `ynsg-yard-leaf-cleanup-walk-after-11.jpg` | Clean walk & lawn, **AFTER** (pairs with 18) | Before/after carousel | No people |
+| 12 | `ynsg-yard-mowing-12.jpg` | Mowing, fall colors, full logo | Lawn service, seasonal post, ads | Back only |
+| 14 | `ynsg-truck-sign-tailgate-14.jpg` | Tailgate with yard sign + Echo blower; phone removed | "On the job" / local-crew feel | No people |
+| 15 | `ynsg-truck-side-leaf-job-15.jpg` | Truck at curb by leaf piles; phone removed | Leaf-cleanup season | No people |
+| 16 | `ynsg-yard-mowing-closeup-16.jpg` | Mowing, tight crop | Reel cover, square crops | Back only |
+| 17 | `ynsg-yard-leaf-cleanup-driveway-before-17.jpg` | Leaf-covered driveway, **BEFORE** | Before/after carousel | No people |
+| 18 | `ynsg-yard-leaf-cleanup-walk-before-18.jpg` | Leaf-covered walk & lawn, **BEFORE** | Before/after carousel | No people |
+| 19 | `ynsg-home-laundry-appliance-19.jpg` | Moving/servicing washer-dryer | Home services, appliance help | Back only (inside home, no faces) |
+| 20 | `ynsg-home-laundry-appliance-20.jpg` | Same, crouched at machines | Same | Back only |
+| 21 | `ynsg-home-exterior-light-21.jpg` | Changing exterior light bulb, blue sky | Home services, ads (very clean) | Back only |
+| 22 | `ynsg-home-exterior-light-22.jpg` | Same, logo crisp | Ads, website hero candidate | Back only |
+| 23 | `ynsg-yard-raking-landscape-23.jpg` | Raking, landscape orientation | Facebook cover, website banners | Partial side profile (Ed) |
+| 24 | `ynsg-home-closet-shelf-black-shirt-24.jpg` | Installing closet shelf, black shirt | Small home repairs | Back only |
+| 25 | `ynsg-yard-raking-landscape-25.jpg` | Raking, landscape | Banners | Back only |
+| 26 | `ynsg-home-exterior-light-closeup-26.jpg` | Exterior light, tight crop, logo dominant | Reel cover, square post | Back only |
+| 27 | `ynsg-home-closet-shelf-black-shirt-landscape-27.jpg` | Closet shelf, landscape | Banners, website | Back only |
+| 28 | `ynsg-yard-raking-28.jpg` | Raking, portrait | Stories/Reels | Partial side profile (Ed) |
+| 29 | `ynsg-home-closet-drill-black-shirt-29.jpg` | Drilling shelf bracket, white-letter logo | Small repairs, dark-theme ads | Back only |
+
+## Ready-made sets
+- **Before → After carousel:** 17 → 10, 18 → 11
+- **Post-today safe (no customers):** 06, 10–12, 14–29
+- **Strongest ad shots:** 08 (after consent), 22, 26, 12, 21
+- **Landscape (banners/covers):** 23, 25, 27
+- **Fall leaf-season campaign:** 15, 17/10, 18/11, 23, 25, 28, 14
