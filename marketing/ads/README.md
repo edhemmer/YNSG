@@ -30,7 +30,8 @@
 
 ## 3. Holiday-ready visit (`holiday-ready/`) — **stop running after December 24**
 **Primary text (EN):** Guests coming? One two-hour visit: shelves, pictures, curtain rods, furniture and small fixes. $140, or $90 at the Community Rate. Through December 24.
-**Headline:** Guests coming? We’ve got your list.
+**Headline:** Guests coming? Get it holiday-ready.
+**Look:** festive version: evergreen background, string lights, falling snow (animated in the Reel) and a gift bow on the $140 price tag, all in logo colors.
 **Primary text (ES):** ¿Vienen visitas? Una visita de dos horas: repisas, cuadros, cortineros, muebles y arreglos pequeños. $140, o $90 con la Tarifa Comunitaria. Hasta el 24 de diciembre.
 **Landing page:** /handyman-dekalb-il
 

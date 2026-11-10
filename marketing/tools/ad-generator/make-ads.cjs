@@ -13,17 +13,17 @@ const URL_TEXT = 'YourNeighborhoodServiceGuy.com';
 // Headline: [words] = highlighted in brand sun gold.
 const ADS = [
  {id:'accessibility', photo:'05', badge:'right', focal:{square:'40% 30%', portrait:'40% 32%', story:'40% 36%'},
-  en:{h:'Help Mom & Dad stay [safe at home.]', ticks:['Grab bars installed','Wheelchair & walker tune-ups','Closets you can reach'], sticker:['$90','2-hour visit','Community Rate'], cta:'Book a safety visit'},
-  es:{h:'Ayude a mamá y papá a vivir [seguros en casa.]', ticks:['Instalamos barras de apoyo','Ajuste de sillas de ruedas y andaderas','Repisas y clósets a su alcance'], sticker:['$90','Visita de 2 horas','Tarifa Comunitaria'], cta:'Escríbanos en español', url:'Por Messenger · YourNeighborhoodServiceGuy.com'}},
+  en:{h:'Help Mom & Dad stay [safe at home.]', ticks:['Grab bars installed','Wheelchair & walker tune-ups','Closets you can reach'], sticker:['$140','2-hour visit','$90 Community'], cta:'Book a safety visit'},
+  es:{h:'Ayude a mamá y papá a vivir [seguros en casa.]', ticks:['Instalamos barras de apoyo','Ajuste de sillas de ruedas y andaderas','Repisas y clósets a su alcance'], sticker:['$140','Visita de 2 horas','$90 Tarifa Comunitaria'], cta:'Escríbanos en español', url:'Por Messenger · YourNeighborhoodServiceGuy.com'}},
  {id:'leaf-before-after', split:['17','10'], focal:{square:'50% 70%', portrait:'50% 70%', story:'50% 72%'},
   en:{h:'Leaves gone. [Weekend back.]', ticks:['Walks & drives cleared','Garden beds cleaned out','No trip charges'], sticker:null, cta:'Book leaf cleanup', before:'Before', after:'After'},
   es:{h:'Adiós a las hojas. [Hola, fin de semana.]', ticks:['Banquetas y entradas limpias','Jardineras sin hojas','Sin cargo por traslado'], sticker:null, cta:'Escríbanos en español', url:'Por Messenger · YourNeighborhoodServiceGuy.com', before:'Antes', after:'Después'}},
- {id:'holiday-ready', photo:'27', badge:'right', focal:{square:'30% 55%', portrait:'30% 55%', story:'26% 55%'},
-  en:{chip:'Through December 24', h:'Guests coming? [We’ve got your list.]', ticks:['Shelves & pictures hung','Curtain rods & furniture','Small fixes, done'], sticker:['$140','2-hour visit','$90 Community'], cta:'Book before the 24th'},
-  es:{chip:'Hasta el 24 de diciembre', h:'¿Vienen visitas? [Nosotros nos encargamos.]', ticks:['Repisas y cuadros instalados','Cortineros y armado de muebles','Arreglos pequeños'], sticker:['$140','Visita de 2 horas','$90 Tarifa Comunitaria'], cta:'Escríbanos en español', url:'Por Messenger · YourNeighborhoodServiceGuy.com'}},
+ {id:'holiday-ready', photo:'27', badge:'right', festive:true, focal:{square:'30% 55%', portrait:'30% 55%', story:'26% 55%'},
+  en:{chip:'Holiday-ready visit · Through Dec 24', h:'Guests coming? [Get it holiday-ready.]', ticks:['Shelves & pictures hung','Curtain rods & furniture','Small fixes, done'], sticker:['$140','2-hour visit','$90 Community'], cta:'Book before the 24th'},
+  es:{chip:'Visita para las fiestas · Hasta el 24 de dic.', h:'¿Vienen visitas? [Lista para las fiestas.]', ticks:['Repisas y cuadros instalados','Cortineros y armado de muebles','Arreglos pequeños'], sticker:['$140','Visita de 2 horas','$90 Tarifa Comunitaria'], cta:'Escríbanos en español', url:'Por Messenger · YourNeighborhoodServiceGuy.com'}},
  {id:'trusted-neighbor', photo:'26', badge:'left', focal:{square:'60% 62%', portrait:'60% 60%', story:'62% 58%'},
-  en:{h:'The service guy who [actually shows up.]', ticks:['Prices published up front','No trip charges','You approve the cap first'], sticker:null, cta:'Request service'},
-  es:{h:'Su vecino de confianza [que sí cumple.]', ticks:['Precios publicados','Sin cargo por traslado','Usted aprueba el costo máximo'], sticker:null, cta:'Escríbanos en español', url:'Por Messenger · YourNeighborhoodServiceGuy.com'}},
+  en:{h:'The service guy who [actually shows up.]', ticks:['Prices published up front','No trip charges','You approve the cap first'], sticker:['$70','per hour','per person'], cta:'Request service'},
+  es:{h:'Su vecino de confianza [que sí cumple.]', ticks:['Precios publicados','Sin cargo por traslado','Usted aprueba el costo máximo'], sticker:['$70','por hora','por persona'], cta:'Escríbanos en español', url:'Por Messenger · YourNeighborhoodServiceGuy.com'}},
  {id:'winter-list', photo:'14', badge:'right', focal:{square:'50% 44%', portrait:'50% 44%', story:'50% 46%'},
   en:{h:'First snow? [Not your problem.]', ticks:['Driveways & walks','Accessible entries cleared','Priced per visit'], sticker:['Snow list','now open',''], cta:'Join the snow list'},
   es:{h:'¿Primera nevada? [Nosotros la quitamos.]', ticks:['Entradas de auto y banquetas','Accesos despejados','Precio por visita'], sticker:['Nieve','Lista abierta',''], cta:'Escríbanos en español', url:'Por Messenger · YourNeighborhoodServiceGuy.com'}},
@@ -49,20 +49,28 @@ function html(ad, lang, size, motion){
   ? `<div class="hero split"><figure class="b"><img src="${ph(ad.split[0])}" style="object-position:${ad.focal[size]}"><b>${t.before}</b></figure><figure class="a"><img src="${ph(ad.split[1])}" style="object-position:${ad.focal[size]}"><b class="after">${t.after}</b></figure></div>`
   : `<div class="hero"><img class="kb" src="${ph(ad.photo)}" style="object-position:${ad.focal[size]}"></div>`;
  const under = story ? `<div class="under"><img src="${ph(ad.split?ad.split[1]:ad.photo)}" style="object-position:50% 90%"></div><div class="underfade"></div>` : '';
- const sticker = t.sticker ? `<div class="sticker"><div class="s-in"><strong>${esc(t.sticker[0])}</strong><span>${esc(t.sticker[1])}</span><span>${esc(t.sticker[2])}</span></div></div>` : '';
  const check = `<svg viewBox="0 0 24 24" width="${tickSize+6}" height="${tickSize+6}"><circle cx="12" cy="12" r="12" fill="#edbd6b"/><path d="M6.5 12.5l3.5 3.5 7.5-8" fill="none" stroke="#10283c" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+ let seed=7; const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+ const flakes = ad.festive ? Array.from({length:story?90:60},()=>({x:rnd()*100,y:rnd()*100,r:3+rnd()*9,o:.35+rnd()*.55,d:7+rnd()*7,dl:-rnd()*14})) : [];
+ const snow = ad.festive ? `<div class="snow">${flakes.map(f=>`<i style="left:${f.x.toFixed(1)}%;top:${f.y.toFixed(1)}%;width:${f.r.toFixed(1)}px;height:${f.r.toFixed(1)}px;opacity:${f.o.toFixed(2)};--d:${f.d.toFixed(1)}s;--dl:${f.dl.toFixed(1)}s"></i>`).join('')}</div>` : '';
+ const seg=180, sag=story?70:60, gy=story?250:14; let wire=`M0 ${gy}`, bulbs=[];
+ for(let x0=0;x0<W;x0+=seg){ const cx=x0+seg/2, cy=gy+sag, x1=x0+seg; wire+=` Q${cx} ${cy} ${x1} ${gy}`;
+  for(const tt of [.2,.5,.8]){ const bx=(1-tt)**2*x0+2*(1-tt)*tt*cx+tt*tt*x1, by=(1-tt)**2*gy+2*(1-tt)*tt*cy+tt*tt*gy; bulbs.push([bx,by]); } }
+ const lights = ad.festive ? `<svg class="lights" viewBox="0 0 ${W} ${gy+sag+60}" width="${W}" height="${gy+sag+60}"><path d="${wire}" fill="none" stroke="#0b1f16" stroke-width="3"/>${bulbs.map(([x,y],i)=>`<g class="bulb" style="--k:${(i%5)*0.37}s"><circle cx="${x.toFixed(1)}" cy="${(y+16).toFixed(1)}" r="22" fill="${i%2?'#ffffff':'#edbd6b'}" opacity=".28" filter="url(#glow)"/><rect x="${(x-4).toFixed(1)}" y="${(y-2).toFixed(1)}" width="8" height="7" rx="2" fill="#0b1f16"/><ellipse cx="${x.toFixed(1)}" cy="${(y+15).toFixed(1)}" rx="9" ry="13" fill="${i%2?'#fffaf0':'#edbd6b'}"/></g>`).join('')}<defs><filter id="glow"><feGaussianBlur stdDeviation="8"/></filter></defs></svg>` : '';
+ const bow = ad.festive ? `<svg class="bow" viewBox="0 0 120 70" width="${sq?104:124}"><path d="M60 34 C35 0 5 8 12 30 C18 50 45 44 60 34Z M60 34 C85 0 115 8 108 30 C102 50 75 44 60 34Z" fill="#2f5b3f" stroke="#edbd6b" stroke-width="4"/><path d="M60 34 L44 68 M60 34 L76 68" stroke="#2f5b3f" stroke-width="9" stroke-linecap="round"/><circle cx="60" cy="34" r="10" fill="#edbd6b" stroke="#2f5b3f" stroke-width="3"/></svg>` : '';
+ const sticker = t.sticker ? `<div class="sticker"><div class="s-in"><strong>${esc(t.sticker[0])}</strong><span>${esc(t.sticker[1])}</span><span>${esc(t.sticker[2])}</span></div>${bow}</div>` : '';
  const T0 = 0.35, perWord = 0.12, tickStart = T0 + nWords*perWord + 0.25;
  return `<!doctype html><html><head><meta charset="utf-8"><style>
  @font-face{font-family:Outfit;font-weight:400;src:url(${font(400)})}
  @font-face{font-family:Outfit;font-weight:600;src:url(${font(600)})}
  @font-face{font-family:Outfit;font-weight:800;src:url(${font(800)})}
  @font-face{font-family:Outfit;font-weight:900;src:url(${font(900)})}
- :root{--navy:#10283c;--forest:#2f5b3f;--sun:#edbd6b;--paper:#fbfaf6}
+ :root{--bg:${ad.festive?'#173a2a':'#10283c'};--bgr:${ad.festive?'23,58,42':'16,40,60'};--navy:#10283c;--forest:#2f5b3f;--sun:#edbd6b;--paper:#fbfaf6}
  *{box-sizing:border-box;margin:0}
- body{width:${W}px;height:${H}px;overflow:hidden;font-family:Outfit,sans-serif;background:var(--navy);position:relative}
+ body{width:${W}px;height:${H}px;overflow:hidden;font-family:Outfit,sans-serif;background:var(--bg);position:relative}
  .hero{position:absolute;left:0;right:0;top:0;height:${heroH}px;overflow:hidden}
  .hero img{width:100%;height:100%;object-fit:cover;display:block}
- .hero::after{content:'';position:absolute;left:0;right:0;bottom:0;height:${sq?230:300}px;background:linear-gradient(180deg,rgba(16,40,60,0),rgba(16,40,60,.75) 55%,var(--navy))}
+ .hero::after{content:'';position:absolute;left:0;right:0;bottom:0;height:${sq?230:300}px;background:linear-gradient(180deg,rgba(var(--bgr),0),rgba(var(--bgr),.75) 55%,var(--bg))}
  .split{display:grid;grid-template-columns:1fr 1fr;gap:0}
  .split figure{position:relative;overflow:hidden}
  .split .a{border-left:8px solid var(--sun)}
@@ -70,7 +78,7 @@ function html(ad, lang, size, motion){
  .split b.after{background:var(--sun)}
  .split .b b{left:auto;right:24px}
  .under{position:absolute;left:0;right:0;top:1248px;bottom:0;overflow:hidden}.under img{width:100%;height:100%;object-fit:cover;filter:brightness(.45) saturate(.85)}
- .underfade{position:absolute;left:0;right:0;top:1246px;height:200px;background:linear-gradient(180deg,var(--navy),rgba(16,40,60,0))}
+ .underfade{position:absolute;left:0;right:0;top:1246px;height:200px;background:linear-gradient(180deg,var(--bg),rgba(var(--bgr),0))}
  .logo{position:absolute;${ad.badge==='right'?'right':'left'}:${pad-14}px;top:${logoTop}px;background:#fff;border-radius:20px;padding:10px 16px;box-shadow:0 10px 30px rgba(0,0,0,.28)}
  .logo img{display:block;height:${sq?118:132}px}
  ${ad.split?`.logo{left:50%;right:auto;transform:translateX(-50%);top:${story?logoTop:sq?150:190}px}`:''}
@@ -89,6 +97,10 @@ function html(ad, lang, size, motion){
  .s-in{text-align:center;line-height:1.05}
  .s-in strong{display:block;font-weight:900;font-size:${t.sticker&&t.sticker[0].length>4?(sq?44:52):(sq?72:86)}px;letter-spacing:-.03em}
  .s-in span{display:block;font-weight:700;font-size:${sq?19:22}px}
+ .snow{position:absolute;inset:0;pointer-events:none}.snow i{position:absolute;border-radius:50%;background:#fff;box-shadow:0 0 6px rgba(255,255,255,.8)}
+ .lights{position:absolute;left:0;top:0}
+ .bow{position:absolute;left:50%;top:-${sq?52:62}px;transform:translateX(-50%) rotate(9deg)}
+ ${ad.festive?'.chip{background:var(--sun);color:var(--navy)}.rule{background:linear-gradient(90deg,var(--sun),#fff,var(--sun))}':''}
  .rule{position:absolute;left:0;right:0;bottom:0;height:12px;background:linear-gradient(90deg,var(--forest),var(--sun))}
  ${motion?`
  .kb{animation:kb 9s ease-out both}
@@ -109,8 +121,12 @@ function html(ad, lang, size, motion){
  .row{animation:fade .5s ease-out ${(ad.split?2.5:0)+tickStart+1.6}s both}
  .cta{animation:pulse 1.6s ease-in-out ${(ad.split?2.5:0)+tickStart+2.4}s infinite}
  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
- @keyframes fade{from{opacity:0}to{opacity:1}}`:''}
- </style></head><body>${hero}${under}
+ @keyframes fade{from{opacity:0}to{opacity:1}}
+ .snow i{animation:fall var(--d) linear var(--dl) infinite}
+ @keyframes fall{from{transform:translateY(-${H*0.6}px)}to{transform:translateY(${H*0.6}px)}}
+ .bulb{animation:twinkle 1.8s ease-in-out var(--k) infinite}
+ @keyframes twinkle{0%,100%{opacity:1}50%{opacity:.45}}`:''}
+ </style></head><body>${hero}${under}${snow}${lights}
  <div class="logo"><img src="${logo}"></div>
  <div class="copy">${sticker}${t.chip?`<span class="chip">${esc(t.chip)}</span>`:''}<h1>${hl(t.h)}</h1><ul>${t.ticks.map(x=>`<li>${check}<span>${esc(x)}</span></li>`).join('')}</ul><div class="row"><span class="cta">${esc(t.cta)} →</span><span class="url">${esc(t.url||URL_TEXT)}</span></div></div>
  <div class="rule"></div></body></html>`;

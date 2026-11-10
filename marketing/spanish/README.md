@@ -29,7 +29,7 @@ The website stays English-only for now, so every Spanish ad and post sends peopl
 ## Ad captions (paste as Primary text)
 
 **Accesibilidad / Accessibility**
-> Ayude a mamá y papá a vivir seguros en casa. Instalamos barras de apoyo, ajustamos sillas de ruedas y andaderas, y bajamos repisas y clósets para que todo quede a su alcance. Mayores de 70, veteranos, padres solteros y personas con discapacidad pueden pedir la Tarifa Comunitaria: $45 por hora. Sin cargo por traslado. Escríbanos por Messenger y le respondemos en español.
+> Ayude a mamá y papá a vivir seguros en casa. Instalamos barras de apoyo, ajustamos sillas de ruedas y andaderas, y bajamos repisas y clósets para que todo quede a su alcance. Mayores de 70, veteranos, padres solteros y personas con discapacidad pueden pedir la Tarifa Comunitaria: $45 por hora. La visita de dos horas cuesta $140, o $90 con la Tarifa Comunitaria. Sin cargo por traslado. Escríbanos por Messenger y le respondemos en español.
 
 Headline: **Seguros en casa, desde esta semana**
 
@@ -41,7 +41,7 @@ Headline: **Hojas fuera, fin de semana libre**
 **Fiestas / Holiday-ready (stop after Dec 24)**
 > ¿Vienen visitas? Una visita de dos horas: instalamos repisas y cuadros, colgamos cortineros, armamos muebles y hacemos arreglos pequeños. $140, o $90 con la Tarifa Comunitaria. Hasta el 24 de diciembre. Escríbanos por Messenger en español.
 
-Headline: **Su casa lista para las fiestas**
+Headline: **¿Vienen visitas? Lista para las fiestas**
 
 **Confianza / Trusted neighbor**
 > Ayuda local para el hogar y el jardín, de DeKalb a St. Charles. Precios publicados, sin cargo por traslado, y usted aprueba el costo máximo antes de empezar. Escríbanos por Messenger en español.
