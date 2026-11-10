@@ -23,9 +23,10 @@ function HourlyRateInput({cents,name,onAmountChange}:{cents:number;name:string;o
     required type="text" inputMode="decimal"
     pattern="[0-9]+(\.[0-9]{1,2})?"
     name={name} value={value}
-    onFocus={()=>setEditing(true)}
+    onFocus={event=>{setEditing(true);event.currentTarget.select();}}
     onChange={event=>{
-      const next=event.target.value;
+      // Typing in front of 70 must never produce 070.
+      const next=event.target.value.replace(/^0+(?=\d)/,'');
       if(!/^\d*(?:\.\d{0,2})?$/.test(next))return;
       setValue(next);
       if(next!==''&&next!=='.')onAmountChange(Math.round(Number(next)*100));

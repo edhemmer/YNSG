@@ -15,3 +15,5 @@
 @media print{.invoice-pay{display:none!important}}
 .working-price{margin-top:8px}.working-price p{margin:0}.working-price form{display:grid;gap:10px;max-width:360px}.working-price input{min-height:48px;font:inherit}
 .quick-services{display:grid;gap:8px}.quick-service{display:flex;gap:8px;align-items:center}.quick-service input{flex:1;min-width:0}
+/* Heading actions keep their words on one line; the text beside them wraps instead. */
+.section-heading{flex-wrap:wrap}.section-heading>button,.section-heading>.button{flex:none;white-space:nowrap}.section-heading>div{flex:1 1 15rem;min-width:0}

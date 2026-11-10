@@ -27,3 +27,7 @@ test('migration lifts the cap only for owner/admin and keeps the crew and field 
  assert.match(sql,/not private\.staff\(p_org,array\[''owner'',''admin''\]\)/);
  assert.match(sql,/private\.complete_and_invoice/);
 });
+test('rate inputs strip leading zeros and heading buttons never wrap their words',()=>{
+ assert.match(readFileSync('apps/web/app/company-settings.tsx','utf8'),/replace\(\/\^0\+\(\?=\\d\)\/,''\)/);
+ assert.match(readFileSync('apps/web/app/invoice-closeout.css','utf8'),/\.section-heading>button[^}]*white-space:nowrap/);
+});
