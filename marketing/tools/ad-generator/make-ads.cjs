@@ -14,19 +14,19 @@ const URL_TEXT = 'YourNeighborhoodServiceGuy.com';
 const ADS = [
  {id:'accessibility', photo:'05', badge:'right', focal:{square:'40% 30%', portrait:'40% 32%', story:'40% 36%'},
   en:{h:'Help Mom & Dad stay [safe at home.]', ticks:['Grab bars installed','Wheelchair & walker tune-ups','Closets you can reach'], sticker:['$90','2-hour visit','Community Rate'], cta:'Book a safety visit'},
-  es:{h:'Que mamá y papá vivan [seguros en casa.]', ticks:['Barras de apoyo instaladas','Ajuste de sillas de ruedas','Closets a su alcance'], sticker:['$90','Visita de 2 horas','Tarifa Comunitaria'], cta:'Reserve una visita'}},
+  es:{h:'Ayude a mamá y papá a vivir [seguros en casa.]', ticks:['Instalamos barras de apoyo','Ajuste de sillas de ruedas y andaderas','Repisas y clósets a su alcance'], sticker:['$90','Visita de 2 horas','Tarifa Comunitaria'], cta:'Escríbanos en español', url:'Por Messenger · YourNeighborhoodServiceGuy.com'}},
  {id:'leaf-before-after', split:['17','10'], focal:{square:'50% 70%', portrait:'50% 70%', story:'50% 72%'},
   en:{h:'Leaves gone. [Weekend back.]', ticks:['Walks & drives cleared','Garden beds cleaned out','No trip charges'], sticker:null, cta:'Book leaf cleanup', before:'Before', after:'After'},
-  es:{h:'Adiós hojas. [Hola fin de semana.]', ticks:['Banquetas y entradas limpias','Jardineras sin hojas','Sin cargo por traslado'], sticker:null, cta:'Reserve la limpieza', before:'Antes', after:'Después'}},
+  es:{h:'Adiós a las hojas. [Hola, fin de semana.]', ticks:['Banquetas y entradas limpias','Jardineras sin hojas','Sin cargo por traslado'], sticker:null, cta:'Escríbanos en español', url:'Por Messenger · YourNeighborhoodServiceGuy.com', before:'Antes', after:'Después'}},
  {id:'holiday-ready', photo:'27', badge:'right', focal:{square:'30% 55%', portrait:'30% 55%', story:'26% 55%'},
   en:{chip:'Through December 24', h:'Guests coming? [We’ve got your list.]', ticks:['Shelves & pictures hung','Curtain rods & furniture','Small fixes, done'], sticker:['$140','2-hour visit','$90 Community'], cta:'Book before the 24th'},
-  es:{chip:'Hasta el 24 de diciembre', h:'¿Vienen visitas? [Nosotros hacemos su lista.]', ticks:['Repisas y cuadros colgados','Cortineros y muebles','Arreglos pequeños'], sticker:['$140','Visita de 2 h','$90 comunitaria'], cta:'Reserve antes del 24'}},
+  es:{chip:'Hasta el 24 de diciembre', h:'¿Vienen visitas? [Nosotros nos encargamos.]', ticks:['Repisas y cuadros instalados','Cortineros y armado de muebles','Arreglos pequeños'], sticker:['$140','Visita de 2 horas','$90 Tarifa Comunitaria'], cta:'Escríbanos en español', url:'Por Messenger · YourNeighborhoodServiceGuy.com'}},
  {id:'trusted-neighbor', photo:'26', badge:'left', focal:{square:'60% 62%', portrait:'60% 60%', story:'62% 58%'},
   en:{h:'The service guy who [actually shows up.]', ticks:['Prices published up front','No trip charges','You approve the cap first'], sticker:null, cta:'Request service'},
-  es:{h:'El hombre de servicio [que sí llega.]', ticks:['Precios publicados','Sin cargo por traslado','Usted aprueba el límite'], sticker:null, cta:'Solicite servicio'}},
+  es:{h:'Su vecino de confianza [que sí cumple.]', ticks:['Precios publicados','Sin cargo por traslado','Usted aprueba el costo máximo'], sticker:null, cta:'Escríbanos en español', url:'Por Messenger · YourNeighborhoodServiceGuy.com'}},
  {id:'winter-list', photo:'14', badge:'right', focal:{square:'50% 44%', portrait:'50% 44%', story:'50% 46%'},
   en:{h:'First snow? [Not your problem.]', ticks:['Driveways & walks','Accessible entries cleared','Priced per visit'], sticker:['Snow list','now open',''], cta:'Join the snow list'},
-  es:{h:'¿Primera nevada? [No es su problema.]', ticks:['Entradas y banquetas','Accesos despejados','Precio por visita'], sticker:['Nieve','lista abierta',''], cta:'Únase a la lista'}},
+  es:{h:'¿Primera nevada? [Nosotros la quitamos.]', ticks:['Entradas de auto y banquetas','Accesos despejados','Precio por visita'], sticker:['Nieve','Lista abierta',''], cta:'Escríbanos en español', url:'Por Messenger · YourNeighborhoodServiceGuy.com'}},
 ];
 
 const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
@@ -112,7 +112,7 @@ function html(ad, lang, size, motion){
  @keyframes fade{from{opacity:0}to{opacity:1}}`:''}
  </style></head><body>${hero}${under}
  <div class="logo"><img src="${logo}"></div>
- <div class="copy">${sticker}${t.chip?`<span class="chip">${esc(t.chip)}</span>`:''}<h1>${hl(t.h)}</h1><ul>${t.ticks.map(x=>`<li>${check}<span>${esc(x)}</span></li>`).join('')}</ul><div class="row"><span class="cta">${esc(t.cta)} →</span><span class="url">${URL_TEXT}</span></div></div>
+ <div class="copy">${sticker}${t.chip?`<span class="chip">${esc(t.chip)}</span>`:''}<h1>${hl(t.h)}</h1><ul>${t.ticks.map(x=>`<li>${check}<span>${esc(x)}</span></li>`).join('')}</ul><div class="row"><span class="cta">${esc(t.cta)} →</span><span class="url">${esc(t.url||URL_TEXT)}</span></div></div>
  <div class="rule"></div></body></html>`;
 }
 
@@ -120,7 +120,7 @@ function html(ad, lang, size, motion){
  const browser = await chromium.launch();
  let n=0;
  for(const ad of ADS){ if(only && ad.id!==only) continue;
-  for(const lang of ['en','es']){
+  for(const lang of (process.env.LANGS||'en,es').split(',')){
    if(mode!=='motion') for(const size of Object.keys(SIZES)){
     const [W,H]=SIZES[size]; const page=await browser.newPage({viewport:{width:W,height:H},deviceScaleFactor:1});
     const tmp=path.join(here,'_r.html'); fs.writeFileSync(tmp,html(ad,lang,size,false));

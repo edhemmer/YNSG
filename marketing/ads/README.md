@@ -8,7 +8,7 @@
 | `portrait-1080x1350` | **Best for feed**: takes the most screen on phones | 135px margins kept |
 | `story-1080x1920` | Stories and Reels covers | Copy stays between 269px from the top and 672px from the bottom (Meta UI zones) |
 
-**Spanish ads:** the website is English-only right now. Run the `-es-` versions only when you're ready to take a Spanish-speaking customer's request: a translated text thread is fine, but reply in Spanish. Kane County is 33.5% Hispanic, and 32% of households there speak a language other than English at home (Census QuickFacts), so this audience is large and competitors underserve it.
+**Spanish ads:** these are ready to run now. They send people to Facebook Messenger ("Escríbanos en español"), not the English website. Captions, Messenger reply scripts, organic posts, a glossary and a printable flyer are in `marketing/spanish/`.
 
 ---
 
