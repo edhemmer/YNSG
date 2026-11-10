@@ -1,6 +1,6 @@
-# YNSG Ad Set — November 2026
+# YNSG Ad Set v2 — November 2026
 
-30 finished ad images: 5 campaigns × English and Spanish × 3 Meta placements. Every ad uses a real job photo, the approved logo on white, brand colors (navy #10283C, forest #2F5B3F, sun #EDBD6B), the Outfit font, and the website written as **YourNeighborhoodServiceGuy.com**. No phone number appears anywhere, and nothing claims insurance or certification.
+40 finished ads: 5 campaigns × English and Spanish × 3 still sizes, **plus a motion Reel for each** (`-reel-1080x1920.mp4`, 8–10 seconds, silent, so add trending audio in the Facebook app). Every still has a hook headline, three check marks you can read at a glance, an offer sticker where there is a real price, and one clear button. Every ad uses a real job photo, the approved logo on white, brand colors (navy #10283C, forest #2F5B3F, sun #EDBD6B), the Outfit font, and the website written as **YourNeighborhoodServiceGuy.com**. No phone number appears anywhere, and nothing claims insurance or certification.
 
 | Size | Use it for | Text safe zone |
 |---|---|---|
@@ -15,7 +15,7 @@
 ## 1. Accessibility & home safety (`accessibility/`) — run year-round
 **Photo:** real wheelchair adjustment; resident's personal photos blurred, no faces.
 **Primary text (EN):** New: grab bars, wheelchair and walker tune-ups, lever handles and lower closet shelves. Practical help so you or someone you love can stay safe at home. Seniors 70+, veterans, single parents and neighbors with disabilities can ask for our $45/hr Community Rate.
-**Headline:** Safer at home, starting this week
+**Headline:** Help Mom & Dad stay safe at home
 **Description:** No trip charges · DeKalb to St. Charles
 **Primary text (ES):** Nuevo: barras de apoyo, ajuste de sillas de ruedas y andaderas, manijas de palanca y repisas más bajas. Ayuda práctica para que usted o un ser querido viva seguro en casa. Mayores de 70, veteranos, padres solteros y personas con discapacidad pueden pedir nuestra Tarifa Comunitaria de $45/hora.
 **Headline (ES):** Más seguro en casa, desde esta semana
@@ -24,24 +24,24 @@
 
 ## 2. Leaf before/after (`leaf-before-after/`) — run now through early December
 **Primary text (EN):** Same driveway, same afternoon. Walks, drives and beds cleared, and you approve the estimate and a not-to-exceed cap before we start. No trip charges.
-**Headline:** Leaf season, handled
+**Headline:** Leaves gone. Weekend back.
 **Primary text (ES):** La misma entrada, la misma tarde. Banquetas, entradas y jardineras limpias, y usted aprueba el presupuesto y un límite de costo antes de empezar. Sin cargo por traslado.
 **Landing page:** /leaf-cleanup-dekalb-il
 
 ## 3. Holiday-ready visit (`holiday-ready/`) — **stop running after December 24**
 **Primary text (EN):** Guests coming? One two-hour visit: shelves, pictures, curtain rods, furniture and small fixes. $140, or $90 at the Community Rate. Through December 24.
-**Headline:** Holiday-ready in one visit
+**Headline:** Guests coming? We’ve got your list.
 **Primary text (ES):** ¿Vienen visitas? Una visita de dos horas: repisas, cuadros, cortineros, muebles y arreglos pequeños. $140, o $90 con la Tarifa Comunitaria. Hasta el 24 de diciembre.
 **Landing page:** /handyman-dekalb-il
 
 ## 4. Trusted neighbor (`trusted-neighbor/`) — always-on brand ad
 **Primary text (EN):** Locally owned home and yard help from DeKalb to St. Charles. Published rates, no trip charges, and you approve a not-to-exceed cap before any work begins.
-**Headline:** Your neighbor. Your service guy.
+**Headline:** The service guy who actually shows up.
 **Primary text (ES):** Ayuda local para el hogar y el jardín, de DeKalb a St. Charles. Precios publicados, sin cargo por traslado, y usted aprueba un límite de costo antes de empezar.
 
 ## 5. Winter list (`winter-list/`) — run now until the first snow
 **Primary text (EN):** Get on our snow list before the first storm: driveways, walks and accessible entries, priced per visit. No trip charges.
-**Headline:** Snow season? Get on the list.
+**Headline:** First snow? Not your problem.
 **Primary text (ES):** Apúntese en nuestra lista antes de la primera nevada: entradas, banquetas y accesos, con precio por visita. Sin cargo por traslado.
 **Landing page:** /snow-removal-dekalb-il
 
@@ -58,6 +58,9 @@ The generator in `marketing/tools/ad-generator/` renders every size and language
 ```
 cd marketing/tools/ad-generator
 npm i --no-save @fontsource/outfit@5.2.8 playwright
-node make-ads.cjs ../../job-photos ../../ads
+node make-ads.cjs ../../job-photos ../../ads all   # needs ffmpeg for Reels
 ```
 Edit the `ADS` list in `make-ads.cjs` to change copy, swap photos or add a campaign.
+
+## Posting the Reels
+Upload the `.mp4` as a Reel in Meta Business Suite, add a trending sound, and pin a comment with the website. Reels get far more free reach than still posts, so post one every week even without ad spend.
