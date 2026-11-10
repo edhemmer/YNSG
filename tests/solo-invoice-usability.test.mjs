@@ -7,7 +7,7 @@ test('field invoice allows the owner to directly edit the charge without removin
  assert.match(source,/Invoice amount \(\$\) — edit directly/);
  assert.match(source,/billingBasis:"fixed",\s*chargedAmount: e\.target\.value/);
  assert.match(source,/Reason for adjusted amount or no charge/);
- assert.match(source,/Save invoice amount/);
+ assert.match(source,/Save invoice changes/);
  assert.match(source,/Issue invoice/);
  assert.match(source,/recordedMinutes/);
  assert.match(source,/readiness\?\.ready/);
