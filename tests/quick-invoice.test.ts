@@ -16,6 +16,12 @@ test('owner can type any amount and send in one step without private pricing lea
  assert.match(quick,/Only you see this/);
  assert.doesNotMatch(readFileSync('apps/web/app/invoice-view.tsx','utf8'),/standardCents|ownerPricing/);
 });
+test('request screen can set a private working price without changing the approved quote',()=>{
+ const sql=readFileSync('supabase/migrations/20261110140000_owner_free_amount.sql','utf8');
+ assert.match(sql,/set_job_working_price/);assert.match(sql,/TRANSITION/);
+ assert.match(readFileSync('apps/web/app/service-workflow.tsx','utf8'),/<WorkingPrice /);
+ assert.doesNotMatch(readFileSync('apps/web/app/invoice-view.tsx','utf8'),/workingPrice|working-price/);
+});
 test('migration lifts the cap only for owner/admin and keeps the crew and field cap',()=>{
  const sql=readFileSync('supabase/migrations/20261110140000_owner_free_amount.sql','utf8');
  assert.match(sql,/not private\.staff\(p_org,array\[''owner'',''admin''\]\)/);

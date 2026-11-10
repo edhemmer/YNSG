@@ -44,11 +44,11 @@ export default function InvoiceQuick({organization,job,revision,completed,blocke
    const existing:{description:string;chargedCents:number}[]=d.draft?.lines?.length?d.draft.lines:[];
    const names=existing.length?existing.map(l=>l.description):requested.length?requested:suggested?.description?[suggested.description]:[''];
    setServices(names.map(n=>(n||'').slice(0,300)));
-   const start=existing.length?existing.reduce((n,l)=>n+l.chargedCents,0):suggested?.chargedCents??0;
+   const start=existing.length?existing.reduce((n,l)=>n+l.chargedCents,0):d.workingPrice?.cents??suggested?.chargedCents??0;
    setAmount(existing.length||start?dollars(start):'');
    const priced=d.ownerPricing?ownerPricingSchema.safeParse(d.ownerPricing):null;
    setStandardCents(priced?.success?pricingTotals(priced.data).standardCents:suggested?suggested.chargedCents:null);
-   setNote(priced?.success?priced.data.reason:'');
+   setNote(priced?.success?priced.data.reason:d.workingPrice?.note||'');
    setTax(d.tax);setTaxRule(d.tax?.valid?d.tax?.tax?.rule?.id||'':'');setTaxEvidence(d.tax?.valid?d.tax?.tax?.customerApprovalEvidence||'':'');
    setReady(d.readiness||null);setDirty(false);setLoaded(true);
   }).catch(e=>{if(active&&!controller.signal.aborted){setLoadError(true);setMessage(publicError(e));}});

@@ -23,8 +23,10 @@ export async function GET(request: Request) {
     if(quote.error)throw quote.error;
     const ownerPricing=await db.rpc('invoice_owner_pricing_read',{p_org:org,p_job:job});
     if(ownerPricing.error&&ownerPricing.error.code!=='42501')throw ownerPricing.error;
+    const working=await db.rpc('job_working_price',{p_org:org,p_job:job});
+    const workingPrice=working.error?null:z.object({cents:z.number().int().min(0),note:z.string()}).safeParse(working.data).data??null;
     return NextResponse.json(
-      { draft: r.data, ownerPricing:ownerPricing.error?null:ownerPricing.data, tax:tax.data,crew:quote.data.snapshot?.crew?crewTerms.parse(quote.data.snapshot.crew):null,readiness:invoiceIssuanceReadiness(quote.data.snapshot?.configuration||null,tax.data?.required===true) },
+      { draft: r.data, workingPrice, ownerPricing:ownerPricing.error?null:ownerPricing.data, tax:tax.data,crew:quote.data.snapshot?.crew?crewTerms.parse(quote.data.snapshot.crew):null,readiness:invoiceIssuanceReadiness(quote.data.snapshot?.configuration||null,tax.data?.required===true) },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e) {
