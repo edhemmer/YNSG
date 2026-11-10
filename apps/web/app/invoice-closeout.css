@@ -7,3 +7,4 @@
 .quick-invoice .link{background:none;border:0;padding:6px 0;min-height:44px;text-align:left;color:inherit;text-decoration:underline;cursor:pointer}
 .invoice-pay{margin:18px 0;display:grid;gap:8px}.invoice-pay-button{min-height:56px;font-size:1.15rem;font-weight:700;width:100%;max-width:420px}
 @media print{.invoice-pay{display:none!important}}
+.quick-services{display:grid;gap:8px}.quick-service{display:flex;gap:8px;align-items:center}.quick-service input{flex:1;min-width:0;min-height:48px;font:inherit}

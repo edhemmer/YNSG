@@ -9,7 +9,6 @@ import {salesTax,type TaxRule} from '../lib/taxes';
 import {ownerPricingSchema,pricingTotals,type OwnerPricing} from '../lib/owner-invoice-pricing';
 import {useBlockedEntry,useUnsavedEntry} from './entry-safety';
 
-type Row={description:string;amount:string};
 type TaxContext={required:boolean;rules:TaxRule[];valid:boolean;tax:{taxCents:number;rule?:TaxRule;customerApprovalEvidence?:string}|null};
 type Stage='draft'|'issue'|'email'|'done';
 type Attempt={fingerprint:string;keys:{complete:string;draft:string;email:string;issue:string};stage:Stage;revision:number;invoice?:string;total?:number;completed:boolean};
@@ -22,11 +21,11 @@ async function post(url:string,body:unknown){
  return {ok:response.ok,status:response.status,data};
 }
 
-export default function InvoiceQuick({organization,job,revision,completed,blocked,onBusy,saved,suggested,trackedMinutes,fallback}:{
+export default function InvoiceQuick({organization,job,revision,completed,blocked,onBusy,saved,suggested,requested=[],trackedMinutes,fallback}:{
  organization:string;job:string;revision:number;completed:boolean;blocked:boolean;onBusy:(busy:boolean)=>void;saved:()=>void;
- suggested?:{description:string;chargedCents:number};trackedMinutes?:number;fallback?:ReactNode;
+ suggested?:{description:string;chargedCents:number};requested?:string[];trackedMinutes?:number;fallback?:ReactNode;
 }){
- const [rows,setRows]=useState<Row[]>([]),[note,setNote]=useState(''),[loaded,setLoaded]=useState(false),[crew,setCrew]=useState(false);
+ const [services,setServices]=useState<string[]>([]),[amount,setAmount]=useState(''),[note,setNote]=useState(''),[loaded,setLoaded]=useState(false),[crew,setCrew]=useState(false);
  const [tax,setTax]=useState<TaxContext|null>(null),[taxRule,setTaxRule]=useState(''),[taxEvidence,setTaxEvidence]=useState('');
  const [ready,setReady]=useState<{ready:boolean;reasons:string[]}|null>(null),[standardCents,setStandardCents]=useState<number|null>(null);
  const [busy,setBusy]=useState(false),[message,setMessage]=useState(''),[done,setDone]=useState<{stage:string;text:string}|null>(null),[retryNeeded,setRetryNeeded]=useState(false);
@@ -42,8 +41,11 @@ export default function InvoiceQuick({organization,job,revision,completed,blocke
   sessionFetch('/api/invoice-draft?'+new URLSearchParams({organization,job}),{cache:'no-store',signal:controller.signal}).then(async r=>{
    const d=await r.json();if(!r.ok)throw Error(d.error);if(!active)return;
    if(d.crew){setCrew(true);setLoaded(true);return;}
-   const draftLines:{description:string;chargedCents:number}[]=d.draft?.lines?.length?d.draft.lines:suggested?[{description:suggested.description,chargedCents:suggested.chargedCents}]:[{description:'',chargedCents:0}];
-   setRows(draftLines.map(l=>({description:(l.description||'').slice(0,1000),amount:l.chargedCents?dollars(l.chargedCents):(d.draft?.lines?.length?'0.00':'')})));
+   const existing:{description:string;chargedCents:number}[]=d.draft?.lines?.length?d.draft.lines:[];
+   const names=existing.length?existing.map(l=>l.description):requested.length?requested:suggested?.description?[suggested.description]:[''];
+   setServices(names.map(n=>(n||'').slice(0,300)));
+   const start=existing.length?existing.reduce((n,l)=>n+l.chargedCents,0):suggested?.chargedCents??0;
+   setAmount(existing.length||start?dollars(start):'');
    const priced=d.ownerPricing?ownerPricingSchema.safeParse(d.ownerPricing):null;
    setStandardCents(priced?.success?pricingTotals(priced.data).standardCents:suggested?suggested.chargedCents:null);
    setNote(priced?.success?priced.data.reason:'');
@@ -55,10 +57,12 @@ export default function InvoiceQuick({organization,job,revision,completed,blocke
  },[organization,job,revision,attempts]);// eslint-disable-line react-hooks/exhaustive-deps
 
  if(crew&&fallback)return <>{fallback}</>;
- const cents=rows.map(r=>invoiceChargeCents(r.amount.trim()));
- const valid=rows.length>0&&cents.every(n=>n!==null)&&rows.every(r=>r.description.trim().length>=2);
- const subtotal=cents.reduce<number>((s,n)=>s+(n??0),0);
- const rule=tax?.rules.find(r=>r.id===taxRule);
+ const names=services.map(n=>n.trim()).filter(Boolean);
+ const description=names.length>1?names.slice(0,-1).join(', ')+' & '+names[names.length-1]:names[0]||'';
+ const charge=invoiceChargeCents(amount.trim());
+ const valid=description.length>=2&&description.length<=1000&&charge!==null;
+ const subtotal=charge??0;
+const rule=tax?.rules.find(r=>r.id===taxRule);
  let taxed:{taxCents:number;totalCents:number}|null=null;try{if(rule)taxed=salesTax(subtotal,rule);}catch{}
  const taxNeeded=tax?.required===true;
  const total=taxNeeded?(taxed?.totalCents??null):subtotal;
@@ -66,15 +70,15 @@ export default function InvoiceQuick({organization,job,revision,completed,blocke
  const diff=standardCents===null?null:subtotal-standardCents;
  const canSend=loaded&&valid&&taxOk&&ready?.ready!==false&&total!==null&&!busy&&!blocked&&!done;
 
- function edit(next:Row[]){setRows(next);setDirty(true);setMessage('');setRetryNeeded(false);}
+ function touch(){setDirty(true);setMessage('');setRetryNeeded(false);}
  function privateRecord():OwnerPricing{
   const std=standardCents??subtotal;
-  const label=(rows[0]?.description.trim()||'Service performed').slice(0,160);
+  const label=(description||'Service performed').slice(0,160);
   return {services:[{description:label.length>=2?label:'Service performed',method:'fixed',standardCents:std,billedCents:subtotal}],reason:note.trim().slice(0,500)};
  }
  function lines(){
   const minutes=Number.isSafeInteger(trackedMinutes)&&trackedMinutes!==undefined&&trackedMinutes>=0&&trackedMinutes<=1440?trackedMinutes:0;
-  return rows.map((r,i)=>({description:r.description.trim(),recordedMinutes:i===0?minutes:0,chargedCents:cents[i] as number,waiverReason:(cents[i]??0)===0?'No charge':'',billingBasis:'fixed' as const}));
+  return [{description,recordedMinutes:minutes,chargedCents:subtotal,waiverReason:subtotal===0?'No charge':'',billingBasis:'fixed' as const}];
  }
  async function run(issueAfter:boolean){
   if(sending.current||!loaded||!valid||blocked)return;
@@ -137,13 +141,12 @@ export default function InvoiceQuick({organization,job,revision,completed,blocke
   {ready?.ready===false&&<div className="note" role="status"><strong>One thing to set up before sending</strong><ul>{ready.reasons.map(r=><li key={r}>{r}</li>)}</ul><p>You can still save this.</p></div>}
   <form onSubmit={e=>{e.preventDefault();void run(true);}}>
    <fieldset disabled={busy||blocked}>
-    {rows.map((row,i)=><div className="quick-row" key={i}>
-     <label>What you did<textarea required minLength={2} maxLength={1000} rows={2} value={row.description} onChange={e=>edit(rows.map((r,j)=>j===i?{...r,description:e.target.value}:r))}/></label>
-     <label className="quick-amount">Amount ($)<input type="text" name={"amount-"+i} inputMode="decimal" autoComplete="off" required aria-label={rows.length>1?'Amount for line '+(i+1)+' in dollars':'Invoice amount in dollars'} value={row.amount} onFocus={e=>e.currentTarget.select()} onChange={e=>edit(rows.map((r,j)=>j===i?{...r,amount:e.target.value.replace(/[^0-9.]/g,'')}:r))}/></label>
-     {rows.length>1&&<button type="button" className="link" onClick={()=>edit(rows.filter((_,j)=>j!==i))}>Remove line</button>}
-    </div>)}
-    {rows.length<10&&<button type="button" className="link" onClick={()=>edit([...rows,{description:'',amount:''}])}>+ Add a line</button>}
-    {cents.some(n=>n===null)&&rows.some(r=>r.amount!=='')&&<p role="alert" className="tiny">Use dollars and cents, like 85 or 85.50.</p>}
+    <div className="quick-services" role="group" aria-label="Services performed">
+     {services.map((name,i)=><div className="quick-service" key={i}><input aria-label={'Service '+(i+1)} name={'service-'+i} maxLength={300} value={name} onChange={e=>{setServices(services.map((n,j)=>j===i?e.target.value:n));touch();}}/>{services.length>1&&<button type="button" className="link" aria-label={'Remove '+(name||'service')} onClick={()=>{setServices(services.filter((_,j)=>j!==i));touch();}}>Remove</button>}</div>)}
+     {services.length<10&&<button type="button" className="link" onClick={()=>{setServices([...services,'']);touch();}}>+ Add a service</button>}
+    </div>
+    <label className="quick-amount">Final amount ($)<input type="text" name="amount-0" inputMode="decimal" autoComplete="off" required aria-label="Final invoice amount in dollars" value={amount} onFocus={e=>e.currentTarget.select()} onChange={e=>{setAmount(e.target.value.replace(/[^0-9.]/g,''));touch();}}/></label>
+    {charge===null&&amount!==''&&<p role="alert" className="tiny">Use dollars and cents, like 85 or 85.50.</p>}
     {taxNeeded&&<div className="quick-tax"><label>Sales tax rule<select required value={taxRule} onChange={e=>{setTaxRule(e.target.value);setDirty(true);}}><option value="">Choose the rule</option>{tax!.rules.map(r=><option key={r.id} value={r.id}>{r.label} — {r.city}, {r.state}</option>)}</select></label>
      {taxed&&<p>Tax {money(taxed.taxCents)} · Total {money(taxed.totalCents)}</p>}
      <label>Customer approved subtotal plus tax (how)<input maxLength={1000} value={taxEvidence} onChange={e=>{setTaxEvidence(e.target.value);setDirty(true);}} placeholder="e.g. Agreed by text on 11/10"/></label></div>}
