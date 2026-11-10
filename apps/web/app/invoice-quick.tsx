@@ -25,7 +25,7 @@ export default function InvoiceQuick({organization,job,revision,completed,blocke
  organization:string;job:string;revision:number;completed:boolean;blocked:boolean;onBusy:(busy:boolean)=>void;saved:()=>void;
  suggested?:{description:string;chargedCents:number};requested?:string[];trackedMinutes?:number;fallback?:ReactNode;
 }){
- const [services,setServices]=useState<string[]>([]),[amount,setAmount]=useState(''),[note,setNote]=useState(''),[loaded,setLoaded]=useState(false),[crew,setCrew]=useState(false);
+ const [solo,setSolo]=useState(false),[services,setServices]=useState<string[]>([]),[amount,setAmount]=useState(''),[note,setNote]=useState(''),[loaded,setLoaded]=useState(false),[crew,setCrew]=useState(false);
  const [tax,setTax]=useState<TaxContext|null>(null),[taxRule,setTaxRule]=useState(''),[taxEvidence,setTaxEvidence]=useState('');
  const [ready,setReady]=useState<{ready:boolean;reasons:string[]}|null>(null),[standardCents,setStandardCents]=useState<number|null>(null);
  const [busy,setBusy]=useState(false),[message,setMessage]=useState(''),[done,setDone]=useState<{stage:string;text:string}|null>(null),[retryNeeded,setRetryNeeded]=useState(false);
@@ -40,7 +40,8 @@ export default function InvoiceQuick({organization,job,revision,completed,blocke
   const controller=new AbortController();let active=true;setLoaded(false);setLoadError(false);
   sessionFetch('/api/invoice-draft?'+new URLSearchParams({organization,job}),{cache:'no-store',signal:controller.signal}).then(async r=>{
    const d=await r.json();if(!r.ok)throw Error(d.error);if(!active)return;
-   if(d.crew){setCrew(true);setLoaded(true);return;}
+   if(d.crew&&d.crew.plannedPeople>1){setCrew(true);setLoaded(true);return;}
+   setSolo(Boolean(d.crew));
    const existing:{description:string;chargedCents:number}[]=d.draft?.lines?.length?d.draft.lines:[];
    const names=existing.length?existing.map(l=>l.description):requested.length?requested:suggested?.description?[suggested.description]:[''];
    setServices(names.map(n=>(n||'').slice(0,300)));
@@ -78,6 +79,8 @@ const rule=tax?.rules.find(r=>r.id===taxRule);
  }
  function lines(){
   const minutes=Number.isSafeInteger(trackedMinutes)&&trackedMinutes!==undefined&&trackedMinutes>=0&&trackedMinutes<=1440?trackedMinutes:0;
+  // A one-person agreed quote still carries crew terms; the record must name that person and a reason.
+  if(solo)return [{crewPerson:1,description,recordedMinutes:Math.max(minutes,1),chargedCents:subtotal,waiverReason:(note.trim().length>=2?note.trim():'Final amount set by owner').slice(0,300),billingBasis:'fixed' as const,billingMinutes:Math.max(minutes,1),unitRateCents:0}];
   return [{description,recordedMinutes:minutes,chargedCents:subtotal,waiverReason:subtotal===0?'No charge':'',billingBasis:'fixed' as const}];
  }
  async function run(issueAfter:boolean){
