@@ -11,6 +11,7 @@ export function bookingJourney({form,services,requestData,resumeSelected=false})
  noteEdit.addEventListener('click',()=>{if(!locked()){noteOnly=false;show(1);refresh();}});
  function serviceView(){if(!services().length)noteOnly=false;servicePicker.hidden=Boolean(noteOnly);noteEdit.hidden=!noteOnly;noteEdit.disabled=locked();serviceHeading.textContent=noteOnly?'A note about your other job':originalHeading;serviceIntro.textContent=noteOnly?'Your jobs are selected. Tell us a little about the other work before choosing a time.':originalIntro;}
  function placeNote(){if(!detailsNote)return;const target=step===1&&description.required?noteHome.parentNode:detailsNote;if(workNote.parentNode===target)return;if(step===1&&description.required)noteHome.after(workNote);else detailsNote.append(workNote);}
+ const friendlyTime=text=>{const m=/(\d{4})-(\d{2})-(\d{2}) at (\d{2}):(\d{2})/.exec(text);if(!m)return text;const when=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],12));if(Number.isNaN(when.getTime()))return text;const day=when.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',timeZone:'UTC'}),hour=+m[4],clock=((hour+11)%12+1)+':'+m[5]+' '+(hour<12?'AM':'PM');return day+' at '+clock+'.';};
  const locked=()=>form.dataset.deliveryUnknown==='true'||form.getAttribute('aria-busy')==='true'||form.dataset.appointmentHolding==='true';
  const farmDay=()=>services().some(job=>job.service==='Farm hand services');
  const message=form.querySelector('#form-message'),nextTime=form.querySelector('#booking-time-next'),summary=form.querySelector('#booking-summary');
@@ -19,13 +20,14 @@ export function bookingJourney({form,services,requestData,resumeSelected=false})
   const selected=Boolean(form.dataset.appointmentStart&&form.dataset.appointmentHoldToken)&&!farmDay();
   if(selected)arrange=false;
   nextTime.disabled=locked()||(!selected&&!arrange);
+  const hint=form.querySelector('#booking-next-hint');if(hint)hint.textContent=step===2&&nextTime.disabled&&!locked()?'To go on, tap a day and time above, or tap “Let YNSG arrange a time”.':'';
   serviceView();placeNote();
   const data=requestData(),jobs=services(),doc=form.ownerDocument;
   const fingerprint=JSON.stringify([step,jobs,data.preferredTime||'',selected,arrange,locked()]);
   if(fingerprint!==lastReview){lastReview=fingerprint;
   const heading=doc.createElement('strong');heading.textContent=(step===2?'Your selected jobs · ':'Your request · ')+jobs.length+' '+(jobs.length===1?'job':'jobs');
   const list=doc.createElement('ul');for(const job of jobs){const item=doc.createElement('li');item.textContent=job.service+': '+(job.task||'Details to review');list.append(item);}
-  const time=doc.createElement('p');time.textContent=farmDay()?'Farm hand help · four-hour minimum. We’ll contact you to arrange the work, price, date and hours.':step===2&&!selected&&!arrange?'Choose a preferred time below, or let us arrange one.':data.preferredTime?'Requested time: '+data.preferredTime:'We’ll arrange a time with you';
+  const time=doc.createElement('p');time.textContent=farmDay()?'Farm hand help · four-hour minimum. We’ll contact you to arrange the work, price, date and hours.':step===2&&!selected&&!arrange?'Choose a preferred time below, or let us arrange one.':data.preferredTime?'Your time: '+friendlyTime(data.preferredTime)+' We’ll confirm it with you.':'We’ll arrange a time with you';
   const note=doc.createElement('p');note.className='tiny';note.textContent=step===2?'Nothing is sent until you press Send appointment request.':'One combined request. We’ll confirm the work, price and appointment with you.';
   const edit=doc.createElement('button');edit.type='button';edit.className='booking-text-button booking-edit-jobs';edit.textContent='Edit jobs';edit.disabled=locked();edit.addEventListener('click',()=>{if(!locked()){noteOnly=false;show(1);refresh();}});
   summary.replaceChildren(heading,list,edit,time,note);}
