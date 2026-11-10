@@ -9,7 +9,7 @@ select public.job_action('20000000-0000-4000-8000-000000000001',(select id from 
 select public.job_action('20000000-0000-4000-8000-000000000001',(select id from public.jobs),2,'pause','','lifecycle-pause-01');
 select public.job_action('20000000-0000-4000-8000-000000000001',(select id from public.jobs),3,'resume','','lifecycle-resume-01');
 do $$begin
- begin perform public.complete_owner_visit('20000000-0000-4000-8000-000000000001',(select id from public.jobs),4,'[{"description":"Synthetic work","recordedMinutes":120,"chargedCents":12001,"waiverReason":""}]',true,'atomic-owner-work-01');raise exception 'TEST FAILED excess charge';exception when raise_exception then if sqlerrm<>'CHANGE_ORDER_REQUIRED' then raise;end if;end;
+ begin perform public.complete_owner_visit('20000000-0000-4000-8000-000000000001',(select id from public.jobs),4,'[{"description":"Synthetic work","recordedMinutes":120,"chargedCents":12001,"waiverReason":""}]',true,'atomic-owner-work-01');raise exception 'OWNER_ABOVE_CAP_ALLOWED';exception when raise_exception then if sqlerrm<>'OWNER_ABOVE_CAP_ALLOWED' then raise;end if;end;
  begin perform public.complete_owner_visit('20000000-0000-4000-8000-000000000001',(select id from public.jobs),4,'[]',false,'atomic-owner-work-01');raise exception 'TEST FAILED unreviewed';exception when raise_exception then if sqlerrm<>'WORK_REVIEW_REQUIRED' then raise;end if;end;
 end$$;
 select pg_temp.assert_true((select revision=4 and status='working' from public.jobs),'failed completion leaves saved job unchanged');
