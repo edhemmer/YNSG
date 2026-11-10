@@ -59,18 +59,18 @@ Photos 01–05 and 07–09 show customers' faces or the inside of their homes. G
 | 32 | `ynsg-home-basement-shelving-build-32.jpg` | Building 2×4 basement shelving, portrait | Storage/organizing, Reels cover | Back only |
 | 33 | `ynsg-home-basement-shelving-build-landscape-33.jpg` | Same, wide | Banners, website | Back only |
 | 34 | `ynsg-home-basement-shelving-build-landscape-34.jpg` | Same, full room | Banners, before/after story | Back only |
-| 35 | `ynsg-home-basement-shelving-after-35.jpg` | Finished shelving, **AFTER** (pairs with 39) | Before/after carousel | No people |
+| 35 | `ynsg-home-basement-shelving-after-35.jpg` | Shelving built, basement still in progress | Progress post; final AFTER photo still to come | No people |
 | 36 | `ynsg-cleanout-haul-away-truck-36.jpg` | Loading boxes into the truck, blue sky | Cleanout & haul-away ads | Back only |
 | 37 | `ynsg-cleanout-haul-away-truck-37.jpg` | Same, logo sharp | Cleanout ads, GBP | Back only |
 | 38 | `ynsg-cleanout-haul-away-truck-38.jpg` | Same; street sign and house plaque blurred | Cleanout ads | Back only |
-| 39 | `ynsg-home-basement-organizing-before-39.jpg` | Cluttered basement with boxes, **BEFORE** (pairs with 35) | Before/after carousel | Back only |
+| 39 | `ynsg-home-basement-organizing-before-39.jpg` | Cluttered basement with boxes, **BEFORE** (job in progress) | Before/after carousel | Back only |
 | 40 | `ynsg-home-basement-shelving-finished-40.jpg` | Finished freestanding shelving, older basement | Storage/organizing | No people |
 | 41 | `ynsg-home-storage-shelving-framing-41.jpg` | Built-in storage shelving framed in, wide | Process/progress post | No people |
 | 42 | `ynsg-home-storage-shelving-framing-42.jpg` | Same, portrait | Stories | No people |
 | 43 | `ynsg-brand-sunrise-coffee-silhouette-43.jpg` | Ed's silhouette with coffee at sunrise (left as shot, no color changes) | Brand story: "Up early for our neighbors," Facebook cover, about-me post | Ed only, face in shadow |
 
 ## Ready-made sets
-- **Before → After carousel:** 17 → 10, 18 → 11, 39 → 35 (basement storage)
+- **Before → After carousel:** 17 → 10, 18 → 11, basement storage once the final AFTER photo is in (39 → final)
 - **Cleanout & haul-away:** 36, 37, 38
 - **Storage & shelving builds:** 32–35, 40–42
 - **Brand story / about Ed:** 43
