@@ -236,7 +236,7 @@ if(form){
         pendingSubmission=null;
         if(!form.hidden){draftNote.textContent='Your unfinished details are kept in this tab for up to 24 hours.';saveDraft();}
       }
-      sending=false;form.setAttribute('aria-busy','false');button.disabled=false;button.firstChild.textContent=unknown?'Try sending again ':'Send service request ';
+      sending=false;form.setAttribute('aria-busy','false');button.disabled=false;button.firstChild.textContent=unknown?'Try sending again ':'Send my request ';
       if(refreshCalendar)form.dispatchEvent(new CustomEvent('appointment-conflict'));
       journey?.refresh();
       form.dispatchEvent(new CustomEvent('request-delivery-state-changed'));
