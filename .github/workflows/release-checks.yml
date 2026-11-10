@@ -68,6 +68,13 @@ jobs:
         run: node scripts/verify-owner-mobile.mjs
       - name: Verify workspace history, live permission changes and compact invoices
         run: node scripts/verify-workspace-navigation.mjs
+      - name: Keep owner screen pictures (sample data only)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: owner-screens
+          path: /tmp/ynsg-workspace-navigation/*.png
+          retention-days: 3
       - name: Verify private owner network, support flow and phone readability
         run: node scripts/verify-owner-network.mjs
       - name: Verify contextual job help and editable customer updates
