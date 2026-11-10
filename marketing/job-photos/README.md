@@ -6,9 +6,14 @@ Real on-the-job photos of Ed in YNSG uniform, saved as a reusable source bucket 
 
 ## How these files were prepared
 - Exported as 2048px (long edge) JPEG, quality 86, which matches Facebook/Instagram upload sizes.
-- All camera metadata (EXIF, location, device) is stripped.
-- **14 and 15 (truck sign):** the phone number on the yard sign is painted over with the sign's navy. Brand rule: no phone on signage or marketing.
-- **02 (hallway wide):** the resident nameplate on the wall is blurred.
+- **All metadata is stripped:** GPS location, camera, device and date.
+- **Professionally cleaned:** gentle white balance, shadow lift on the dark indoor shots (03–06 are much brighter), auto-levels, a touch of color and light sharpening. Nothing is altered beyond what a photo editor would do.
+- **Addresses and identifying details removed:**
+  - **14 and 15 (truck sign):** the phone number is painted over with the sign's navy. Brand rule: no phone on signage or marketing.
+  - **02 (hallway wide):** the resident nameplate is blurred.
+  - **03, 04, 05 (resident's room):** family photos on the wall are blurred.
+  - **10 and 17 (driveway):** the city name and label on the green cart are blurred.
+  - No house numbers, street signs or readable license plates appear in any photo.
 - Dropped one file, a phone screenshot of photo 12 (same shot).
 - Logo colors aren't touched. The black-shirt photos (24, 27, 29) show the white-lettering logo, which is the approved dark-background version.
 

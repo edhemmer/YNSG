@@ -145,3 +145,6 @@ body .work-grid img{display:block;width:100%;height:auto;aspect-ratio:4/3;object
 body .work-grid figcaption{padding:10px 14px 12px;font-size:.9375rem;font-weight:600;color:var(--navy);line-height:1.35}
 @media(max-width:1000px){body .work-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){body .work-grid{gap:10px}body .work-grid figcaption{padding:8px 10px 10px;font-size:.875rem}}
+
+/* Real job photo: keep the shirt logo in frame when cards crop to narrower shapes. */
+img[src*="ynsg-accessibility-home-safety"]{object-position:26% 50%}
