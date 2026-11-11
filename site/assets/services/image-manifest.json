@@ -207,25 +207,25 @@
     {
       "id": "accessibility",
       "title": "Accessibility help in DeKalb, Sycamore and St. Charles",
-      "alt": "Your Neighborhood Service Guy kneeling beside a manual wheelchair to adjust it in a resident’s room.",
+      "alt": "A manual wheelchair in a resident’s room, ready for a wheel, brake and footrest tune-up.",
       "creator": "Your Neighborhood Service Guy — HOME & YARD",
-      "rights": "© 2026 Your Neighborhood Service Guy. All rights reserved. Real job photograph; personal photos in the room are blurred.",
+      "rights": "© 2026 Your Neighborhood Service Guy. All rights reserved. Real job photograph; no people shown.",
       "generated_artwork": false,
-      "shirt_branding_review": "Real YNSG uniform with the approved logo and website; no faces shown",
+      "shirt_branding_review": "No people or faces shown",
       "variants": [
         {
           "filename": "ynsg-accessibility-home-safety-960.webp",
           "width": 960,
           "height": 384,
-          "size_bytes": 54532,
-          "sha256": "d4192da21d2f2821000697626b19c78214109475e02db7144cb572693bb345a9"
+          "size_bytes": 56824,
+          "sha256": "88e0105f287e7874af9c11dd408699de2c934d77ad16cb6d68a284e16ff6f7a1"
         },
         {
           "filename": "ynsg-accessibility-home-safety-640.webp",
           "width": 640,
           "height": 256,
-          "size_bytes": 24362,
-          "sha256": "accac49d69f1bb1ceb221df253a3239b7616883bbf337f37f697a2f581dd9939"
+          "size_bytes": 27890,
+          "sha256": "33f1d891b23b9d1c8c6cec3dad384fe6094686ef172d63f8e1600bc09b574bd5"
         }
       ]
     }
