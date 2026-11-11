@@ -21,7 +21,7 @@ test('customer booking keeps service, time and required details in ordered stage
  assert.ok(html.indexOf('id="appointment-times"')<html.indexOf('id="appointment-days"'));
  assert.ok(html.indexOf('id="appointment-days"')<html.indexOf('id="name"'));
  assert.ok(html.indexOf('id="appointment-picker"')<html.indexOf('id="name"'));
- assert.ok(html.includes('id="appointment-quick-dates"'));assert.ok(html.includes('Let YNSG arrange a time'));
+ assert.ok(html.includes('id="appointment-quick-dates"'));assert.ok(html.includes('Let us schedule it'));
  for(const id of ['name','phone','email','street','city'])assert.match(html,new RegExp('<(?:input|select)[^>]*id="'+id+'"[^>]*required'));
 });
 
@@ -109,7 +109,7 @@ test('service-area page accepts inquiries outside the primary towns',async()=>{
 test('customers can request service without choosing a calendar time',async()=>{
  const html=await readFile(new URL('../site/pages/form.html',import.meta.url),'utf8');
  assert.match(html,/Choosing a time is optional/);
- assert.match(html,/id="calendar-clear">Let YNSG arrange a time/);
+ assert.match(html,/id="calendar-clear">Let us schedule it/);assert.match(html,/id="time-choice-pick"/);assert.match(html,/id="time-confirm"/);
  assert.equal((html.match(/id="calendar-clear"/g)||[]).length,1);
  const picker=html.slice(html.indexOf('id="appointment-picker"'),html.indexOf('</fieldset>',html.indexOf('id="appointment-picker"')));
  assert.match(picker,/id="calendar-clear"/,'Calendar-free action must remain within picker used by interactive JavaScript');
