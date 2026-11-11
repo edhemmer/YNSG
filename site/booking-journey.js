@@ -2,7 +2,7 @@
 export function bookingJourney({form,services,requestData,resumeSelected=false}){
  const progress=form.querySelector('.booking-progress'),stages=[...form.querySelectorAll('[data-stage]')];
  if(!progress||stages.length!==3)return {refresh(){}};
- let step=1,arrange=false,hadTime=false,lastReview='';
+ let step=1,arrange=false,hadTime=false,lastReview='',picking=false,dismissedStart='',confirmShown=false;
  const description=form.querySelector('#description'),workNote=description.closest('.form-field'),noteHome=form.ownerDocument.createComment('work-note'),detailsNote=form.querySelector('#booking-details-note');
  workNote.before(noteHome);
  let noteOnly=resumeSelected&&services().length>0&&description.required&&!description.validity.valid;
@@ -15,19 +15,29 @@ export function bookingJourney({form,services,requestData,resumeSelected=false})
  const locked=()=>form.dataset.deliveryUnknown==='true'||form.getAttribute('aria-busy')==='true'||form.dataset.appointmentHolding==='true';
  const farmDay=()=>services().some(job=>job.service==='Farm hand services');
  const message=form.querySelector('#form-message'),nextTime=form.querySelector('#booking-time-next'),summary=form.querySelector('#booking-summary');
+ const timeChoice=form.querySelector('#time-choice'),pickButton=form.querySelector('#time-choice-pick'),chooser=form.querySelector('#appointment-chooser'),confirmBox=form.querySelector('#time-confirm'),confirmText=form.querySelector('#time-confirm-text'),changeTime=form.querySelector('#time-change');
  function refresh(){
   progress.querySelectorAll('[data-booking-step]').forEach(b=>{b.disabled=locked()||Number(b.dataset.bookingStep)>step||(farmDay()&&Number(b.dataset.bookingStep)===2);});
   const selected=Boolean(form.dataset.appointmentStart&&form.dataset.appointmentHoldToken)&&!farmDay();
   if(selected)arrange=false;
   nextTime.disabled=locked()||(!selected&&!arrange);
-  const hint=form.querySelector('#booking-next-hint');if(hint)hint.textContent=step===2&&nextTime.disabled&&!locked()?'To go on, tap a day and time above, or tap “Let YNSG arrange a time”.':'';
+  // Step 2 has two clear paths: let us schedule it, or pick a time and confirm it.
+  const hint=form.querySelector('#booking-next-hint');
+  if(chooser){
+   if(!selected)dismissedStart='';
+   const showChooser=picking||selected,start=form.dataset.appointmentStart||'',confirming=selected&&dismissedStart!==start;
+   chooser.hidden=!showChooser;pickButton.setAttribute('aria-expanded',String(showChooser));pickButton.disabled=locked();
+   confirmBox.hidden=!confirming;timeChoice.hidden=confirming;
+   if(confirming){confirmText.textContent=friendlyTime(form.querySelector('#preferredTime').value||'').replace(/\.$/,'');if(!confirmShown&&step===2){confirmShown=true;nextTime.focus({preventScroll:true});nextTime.scrollIntoView?.({block:'center'});}}else confirmShown=false;
+   if(hint)hint.textContent=step===2&&showChooser&&!confirming&&!selected&&!locked()?'Tap a day, then tap a time. You will be asked to confirm it.':'';
+  }
   serviceView();placeNote();
   const data=requestData(),jobs=services(),doc=form.ownerDocument;
   const fingerprint=JSON.stringify([step,jobs,data.preferredTime||'',selected,arrange,locked()]);
   if(fingerprint!==lastReview){lastReview=fingerprint;
   const heading=doc.createElement('strong');heading.textContent=(step===2?'Your selected jobs · ':'Your request · ')+jobs.length+' '+(jobs.length===1?'job':'jobs');
   const list=doc.createElement('ul');for(const job of jobs){const item=doc.createElement('li');item.textContent=job.service+': '+(job.task||'Details to review');list.append(item);}
-  const time=doc.createElement('p');time.textContent=farmDay()?'Farm hand help · four-hour minimum. We’ll contact you to arrange the work, price, date and hours.':step===2&&!selected&&!arrange?'Choose a preferred time below, or let us arrange one.':data.preferredTime?'Your time: '+friendlyTime(data.preferredTime)+' We’ll confirm it with you.':'We’ll arrange a time with you';
+  const time=doc.createElement('p');time.textContent=farmDay()?'Farm hand help · four-hour minimum. We’ll contact you to arrange the work, price, date and hours.':step===2&&!selected&&!arrange?'Choose how you’d like to set your time.':data.preferredTime?'Your time: '+friendlyTime(data.preferredTime)+' We’ll confirm it with you.':'We’ll arrange a time with you';
   const note=doc.createElement('p');note.className='tiny';note.textContent=step===2?'Nothing is sent until you press Send appointment request.':'One combined request. We’ll confirm the work, price and appointment with you.';
   const edit=doc.createElement('button');edit.type='button';edit.className='booking-text-button booking-edit-jobs';edit.textContent='Edit jobs';edit.disabled=locked();edit.addEventListener('click',()=>{if(!locked()){noteOnly=false;show(1);refresh();}});
   summary.replaceChildren(heading,list,edit,time,note);}
@@ -35,7 +45,7 @@ export function bookingJourney({form,services,requestData,resumeSelected=false})
   hadTime=selected;
  }
  function show(value,focus=true){
-  step=value;serviceView();placeNote();stages.forEach(s=>s.hidden=Number(s.dataset.stage)!==step);
+  step=value;if(step===2&&!(form.dataset.appointmentStart&&form.dataset.appointmentHoldToken))picking=false;serviceView();placeNote();stages.forEach(s=>s.hidden=Number(s.dataset.stage)!==step);
   progress.querySelectorAll('[data-booking-step]').forEach(b=>{b.disabled=locked()||Number(b.dataset.bookingStep)>step;b.setAttribute('aria-current',Number(b.dataset.bookingStep)===step?'step':'false');});
   summary.hidden=step===1;
   if(step>1)stages[step-1].querySelector('h2').after(summary);
@@ -63,7 +73,9 @@ export function bookingJourney({form,services,requestData,resumeSelected=false})
  nextTime.addEventListener('click',advance);
  progress.querySelectorAll('[data-booking-step]').forEach(b=>b.addEventListener('click',()=>{if(!locked()&&Number(b.dataset.bookingStep)<=step){message.textContent='';if(Number(b.dataset.bookingStep)===1)noteOnly=false;show(farmDay()&&Number(b.dataset.bookingStep)===2?1:Number(b.dataset.bookingStep));refresh();}}));
  form.querySelectorAll('[data-booking-back]').forEach(b=>b.addEventListener('click',()=>{if(!locked()){message.textContent='';if(Number(b.dataset.bookingBack)===1||farmDay())noteOnly=false;show(farmDay()?1:Number(b.dataset.bookingBack));refresh();}}));
- form.querySelector('#calendar-clear').addEventListener('click',()=>{if(locked())return;arrange=true;hadTime=false;show(3);});
+ form.querySelector('#calendar-clear').addEventListener('click',()=>{if(locked())return;arrange=true;hadTime=false;picking=false;show(3);});
+ if(pickButton)pickButton.addEventListener('click',()=>{if(locked())return;picking=true;refresh();chooser.scrollIntoView?.({block:'start',behavior:'smooth'});});
+ if(changeTime)changeTime.addEventListener('click',()=>{if(locked())return;dismissedStart=form.dataset.appointmentStart||'';picking=true;refresh();chooser.scrollIntoView?.({block:'start',behavior:'smooth'});});
  form.addEventListener('request-services-changed',refresh);
  form.addEventListener('appointment-selection-changed',refresh);form.addEventListener('input',refresh);form.addEventListener('change',refresh);
  form.addEventListener('submit',event=>{if(step<3&&!locked()){event.preventDefault();event.stopImmediatePropagation();advance();}},true);
