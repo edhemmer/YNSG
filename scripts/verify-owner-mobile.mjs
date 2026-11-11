@@ -34,6 +34,8 @@ async function mount(state='new',width=390,theme='light',mode='detail',engine='c
 async function layout(page,label){
  const failures=await page.evaluate(()=>{
   const root=document.querySelector('dialog[open]')||document.querySelector('main'),width=innerWidth,failures=[];
+  // Measure from the top: sticky bars legitimately sit over content that has scrolled beneath them.
+  for(let n=root;n;n=n.parentElement)n.scrollTop=0;scrollTo(0,0);
   if(document.documentElement.scrollWidth>width+1)failures.push('page overflow');
   if(root.scrollWidth>root.clientWidth+1)failures.push('content overflow');
   // Closed details retain layout boxes in some engines; only painted controls can overlap.
