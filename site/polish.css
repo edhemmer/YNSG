@@ -147,4 +147,4 @@ body .work-grid figcaption{padding:10px 14px 12px;font-size:.9375rem;font-weight
 @media(max-width:520px){body .work-grid{gap:10px}body .work-grid figcaption{padding:8px 10px 10px;font-size:.875rem}}
 
 /* Real job photo: keep the shirt logo in frame when cards crop to narrower shapes. */
-img[src*="ynsg-accessibility-home-safety"]{object-position:26% 50%}
+img[src*="ynsg-accessibility-home-safety"]{object-position:14% 50%}
