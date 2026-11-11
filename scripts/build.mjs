@@ -6,7 +6,7 @@ import {seo,canonicalUrl} from './seo.mjs';
 import {verifyLocalSeo} from './check-local-seo.mjs';
 import {icon} from '../site/icons.js';
 import {standardizeRequestButtons} from '../site/request-button.js';
-import {reviewsSection} from '../site/reviews.js';
+import {reviewsSection,ratingBadge} from '../site/reviews.js';
 import {meetEdVideo} from '../site/meet-ed.js';
 import {existsSync} from 'node:fs';
 import { readFile, writeFile, mkdir, cp, rm } from 'node:fs/promises';
@@ -47,7 +47,7 @@ const formTemplate = await readFile(join(source,'pages','form.html'),'utf8');
 const targetDatalist='<datalist id="nearby-cities">'+priorityServiceCities.map(city=>'<option value="'+city+'">').join('')+'</datalist>';
 if(!/<datalist id="nearby-cities">[\s\S]*?<\/datalist>/.test(formTemplate))throw Error('Missing customer city suggestions');
 const form=formTemplate.replace(/<datalist id="nearby-cities">[\s\S]*?<\/datalist>/,targetDatalist);
-const reviewsHtml=reviewsSection(JSON.parse(await readFile(join(source,'data','reviews.json'),'utf8')),businessIdentity.googleReviewUrl);
+const reviewsHtml=reviewsSection(JSON.parse(await readFile(join(source,'data','reviews.json'),'utf8')),businessIdentity.googleReviewUrl)||ratingBadge(JSON.parse(await readFile(join(source,'data','google-rating.json'),'utf8')),businessIdentity.googleReviewUrl.replace(/\/review$/,''));
 const meetEdHtml=meetEdVideo({hasVideo:existsSync(join(source,'assets','meet-ed.mp4')),hasPoster:existsSync(join(source,'assets','meet-ed.jpg')),hasCaptions:existsSync(join(source,'assets','meet-ed.vtt'))});
 const serviceManifest=JSON.parse(await readFile(join(source,'assets','services','image-manifest.json'),'utf8'));
 const pages = {
