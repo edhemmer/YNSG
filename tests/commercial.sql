@@ -27,11 +27,13 @@ do $$begin begin
 reset role;
 -- Scheduling/execution not under test here; explicit fixture establishes their precondition.
 update public.jobs set status='working',revision=2;
+update public.contacts set email='corrected@example.invalid';
 set local role authenticated;
 select public.complete_service_call('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),2,'complete-service-test-key');
 select public.save_invoice_labor('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),3,'[{"description":"Synthetic recorded work","recordedMinutes":120,"chargedCents":13500,"waiverReason":""}]','saved-approval-draft-key');
 select public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),4,13500,true,'approved-invoice-key');
 select public.approve_invoice('20000000-0000-4000-8000-000000000001',(select id from public.jobs limit 1),4,13500,true,'approved-invoice-key');
+select pg_temp.assert_true((select snapshot->'recipient'->>'email'='corrected@example.invalid' from public.invoices limit 1),'invoice is addressed to the corrected current contact email');
 select pg_temp.assert_true((select count(*)=1 from public.invoices),'one authoritative invoice');
 select pg_temp.assert_true((select number/1000000=to_char(now() at time zone 'UTC','YYYYMM')::bigint and number%1000000=1 from public.invoices limit 1),'monthly first invoice and idempotent retry');
 reset role;
@@ -57,7 +59,7 @@ set constraints all immediate;
 do $$begin begin update public.invoices set total_cents=1;raise exception 'TEST FAILED invoice mutable';exception when raise_exception then if sqlerrm<>'IMMUTABLE_RECORD' then raise;end if;end;end$$;
 do $$begin begin insert into public.journal_entries(organization_id,source_kind,source_id) values('20000000-0000-4000-8000-000000000001','expense',gen_random_uuid());raise exception 'TEST FAILED unbalanced journal accepted';exception when raise_exception then if sqlerrm<>'UNBALANCED_JOURNAL' then raise;end if;end;end$$;
 
-select pg_temp.assert_true((select payload->>'schemaVersion'='2' and payload->>'recipient'='test@example.invalid' and payload->'review'->>'url'='https://example.invalid/review' from public.outbox where kind='invoice.paid'),'paid event freezes recipient and reviewed destination');
+select pg_temp.assert_true((select payload->>'schemaVersion'='2' and payload->>'recipient'='corrected@example.invalid' and payload->'review'->>'url'='https://example.invalid/review' from public.outbox where kind='invoice.paid'),'paid event freezes recipient and reviewed destination');
 select pg_temp.assert_true((select private.paid_notice_current(organization_id,id) from public.outbox where kind='invoice.paid'),'settled owner-approved invoice is current');
 select pg_temp.assert_true(not has_function_privilege('authenticated','private.paid_notice_current(uuid,uuid)','EXECUTE'),'no direct paid-state privileged API');
 update public.organizations set status='active';
@@ -76,7 +78,7 @@ set local role authenticated;
 select pg_temp.assert_true(public.begin_delivery('20000000-0000-4000-8000-000000000001',(select id from public.outbox where kind='invoice.paid' and payload->>'schemaVersion'='2'),(select lease_token from public.outbox where kind='invoice.paid' and payload->>'schemaVersion'='2'))->>'status'='suppressed','invalid recipient suppressed at final dispatch boundary');
 reset role;
 
-update public.outbox set payload=jsonb_set(payload,'{recipient}','"test@example.invalid"'),status='pending',lease_until=null,lease_token=null where kind='invoice.paid' and payload->>'schemaVersion'='2';
+update public.outbox set payload=jsonb_set(payload,'{recipient}','"corrected@example.invalid"'),status='pending',lease_until=null,lease_token=null where kind='invoice.paid' and payload->>'schemaVersion'='2';
 set local role authenticated;
 select * from public.claim_outbox('20000000-0000-4000-8000-000000000001',25);
 select pg_temp.assert_true(public.begin_delivery('20000000-0000-4000-8000-000000000001',(select id from public.outbox where kind='invoice.paid' and payload->>'schemaVersion'='2'),(select lease_token from public.outbox where kind='invoice.paid' and payload->>'schemaVersion'='2'))->>'status'='sending','valid paid event enters delivery');
