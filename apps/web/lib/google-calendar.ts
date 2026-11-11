@@ -18,6 +18,7 @@ type Event = {
   status?: string;
   start?: { dateTime?: string };
   end?: { dateTime?: string };
+  reminders?: { useDefault?: boolean; overrides?: { method?: string; minutes?: number }[] };
   extendedProperties?: { private?: Record<string, string> };
 };
 export type ProjectionResult = {
@@ -28,6 +29,19 @@ export type ProjectionResult = {
 };
 export function eventId(p: Projection) {
   return "ynsg" + hash(p.organization + ":" + p.calendar + ":" + p.appointment);
+}
+// Phone alerts for every visit: the evening before (24 h) and an hour ahead.
+const REMINDERS = [
+  { method: "popup", minutes: 1440 },
+  { method: "popup", minutes: 60 },
+];
+function remindersMatch(e: Event) {
+  const o = e.reminders?.overrides ?? [];
+  return (
+    e.reminders?.useDefault === false &&
+    o.length === REMINDERS.length &&
+    REMINDERS.every((r) => o.some((x) => x.method === r.method && x.minutes === r.minutes))
+  );
 }
 function desired(p: Projection) {
   return {
@@ -42,7 +56,7 @@ function desired(p: Projection) {
     end: { dateTime: p.end, timeZone: p.timezone },
     transparency: "opaque",
     visibility: "private",
-    reminders: { useDefault: false },
+    reminders: { useDefault: false, overrides: REMINDERS },
     extendedProperties: {
       private: {
         ynsgOrganization: p.organization,
@@ -58,6 +72,7 @@ function same(e: Event, p: Projection) {
     e.summary === d.summary &&
     (!p.customer||(e.location===d.location&&e.description===d.description)) &&
     e.status === d.status &&
+    remindersMatch(e) &&
     Date.parse(e.start?.dateTime || "") === Date.parse(p.start) &&
     Date.parse(e.end?.dateTime || "") === Date.parse(p.end) &&
     e.extendedProperties?.private?.ynsgRevision === String(p.revision)
