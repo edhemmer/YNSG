@@ -13,7 +13,9 @@ Real on-the-job photos of Ed in YNSG uniform, saved as a reusable source bucket 
   - **02 (hallway wide):** the resident nameplate is blurred.
   - **03, 04, 05 (resident's room):** family photos on the wall are blurred.
   - **10 and 17 (driveway):** the city name and label on the green cart are blurred.
-  - No house numbers, street signs or readable license plates appear in any photo.
+  - **31:** personal-care product on the toilet tank blurred.
+  - **37 and 38:** a neighbor's house plaque and the street sign behind the truck blurred.
+  - No house numbers, street signs or readable license plates remain in any photo.
 - Dropped one file, a phone screenshot of photo 12 (same shot).
 - Logo colors aren't touched. The black-shirt photos (24, 27, 29) show the white-lettering logo, which is the approved dark-background version.
 
@@ -52,10 +54,31 @@ Photos 01–05 and 07–09 show customers' faces or the inside of their homes. G
 | 27 | `ynsg-home-closet-shelf-black-shirt-landscape-27.jpg` | Closet shelf, landscape | Banners, website | Back only |
 | 28 | `ynsg-yard-raking-28.jpg` | Raking, portrait | Stories/Reels | Partial side profile (Ed) |
 | 29 | `ynsg-home-closet-drill-black-shirt-29.jpg` | Drilling shelf bracket, white-letter logo | Small repairs, dark-theme ads | Back only |
+| 30 | `ynsg-home-bathroom-toilet-seat-30.jpg` | Installing a new toilet seat, black shirt | Small home jobs, accessibility (raised/soft-close seats) | Back only |
+| 31 | `ynsg-home-bathroom-toilet-seat-31.jpg` | Same, logo very clear; personal product on tank blurred | Same | Back only |
+| 32 | `ynsg-home-basement-shelving-build-32.jpg` | Building 2×4 basement shelving, portrait | Storage/organizing, Reels cover | Back only |
+| 33 | `ynsg-home-basement-shelving-build-landscape-33.jpg` | Same, wide | Banners, website | Back only |
+| 34 | `ynsg-home-basement-shelving-build-landscape-34.jpg` | Same, full room | Banners, before/after story | Back only |
+| 35 | `ynsg-home-basement-shelving-after-35.jpg` | Shelving built, basement still in progress | Progress post; final AFTER photo still to come | No people |
+| 36 | `ynsg-cleanout-haul-away-truck-36.jpg` | Loading boxes into the truck, blue sky | Cleanout & haul-away ads | Back only |
+| 37 | `ynsg-cleanout-haul-away-truck-37.jpg` | Same, logo sharp | Cleanout ads, GBP | Back only |
+| 38 | `ynsg-cleanout-haul-away-truck-38.jpg` | Same; street sign and house plaque blurred | Cleanout ads | Back only |
+| 39 | `ynsg-home-basement-organizing-before-39.jpg` | Cluttered basement with boxes, **BEFORE** (job in progress) | Before/after carousel | Back only |
+| 40 | `ynsg-home-basement-shelving-finished-40.jpg` | Finished freestanding shelving, older basement | Storage/organizing | No people |
+| 41 | `ynsg-home-storage-shelving-framing-41.jpg` | Built-in storage shelving framed in, wide | Process/progress post | No people |
+| 42 | `ynsg-home-storage-shelving-framing-42.jpg` | Same, portrait | Stories | No people |
+| 43 | `ynsg-brand-sunrise-coffee-silhouette-43.jpg` | Ed's silhouette with coffee at sunrise (left as shot, no color changes) | Brand story: "Up early for our neighbors," Facebook cover, about-me post | Ed only, face in shadow |
+| 44 | `ynsg-veteran-porch-handshake-dad-44.jpg` | Porch handshake with Ed's dad (a veteran), he's looking at Ed | Veterans Day, Memorial Day, Community Rate, trust posts | Ed's dad: OK'd by Ed |
+| 45 | `ynsg-veteran-porch-handshake-wide-dad-45.jpg` | Same moment, wider, Ed's back to camera | Wide/story backgrounds | Ed's dad: OK'd by Ed |
+| 46 | `ynsg-veteran-porch-greeting-dad-46.jpg` | Greeting at the door, logo and website crisp; dad looks toward camera | Logo-forward shots; avoid where a natural (non-posed) look matters | Ed's dad: OK'd by Ed |
 
 ## Ready-made sets
-- **Before → After carousel:** 17 → 10, 18 → 11
-- **Post-today safe (no customers):** 06, 10–12, 14–29
+- **Before → After carousel:** 17 → 10, 18 → 11, basement storage once the final AFTER photo is in (39 → final)
+- **Cleanout & haul-away:** 36, 37, 38
+- **Storage & shelving builds:** 32–35, 40–42
+- **Brand story / about Ed:** 43
+- **Veterans / patriotic holidays:** 44 (best), 45, 43
+- **Post-today safe (no customers):** 06, 10–12, 14–43
 - **Strongest ad shots:** 08 (after consent), 22, 26, 12, 21
 - **Landscape (banners/covers):** 23, 25, 27
 - **Fall leaf-season campaign:** 15, 17/10, 18/11, 23, 25, 28, 14
