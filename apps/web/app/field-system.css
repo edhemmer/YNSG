@@ -335,3 +335,6 @@
 .company-workspace h2{font-size:1.25rem}
 .company-workspace button,.company-workspace .button{min-height:44px}
 }
+
+/* Inputs stay 16px (iPhones zoom into smaller fields) even though the app's other text is scaled down. */
+.company-workspace input:not([type=checkbox]):not([type=radio]),.company-workspace select,.company-workspace textarea{font-size:16px!important}
