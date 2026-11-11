@@ -83,3 +83,4 @@
 .time-confirm .button{min-height:56px;font-size:1.1rem;font-weight:700;justify-self:stretch}.time-confirm .booking-text-button{justify-self:center}
 .appointment-chooser{margin-top:8px;padding-top:14px;border-top:1px solid #dde3db}
 @media(min-width:760px){.time-choice{grid-template-columns:1fr 1fr}}
+.success-steps{text-align:left;margin:12px auto;padding-left:1.4em;max-width:30em;line-height:1.5}.success-steps li{margin:6px 0}
