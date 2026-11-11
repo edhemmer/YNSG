@@ -444,6 +444,38 @@ class FadeBlack:
 class Nothing:
     def draw(self, canvas, t): pass
 
+class StarScene:
+    """Deep navy star field with the red/white stripe band, as an in-between scene."""
+    _sf = None
+    def __init__(self, start, end):
+        self.start, self.end = start, end
+        if StarScene._sf is None: StarScene._sf = StarField()
+    def draw(self, canvas, t):
+        if t < self.start or t >= self.end: return
+        canvas.alpha_composite(Image.fromarray(StarScene._sf.frame(t)).convert("RGBA"))
+
+class PanScene:
+    """Crowd strip scaled to full height and panned sideways. It's heavily blurred at source resolution
+    so no one can be identified, then darkened for text."""
+    def __init__(self, start, end, path, crop, blur=7, direction=1):
+        self.start, self.end, self.dir = start, end, direction
+        im = Image.open(path).convert("RGB").crop(crop)
+        if blur: im = im.filter(ImageFilter.GaussianBlur(blur))
+        sc = H / im.height
+        self.im = im.resize((int(im.width * sc), H), Image.BICUBIC)
+        g = np.zeros((H, W, 4), np.uint8)
+        ys = (np.arange(H) / H)[:, None]
+        a = 110 + np.clip((ys - 0.35) / 0.65, 0, 1) * 110 + np.clip((0.15 - ys) / 0.15, 0, 1) * 60
+        g[..., 0:3] = np.array((3, 14, 28), np.uint8); g[..., 3] = np.clip(a, 0, 255).astype(np.uint8)
+        self.grad = Image.fromarray(g, "RGBA")
+    def draw(self, canvas, t):
+        if t < self.start or t >= self.end: return
+        k = ease_in_out((t - self.start) / (self.end - self.start))
+        span = self.im.width - W
+        x = int(span * (0.15 + 0.7 * (k if self.dir > 0 else 1 - k)))
+        canvas.alpha_composite(self.im.crop((x, 0, x + W, H)).convert("RGBA"))
+        canvas.alpha_composite(self.grad)
+
 def build_vo():
     """Voiceover cut: every scene timed to the Hale voiceover (VO starts at 0.4 s)."""
     bg = WavingFlag(x0=1120)
@@ -451,9 +483,9 @@ def build_vo():
     P = PHOTOS
     items = [
         Slam(0, 1.78, [Line("Happy", 150, 900), Line("Veterans Day.", 140, 900, RB)], 880, gap=4),
-        PhotoScene(1.78, 5.87, P + "ynsg-yard-leaf-cleanup-walk-after-11.jpg", focus_y=0.5, zoom=0.08),
-        Card(1.85, 2.99, [Line("Look around you.", 110, 900)], 1350),
-        Card(2.99, 5.87, [Line("The person next to you", 76, 800), Line("may be a veteran…", 96, 900, RB)], 1350, gap=8, stagger=0.5),
+        PanScene(1.78, 5.87, os.path.join(HERE, "photos", "crowd-a.jpg"), (0, 520, 1512, 1165), blur=7),
+        Card(1.85, 2.99, [Line("Look around you.", 120, 900)], 900),
+        Card(2.99, 5.87, [Line("The person next to you", 84, 800), Line("may be a veteran…", 104, 900, RB)], 900, gap=8, stagger=0.5),
         Card(5.87, 7.56, [Line("…and you may", 110, 900), Line("never know it.", 120, 900, RB)], 900, stagger=0.3),
     ]
     branches = [("ARMY", 7.56, 8.26, RED, WHITE), ("NAVY", 8.26, 9.10, BLUE, WHITE), ("AIR FORCE", 9.10, 9.93, WHITE, BLUE),
@@ -462,8 +494,8 @@ def build_vo():
         items.append(Flash(a, b, w, bgc, fg))
     items += [
         Card(13.14, 15.11, [Line("To every one of you", 96, 900), Line("who served,", 120, 900, RB)], 900, stagger=0.35),
-        PhotoScene(15.11, 18.24, P + "ynsg-brand-sunrise-coffee-silhouette-43.jpg", focus_y=0.5, zoom=0.06),
-        Card(15.2, 18.24, [Line("Thank you for", 100, 900), Line("your service", 100, 900), Line("and your sacrifice.", 80, 800, PINK)], 1300, gap=6, stagger=0.45),
+        StarScene(15.11, 18.24),
+        Card(15.2, 18.24, [Line("Thank you for", 110, 900), Line("your service", 110, 900), Line("and your sacrifice.", 86, 800, PINK)], 840, gap=6, stagger=0.45),
         PhotoScene(18.24, 22.77, P + "ynsg-yard-mowing-12.jpg", focus_y=0.35, zoom=0.08),
         Card(18.35, 22.77, [Line("At Your Neighborhood Service Guy,", 52, 700), Line("we serve the same", 84, 900), Line("neighborhoods", 96, 900), Line("you protected.", 96, 900, RB)], 1300, gap=4, stagger=0.5),
         PhotoScene(22.77, 24.6, P + "ynsg-yard-raking-28.jpg", focus_y=0.45, zoom=0.06),
