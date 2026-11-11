@@ -316,3 +316,12 @@
 .company-workspace .owner-job-quick-actions>button{flex:1 1 100%}
 .company-workspace .owner-job-entry>button:first-child{opacity:.92;box-shadow:0 4px 14px #0006}
 }
+
+/* Today: calmer. Compact stats strip, only the top few requests; "All requests" has the rest. */
+@media(max-width:850px){
+.company-workspace .field-glance{gap:6px;margin-bottom:12px}
+.company-workspace .field-glance li{padding:8px 6px;text-align:center;border-radius:12px}
+.company-workspace .field-glance strong{font-size:1.3rem}
+.company-workspace .field-glance span{font-size:.72rem;line-height:1.2}
+.company-workspace .field-queue-section[aria-label="Requests awaiting a decision"] .field-queue-list>*:nth-child(n+4){display:none}
+}
