@@ -279,6 +279,7 @@
  .company-workspace:not(.signed-out) .job-workspace .job-record-panel label{margin-bottom:10px}
  .company-workspace:not(.signed-out) .job-workspace .job-record-panel textarea{min-height:96px}
  .company-workspace:not(.signed-out) .job-workspace .job-record-panel .tiny{margin:6px 0 0}
+}
 /* Requests on phones: two compact lines per card instead of four stacked blocks */
 .company-workspace:not(.signed-out) .request-show-more{width:100%;margin-top:12px}
 @media(max-width:520px){
