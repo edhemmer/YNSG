@@ -517,3 +517,5 @@ body:has(.home-services) .hero-layout{grid-template-columns:minmax(0,.72fr) minm
 .career-facts li{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.92rem;background:var(--cream)}
 .page-hero .career-facts{margin:16px 0}
 .careers-why{background:var(--cream)}
+
+.home-rating{background:var(--paper);padding:14px 0}.rating-badge{margin:0;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:center;font-size:1rem;color:var(--ink)}.rating-badge .review-stars{font-size:1.2rem;color:#8a5d00}.rating-badge a{font-weight:650;min-height:44px;display:inline-flex;align-items:center}

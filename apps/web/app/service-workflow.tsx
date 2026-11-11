@@ -43,7 +43,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
  const [recordedWork,setRecordedWork]=useState(false);
  const receivedWork=useCallback((record:unknown)=>setRecordedWork(Boolean(record)),[]);
  const prepared=prepareFieldBrief(request,quotes,jobs,invoices);
- const phasePanel=task.kind==='confirm'||task.kind==='agreement'?'plan':task.kind==='invoice'||task.kind==='payment'||task.kind==='settled'?'invoice':'work';
+ const phasePanel=task.kind==='confirm'||task.kind==='agreement'?'plan':task.kind==='invoice'||task.kind==='payment'?'invoice':task.kind==='settled'?'plan':'work';
  const [panel,setPanel]=useState<'plan'|'work'|'invoice'|'details'>(phasePanel),lastPhase=useRef(task.kind);
 
  const [scheduleOpen,setScheduleOpen]=useState(task.kind==='confirm'),[declineOpen,setDeclineOpen]=useState(false),[workRecordOpen,setWorkRecordOpen]=useState(false);
