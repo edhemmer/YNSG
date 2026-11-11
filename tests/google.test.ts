@@ -62,3 +62,14 @@ test('Ambiguous creation is never retried and invalid input makes no call',async
  await assert.rejects(()=>createBusinessCalendar('synthetic','Business','invalid/zone',timeout),{message:'INVALID_TIMEZONE'});assert.equal(calls,1);
  await assert.rejects(()=>createBusinessCalendar('synthetic','Business\nName','America/Chicago',timeout),{message:'INVALID_CALENDAR_NAME'});assert.equal(calls,1);
 });
+test('Calendar events carry phone popup alerts a day and an hour ahead, and older events without them are updated',async()=>{
+ let created:Record<string,any>|null=null;
+ const create=(async(_url,init)=>{if(!init?.method)return new Response('',{status:404});created=JSON.parse(String(init.body));return Response.json({id:eventId(projection),etag:'new'});}) as typeof fetch;
+ await projectEvent('synthetic',projection,{etag:null,eventId:null},create);
+ assert.deepEqual(created!.reminders,{useDefault:false,overrides:[{method:'popup',minutes:1440},{method:'popup',minutes:60}]});
+ const old={id:eventId(projection),etag:'e1',summary:'Your Neighborhood Service Guy — Confirmed',status:'confirmed',start:{dateTime:projection.start},end:{dateTime:projection.end},reminders:{useDefault:false},extendedProperties:{private:{ynsgOrganization:projection.organization,ynsgAppointment:projection.appointment,ynsgRevision:String(projection.revision)}}};
+ let put:Record<string,any>|null=null;
+ const update=(async(_url,init)=>{if(init?.method==='PUT'){put=JSON.parse(String(init.body));return Response.json({...old,etag:'e2'});}return Response.json(old);}) as typeof fetch;
+ const r=await projectEvent('synthetic',projection,{etag:'e1',eventId:eventId(projection)},update);
+ assert.equal(r.state,'synced');assert.equal(put!.reminders.overrides.length,2);
+});
