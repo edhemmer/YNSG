@@ -536,6 +536,11 @@
       "file": "20261110140000_owner_free_amount.sql",
       "name": "owner_free_amount",
       "status": "not_applied_to_connected_supabase"
+    },
+    {
+      "file": "20261111130000_invoice_current_contact.sql",
+      "name": "invoice_current_contact",
+      "status": "not_applied_to_connected_supabase"
     }
   ]
 }
