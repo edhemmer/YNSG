@@ -520,6 +520,118 @@ def build_vo():
             end.draw(canvas, t); fade.draw(canvas, t)
     return bg, items, Combo()
 
+GOLD = (243, 172, 57); NAVY_D = (3, 18, 36)
+
+class WinterScene:
+    """Deep navy night, warm glow from below, a neighborhood roofline with lit windows, gentle snowfall."""
+    def __init__(self, heavy=None):
+        self.heavy = heavy or (0, 0)
+        ys = np.linspace(0, 1, H)[:, None, None]
+        top = np.array((8, 30, 58), np.float32); bot = np.array((2, 12, 26), np.float32)
+        base = top * (1 - ys) + bot * ys
+        xx = np.arange(W)[None, :, None]; yy = np.arange(H)[:, None, None]
+        glow = np.exp(-(((xx - 540) / 620) ** 2 + ((yy - 1750) / 520) ** 2))
+        base = base + glow * np.array((90, 55, 10), np.float32)
+        img = Image.fromarray(np.clip(base[..., :3] * np.ones((1, W, 1)), 0, 255).astype(np.uint8))
+        d = ImageDraw.Draw(img)
+        # roofline of simple houses along the bottom
+        x = -40; rng = np.random.default_rng(3)
+        while x < W + 40:
+            w = int(rng.uniform(190, 280)); h = int(rng.uniform(150, 230)); base_y = 1920 - 120
+            d.polygon([(x, base_y - h), (x + w / 2, base_y - h - w * 0.38), (x + w, base_y - h), (x + w, 1920), (x, 1920)], fill=(4, 16, 30))
+            for wx in (x + w * 0.22, x + w * 0.62):
+                d.rectangle([wx, base_y - h * 0.62, wx + w * 0.16, base_y - h * 0.62 + w * 0.16], fill=(255, 196, 110))
+            x += w + int(rng.uniform(10, 40))
+        d.rectangle([0, 1920 - 120, W, 1920], fill=(230, 236, 244))   # snow on the ground
+        self.base = img.convert("RGBA")
+        r2 = np.random.default_rng(9)
+        self.flakes = [(r2.uniform(0, W), r2.uniform(0, H), r2.uniform(2, 7), r2.uniform(40, 120), r2.uniform(0, 6)) for _ in range(160)]
+    def frame(self, t):
+        img = self.base.copy()
+        d = ImageDraw.Draw(img)
+        h0, h1 = self.heavy
+        n = 160 if h0 <= t <= h1 else 70
+        for (x, y, r, sp, ph) in self.flakes[:n]:
+            yy = (y + t * sp) % (H + 20) - 10
+            xx = x + 18 * math.sin(t * 0.8 + ph)
+            d.ellipse([xx - r, yy - r, xx + r, yy + r], fill=(255, 255, 255, 170))
+        return np.asarray(img.convert("RGB"))
+
+def icon_image(kind, size=230):
+    S = size * 2
+    im = Image.new("RGBA", (S, S), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    lw = 14; c = S / 2; WHT = (255, 255, 255, 255); G = GOLD + (255,)
+    d.ellipse([lw, lw, S - lw, S - lw], outline=G, width=lw)
+    def L(pts): d.line(pts, fill=WHT, width=lw, joint="curve")
+    if kind == "leaf":
+        pts = [(c - 110 + i * 2.2, c + 110 - i * 2.2 - 70 * math.sin(i / 100 * math.pi)) for i in range(101)]
+        pts2 = [(c - 110 + i * 2.2, c + 110 - i * 2.2 + 70 * math.sin(i / 100 * math.pi)) for i in range(101)]
+        d.polygon(pts + pts2[::-1], outline=WHT, width=lw)
+        L([(c - 140, c + 140), (c + 60, c - 60)])
+    elif kind == "shelves":
+        d.rectangle([c - 130, c - 130, c + 130, c + 130], outline=WHT, width=lw)
+        L([(c - 130, c - 20), (c + 130, c - 20)]); L([(c - 130, c + 70), (c + 130, c + 70)])
+        d.rectangle([c - 100, c - 100, c - 30, c - 34], outline=G, width=lw - 4)
+        d.rectangle([c + 10, c - 4, c + 100, c + 56], outline=G, width=lw - 4)
+    elif kind == "truck":
+        d.rectangle([c - 150, c - 80, c + 40, c + 60], outline=WHT, width=lw)
+        d.polygon([(c + 40, c - 30), (c + 110, c - 30), (c + 150, c + 10), (c + 150, c + 60), (c + 40, c + 60)], outline=WHT, width=lw)
+        for wx in (c - 90, c + 95):
+            d.ellipse([wx - 32, c + 40, wx + 32, c + 104], fill=(8, 30, 58, 255), outline=G, width=lw - 2)
+    elif kind == "check":
+        L([(c - 110, c + 5), (c - 30, c + 85), (c + 120, c - 80)])
+    elif kind == "snow":
+        for k in range(6):
+            a = k * math.pi / 3
+            x2, y2 = c + 140 * math.cos(a), c + 140 * math.sin(a)
+            L([(c, c), (x2, y2)])
+            for f in (0.6,):
+                bx, by = c + 140 * f * math.cos(a), c + 140 * f * math.sin(a)
+                for s2 in (-1, 1):
+                    L([(bx, by), (bx + 45 * math.cos(a + s2 * 0.8), by + 45 * math.sin(a + s2 * 0.8))])
+    elif kind == "home":
+        d.polygon([(c - 130, c - 10), (c, c - 130), (c + 130, c - 10)], outline=WHT, width=lw)
+        d.rectangle([c - 100, c - 10, c + 100, c + 130], outline=WHT, width=lw)
+        hx, hy = c, c + 55
+        d.polygon([(hx, hy + 45), (hx - 52, hy - 5), (hx - 40, hy - 32), (hx - 14, hy - 34), (hx, hy - 14), (hx + 14, hy - 34), (hx + 40, hy - 32), (hx + 52, hy - 5)], fill=G)
+    return im.resize((size, size), Image.LANCZOS)
+
+class Icon:
+    def __init__(self, start, end, kind, y=620, size=230):
+        self.start, self.end, self.y = start, end, y
+        self.im = icon_image(kind, size)
+    def draw(self, canvas, t):
+        if t < self.start or t >= self.end: return
+        p = ease_out((t - self.start) / 0.35); out = ease_in_out((t - (self.end - 0.25)) / 0.25)
+        s = 0.7 + 0.3 * p
+        im = self.im.resize((int(self.im.width * s), int(self.im.height * s)), Image.LANCZOS)
+        a = np.asarray(im).copy(); a[..., 3] = (a[..., 3] * p * (1 - out)).astype(np.uint8)
+        canvas.alpha_composite(Image.fromarray(a), (int(W / 2 - im.width / 2), int(self.y - im.height / 2)))
+
+def build_holiday():
+    """Holiday-prep Reel timed to the Clara voiceover (VO starts at 0.4 s). Designed scenes, brand navy and gold."""
+    bg = WinterScene(heavy=(13.4, 17.4))
+    GD = GOLD
+    items = [
+        Slam(0, 2.1, [Line("The holidays are", 110, 900), Line("almost here.", 130, 900, GD)], 900),
+        Card(2.1, 5.6, [Line("So much to do", 100, 900), Line("before family arrives.", 76, 800, GD)], 900, stagger=0.4),
+        Icon(5.6, 7.35, "leaf"), Card(5.6, 7.35, [Line("Clearing the leaves", 92, 900)], 900),
+        Icon(7.35, 9.65, "shelves"), Card(7.35, 9.65, [Line("Organizing the", 92, 900), Line("garage or basement", 80, 800, GD)], 920, stagger=0.25),
+        Icon(9.65, 11.85, "truck"), Card(9.65, 11.85, [Line("Hauling away", 100, 900), Line("what you don’t need", 76, 800, GD)], 920, stagger=0.25),
+        Icon(11.85, 13.3, "check"), Card(11.85, 13.3, [Line("We’re glad to help.", 96, 900)], 900),
+        Icon(13.3, 17.2, "snow"), Card(13.3, 17.2, [Line("And if the snow comes,", 84, 900), Line("we can help", 100, 900, GD), Line("with that too.", 100, 900, GD)], 940, stagger=0.6),
+        Card(17.2, 20.8, [Line("At Your Neighborhood", 80, 800), Line("Service Guy,", 110, 900, GD), Line("our goal is simple:", 70, 700)], 900, gap=6, stagger=0.4),
+        Icon(20.8, 25.2, "home"), Card(20.8, 25.2, [Line("More time with", 96, 900), Line("the people who", 96, 900), Line("matter most.", 110, 900, GD)], 960, stagger=0.55),
+        Card(25.2, 28.9, [Line("Request service at", 66, 700), Line("YourNeighborhoodServiceGuy.com", 54, 800, NAVY, pill=GOLD)], 900, gap=16, stagger=0.3),
+    ]
+    end = EndCard(28.9, [Line("We’re Here to Help.", 76, 900, GD), Line("YourNeighborhoodServiceGuy.com", 50, 700)], os.path.join(HERE, "logo.jpg"), sub_delay=1.2)
+    for it in items: it.start += 0.4; it.end += 0.4
+    end.start += 0.4
+    fade = FadeBlack(33.2, 34.4)
+    class Combo:
+        def draw(self, canvas, t): end.draw(canvas, t); fade.draw(canvas, t)
+    return bg, items, Combo()
+
 def render_frame(bg, items, end, t):
     base = Image.fromarray(bg.frame(t)).convert("RGBA")
     for it in items:
@@ -530,10 +642,15 @@ def render_frame(bg, items, end, t):
 
 def main():
     kind, out = sys.argv[1], sys.argv[2]
-    builders = {"vet": (build_vet, 22.0, "march22.wav"), "vet3": (build_vet3, 28.0, "bed28.wav"), "vo": (build_vo, 43.0, "mix-vo.wav")}
+    builders = {"vet": (build_vet, 22.0, "march22.wav"), "vet3": (build_vet3, 28.0, "bed28.wav"), "vo": (build_vo, 43.0, "mix-vo.wav"), "holiday": (build_holiday, 34.5, "mix-holiday.wav"), "festive": (None, 30.0, "mix-festive.wav"), "cine": ("cine", 30.0, "mix-festive.wav")}
     global DUR
     if kind in builders:
-        fnb, DUR, music = builders[kind]; bg, items, end = fnb()
+        fnb, DUR, music = builders[kind]
+        if fnb is None:
+            import festive; fnb = festive.build_festive
+        elif fnb == "cine":
+            import festive; fnb = festive.build_cine
+        bg, items, end = fnb()
     else:
         bg, items, end = build(kind); music = "bed.wav"
     if "--frames" in sys.argv:
