@@ -489,6 +489,11 @@
       "file": "20261109154000_owner_invoice_pricing.sql",
       "name": "owner_invoice_pricing",
       "historyVersion": "20261109142557"
+    },
+    {
+      "file": "20261110140000_owner_free_amount.sql",
+      "name": "owner_free_amount",
+      "historyVersion": "20261110211334"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -530,11 +535,6 @@
     {
       "file": "20261106170000_customer_home_profiles.sql",
       "name": "customer_home_profiles",
-      "status": "not_applied_to_connected_supabase"
-    },
-    {
-      "file": "20261110140000_owner_free_amount.sql",
-      "name": "owner_free_amount",
       "status": "not_applied_to_connected_supabase"
     },
     {
