@@ -75,7 +75,7 @@ if(form){
     form.querySelector('#water-note').hidden = ![...selected.values()].some(x=>x.service === 'Concrete pressure washing');
     form.querySelector('#farm-day-note').hidden = ![...selected.values()].some(x=>x.service === 'Farm hand services');
   };
-  const names={'Help around the home':'Home jobs','Accessibility & home safety':'Accessibility & safety','Lawn care':'Lawn care','Yard & garden':'Yard & garden','Snow clearing':'Snow clearing','Concrete pressure washing':'Concrete pressure washing','Cleanout & removal':'Cleanout & removal','Farm hand services':'Farm hand services','Something else':'Something else'};
+  const names={'Help around the home':'Home jobs','Accessibility help':'Accessibility & safety','Lawn care':'Lawn care','Yard & garden':'Yard & garden','Snow clearing':'Snow clearing','Concrete pressure washing':'Concrete pressure washing','Cleanout & removal':'Cleanout & removal','Farm hand services':'Farm hand services','Something else':'Something else'};
   for(const [service,jobs] of Object.entries(tasks).sort(([a],[b])=>seasonalCategoryRank(a)-seasonalCategoryRank(b))){
     const group=document.createElement('details');
     group.className='request-category';
