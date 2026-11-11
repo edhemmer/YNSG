@@ -13,12 +13,18 @@ do $$begin begin perform public.erase_service_request('20000000-0000-4000-8000-0
 do $$begin if current_setting('test.cust')<>'' then begin perform public.erase_customer('20000000-0000-4000-8000-000000000001',current_setting('test.cust')::uuid,'erase-key-cust-early-01');raise exception 'TEST FAILED customer with records';exception when raise_exception then if sqlerrm<>'ERASE_HAS_RECORDS' then raise;end if;end;end if;end$$;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
 do $$begin begin perform public.erase_service_request('20000000-0000-4000-8000-000000000001',current_setting('test.req')::uuid,current_setting('test.rev')::int,'erase-key-other-0001');raise exception 'TEST FAILED other account';exception when insufficient_privilege then null;end;end$$;
+reset role;
+-- A message about this request has already been tried; its saved attempt must not block the delete.
+insert into public.outbox(organization_id,id,event_key,kind,object_id,payload,status) values('20000000-0000-4000-8000-000000000001','61000000-0000-4000-8000-000000000001','erase-delivery-history-fixture','quote.delivery',current_setting('test.req')::uuid,'{}','accepted');
+insert into public.delivery_attempts(organization_id,outbox_id,attempt_no,status) values('20000000-0000-4000-8000-000000000001','61000000-0000-4000-8000-000000000001',1,'accepted');
+set local role authenticated;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
 select set_config('test.result',public.erase_service_request('20000000-0000-4000-8000-000000000001',current_setting('test.req')::uuid,current_setting('test.rev')::int,'erase-key-request-0001')::text,true);
 select pg_temp.assert_true(current_setting('test.result')::jsonb->>'erased'='true','erase reports success');
 select pg_temp.assert_true(public.erase_service_request('20000000-0000-4000-8000-000000000001',current_setting('test.req')::uuid,current_setting('test.rev')::int,'erase-key-request-0001')::text=current_setting('test.result'),'exact retry returns the saved result');
 reset role;
 select pg_temp.assert_true((select count(*)=0 from public.service_requests where id=current_setting('test.req')::uuid) and (select count(*)=0 from public.quotes where request_id=current_setting('test.req')::uuid) and (select count(*)=0 from public.quote_versions) and (select count(*)=0 from public.approvals) and (select count(*)=0 from public.jobs) and (select count(*)=0 from public.appointments where request_id=current_setting('test.req')::uuid),'request, agreement, job and visit are gone');
+select pg_temp.assert_true((select count(*)=0 from public.delivery_attempts where outbox_id='61000000-0000-4000-8000-000000000001') and (select count(*)=0 from public.outbox where id='61000000-0000-4000-8000-000000000001'),'erase removes message rows that already have delivery attempts');
 select pg_temp.assert_true((select count(*)=1 from public.audit_events where action='request.erased' and object_id=current_setting('test.req')::uuid),'erase leaves one audit entry');
 select pg_temp.assert_true(coalesce(current_setting('ynsg.record_erase',true),'off')='off','erase permission does not outlive the action');
 do $$begin begin delete from public.audit_events;raise exception 'TEST FAILED audit delete';exception when raise_exception then if sqlerrm<>'IMMUTABLE_RECORD' then raise;end if;end;end$$;

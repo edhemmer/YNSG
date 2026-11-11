@@ -541,6 +541,11 @@
       "file": "20261111130000_invoice_current_contact.sql",
       "name": "invoice_current_contact",
       "status": "not_applied_to_connected_supabase"
+    },
+    {
+      "file": "20261111150000_erase_with_delivery_history.sql",
+      "name": "erase_with_delivery_history",
+      "status": "not_applied_to_connected_supabase"
     }
   ]
 }
