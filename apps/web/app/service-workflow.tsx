@@ -47,7 +47,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
  const [panel,setPanel]=useState<'plan'|'work'|'invoice'|'details'>(phasePanel),lastPhase=useRef(task.kind);
 
  const [scheduleOpen,setScheduleOpen]=useState(task.kind==='confirm'),[declineOpen,setDeclineOpen]=useState(false),[workRecordOpen,setWorkRecordOpen]=useState(false);
- useEffect(()=>{if(lastPhase.current!==task.kind){lastPhase.current=task.kind;setPanel(workRecordOpen&&task.kind==='paused'?'invoice':phasePanel);}},[task.kind,phasePanel,workRecordOpen]);
+ useEffect(()=>{if(lastPhase.current!==task.kind){const wasPayment=lastPhase.current==='payment';lastPhase.current=task.kind;if(task.kind==='settled'&&wasPayment)return;setPanel(workRecordOpen&&task.kind==='paused'?'invoice':phasePanel);}},[task.kind,phasePanel,workRecordOpen]);
  const workRecordRef=useRef<HTMLDivElement|null>(null);
  useEffect(()=>{if(workRecordOpen&&workRecordRef.current){workRecordRef.current.scrollIntoView?.({behavior:'smooth',block:'start'});workRecordRef.current.focus?.({preventScroll:true});}},[workRecordOpen]);
  const [childBusy,setChildBusy]=useState<Record<string,boolean>>({}),callbacks=useRef(new Map<string,(v:boolean)=>void>());
