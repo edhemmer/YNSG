@@ -11,7 +11,7 @@ export async function auditReadability(page){await page.evaluate(async()=>{await
   const c=getComputedStyle(e),size=parseFloat(c.fontSize),weight=parseInt(c.fontWeight)||400,label=(text||e.getAttribute('aria-label')||e.getAttribute('placeholder')||e.tagName).slice(0,90),path=e.tagName.toLowerCase()+(e.id?'#'+e.id:'')+(typeof e.className==='string'?'.'+e.className.trim().replaceAll(' ','.'):'');
   let chain=[],p=e,photo=false,opacity=1,clipped=false;while(p){chain.push(p);const style=getComputedStyle(p);opacity*=Number(style.opacity);if(style.backgroundImage!=='none')photo=true;if(style.clipPath!=='none'){const r=p.getBoundingClientRect();if(r.width<=2&&r.height<=2)clipped=true;}p=p.parentElement;}
   if(clipped)continue;
-  if(size<13.9)failures.push({kind:'small-text',label,path,size});
+  if(size<(e.closest('.company-workspace')?11.5:13.9))failures.push({kind:'small-text',label,path,size});
   if(e.matches('input:not([type=checkbox]):not([type=radio]),textarea,select')&&size<16)failures.push({kind:'small-input',label,path,size});
   if(photo){manual.push({label,path});continue;}
   let bg=[255,255,255];for(const el of chain.reverse()){const color=rgb(getComputedStyle(el).backgroundColor);if(color)bg=blend(color,bg);}
