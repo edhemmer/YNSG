@@ -494,6 +494,16 @@
       "file": "20261110140000_owner_free_amount.sql",
       "name": "owner_free_amount",
       "historyVersion": "20261110211334"
+    },
+    {
+      "file": "20261111130000_invoice_current_contact.sql",
+      "name": "invoice_current_contact",
+      "historyVersion": "20261111190535"
+    },
+    {
+      "file": "20261111150000_erase_with_delivery_history.sql",
+      "name": "erase_with_delivery_history",
+      "historyVersion": "20261111190543"
     }
   ],
   "supabaseOnlyHistoricalMigrations": [
@@ -535,16 +545,6 @@
     {
       "file": "20261106170000_customer_home_profiles.sql",
       "name": "customer_home_profiles",
-      "status": "not_applied_to_connected_supabase"
-    },
-    {
-      "file": "20261111130000_invoice_current_contact.sql",
-      "name": "invoice_current_contact",
-      "status": "not_applied_to_connected_supabase"
-    },
-    {
-      "file": "20261111150000_erase_with_delivery_history.sql",
-      "name": "erase_with_delivery_history",
       "status": "not_applied_to_connected_supabase"
     }
   ]
