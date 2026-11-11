@@ -302,3 +302,17 @@
 .company-workspace .erase-record>button.danger-ghost{width:auto;min-height:44px;padding:0 16px}
 [data-theme=dark] .company-workspace .erase-confirm{background:#3b1f1c;border-color:#f97066;color:#ffd9d4}
 [data-theme=dark] .company-workspace .erase-actions>button.danger{background:#f97066;border-color:#f97066;color:#1b0a08}
+
+/* Calmer phone layout: nothing hidden behind the + button, one row of controls, fewer duplicates. */
+@media(max-width:850px){
+.company-workspace:not(.signed-out){padding-bottom:120px}
+.company-workspace .calendar-inbox-link{display:none}
+.company-workspace .month-toolbar .actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.company-workspace .month-toolbar .actions button{min-height:48px;padding-inline:6px;white-space:nowrap}
+.company-workspace .month-toolbar .actions button[aria-label="Refresh calendar"]{display:none}
+.company-workspace .owner-jobs-heading button{display:none}
+.company-workspace .owner-job-quick-actions{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+.company-workspace .owner-job-quick-actions>*{min-height:48px;display:inline-flex;align-items:center;justify-content:center}
+.company-workspace .owner-job-quick-actions>button{flex:1 1 100%}
+.company-workspace .owner-job-entry>button:first-child{opacity:.92;box-shadow:0 4px 14px #0006}
+}
