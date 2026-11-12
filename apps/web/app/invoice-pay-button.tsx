@@ -14,6 +14,7 @@ export default function InvoicePayButton({organization,invoice,balanceCents}:{or
    const data=await response.json().catch(()=>null);
    if(response.ok&&data?.status==='open'&&typeof data.url==='string'&&new URL(data.url).origin==='https://checkout.stripe.com'){window.location.assign(data.url);return;}
    if(response.status===503)setMessage('Card payment is not turned on yet. Please pay using the payment terms on this invoice (check, cash or Zelle).');
+   else if(response.status===409&&data?.code==='NO_BALANCE'){setMessage(data.error);window.setTimeout(()=>window.location.reload(),2500);}
    else if(response.status===409)setMessage('A card payment for this invoice is already in progress. Finish it or wait a few minutes, then try again.');
    else setMessage(typeof data?.error==='string'?data.error:'Card payment could not start. Please use the payment terms on this invoice.');
   }catch{setMessage('Card payment could not start. Please use the payment terms on this invoice.');}
