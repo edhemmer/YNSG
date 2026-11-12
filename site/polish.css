@@ -152,3 +152,16 @@ img[src*="ynsg-accessibility-home-safety"]{object-position:50% 50%}
 /* Long footer contact lines (the email address) wrap instead of widening the page on phones. */
 .footer-contact{min-width:0;grid-template-columns:minmax(0,1fr)}
 .footer-contact a{min-width:0;overflow-wrap:anywhere}
+
+/* Service area map: self-contained SVG (no third-party map or tracking). */
+.area-map{margin:30px 0 8px}
+.area-map svg{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:18px}
+.area-map .map-bg{fill:#f3f7f2}
+.area-map .map-area polygon{fill:#315842;stroke:#315842;stroke-width:80;stroke-linejoin:round;opacity:.22}
+.area-map .map-dot{fill:#10283c;stroke:#fffefa;stroke-width:3}
+.area-map .map-home circle{fill:#edbd6b;stroke:#10283c;stroke-width:3}
+.area-map .map-home path{fill:#10283c}
+.area-map .map-label{font:700 30px/1 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;fill:#10283c;stroke:#fffefa;stroke-width:6;paint-order:stroke}
+.area-map .map-north path{fill:#10283c}
+.area-map .map-north text{font:700 28px system-ui,Arial,sans-serif;fill:#10283c}
+.area-map figcaption{margin-top:12px;font-size:1rem;line-height:1.6;color:var(--body)}
