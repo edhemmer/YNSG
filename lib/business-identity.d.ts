@@ -9,7 +9,7 @@ export declare const businessIdentity: Readonly<{
   searchVerification: Readonly<{ google: string; bing: string }>;
   hours: Readonly<{ days: string[]; opens: string; closes: string; label: string }>;
   social: Readonly<{ facebook: string; instagram: string }>;
-  publicEmail: string;
+  email: string;
   googleReviewUrl: string;
 }>;
 export declare const printIdentity: Readonly<{
