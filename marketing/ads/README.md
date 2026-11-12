@@ -25,7 +25,7 @@
 ## 2. Leaf before/after (`leaf-before-after/`) — run now through early December
 **Primary text (EN):** Same driveway, same afternoon. Walks, drives and beds cleared, and you approve the estimate and a not-to-exceed cap before we start.
 **Headline:** Leaf season, handled
-**Primary text (ES):** La misma entrada, la misma tarde. Banquetas, entradas y jardineras limpias, y usted aprueba el presupuesto y un límite de costo antes de empezar. Sin cargo por traslado.
+**Primary text (ES):** La misma entrada, la misma tarde. Banquetas, entradas y jardineras limpias, y usted aprueba el presupuesto y un límite de costo antes de empezar.
 **Landing page:** /leaf-cleanup-dekalb-il
 
 ## 3. Holiday-ready visit (`holiday-ready/`) — **stop running after December 24**
@@ -37,12 +37,12 @@
 ## 4. Trusted neighbor (`trusted-neighbor/`) — always-on brand ad
 **Primary text (EN):** Locally owned home and yard help from DeKalb to St. Charles. Published rates, and you approve a not-to-exceed cap before any work begins.
 **Headline:** Your neighbor. Your service guy.
-**Primary text (ES):** Ayuda local para el hogar y el jardín, de DeKalb a St. Charles. Precios publicados, sin cargo por traslado, y usted aprueba un límite de costo antes de empezar.
+**Primary text (ES):** Ayuda local para el hogar y el jardín, de DeKalb a St. Charles. Precios publicados, y usted aprueba un límite de costo antes de empezar.
 
 ## 5. Winter list (`winter-list/`) — run now until the first snow
 **Primary text (EN):** Get on our snow list before the first storm: driveways, walks and accessible entries, priced per visit.
 **Headline:** Snow season? Get on the list.
-**Primary text (ES):** Apúntese en nuestra lista antes de la primera nevada: entradas, banquetas y accesos, con precio por visita. Sin cargo por traslado.
+**Primary text (ES):** Apúntese en nuestra lista antes de la primera nevada: entradas, banquetas y accesos, con precio por visita.
 **Landing page:** /snow-removal-dekalb-il
 
 ---

@@ -6,6 +6,21 @@ import {estimateVisit,examplePlanningStandards,allTrainingTopics,reviewTaskTime,
 
 const lessonDetails:Record<string,{steps:string[];tools:string[];stop:string}>={
  ...Object.fromEntries(servicePreparations.map(p=>[p.id,{steps:p.steps,tools:p.tools,stop:p.stop}])),
+ 'furniture-anchoring':{
+  steps:['Open the box and lay out parts and hardware. Check the parts list against the instructions before building.','Build on a clean, protected surface, following the maker’s order of assembly. Do not skip hardware or substitute screws.','Tighten fasteners snugly without stripping them. Check that drawers and doors move smoothly and the piece sits level.','Ask the customer where it will go. Move it close to the wall, then locate studs and attach one anchor bracket to the wall and the other to the furniture or TV, joined by the strap.','Tighten the strap and tug to confirm it is secure. Anchor every piece with drawers, doors or shelves, especially where children live or visit.','Remove packaging as agreed and show the customer how to use drawers and any locks.'],
+  tools:['Maker’s instructions and hardware','Screwdrivers and drill/driver','Stud finder and level','Furniture anchoring kit (strap and brackets)','Rubber mallet and blanket to protect floors'],
+  stop:'Stop if parts are missing or damaged, the wall cannot hold an anchor, or the piece is too heavy or tall to handle safely. Do not leave a tall unit unanchored without telling the customer.'
+ },
+ 'grab-bar-install':{
+  steps:['Confirm who will use the bar and where support is needed. Ask what is behind the wall: tile, fiberglass or hollow cavity.','Use the bar rated for the job. A common benchmark is 1¼–2 inches in diameter with 1½ inches of clearance from the wall, mounted about 33–36 inches above the floor, and able to hold 250 lb at any point. Confirm what suits this person.','Find studs or plan rated anchors and blocking. Scan for hidden pipes and wires before drilling.','Mark level and drill carefully, especially through tile. Seal holes in wet areas with an appropriate sealant.','Mount firmly, then pull hard on the bar in several directions to test it. Never rely on suction cups or standard drywall anchors.','Show the customer the bar and explain that a towel bar is not a grab bar.'],
+  tools:['Grab bar and manufacturer hardware','Stud finder and utility detector','Level and tape measure','Drill with tile/masonry bit as needed','Appropriate sealant','Eye protection'],
+  stop:'Stop if you cannot reach solid support, the wall is damaged or wet, or the customer needs a professionally designed accessibility solution. ADA figures are a benchmark, not a code approval for a particular home.'
+ },
+ 'weed-pulling-beds':{
+  steps:['Walk the beds with the customer. Confirm which plants stay and mark anything delicate.','Pull weeds when they are young. Small weeds come out easily; tall ones may break and resprout.','Remove weeds before they flower and set seed. Take out the whole root where you can, and repeat on stubborn perennials.','Work after rain or watering when soil is soft. Lightly disturb the top layer of moist soil to stop new seedlings.','Bag or pile the weeds as agreed. If mulch is included, start with a clean bed and spread it 2–3 inches deep, away from trunks and shrub crowns.','Show the customer what you removed and how to keep the bed clear.'],
+  tools:['Gloves and knee pad','Hand fork or weeder','Hoe for loose soil','Bucket or tarp for weeds','Hand pruners if approved'],
+  stop:'No chemicals or herbicides are part of this service. Stop and ask about plants you cannot identify, poison ivy or thorny plants, or anything near buried utilities.'
+ },
  'cutting-angles':{
   steps:['Inspect the existing corner, trim profile, orientation and wall irregularities.','Measure the actual included angle or use two straight, equal-width reference boards to bisect an irregular corner.','For equal miters divide the included angle by two, then convert correctly to the saw’s setting; mark reference faces to avoid flipped cuts.','Make a sacrificial test joint and adjust before cutting finished stock.'],
   tools:['Angle finder or sliding bevel','Square and tape measure','Pencil and equal-width reference boards','Scrap test stock','Clamps and guarded miter saw'],

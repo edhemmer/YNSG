@@ -42,6 +42,9 @@ const MileageActivity=dynamic(()=>import('./mileage-activity'),{loading:PanelLoa
 const CustomerServiceInsights=dynamic(()=>import('./customer-service-insights'),{loading:PanelLoading});
 const EmailTemplateLibrary=dynamic(()=>import('./request-reply-draft'),{loading:PanelLoading});
 const MarketingDrafts=dynamic(()=>import('./marketing-drafts'),{loading:PanelLoading});
+const HelpCenter=dynamic(()=>import('./help-center'),{loading:PanelLoading});
+const MarketingPlaybook=dynamic(()=>import('./marketing-playbook'),{loading:PanelLoading});
+const DiyReference=dynamic(()=>import('./diy-reference'),{loading:PanelLoading});
 const OwnerLearningToolkit=dynamic(()=>import('./owner-learning-toolkit'),{loading:PanelLoading});
 const TeamDirectory=dynamic(()=>import('./team-directory'),{loading:PanelLoading});
 const FieldWork=dynamic(()=>import('./field-work'),{loading:PanelLoading});
@@ -189,9 +192,9 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
   const hasData=Boolean(data);
   useEffect(()=>{window.scrollTo({top:0,behavior:'instant'});document.querySelector<HTMLElement>('#main h1')?.focus({preventScroll:true});},[org,section,workRequest,customerFocus,hasData]);
   useBlockedEntry('workspace',pending||invoiceBusy);
-  const sections=[{key:'Dashboard',label:'Today',icon:'dashboard'},{key:'Requests',label:'Requests',icon:'inbox'},{key:'Calendar',label:'Schedule',icon:'calendar'},{key:'Today',label:'Day routes',icon:'pin'},{key:'Customers',label:'Customers',icon:'users'},{key:'Work',label:'Jobs',icon:'work'},{key:'Money',label:'Billing',icon:'money'},{key:'Snapshot',label:'Reports',icon:'chart'},{key:'Marketing',label:'Marketing',icon:'chart'},{key:'Learning',label:'Field guide',icon:'book'},{key:'Network',label:'Service Rolodex',icon:'users'},{key:'Team',label:'Team',icon:'users'},{key:'Careers',label:'Hiring',icon:'users'},{key:'Activity',label:'Activity & messages',icon:'bell'},{key:'Settings',label:'Settings',icon:'settings'}];
+  const sections=[{key:'Dashboard',label:'Today',icon:'dashboard'},{key:'Requests',label:'Requests',icon:'inbox'},{key:'Calendar',label:'Schedule',icon:'calendar'},{key:'Today',label:'Day routes',icon:'pin'},{key:'Customers',label:'Customers',icon:'users'},{key:'Work',label:'Jobs',icon:'work'},{key:'Money',label:'Billing',icon:'money'},{key:'Snapshot',label:'Reports',icon:'chart'},{key:'Marketing',label:'Marketing',icon:'chart'},{key:'Learning',label:'Field guide',icon:'book'},{key:'Help',label:'How-to help',icon:'book'},{key:'Network',label:'Service Rolodex',icon:'users'},{key:'Team',label:'Team',icon:'users'},{key:'Careers',label:'Hiring',icon:'users'},{key:'Activity',label:'Activity & messages',icon:'bell'},{key:'Settings',label:'Settings',icon:'settings'}];
   const primarySections=sections.filter(s=>['Dashboard','Requests','Calendar','Work','Money'].includes(s.key));
-  const secondarySections=sections.filter(s=>['Today','Customers','Snapshot','Marketing','Learning','Network','Team','Careers','Activity','Settings'].includes(s.key));
+  const secondarySections=sections.filter(s=>['Today','Customers','Snapshot','Marketing','Learning','Help','Network','Team','Careers','Activity','Settings'].includes(s.key));
   const canSeeSection=(s:{key:string})=>workspaceSectionAllowed(s.key,role);
   function applyDestination(route:WorkspaceRoute){
     // Invalidate outgoing reads synchronously, before the next render/effect.
@@ -515,10 +518,11 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
                     {section === "Calendar" && ['owner','admin'].includes(role||'') && <>
                       <div className="calendar-inbox-link"><div><strong>New requests start in your inbox.</strong><span>Review proposed times here; schedule requests without a time from Requests.</span></div><button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/>Open requests</button></div><MonthCalendar key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest}/>
                     </>}
-                    {section === 'Marketing'&&['owner','admin'].includes(role||'')&&<><CustomerServiceInsights key={'insights:'+org} organization={org} timezone={data.company.timezone} onCustomer={openCustomer}/><EmailTemplateLibrary key={'email-library:'+org} organization={org} name="" email="" marketing/><MarketingDrafts key={org} organization={org}/></>}
+                    {section === 'Marketing'&&['owner','admin'].includes(role||'')&&<><MarketingPlaybook timezone={data.company.timezone}/><CustomerServiceInsights key={'insights:'+org} organization={org} timezone={data.company.timezone} onCustomer={openCustomer}/><EmailTemplateLibrary key={'email-library:'+org} organization={org} name="" email="" marketing/><MarketingDrafts key={org} organization={org}/></>}
                     {section === 'Team'&&['owner','admin'].includes(role||'')&&<TeamDirectory key={org} organization={org} onRequests={()=>navigate('Requests')}/>}
                     {section === "Careers" && role==='owner' && <OwnerCareers key={org} organization={org} timezone={data.company.timezone}/>}
-                    {section === "Learning" && ['owner','admin'].includes(role||'') && <OwnerLearningToolkit organization={org} onNetwork={openSupport}/>}
+                    {section === "Help" && ['owner','admin'].includes(role||'') && <HelpCenter onGo={navigate}/>}
+                    {section === "Learning" && ['owner','admin'].includes(role||'') && <><OwnerLearningToolkit organization={org} onNetwork={openSupport}/><DiyReference/></>}
                     {section === "Settings" && ['owner','admin'].includes(role||'') && <OwnerSettings key={org} organization={org} name={data.company.display_name} timezone={data.company.timezone} focusGoogle={googleSetupOpen} focusServices={serviceSetupOpen} onBusy={setInvoiceBusy} onActivity={()=>navigate('Activity')}/>}
                     {['Today','Calendar'].includes(section)&&data.schedulingPreferences.length>0&&<section className="card" aria-labelledby="reschedule-heading"><h2 id="reschedule-heading">Customers requesting another time</h2>{data.schedulingPreferences.map(p=><article key={p.id} className="card"><p><strong>{data.requests.find(r=>r.id===p.request_id)?.original_submission.name||'Service request'}</strong></p><p>{p.preferred_local_start?.replace('T',' at ')} {p.preferred_local_start&&`(${p.timezone})`}</p><p>{p.note}</p><p className="note">Review this on the same request. A confirmed original stays booked until you approve its replacement.</p><button type="button" className="secondary" onClick={()=>openWork(p.request_id)}>Open service request</button></article>)}</section>}
                     {section === "Today" && ['owner','admin'].includes(role||'') && <DailyCallSheet key={org} organization={org} timezone={data.company.timezone}/>}
