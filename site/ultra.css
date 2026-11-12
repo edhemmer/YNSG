@@ -27,7 +27,6 @@ body:has(.home-services) .hero-layout{padding-block:44px 36px;gap:56px;align-ite
 }
 :focus-visible{outline:3px solid var(--u-sun);outline-offset:3px;border-radius:6px}
 
-}
 
 /* Hero actions sit side by side; the visual aligns with the headline. */
 .premium-hero .hero-buttons{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
