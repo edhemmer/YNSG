@@ -22,8 +22,9 @@ export default function BillingRegister({organization,timezone,invoices,links,ad
     return terms.every(term=>text.includes(term))&&(filter==='all'||(filter==='due'?balance(invoice)>0:balance(invoice)===0));
   });
   return <section className="billing-register" aria-label="Invoice register">
+    {invoices.length>0&&(()=>{const open=invoices.filter(i=>balance(i)>0),owed=open.reduce((n,i)=>n+balance(i),0);return <p className="register-owed" role="status"><strong>{owed>0?money(owed)+' still owed':'Everything is paid'}</strong>{owed>0&&' across '+open.length+(open.length===1?' invoice':' invoices')}</p>;})()}
     <div className="register-toolbar"><label><span>Find an invoice</span><div className="register-search"><Icon name="search"/><input type="search" maxLength={200} value={query} onChange={event=>setQuery(event.target.value)} placeholder="Customer, invoice or address"/></div></label><label><span>Show</span><select value={filter} onChange={event=>setFilter(event.target.value)}><option value="all">All invoices</option><option value="due">Balance due</option><option value="settled">Settled</option></select></label></div>
-    <p className="register-count" role="status">{shown.length} {shown.length===1?'invoice':'invoices'} on this records page</p>
+    <p className="register-count" role="status">{shown.length} {shown.length===1?'invoice':'invoices'}</p>
     <div className="register-columns" aria-hidden="true"><span>Invoice / customer</span><span>Issued</span><span>Balance</span></div>
     {invoices.map(invoice=><InvoiceRow key={invoice.id} invoice={invoice} hidden={!shown.includes(invoice)} organization={organization} timezone={timezone} link={links[invoice.id]||{}} admin={admin[invoice.id]} canManage={canManage} canFinance={canFinance} blocked={blocked} onOpen={onOpen} onCustomer={onCustomer} onChanged={onChanged}/>)}
     {!shown.length&&<div className="register-empty"><h2>{invoices.length?'No matching invoices':'No issued invoices'}</h2><p>{invoices.length?'Try another customer, invoice number or status.':'Completed visits appear here when their invoices are issued.'}</p>{(query||filter!=='all')&&<button type="button" className="secondary" onClick={()=>{setQuery('');setFilter('all');}}>Clear filters</button>}</div>}
@@ -35,7 +36,7 @@ function InvoiceRow({invoice,hidden,organization,timezone,link,admin,canManage,c
   const [opened,setOpened]=useState(false);
   const remaining=balance(invoice);
   const issued=Number.isFinite(Date.parse(invoice.issued_at));
-  const state=invoice.total_cents===0?'No charge':remaining===0?creditTotal(invoice.credits)>0?'Settled with credit':'Paid':remaining<invoice.total_cents?'Partially settled':'Unpaid';
+  const state=invoice.total_cents===0?'No charge':remaining===0?creditTotal(invoice.credits)>0?'Paid (credit applied)':'Paid':remaining<invoice.total_cents?'Partly paid':'Not paid yet';
   return <details className="money-invoice" hidden={hidden} onToggle={event=>{if(event.currentTarget.open)setOpened(true);}}>
     <summary><span><strong>Invoice {invoiceNumber(invoice.number)}</strong><span>{invoice.snapshot?.recipient?.name||'Customer on issued invoice'}</span></span><time dateTime={issued?invoice.issued_at:undefined}>{issued?new Intl.DateTimeFormat('en-US',{timeZone:timezone,month:'short',day:'numeric',year:'numeric'}).format(new Date(invoice.issued_at)):'Date unavailable'}</time><span className="money-invoice-balance"><strong>{money(remaining)}</strong><span>{state}</span></span></summary>
     {opened&&<div className="money-invoice-actions">
