@@ -27,7 +27,7 @@ export function estimateVisit(tasks:VisitTask[],standards:TaskStandard[],travelB
  for(const work of tasks){
   const factor=work.sizeFactor??1;
   if(!Number.isFinite(factor)||factor<0.5||factor>4)throw Error('INVALID_JOB_SIZE');
-  const rule=map.get(work.service.toLowerCase()+'::'+work.task.toLowerCase())??(work.task==='Pulling weeds by hand'?map.get(work.service.toLowerCase()+'::weed management (no chemicals)'):undefined);
+  const rule=map.get(work.service.toLowerCase()+'::'+work.task.toLowerCase())??(['Pulling weeds by hand','Weed management (no chemicals)'].includes(work.task)?map.get(work.service.toLowerCase()+'::weed pulling'):undefined);
   if(!rule){missing.push(work);continue;}
   // One-hour per-task minimum is an allocation floor, not separately billed line items.
   const minutes=Math.ceil(Math.max(60,rule.plannedMinutes*factor)/15)*15;
@@ -90,7 +90,7 @@ export const trainingTopics=[
 export const allTrainingTopics=[...trainingTopics,...verifiedHandymanSources,...servicePreparationTopics] as const;
 export const examplePlanningStandards:TaskStandard[]=ownerTaskStandards.parse([
  {service:'Lawn care',task:'Mow, trim and blow-off',plannedMinutes:60,typicalMinutes:45,difficulty:'routine',setupMinutes:10,pickupMinutes:0,notes:'Example only; slope, acreage, obstacles and access change the time.'},
- {service:'Yard & garden',task:'Weed management (no chemicals)',plannedMinutes:120,typicalMinutes:120,difficulty:'variable',setupMinutes:15,pickupMinutes:0,notes:'Measure beds and weed density before committing.'},
+ {service:'Yard & garden',task:'Weed pulling',plannedMinutes:120,typicalMinutes:120,difficulty:'variable',setupMinutes:15,pickupMinutes:0,notes:'Measure beds and weed density before committing.'},
  {service:'Yard & garden',task:'Bulk or bagged mulch pickup, delivery & spreading',plannedMinutes:240,typicalMinutes:240,difficulty:'variable',setupMinutes:15,pickupMinutes:60,notes:'Example includes pickup, loading, delivery and spreading; supplier materials paid directly.'},
  {service:'Help around the home',task:'Smart-lock troubleshooting',plannedMinutes:120,typicalMinutes:90,difficulty:'complex',setupMinutes:15,pickupMinutes:0,notes:'Training reference only. Smart lock work remains held until compliance and owner scope approval.'},
 ]);

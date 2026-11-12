@@ -3,7 +3,7 @@ export const serviceCatalog = {
   'Help around the home':['Furniture assembly','Door hardware','Smart lock installation','Shelving and organizing','Household product setup','Lightweight hanging','Small drywall patch','Moving manageable items','Several small jobs'],
   'Accessibility help':['Grab bar installation','Wheelchair & walker adjustments','Lever door handles','Lower closet rods & shelves','Bathroom safety setup','Clear, well-lit paths','Tighten loose handrails','Walk-through'],
   'Lawn care':['Mowing','Trimming and edging','Mow, trim and blow-off','Leaf management','Recurring lawn care'],
-  'Yard & garden':['Weed management (no chemicals)','Bulk or bagged mulch pickup, delivery & spreading','Spreading mulch','Planting small bushes','Planting flowers','Small bush trimming','Garden-bed cleanup','Moving yard materials'],
+  'Yard & garden':['Weed pulling','Bulk or bagged mulch pickup, delivery & spreading','Spreading mulch','Planting small bushes','Planting flowers','Small bush trimming','Garden-bed cleanup','Moving yard materials'],
   'Snow clearing':['Residential driveway','Sidewalks and walkways','Accessible entry','Driveway and walks'],
   'Concrete pressure washing':['Concrete driveway','Concrete walks','Concrete patio'],
   'Cleanout & removal':['Garage cleanout','Basement cleanout','Storage-area cleanout','Manageable household item removal'],
