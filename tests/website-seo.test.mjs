@@ -58,7 +58,7 @@ test('search landing pages provide specific guidance without imposing handyman-f
  const lawn=await readFile(new URL('../site/pages/lawn-mowing-dekalb-il.html',import.meta.url),'utf8');
  const leaves=await readFile(new URL('../site/pages/leaf-cleanup-dekalb-il.html',import.meta.url),'utf8');
  assert.match(home,/Home and yard services/);
- assert.match(handyman,/What does a small handyman visit cost\\?/);
+ assert.match(handyman,/What does a small home-jobs visit cost\\?/);
  assert.match(lawn,/How much does lawn mowing cost\\?/);
  assert.match(leaves,/<h1>Leaf management/);
  assert.match(leaves,/discuss the approach, timing and cost/);
