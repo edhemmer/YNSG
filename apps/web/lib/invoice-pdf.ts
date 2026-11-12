@@ -26,7 +26,7 @@ export async function invoicePdf(invoice:InvoiceDocument){
  const draw=(value:string,x:number,at:number,size=11,face:PDFFont=font,color=ink)=>page.drawText(clean(value),{x,y:at,size,font:face,color});
  function tableHead(){ensure(34);page.drawRectangle({x:48,y:y-10,width:516,height:30,color:ink});draw('DESCRIPTION',60,y,9,bold,white);draw('AMOUNT',506,y,9,bold,white);y-=34;}
  function newPage(){
-  if(pdf.getPageCount()>=100)throw Error('INVOICE_PDF_TOO_LONG');page=pdf.addPage([612,792]);
+  if(pdf.getPageCount()>=100)throw Error('INVOICE_PDF_TOO_LONG');page=pdf.addPage([612,792]);page.drawRectangle({x:0,y:786,width:612,height:6,color:green});page.drawRectangle({x:0,y:783,width:612,height:3,color:gold});
   page.drawImage(logo,{x:48,y:650,width:180,height:120});
   draw('SERVICE INVOICE',370,741,9,bold,green);
   draw("Invoice",370,710,20,bold);const identifier=`#${invoice.number}`;const identifierSize=Math.min(24,194/bold.widthOfTextAtSize(identifier,1));draw(identifier,370,678,identifierSize,bold);const identityY=654;
@@ -66,7 +66,7 @@ export async function invoicePdf(invoice:InvoiceDocument){
  for(const [label,value] of amounts){const labels=wrap(label,150,10,label==='Invoice total'?bold:font);const height=labels.length*15+12;ensure(height);page.drawRectangle({x:306,y:y-height+13,width:258,height,color:cream});const start=y;for(const value of labels){draw(value,320,y,10,label==='Invoice total'?bold:font);y-=15;}const amount=money(value);draw(amount,550-font.widthOfTextAtSize(amount,10),start,10,label==='Invoice total'?bold:font);y-=12;}
  ensure(76);page.drawRectangle({x:306,y:y-55,width:258,height:67,color:ink});draw(invoice.sample?'Sample balance':'Remaining balance',320,y-7,10,font,white);const balance=money(invoice.balanceCents);draw(balance,550-bold.widthOfTextAtSize(balance,22),y-34,22,bold,white);y-=80;
  if(!sideTerms){if(invoice.sample)text('No payment is due for this sample.',9,4,font,muted);ensure(58);text('PAYMENT TERMS',9,3,bold,green);text(invoice.terms.trimEnd(),10,0,font,muted);}
- const pages=pdf.getPages();for(let i=0;i<pages.length;i++){const p=pages[i]!;p.drawLine({start:{x:48,y:52},end:{x:564,y:52},thickness:.6,color:lineColor});p.drawText(`Invoice ${invoice.number} | Page ${i+1} of ${pages.length}`,{x:48,y:35,size:9,font,color:muted});}
+ const pages=pdf.getPages();for(let i=0;i<pages.length;i++){const p=pages[i]!;p.drawLine({start:{x:48,y:52},end:{x:564,y:52},thickness:.6,color:lineColor});if(i===pages.length-1&&!invoice.sample)p.drawText('Thank you for supporting a local neighborhood business.',{x:48,y:19,size:9,font:bold,color:green});p.drawText(`Invoice ${invoice.number} | Page ${i+1} of ${pages.length}`,{x:48,y:35,size:9,font,color:muted});}
  await pdf.attach(await fontAsset('LICENSE'),'DejaVu-font-license.txt',{mimeType:'text/plain',description:'License for the embedded DejaVu Sans font'});
  const output=await pdf.save();if(output.length>5*1024*1024)throw Error('INVOICE_PDF_TOO_LARGE');return output;
 }
