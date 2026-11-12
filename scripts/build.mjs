@@ -55,10 +55,10 @@ const reviewsHtml=reviewsSection(JSON.parse(await readFile(join(source,'data','r
 const meetEdHtml=meetEdVideo({hasVideo:existsSync(join(source,'assets','meet-ed.mp4')),hasPoster:existsSync(join(source,'assets','meet-ed.jpg')),hasCaptions:existsSync(join(source,'assets','meet-ed.vtt'))});
 const serviceManifest=JSON.parse(await readFile(join(source,'assets','services','image-manifest.json'),'utf8'));
 const pages = {
-  '': ['Lawn & Home Services | DeKalb to St. Charles, IL', 'Dependable home and yard help in DeKalb, Sycamore, Elburn, Geneva and St. Charles, IL. Published rates, no trip charges. Request service online.', 'home'],
+  '': ['Lawn & Home Services | DeKalb to St. Charles, IL', 'Dependable home and yard help in DeKalb, Sycamore, Elburn, Geneva and St. Charles, IL. Published rates. Request service online.', 'home'],
   services: ['Home & Yard Services', 'Lawn mowing, leaf cleanup, mulch, furniture assembly and small cleanouts near St. Charles, Campton Hills, Geneva, Elburn and DeKalb, IL.', 'services'],
   'service-area': ['Service Area: DeKalb to St. Charles', 'Home and yard services for DeKalb, Sycamore, Elburn, Lily Lake, Campton Hills, Geneva and St. Charles, IL. See services and request an appointment.', 'service-area'],
-  pricing: ['Pricing & Community Rate', 'Published home and yard rates in DeKalb, IL: $70 per hour, $45 Community Rate, no trip charges. See typical times and costs in our job time guide.', 'pricing'],
+  pricing: ['Pricing & Community Rate', 'Published home and yard rates in DeKalb, IL: $70 per hour, $45 Community Rate. See typical times and costs in our job time guide.', 'pricing'],
   'careers/small-home-jobs': ['Handyman & Small Home Job Opportunities in DeKalb, IL', 'Bring furniture assembly and practical home-job skills to YNSG in DeKalb, Elburn, St. Charles and nearby communities. Explore the role and apply online.', 'careers-home-support'],
   'careers/yard-work': ['Yard Work Opportunities in DeKalb, IL', 'Explore lawn, garden and seasonal yard-work opportunities with YNSG in DeKalb, Elburn, St. Charles and nearby communities. Share your experience online.', 'careers-yard-support'],
   careers: ['Home & Yard Careers in DeKalb, IL', 'Bring your home and yard skills to YNSG in DeKalb, Elburn, St. Charles and nearby communities. Veterans encouraged; all qualified applicants welcome.', 'careers'],
@@ -68,8 +68,8 @@ const pages = {
   'handyman-dekalb-il': ['Small Handyman Jobs | DeKalb to St. Charles', 'Bring your small home jobs together: furniture assembly, shelving, household setup and minor repairs in DeKalb, Elburn, St. Charles or nearby communities.', 'handyman-dekalb-il'],
   'accessibility-home-safety-dekalb-il': ['Accessibility Help | DeKalb, IL', 'Grab bars, wheelchair and walker adjustments and safer, easier-to-reach homes in DeKalb, Sycamore, Elburn and St. Charles. $45 Community Rate.', 'accessibility-home-safety-dekalb-il'],
   'lawn-mowing-dekalb-il': ['Lawn Mowing in DeKalb, IL', 'One less job on your weekend list. Request lawn mowing, trimming and edging in DeKalb, Elburn, St. Charles or nearby communities. One-time and recurring care.', 'lawn-mowing-dekalb-il'],
-  'leaf-cleanup-dekalb-il': ['Leaf Management in DeKalb, IL', 'Seasonal leaf management in DeKalb, Sycamore, Elburn and St. Charles, IL. You approve an estimate and cap first, and there are no trip charges.', 'leaf-cleanup-dekalb-il'],
-  'snow-removal-dekalb-il': ['Residential Snow Removal in DeKalb, IL', 'Get on our winter snow-clearing list in DeKalb, Sycamore, Elburn and St. Charles, IL: driveways, walks and entries, priced per visit, no trip charges.', 'snow-removal-dekalb-il'],
+  'leaf-cleanup-dekalb-il': ['Leaf Management in DeKalb, IL', 'Seasonal leaf management in DeKalb, Sycamore, Elburn and St. Charles, IL. You approve an estimate and cap first.', 'leaf-cleanup-dekalb-il'],
+  'snow-removal-dekalb-il': ['Residential Snow Removal in DeKalb, IL', 'Get on our winter snow-clearing list in DeKalb, Sycamore, Elburn and St. Charles, IL: driveways, walks and entries, priced per visit.', 'snow-removal-dekalb-il'],
   'mulch-delivery-spreading-dekalb-il': ['Mulch Pickup, Delivery & Spreading in DeKalb, IL', 'Arrange mulch pickup, delivery and spreading in DeKalb, Elburn, St. Charles and nearby communities. Already have mulch? Request spreading help.', 'mulch-delivery-spreading-dekalb-il'],
   'mulch-yard-cleanup-dekalb-il': ['Mulch & Yard Cleanup in DeKalb, IL', 'A little help for your outdoor list: mulch, hand weeding, small planting and garden-bed cleanup in DeKalb, Elburn, St. Charles and nearby communities.', 'mulch-yard-cleanup-dekalb-il'],
   'concrete-pressure-washing-dekalb-il': ['Concrete Pressure Washing in DeKalb, IL', 'Refresh your driveway, walks or patio. Request ground-level concrete washing in DeKalb, Elburn, St. Charles and nearby communities. Surface review required.', 'concrete-pressure-washing-dekalb-il'],
@@ -77,9 +77,9 @@ const pages = {
   privacy: ['Privacy Notice', 'How Your Neighborhood Service Guy handles information submitted through the website.', 'privacy'],
   terms: ['Website Terms', 'Terms for using the Your Neighborhood Service Guy website and request form.', 'terms'],
   accessibility: ['Accessibility', 'Accessible ways to use and contact Your Neighborhood Service Guy.', 'accessibility'],
-  'realtors-property-managers': ['For Realtors & Property Managers | DeKalb, IL', 'Punch lists, cleanouts, turnovers and yard upkeep for listings and rentals in DeKalb, Sycamore and St. Charles. Approved caps, photos, no trip charges.', 'realtors-property-managers'],
+  'realtors-property-managers': ['For Realtors & Property Managers | DeKalb, IL', 'Punch lists, cleanouts, turnovers and yard upkeep for listings and rentals in DeKalb, Sycamore and St. Charles. Approved caps and photos.', 'realtors-property-managers'],
   // Built only when the owner sets PUBLISH_HOME_CARE_PLAN=true (pricing awaiting owner decision).
-  ...(process.env.PUBLISH_HOME_CARE_PLAN==='true'?{'home-care-plan':['Home Care Plan | Year-Round Home & Yard Help','Four seasonal home and yard visits a year, priority booking and 10% off extra hours in DeKalb, Sycamore and St. Charles, IL. No trip charges.','home-care-plan']}:{}),
+  ...(process.env.PUBLISH_HOME_CARE_PLAN==='true'?{'home-care-plan':['Home Care Plan | Year-Round Home & Yard Help','Four seasonal home and yard visits a year, priority booking and 10% off extra hours in DeKalb, Sycamore and St. Charles, IL.','home-care-plan']}:{}),
   'service-agreement': ['Service Agreement', 'How we set the scope, estimate, not-to-exceed cap and timing for every job, with no surprise charges.', 'service-agreement']
 };
 const nav = [['services','Services'],['pricing','Pricing'],['about','About']];

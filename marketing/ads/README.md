@@ -16,14 +16,14 @@
 **Photo:** real wheelchair adjustment; resident's personal photos blurred, no faces.
 **Primary text (EN):** New: grab bars, wheelchair and walker tune-ups, lever handles and lower closet shelves. Practical help so you or someone you love can stay safe at home. Seniors 70+, veterans, single parents and neighbors with disabilities can ask for our $45/hr Community Rate.
 **Headline:** Safer at home, starting this week
-**Description:** No trip charges · DeKalb to St. Charles
+**Description:** Published rates · DeKalb to St. Charles
 **Primary text (ES):** Nuevo: barras de apoyo, ajuste de sillas de ruedas y andaderas, manijas de palanca y repisas más bajas. Ayuda práctica para que usted o un ser querido viva seguro en casa. Mayores de 70, veteranos, padres solteros y personas con discapacidad pueden pedir nuestra Tarifa Comunitaria de $45/hora.
 **Headline (ES):** Más seguro en casa, desde esta semana
 **Landing page:** /accessibility-home-safety-dekalb-il
 **Who to target:** adult children ages 40–65 within 25 miles (they book for parents), plus ages 65+. Also share in caregiver and senior Facebook groups, and leave printed copies at senior centers, the VFW and the American Legion.
 
 ## 2. Leaf before/after (`leaf-before-after/`) — run now through early December
-**Primary text (EN):** Same driveway, same afternoon. Walks, drives and beds cleared, and you approve the estimate and a not-to-exceed cap before we start. No trip charges.
+**Primary text (EN):** Same driveway, same afternoon. Walks, drives and beds cleared, and you approve the estimate and a not-to-exceed cap before we start.
 **Headline:** Leaf season, handled
 **Primary text (ES):** La misma entrada, la misma tarde. Banquetas, entradas y jardineras limpias, y usted aprueba el presupuesto y un límite de costo antes de empezar. Sin cargo por traslado.
 **Landing page:** /leaf-cleanup-dekalb-il
@@ -35,12 +35,12 @@
 **Landing page:** /handyman-dekalb-il
 
 ## 4. Trusted neighbor (`trusted-neighbor/`) — always-on brand ad
-**Primary text (EN):** Locally owned home and yard help from DeKalb to St. Charles. Published rates, no trip charges, and you approve a not-to-exceed cap before any work begins.
+**Primary text (EN):** Locally owned home and yard help from DeKalb to St. Charles. Published rates, and you approve a not-to-exceed cap before any work begins.
 **Headline:** Your neighbor. Your service guy.
 **Primary text (ES):** Ayuda local para el hogar y el jardín, de DeKalb a St. Charles. Precios publicados, sin cargo por traslado, y usted aprueba un límite de costo antes de empezar.
 
 ## 5. Winter list (`winter-list/`) — run now until the first snow
-**Primary text (EN):** Get on our snow list before the first storm: driveways, walks and accessible entries, priced per visit. No trip charges.
+**Primary text (EN):** Get on our snow list before the first storm: driveways, walks and accessible entries, priced per visit.
 **Headline:** Snow season? Get on the list.
 **Primary text (ES):** Apúntese en nuestra lista antes de la primera nevada: entradas, banquetas y accesos, con precio por visita. Sin cargo por traslado.
 **Landing page:** /snow-removal-dekalb-il
