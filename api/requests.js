@@ -33,7 +33,7 @@ export default async function handler(req,res){
   if(Object.hasOwn(raw,'postalCode')){data.postalCode=clean(raw.postalCode,5);if(!/^[0-9]{5}$/.test(data.postalCode))return fail(res,400,'Please check the required fields and try again.');}
   const hasServices=Object.hasOwn(raw,'services');
   // A page opened before the weed-management rename may still send the old task name; accept it as the new one.
-  const renamedTasks={'Pulling weeds by hand':'Weed management (no chemicals)'};
+  const renamedTasks={'Pulling weeds by hand':'Weed pulling','Weed management (no chemicals)':'Weed pulling'};
   const selections=(hasServices ? raw.services : [{service:data.service,task:data.task}]);
   if(Array.isArray(selections))for(const item of selections)if(item&&typeof item==='object'&&typeof item.task==='string'&&Object.hasOwn(renamedTasks,item.task))item.task=renamedTasks[item.task];
   if(!Array.isArray(selections))return fail(res,400,'Please choose at least one job.');

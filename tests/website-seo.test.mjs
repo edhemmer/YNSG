@@ -116,7 +116,7 @@ test('customers can request service without choosing a calendar time',async()=>{
 });
 
 
-test('mulch has a distinct discoverable page while garden care stays in Yard & garden',async()=>{const home=await readFile(new URL('../site/pages/home.html',import.meta.url),'utf8'),mulch=await readFile(new URL('../site/pages/mulch-delivery-spreading-dekalb-il.html',import.meta.url),'utf8');assert.equal((home.match(/<article class="home-service-card/g)||[]).length,10);assert.match(home,/href="\/mulch-delivery-spreading-dekalb-il\/"/);assert.match(home,/Weed management \(no chemicals\), small planting, bush trimming and garden-bed cleanup/);assert.match(mulch,/Supplier-prepaid materials are not billed again/);assert.match(mulch,/one combined two-hour minimum/);assert.match(mulch,/href="\/mulch-yard-cleanup-dekalb-il\/"/);});
+test('mulch has a distinct discoverable page while garden care stays in Yard & garden',async()=>{const home=await readFile(new URL('../site/pages/home.html',import.meta.url),'utf8'),mulch=await readFile(new URL('../site/pages/mulch-delivery-spreading-dekalb-il.html',import.meta.url),'utf8');assert.equal((home.match(/<article class="home-service-card/g)||[]).length,10);assert.match(home,/href="\/mulch-delivery-spreading-dekalb-il\/"/);assert.match(home,/Weed pulling, small planting, bush trimming and garden-bed cleanup/);assert.match(mulch,/Supplier-prepaid materials are not billed again/);assert.match(mulch,/one combined two-hour minimum/);assert.match(mulch,/href="\/mulch-yard-cleanup-dekalb-il\/"/);});
 
 test('farm hand has a distinct quote-based page, four-hour minimum and arranged intake',async()=>{
  const [home,services,price,farm,form,journey,catalog]=await Promise.all([
