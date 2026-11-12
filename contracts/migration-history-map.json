@@ -1,5 +1,5 @@
 {
-  "observedOn": "2026-11-04",
+  "observedOn": "2026-11-12",
   "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
   "sourceBranch": "codex/google-one-click-reconnect-20261102",
   "sourceCommit": "e389f72ab634f9421d23e67e497799e90361ec58",
@@ -486,6 +486,16 @@
       "historyVersion": "20261106125853"
     },
     {
+      "file": "20261106150000_request_lead_source.sql",
+      "name": "request_lead_source",
+      "historyVersion": "20261112125724"
+    },
+    {
+      "file": "20261106170000_customer_home_profiles.sql",
+      "name": "customer_home_profiles",
+      "historyVersion": "20261112125742"
+    },
+    {
       "file": "20261109154000_owner_invoice_pricing.sql",
       "name": "owner_invoice_pricing",
       "historyVersion": "20261109142557"
@@ -536,16 +546,5 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": [
-    {
-      "file": "20261106150000_request_lead_source.sql",
-      "name": "request_lead_source",
-      "status": "not_applied_to_connected_supabase"
-    },
-    {
-      "file": "20261106170000_customer_home_profiles.sql",
-      "name": "customer_home_profiles",
-      "status": "not_applied_to_connected_supabase"
-    }
-  ]
+  "pendingUnappliedMigrations": []
 }
