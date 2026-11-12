@@ -344,3 +344,4 @@
 .visit-date-tile span,.visit-date-tile strong{white-space:nowrap;overflow-wrap:normal;word-break:normal}
 
 .company-workspace:not(.signed-out) .register-owed{padding:14px 20px;margin:0!important;font-size:1rem;border-bottom:1px solid var(--os-border)}.company-workspace:not(.signed-out) .register-owed strong{font-size:1.25rem}
+.company-workspace:not(.signed-out) .register-owed,.company-workspace:not(.signed-out) .register-count{max-width:none}
