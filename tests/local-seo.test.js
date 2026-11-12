@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { businessIdentity } from '../lib/business-identity.js';
 import { seo, WEBSITE_ORIGIN, canonicalUrl, localServicePages } from '../scripts/seo.mjs';
 
 test('each local landing page describes its own primary service with the same verified provider and geography', () => {
@@ -35,7 +36,8 @@ test('Local business identity and geography are consistent across indexable page
     assert.ok(!('address' in business), 'Do not invent a business street address');
     assert.deepEqual(business.image,[WEBSITE_ORIGIN+'/assets/logo.jpg',WEBSITE_ORIGIN+'/assets/neighbors-social.jpg']);
     assert.equal(business.priceRange,'$45-$70 per person per hour');
-    assert.ok(!('sameAs' in business),'sameAs is only published for owner-confirmed profile URLs');
+    if(businessIdentity.profiles.length)assert.deepEqual(business.sameAs,[...businessIdentity.profiles],'sameAs is only the owner-confirmed profile URLs');
+    else assert.ok(!('sameAs' in business),'sameAs is only published for owner-confirmed profile URLs');
   }
 });
 
