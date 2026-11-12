@@ -7,8 +7,8 @@ update public.properties set postal_code='60115' where id='40000000-0000-4000-80
 set local role authenticated;
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000003","session_id":"10000000-0000-4000-8000-000000000003","aal":"aal1"}',true);
 select pg_temp.assert_true(jsonb_array_length(public.customer_intake_context('20000000-0000-4000-8000-000000000001')->'properties')=1,'only explicitly linked property exposed');
-select public.submit_customer_request('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','repeat-request-key-0001','{"services":[{"service":"Lawn care","task":"Mowing"},{"service":"Yard & garden","task":"Pulling weeds by hand"}],"description":"","preferredTime":"Next week","communityRate":"No","postalCode":"60115"}');
-select public.submit_customer_request('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','repeat-request-key-0001','{"services":[{"service":"Lawn care","task":"Mowing"},{"service":"Yard & garden","task":"Pulling weeds by hand"}],"description":"","preferredTime":"Next week","communityRate":"No","postalCode":"60115"}');
+select public.submit_customer_request('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','repeat-request-key-0001','{"services":[{"service":"Lawn care","task":"Mowing"},{"service":"Yard & garden","task":"Weed management (no chemicals)"}],"description":"","preferredTime":"Next week","communityRate":"No","postalCode":"60115"}');
+select public.submit_customer_request('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','repeat-request-key-0001','{"services":[{"service":"Lawn care","task":"Mowing"},{"service":"Yard & garden","task":"Weed management (no chemicals)"}],"description":"","preferredTime":"Next week","communityRate":"No","postalCode":"60115"}');
 select pg_temp.assert_true((select count(*)=1 from public.service_requests),'one linked request on retry');
 select pg_temp.assert_true((select original_submission->>'postalCode'='60115' from public.service_requests),'repeat snapshot retains saved ZIP');
 select pg_temp.assert_true((select count(*)=2 from public.service_request_items),'both category jobs retained');
@@ -22,7 +22,7 @@ select pg_temp.assert_true((select count(*)=1 from public.outbox),'one owner not
 select pg_temp.assert_true((select count(*)=1 from public.audit_events where actor_id='00000000-0000-4000-8000-000000000003'),'customer actor audited');
 update public.contacts set phone='5551111111';
 set local role authenticated;
-select public.submit_customer_request('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','repeat-request-key-0001','{"services":[{"service":"Lawn care","task":"Mowing"},{"service":"Yard & garden","task":"Pulling weeds by hand"}],"description":"","preferredTime":"Next week","communityRate":"No","postalCode":"60115"}');
+select public.submit_customer_request('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','repeat-request-key-0001','{"services":[{"service":"Lawn care","task":"Mowing"},{"service":"Yard & garden","task":"Weed management (no chemicals)"}],"description":"","preferredTime":"Next week","communityRate":"No","postalCode":"60115"}');
 reset role;
 select pg_temp.assert_true((select count(*)=1 from public.service_requests),'contact change does not duplicate retry');
 update public.customer_access set revoked_at=now() where user_id='00000000-0000-4000-8000-000000000003';
