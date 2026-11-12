@@ -60,7 +60,9 @@ export async function syncGoogleCalendar(org: string) {
           eventId: c.projection?.event_id || null,
         },
       );
-    } catch {
+    } catch (error) {
+      // Error code and HTTP status only (no customer data) so failed visits can be diagnosed.
+      console.error("calendar-sync-failed", { code: error instanceof Error ? error.message : "UNKNOWN", status: (error as { status?: number })?.status ?? null });
       result = {
         state: "failed",
         reason:
