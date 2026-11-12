@@ -36,7 +36,8 @@ test('Local business identity and geography are consistent across indexable page
     assert.ok(!('address' in business), 'Do not invent a business street address');
     assert.deepEqual(business.image,[WEBSITE_ORIGIN+'/assets/logo.jpg',WEBSITE_ORIGIN+'/assets/neighbors-social.jpg']);
     assert.equal(business.priceRange,'$45-$70 per person per hour');
-    if(businessIdentity.profiles.length)assert.deepEqual(business.sameAs,[...businessIdentity.profiles],'sameAs is only the owner-confirmed profile URLs');
+    const confirmed=[...businessIdentity.profiles,...Object.values(businessIdentity.social)].filter(Boolean);
+    if(confirmed.length)assert.deepEqual(business.sameAs,confirmed,'sameAs is only the owner-confirmed profile and social URLs');
     else assert.ok(!('sameAs' in business),'sameAs is only published for owner-confirmed profile URLs');
   }
 });
