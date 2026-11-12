@@ -9,7 +9,7 @@ export const canonicalUrl=slug=>WEBSITE_ORIGIN+(slug?'/'+slug:'/');
 const titles={
  '':'Lawn & Home Services | DeKalb to St. Charles, IL',
  services:'Lawn, Yard & Home Services | Fox Valley IL',
- pricing:'Home & Yard Rates in DeKalb, IL | No Trip Charges',
+ pricing:'Home & Yard Rates in DeKalb, IL | Published Rates',
  'careers/small-home-jobs':'Handyman & Small Home Job Opportunities in DeKalb, IL',
  'careers/yard-work':'Yard Work Opportunities in DeKalb, IL',
  careers:'Home & Yard Careers in DeKalb, IL',
@@ -46,14 +46,14 @@ export const publishedRates=Object.freeze({standard:70,community:45});
 export function seo(slug,title,description,media=null){
  const url=canonicalUrl(slug),origin=WEBSITE_ORIGIN+'/';
  const areaServed=serviceCities.map(name=>({'@type':'City',name:name+', Illinois',containedInPlace:{'@type':'State',name:'Illinois'}}));
- const organization={'@type':['LocalBusiness','HomeAndConstructionBusiness'],'@id':origin+'#business',name:legalBusinessName,alternateName:brand,legalName:businessIdentity.legalName,url:origin,logo:origin+'assets/logo.jpg',telephone:'+1-'+businessIdentity.phoneDisplay,email:businessIdentity.email,image:[origin+'assets/logo.jpg',origin+'assets/neighbors-social.jpg'],priceRange:'$45-$70 per person per hour',openingHoursSpecification:{'@type':'OpeningHoursSpecification',dayOfWeek:businessIdentity.hours.days,opens:businessIdentity.hours.opens,closes:businessIdentity.hours.closes},...(profileLinks.length?{sameAs:profileLinks}:{}),contactPoint:{'@type':'ContactPoint',telephone:'+1-'+businessIdentity.phoneDisplay,contactType:'customer service',availableLanguage:'en'},description:'Owner-operated home and yard services based near DeKalb, Illinois, serving communities toward St. Charles. Published rates, approved estimate caps and no trip charges.',hasMap:businessIdentity.googleReviewUrl.replace(/\/review$/,''),slogan:'We’re Here to Help.',areaServed};
+ const organization={'@type':['LocalBusiness','HomeAndConstructionBusiness'],'@id':origin+'#business',name:legalBusinessName,alternateName:brand,legalName:businessIdentity.legalName,url:origin,logo:origin+'assets/logo.jpg',telephone:'+1-'+businessIdentity.phoneDisplay,email:businessIdentity.email,image:[origin+'assets/logo.jpg',origin+'assets/neighbors-social.jpg'],priceRange:'$45-$70 per person per hour',openingHoursSpecification:{'@type':'OpeningHoursSpecification',dayOfWeek:businessIdentity.hours.days,opens:businessIdentity.hours.opens,closes:businessIdentity.hours.closes},...(profileLinks.length?{sameAs:profileLinks}:{}),contactPoint:{'@type':'ContactPoint',telephone:'+1-'+businessIdentity.phoneDisplay,contactType:'customer service',availableLanguage:'en'},description:'Owner-operated home and yard services based near DeKalb, Illinois, serving communities toward St. Charles. Published rates and approved estimate caps.',hasMap:businessIdentity.googleReviewUrl.replace(/\/review$/,''),slogan:'We’re Here to Help.',areaServed};
  const pageId=url+'#page',breadcrumbId=url+'#breadcrumb';
  const graph=[organization,{'@type':'WebSite','@id':origin+'#website',url:origin,name:brand,publisher:{'@id':organization['@id']},inLanguage:'en-US'},{'@type':slug==='careers'?'CollectionPage':'WebPage','@id':pageId,url,name:titles[slug]||title,description,isPartOf:{'@id':origin+'#website'},about:{'@id':organization['@id']},inLanguage:'en-US',...(slug?{breadcrumb:{'@id':breadcrumbId}}:{})}];
  if(media){const imageId=url+'#service-image';graph.push({'@type':'ImageObject','@id':imageId,url:WEBSITE_ORIGIN+media.src,contentUrl:WEBSITE_ORIGIN+media.src,width:media.width,height:media.height,caption:media.alt});graph.find(node=>node['@id']===pageId).primaryImageOfPage={'@id':imageId};}
  if(slug==='pricing'){
   const catalogId=url+'#rates';
   graph.find(node=>node['@id']===pageId).mainEntity={'@id':catalogId};
-  const offer=(key,name,price,description)=>({'@type':'Offer','@id':url+'#'+key,name,description,offeredBy:{'@id':organization['@id']},areaServed,priceSpecification:{'@type':'UnitPriceSpecification',price,priceCurrency:'USD',unitCode:'HUR',unitText:'per person per hour',description:'First-person two-hour minimum. No trip charges.'}});
+  const offer=(key,name,price,description)=>({'@type':'Offer','@id':url+'#'+key,name,description,offeredBy:{'@id':organization['@id']},areaServed,priceSpecification:{'@type':'UnitPriceSpecification',price,priceCurrency:'USD',unitCode:'HUR',unitText:'per person per hour',description:'First-person two-hour minimum.'}});
   graph.push({'@type':'OfferCatalog','@id':catalogId,name:'Hourly home and yard labor',itemListElement:[offer('standard-rate','Standard rate',publishedRates.standard,'Hourly home and yard labor, billed per person for actual worked time.'),offer('community-rate','Community Rate',publishedRates.community,'Hourly home and yard labor for seniors age 70 or older, veterans, single parents and folks with disabilities.')]});
  }
  if(slug==='realtors-property-managers'){
