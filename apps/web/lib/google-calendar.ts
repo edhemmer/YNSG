@@ -27,8 +27,10 @@ export type ProjectionResult = {
   etag: string | null;
   reason?: string;
 };
+// Google only accepts event ids made of 0-9 and a-v (base32hex); "ynsg" contained an invalid "y",
+// so every new visit was rejected with HTTP 400.
 export function eventId(p: Projection) {
-  return "ynsg" + hash(p.organization + ":" + p.calendar + ":" + p.appointment);
+  return "vnsg" + hash(p.organization + ":" + p.calendar + ":" + p.appointment);
 }
 // Phone alerts for every visit: the evening before (24 h) and an hour ahead.
 const REMINDERS = [
