@@ -9,7 +9,7 @@ test('one-hour task allocation and combined two-hour visit minimum remain separa
  assert.equal(a.bufferMinutes,30);
 });
 test('two-hour weeding and four-hour mulch include a single visit floor, not two-hour charge per job',()=>{
- const e=estimateVisit([{service:'Yard & garden',task:'Pulling weeds by hand'},{service:'Yard & garden',task:'Bulk or bagged mulch pickup, delivery & spreading'}],examplePlanningStandards,30);
+ const e=estimateVisit([{service:'Yard & garden',task:'Weed management (no chemicals)'},{service:'Yard & garden',task:'Bulk or bagged mulch pickup, delivery & spreading'}],examplePlanningStandards,30);
  assert.equal(e.taskMinutes,360);
  assert.equal(e.visitMinutes,390);
  assert.equal(e.breakdown[1]!.minutes,240);
