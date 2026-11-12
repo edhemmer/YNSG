@@ -148,3 +148,7 @@ body .work-grid figcaption{padding:10px 14px 12px;font-size:.9375rem;font-weight
 
 /* Real job photo: keep the shirt logo in frame when cards crop to narrower shapes. */
 img[src*="ynsg-accessibility-home-safety"]{object-position:50% 50%}
+
+/* Long footer contact lines (the email address) wrap instead of widening the page on phones. */
+.footer-contact{min-width:0;grid-template-columns:minmax(0,1fr)}
+.footer-contact a{min-width:0;overflow-wrap:anywhere}
