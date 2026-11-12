@@ -73,3 +73,6 @@ test('Calendar events carry phone popup alerts a day and an hour ahead, and olde
  const r=await projectEvent('synthetic',projection,{etag:'e1',eventId:eventId(projection)},update);
  assert.equal(r.state,'synced');assert.equal(put!.reminders.overrides.length,2);
 });
+test('Calendar event ids use only the characters Google accepts (0-9, a-v)',()=>{
+ assert.match(eventId(projection),/^[0-9a-v]{5,1024}$/);
+});
