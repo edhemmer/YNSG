@@ -15,7 +15,17 @@ test('identity belongs to the organization, never a matching display name, and b
  assert.deepEqual(emailIdentity({},'another-business'),{logoUrl:null,ownerName:''});
  const identity=emailIdentity({brand:{ownerName:'Another Owner',logoUrl:'https://example.invalid/logo.png'}},'another-business');
  assert.equal(identity.ownerName,'Another Owner');assert.ok(!JSON.stringify(identity).includes('Hemmer'));
- assert.deepEqual(emailIdentity({brand:{ownerName:null,logoUrl:null}},'a933d657-14d3-46b6-85e6-21d973e4ed97'),{logoUrl:null,ownerName:'',phone:YNSG_EMAIL_IDENTITY.phone,website:YNSG_EMAIL_IDENTITY.website});
+ assert.deepEqual(emailIdentity({brand:{ownerName:null,logoUrl:null}},'a933d657-14d3-46b6-85e6-21d973e4ed97'),{logoUrl:null,ownerName:'',phone:YNSG_EMAIL_IDENTITY.phone,website:YNSG_EMAIL_IDENTITY.website,social:YNSG_EMAIL_IDENTITY.social});
+ // Another business never inherits YNSG's social links.
+ assert.ok(!('social' in emailIdentity({brand:{ownerName:'Another Owner'}},'another-business')));
+});
+test('customer emails show the business social links, owner notifications do not, and unsafe social URLs are rejected',()=>{
+ const ynsg=emailIdentity({},'a933d657-14d3-46b6-85e6-21d973e4ed97');
+ const html=emailLayout('Synthetic Co','Title','Preview','<p>Body</p>',ynsg);
+ assert.ok(html.includes('https://www.facebook.com/YourNeighborhoodServiceGuy')&&html.includes('https://www.instagram.com/yourneighborhoodserviceguy/')&&html.includes('Follow us:'));
+ assert.ok(!emailLayout('Synthetic Co','Title','Preview','<p>Body</p>',{...ynsg,audience:'owner'}).includes('Follow us:'));
+ assert.throws(()=>emailLayout('Synthetic Co','Title','Preview','<p>Body</p>',{...ynsg,social:{facebook:'https://evil.example/page'}}),/INVALID_EMAIL_SOCIAL/);
+ assert.throws(()=>emailLayout('Synthetic Co','Title','Preview','<p>Body</p>',{...ynsg,social:{instagram:'http://www.instagram.com/x'}}),/INVALID_EMAIL_SOCIAL/);
 });
 test('shared email branding escapes identity, rejects unsafe URLs, and preserves readable image fallback',()=>{
  const html=emailLayout('A & B','Message','Preview','<p>Contents</p>',{ownerName:'Owner <script>',logoUrl:'https://example.invalid/logo.png?a=1&b=2'});
