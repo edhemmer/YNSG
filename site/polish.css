@@ -98,7 +98,7 @@ body ul.service-benefits li{font-size:.875rem!important;line-height:1.35}
 
 /* ===== Regal layer: serif headlines, gold hairlines, quiet cards. Free system fonts only. ===== */
 :root{--head:"Rubik",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;--gold-ink:#6b5214;--gold-line:#c9a24b;--ivory:#fbf9f3;--hair:#e4dccb}
-body h1,body h2,body .page-hero h1,body .home-section-heading h2{font-family:var(--head);font-weight:700;letter-spacing:-.01em;line-height:1.16;color:var(--navy)}
+body h1,body h2,body .page-hero h1,body .home-section-heading h2{font-family:var(--head);font-weight:600;letter-spacing:.005em;word-spacing:.06em;line-height:1.18;color:var(--navy)}
 body h1{font-size:clamp(2.1rem,3.6vw,3.15rem)}
 body h2{font-size:clamp(1.6rem,2.5vw,2.15rem)}
 body h3{letter-spacing:-.003em}
@@ -181,3 +181,7 @@ img[src*="ynsg-accessibility-home-safety"]{object-position:50% 50%}
 body :is(h3,.nav-mobile a,.mobile-rail a,.service-title,.big-price,.phone-display,.footer-name,.footer-motto,.side-quote,.button,.nav-desktop a,.overline){font-family:var(--head)}
 body :is(.service-title,.footer-name){font-weight:600}
 body .button{font-weight:600;letter-spacing:.005em}
+
+/* Rubik runs tight at heavy weights: slightly lighter, looser headings read crisper, especially on phones. */
+body :is(h1,h2,h3,.premium-hero h1,.service-detail-hero h1,.home-service h3,.service-title,.footer-name,.footer-motto,.side-quote){letter-spacing:.005em!important;word-spacing:.06em}
+body :is(.premium-hero h1,.service-detail-hero h1){font-weight:600;line-height:1.12}
