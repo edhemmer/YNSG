@@ -8,7 +8,7 @@ test('reviews stay hidden until three real reviews exist, then show newest first
  assert.equal(reviewsSection([],'https://g.page/r/x/review'),'');
  assert.equal(reviewsSection([r(1),r(2)],'https://g.page/r/x/review'),'');
  const html=reviewsSection([r(1),r(3),r(2,{text:'<script>alert(1)</script> great job overall'})],'https://g.page/r/x/review');
- assert.match(html,/What customers say/);assert.doesNotMatch(html,/<script>/);assert.match(html,/&lt;script&gt;/);
+ assert.match(html,/What our neighbors are saying/);assert.doesNotMatch(html,/<script>/);assert.match(html,/&lt;script&gt;/);
  assert.ok(html.indexOf('Pat M3')<html.indexOf('Pat M1'));assert.equal(minimumReviewsToShow,3);
 });
 test('invalid reviews fail the build instead of publishing',()=>{
