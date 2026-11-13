@@ -38,6 +38,6 @@ test('Today skips the empty decision panel and keeps search available',async()=>
   await act(async()=>{root.render(React.createElement(Queue,{organization,timezone:'America/Chicago',revision:3,onOpen:()=>{},onNavigate:()=>{}}));await tick();await tick();});
   assert.equal(node.querySelector('section[aria-label="Requests awaiting a decision"]'),null);
   assert.ok(node.querySelector('details.field-search-disclosure summary'));
-  assert.match(node.textContent,/No unfinished work/);
+  assert.match(node.textContent,/Nothing on for today/);
  }finally{await act(async()=>root.unmount());}
 });

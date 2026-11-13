@@ -17,7 +17,7 @@ test('Today offers direct navigation and does not imply that opening a paused jo
 });
 
 test('Today puts field visits ahead of invoice-only work without hiding invoice backlog',()=>{
- assert.match(s,/const next=activeWork\|\|\(!stops\.length&&!pending\.length\?shownWork\[0\]:null\)/);
+ assert.match(s,/const next=activeWork\|\|\(!todayStops\.length&&!pending\.length\?shownWork\[0\]:null\)/);
  assert.match(s,/const remainingWork=shownWork\.filter/);
  assert.match(s,/remainingWork\.map\(j=>/);
  assert.match(s,/remainingWork\.length>0/);
@@ -64,24 +64,24 @@ test('completed uninvoiced jobs do not hide future distinct visits',()=>{
 
 test('Today selects the chronological next arrival despite unordered route responses',()=>{
  assert.match(s,/const stops=\[\.\.\.\(data\?\.day\?\.calls\|\|\[\]\)\]\.sort\(\(a,b\)=>Date\.parse\(a\.arrivalAt\)-Date\.parse\(b\.arrivalAt\)\)/);
- assert.match(s,/nextStop=!next\?stops\[0\]:null/);
+ assert.match(s,/nextStop=!next\?todayStops\[0\]:null/);
 });
 
 test('Today makes a pending customer decision the main action when there is no job or visit',()=>{
  assert.match(s,/pending\.length\?<section className="field-current card is-clickable" aria-label="Next request decision"/);
  assert.match(s,/onOpen\(pending\[0\]!\.id\)/);
- assert.match(s,/No unfinished work, upcoming appointments, or requests requiring a decision in the loaded queue/);
+ assert.match(s,/Nothing on for today, and no requests waiting on a decision/);
 });
 
 test('an open customer decision outranks invoice-only work when no active visit is underway',()=>{
- assert.match(s,/const next=activeWork\|\|\(!stops\.length&&!pending\.length\?shownWork\[0\]:null\)/);
+ assert.match(s,/const next=activeWork\|\|\(!todayStops\.length&&!pending\.length\?shownWork\[0\]:null\)/);
  assert.match(s,/const remainingWork=shownWork\.filter/);
  assert.match(s,/pending\.length\?<section className="field-current card is-clickable" aria-label="Next request decision"/);
 });
 
 test('Today preserves the first upcoming visit in the secondary queue when active work owns primary card',()=>{
- assert.match(s,/stops\.filter\(c=>c\.id!==nextStop\?\.id\)\.map\(c=>/);
- assert.match(s,/stops\.some\(c=>c\.id!==nextStop\?\.id\)/);
+ assert.match(s,/todayStops\.filter\(c=>c\.id!==nextStop\?\.id\)\.map\(c=>/);
+ assert.match(s,/todayStops\.some\(c=>c\.id!==nextStop\?\.id\)/);
  assert.doesNotMatch(s,/stops\.slice\(nextStop\?1:0\)/);
 });
 

@@ -126,4 +126,4 @@
 .company-workspace .crm-sidebar .sidebar-brand img{height:auto;max-width:100%}
 
 /* Brand type: Rubik matches the logo lettering. Body and form text stay on the UI font. */
-body :is(h1,h2,h3,.brand){font-family:"Rubik",var(--font-ui,system-ui),sans-serif;font-weight:600;letter-spacing:.005em;word-spacing:.06em}
+body :is(h1,h2,h3,.brand),.company-workspace:not(.signed-out) :is(h1,h2,h3,h4,.brand){font-family:"Rubik",var(--font-ui,system-ui),sans-serif;font-weight:600;letter-spacing:.005em;word-spacing:.06em}
