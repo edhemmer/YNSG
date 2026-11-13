@@ -24,10 +24,10 @@ const ADS = [
   es:{chip:'Hasta el 24 de diciembre', h:'Su casa lista para las fiestas en una visita.', sub:'Repisas, cuadros, cortineros y arreglos pequeños. Dos horas: $140, o $90 con la Tarifa Comunitaria.', cta:'Reserve su visita'}},
  {id:'trusted-neighbor', photo:'22', focal:{square:'50% 62%', portrait:'50% 60%', story:'50% 58%'},
   en:{chip:'Home & yard · DeKalb to St. Charles', h:'Your neighbor. Your service guy.', sub:'Published rates. You approve a not-to-exceed cap before any work begins.', cta:'Request service'},
-  es:{chip:'Hogar y jardín · DeKalb a St. Charles', h:'Su vecino de confianza para el hogar.', sub:'Precios publicados. Sin cargo por traslado. Usted aprueba un límite de costo antes de empezar.', cta:'Solicite servicio'}},
+  es:{chip:'Hogar y jardín · DeKalb a St. Charles', h:'Su vecino de confianza para el hogar.', sub:'Precios publicados. Usted aprueba un límite de costo antes de empezar.', cta:'Solicite servicio'}},
  {id:'winter-list', photo:'14', badge:'right', focal:{square:'50% 44%', portrait:'50% 44%', story:'50% 46%'},
   en:{chip:'Winter is coming', h:'Snow season? Get on our list now.', sub:'Driveways, walks and accessible entries, priced per visit.', cta:'Join the winter list'},
-  es:{chip:'Ya viene el invierno', h:'¿Nieve? Apúntese en nuestra lista.', sub:'Entradas, banquetas y accesos, con precio por visita. Sin cargo por traslado.', cta:'Únase a la lista'}},
+  es:{chip:'Ya viene el invierno', h:'¿Nieve? Apúntese en nuestra lista.', sub:'Entradas, banquetas y accesos, con precio por visita.', cta:'Únase a la lista'}},
 ];
 
 function html(ad, lang, size){
