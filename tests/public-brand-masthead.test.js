@@ -11,7 +11,7 @@ test('official masthead remains above navigation and hero tagline reuses approve
  assert.match(css,/\.site-header \.nav-mobile\{grid-column:1;grid-row:2/);
  assert.doesNotMatch(home,/hero-motto/);
  assert.match(home,/<svg class="brand-tagline"[^>]+role="img" aria-label="We’re Here to Help\."/);
- assert.match(home,/<image href="\/assets\/logo.jpg" width="1536" height="1024" aria-hidden="true"\/>/);
+ assert.match(home,/<image href="\/assets\/logo.webp" width="1536" height="1024" aria-hidden="true"\/>/);
  assert.equal((home.match(/class="brand-tagline"/g)||[]).length,1);
- assert.match(build,/src="\/assets\/logo.jpg"/);
+ assert.match(build,/src="\/assets\/logo.webp"/);
 });
