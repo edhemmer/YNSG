@@ -141,9 +141,11 @@ body .home-work{padding-block:clamp(36px,5vw,64px);background:var(--ivory)}
 body .home-work-lead{max-width:620px;margin:0 0 22px;color:#34505c}
 body .work-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 body .work-grid figure{margin:0;border:1px solid var(--hair);border-radius:10px;overflow:hidden;background:#fffdf8;box-shadow:0 1px 2px rgba(16,40,60,.04),0 8px 24px -14px rgba(16,40,60,.16)}
-body .work-grid img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover}
+body .work-grid img{display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:cover}
+body .work-tag{display:block;margin-bottom:2px;font-size:.6875rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4f6f3f}
+body .work-note{margin:18px 0 0;font-size:.875rem;color:#566676}
 body .work-grid figcaption{padding:10px 14px 12px;font-size:.9375rem;font-weight:600;color:var(--navy);line-height:1.35}
-@media(max-width:1000px){body .work-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){body .work-grid{grid-template-columns:1fr 1fr}body .work-grid figure:last-child:nth-child(odd){grid-column:1/-1}body .work-grid figure:last-child:nth-child(odd) img{aspect-ratio:16/10}}
 @media(max-width:520px){body .work-grid{gap:10px}body .work-grid figcaption{padding:8px 10px 10px;font-size:.875rem}}
 
 /* Real job photo: keep the shirt logo in frame when cards crop to narrower shapes. */
