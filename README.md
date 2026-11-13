@@ -13,6 +13,7 @@ Source for the public website, the owner and customer web app, and the iOS app. 
 | Shared code | `packages/domain`, `packages/contracts` | Deterministic pricing, tax and scheduling rules, and the API contracts. |
 | Database | `supabase/migrations` | Postgres with row-level security. Canonical commands own approvals, bookings, invoices and receipts. |
 | Checks and tooling | `scripts/`, `tests/` | Release gates, SEO and readability checks, recovery tooling. |
+| New developer? Start here | `docs/handoff/` | Eight plain-language files: business, scope, architecture, operations, brand, email, SEO, open decisions. |
 | Operations and history | `docs/` | Governance, production register, acceptance runbooks and dated evidence. |
 
 `lib/business-identity.js` holds the business name, public phone number and site addresses used by the page build. The phone number is also written directly into many pages and some customer-facing error messages, so search the whole repo for it before changing it.
