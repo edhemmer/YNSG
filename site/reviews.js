@@ -17,7 +17,7 @@ export function reviewsSection(list,reviewUrl){
  const reviews=validReviews(list);
  if(reviews.length<minimumReviewsToShow)return '';
  const cards=reviews.slice(0,6).map(r=>`<figure class="review-card"><p class="review-stars" aria-label="${r.rating} out of 5 stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</p><blockquote><p>${escape(r.text)}</p></blockquote><figcaption><strong>${escape(r.name)}</strong> · ${escape(r.town)}</figcaption></figure>`).join('');
- return `<section class="home-reviews section" aria-labelledby="reviews-title"><div class="shell"><p class="overline">From our neighbors</p><h2 id="reviews-title">What customers say</h2><div class="review-grid">${cards}</div><p class="review-source">Reviews from Google. <a href="${escape(reviewUrl)}" rel="noopener">Leave your own review</a>.</p></div></section>`;
+ return `<section class="home-reviews section" aria-labelledby="reviews-title"><div class="shell"><p class="overline">From our neighbors</p><h2 id="reviews-title">What our neighbors are saying</h2><div class="review-grid">${cards}</div><p class="review-source">Reviews from Google. <a href="${escape(reviewUrl)}" rel="noopener">Leave your own review</a>.</p></div></section>`;
 }
 
 // Until three written reviews exist, show only the verified Google rating (from site/data/google-rating.json,
