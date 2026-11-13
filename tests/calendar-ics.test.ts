@@ -4,7 +4,7 @@ test('calendar subscription lines fold by UTF-8 bytes without splitting accented
 import {visitInviteIcs} from '../apps/web/lib/calendar-ics.ts';
 import {emailRaw} from '../apps/web/lib/google-core.ts';
 test('customer visit invite is one stable, updatable event with a day-before reminder',()=>{
- const ics=visitInviteIcs({appointmentId:'11111111-2222-3333-4444-555555555555',revision:3,start:'2026-11-10T15:00:00Z',company:'Your Neighborhood Service Guy, LLC',address:'100 Test St, DeKalb',phone:'815-680-1775',updatedAt:'2026-11-05T12:00:00Z'});
+ const ics=visitInviteIcs({appointmentId:'11111111-2222-3333-4444-555555555555',revision:3,start:'2026-11-10T15:00:00Z',company:'Your Neighborhood Service Guy LLC',address:'100 Test St, DeKalb',phone:'815-680-1775',updatedAt:'2026-11-05T12:00:00Z'});
  assert.ok(ics.startsWith('BEGIN:VCALENDAR\r\n'));assert.ok(ics.endsWith('END:VCALENDAR\r\n'));
  for(const line of ics.split('\r\n'))assert.ok(Buffer.byteLength(line)<=75);
  const flat=ics.replaceAll('\r\n ','');
