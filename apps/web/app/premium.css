@@ -1,3 +1,4 @@
+@font-face{font-family:"Rubik";font-style:normal;font-weight:300 900;font-display:swap;src:url(/fonts/rubik-latin-wght-normal.woff2) format("woff2")}
 /* Premium design layer for the owner workspace.
    Loaded after every other stylesheet. It only sets tokens, type, depth and spacing;
    it never changes behavior, copy or layout structure. */
@@ -123,3 +124,6 @@
 .company-workspace .crm-sidebar>*{flex-shrink:0}
 .company-workspace .crm-sidebar>nav{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 .company-workspace .crm-sidebar .sidebar-brand img{height:auto;max-width:100%}
+
+/* Brand type: Rubik matches the logo lettering. Body and form text stay on the UI font. */
+body :is(h1,h2,h3,.brand){font-family:"Rubik",var(--font-ui,system-ui),sans-serif;letter-spacing:-.005em}
