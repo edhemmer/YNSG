@@ -19,6 +19,6 @@ export function visitReportDraft(r:VisitReport):EmailDraft{
  if(r.photosAttached)parts.push('Before-and-after photos are attached to this email.');
  parts.push('Our promise: if anything isn’t right within 7 days, just reply to this email and we’ll come back and make it right.');
  if(next)parts.push('Suggested next visit:\n'+next);
- parts.push('Thank you,\nYour Neighborhood Service Guy, LLC\nWe’re Here to Help.');
+ parts.push('Thank you,\nYour Neighborhood Service Guy LLC\nWe’re Here to Help.');
  return {subject:'Your visit report'+(when?' for '+when:''),body:parts.join('\n\n'),cta:review?'Share a quick Google review':'Plan your next visit',url:review||emailRequestUrl};
 }
