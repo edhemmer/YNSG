@@ -17,7 +17,7 @@ test('Today offers direct navigation and does not imply that opening a paused jo
 });
 
 test('Today puts field visits ahead of invoice-only work without hiding invoice backlog',()=>{
- assert.match(s,/const next=activeWork\|\|\(!stops\.length&&!pending\.length\?shownWork\[0\]:null\)/);
+ assert.match(s,/const next=activeWork\|\|\(!todayStops\.length&&!pending\.length\?shownWork\[0\]:null\)/);
  assert.match(s,/const remainingWork=shownWork\.filter/);
  assert.match(s,/remainingWork\.map\(j=>/);
  assert.match(s,/remainingWork\.length>0/);
@@ -64,24 +64,24 @@ test('completed uninvoiced jobs do not hide future distinct visits',()=>{
 
 test('Today selects the chronological next arrival despite unordered route responses',()=>{
  assert.match(s,/const stops=\[\.\.\.\(data\?\.day\?\.calls\|\|\[\]\)\]\.sort\(\(a,b\)=>Date\.parse\(a\.arrivalAt\)-Date\.parse\(b\.arrivalAt\)\)/);
- assert.match(s,/nextStop=!next\?stops\[0\]:null/);
+ assert.match(s,/nextStop=!next\?todayStops\[0\]:null/);
 });
 
 test('Today makes a pending customer decision the main action when there is no job or visit',()=>{
  assert.match(s,/pending\.length\?<section className="field-current card is-clickable" aria-label="Next request decision"/);
  assert.match(s,/onOpen\(pending\[0\]!\.id\)/);
- assert.match(s,/No unfinished work, upcoming appointments, or requests requiring a decision in the loaded queue/);
+ assert.match(s,/Nothing on today’s list: no visits today, unfinished work, or requests needing a decision/);
 });
 
 test('an open customer decision outranks invoice-only work when no active visit is underway',()=>{
- assert.match(s,/const next=activeWork\|\|\(!stops\.length&&!pending\.length\?shownWork\[0\]:null\)/);
+ assert.match(s,/const next=activeWork\|\|\(!todayStops\.length&&!pending\.length\?shownWork\[0\]:null\)/);
  assert.match(s,/const remainingWork=shownWork\.filter/);
  assert.match(s,/pending\.length\?<section className="field-current card is-clickable" aria-label="Next request decision"/);
 });
 
-test('Today preserves the first upcoming visit in the secondary queue when active work owns primary card',()=>{
- assert.match(s,/stops\.filter\(c=>c\.id!==nextStop\?\.id\)\.map\(c=>/);
- assert.match(s,/stops\.some\(c=>c\.id!==nextStop\?\.id\)/);
+test('Today keeps the rest of today\'s visits in the secondary queue when active work owns the primary card',()=>{
+ assert.match(s,/todayStops\.filter\(c=>c\.id!==nextStop\?\.id\)\.map\(c=>/);
+ assert.match(s,/todayStops\.some\(c=>c\.id!==nextStop\?\.id\)/);
  assert.doesNotMatch(s,/stops\.slice\(nextStop\?1:0\)/);
 });
 
@@ -95,4 +95,17 @@ test('field search clearly distinguishes jobs, appointments and independent deci
  assert.match(s,/Invoice needed · Job/);
  assert.match(s,/Appointment · \{time\(c\.arrivalAt\)\}/);
  assert.match(s,/Decision needed/);
+});
+
+test('Today lists only today\'s visits; later days stay in Schedule',()=>{
+ assert.match(s,/const todayStops=stops\.filter\(c=>dayKey\(new Date\(c\.arrivalAt\)\)===dayKey\(new Date\(\)\)\)/);
+ assert.match(s,/const visitsToday=todayStops\.length/);
+ assert.doesNotMatch(s,/Other work & upcoming stops/);
+});
+
+test('Today has Today, Tomorrow and This week tabs that never mix days',()=>{
+ assert.match(s,/role="tablist" aria-label="Which days to show"/);
+ assert.match(s,/\['today','Today',visitsToday\],\['tomorrow','Tomorrow',tomorrowStops\.length\],\['week','This week',weekStops\.length\]/);
+ assert.match(s,/const tomorrowStops=stops\.filter\(c=>inRange\(c,tomorrowKey,tomorrowKey\)\)/);
+ assert.match(s,/\{range!=='today'\?<section id="range-panel"/);
 });

@@ -38,6 +38,29 @@ test('Today skips the empty decision panel and keeps search available',async()=>
   await act(async()=>{root.render(React.createElement(Queue,{organization,timezone:'America/Chicago',revision:3,onOpen:()=>{},onNavigate:()=>{}}));await tick();await tick();});
   assert.equal(node.querySelector('section[aria-label="Requests awaiting a decision"]'),null);
   assert.ok(node.querySelector('details.field-search-disclosure summary'));
-  assert.match(node.textContent,/No unfinished work/);
+  assert.match(node.textContent,/Nothing on today’s list/);
+ }finally{await act(async()=>root.unmount());}
+});
+
+test('Today shows only today\'s visits; Tomorrow has its own tab',async()=>{
+ const root=createRoot(node),now=Date.now(),hour=3600000;
+ const call=(id,name,at)=>({id,requestId:request,startAt:new Date(at).toISOString(),arrivalAt:new Date(at).toISOString(),endAt:new Date(at+hour).toISOString(),name,address:'1 Synthetic St',phone:'770-630-2094',tasks:['Home help']});
+ const todayAt=now+60000,tomorrowAt=now+26*hour;
+ const todayKey=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago'}).format(new Date(todayAt));
+ // Keep the fixture honest near midnight: the "today" visit must really fall on today's date.
+ if(new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago'}).format(new Date(now+hour))!==todayKey)return;
+ globalThis.fetch=async path=>Response.json(String(path).includes('owner-day')?
+  {checkedAt:new Date().toISOString(),timezone:'America/Chicago',calls:[call('00000000-0000-4000-8000-000000000001','Synthetic Today',todayAt),call('00000000-0000-4000-8000-000000000002','Synthetic Tomorrow',tomorrowAt)],hasMore:false}:
+  String(path).includes('owner-work')?
+  {checkedAt:new Date().toISOString(),page:0,hasMore:false,total:0,items:[]}:
+  {total:0,hasMore:false,requests:[]});
+ try{
+  await act(async()=>{root.render(React.createElement(Queue,{organization,timezone:'America/Chicago',revision:4,onOpen:()=>{},onNavigate:()=>{}}));await tick();await tick();});
+  assert.deepEqual([...node.querySelectorAll('[role=tab]')].map(t=>t.firstChild.textContent),['Today','Tomorrow','This week']);
+  assert.match(node.textContent,/Synthetic Today/);
+  assert.doesNotMatch(node.textContent,/Synthetic Tomorrow/,'Today must not show tomorrow\'s visit');
+  await act(async()=>{node.querySelector('#range-tomorrow').click();});
+  assert.match(node.querySelector('[role=tabpanel]').textContent,/Synthetic Tomorrow/);
+  assert.doesNotMatch(node.querySelector('[role=tabpanel]').textContent,/Synthetic Today/);
  }finally{await act(async()=>root.unmount());}
 });
