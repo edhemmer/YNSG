@@ -12,7 +12,7 @@ test('lawn fixed $50 and leaf hourly $100 produce $150 standard and $45 actual, 
 test('allocation is exact to the cent, in proportion, for totals below or above the standard',()=>{
  assert.deepEqual(allocateActualCents([1,1,1],2),[1,1,0]);
  assert.deepEqual(allocateActualCents([100,100],300),[150,150]);
- assert.equal(allocateActualCents([100,300],400).reduce((a,b)=>a+b,0),400);
+ assert.equal(allocateActualCents([100,300],400)!.reduce((a,b)=>a+b,0),400);
  assert.equal(allocateActualCents([0,0],0),null);
 });
 test('owner may charge above or below the suggested amount; a note is optional',()=>{
