@@ -85,11 +85,17 @@ export async function GET(request: Request) {
       const customers=customerIds.length?await db.from('customers').select('id,display_name').eq('organization_id',org).in('id',customerIds).order('display_name').order('id').range(from,to):{data:[],error:null};
       if(customers.error)throw Error('FAILED');results[2]!.data=customers.data;
     }
-    const ready=await db.rpc('production_workflows_ready',{p_org:org});
     const hasMore=!selectedRequest&&results.slice(1).some(r=>Array.isArray(r.data)&&r.data.length>50);
     for(const result of (selectedRequest?[]:results.slice(1)))if(Array.isArray(result.data))result.data=result.data.slice(0,50);
-    results[5]!.data=await completeInvoicePayments(db,org,results[5]!.data||[]);
-    const invoiceAdmin=await db.rpc("invoice_admin_summary",{p_org:org,p_invoices:(results[5]!.data||[]).map(i=>i.id)});if(invoiceAdmin.error)throw Error("FAILED");
+    // Independent reads run together; receipts are still verified in full.
+    const invoiceRows=results[5]!.data||[];
+    const [ready,completed,invoiceAdmin]=await Promise.all([
+      db.rpc('production_workflows_ready',{p_org:org}),
+      completeInvoicePayments(db,org,invoiceRows),
+      db.rpc("invoice_admin_summary",{p_org:org,p_invoices:invoiceRows.map(i=>i.id)}),
+    ]);
+    if(invoiceAdmin.error)throw Error("FAILED");
+    results[5]!.data=completed;
     return NextResponse.json(
       {
         pagination:{page,hasMore,appointmentFrom},

@@ -12,9 +12,7 @@ export async function GET(request:Request) {
       .eq("user_id", user.id)
       .is("revoked_at", null);
     if (error) throw error;
-    for(const m of data||[])
-      if(['owner','admin'].includes(m.role))
-        await recordOwnerSessionIp(db,request,m.organization_id);
+    await Promise.all((data||[]).filter(m=>['owner','admin'].includes(m.role)).map(m=>recordOwnerSessionIp(db,request,m.organization_id)));
     return NextResponse.json(
       { email: user.email, memberships: data },
       { headers: { "Cache-Control": "no-store" } },
