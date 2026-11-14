@@ -193,7 +193,6 @@ export default function InvoiceDraft({
     if(lines.some(line=>invoiceChargeCents(line.chargedAmount)===null)){setMessage('Enter valid amounts in dollars and cents.');return;}
     const privatePricing=validOwnerPricing;
     if(priceMode&&!privatePricing){setMessage('Finish the standard and actual price for each service. Nothing has been saved yet.');return;}
-    if(privatePricing&&pricingTotals(privatePricing).billedCents>approvedTotalCents){setMessage('The final amount exceeds the approved labor estimate. Review the customer agreement before charging more.');return;}
     if(crew&&lines.some(line=>(priceMode?(privatePricing?pricingTotals(privatePricing).billedCents:0):(invoiceChargeCents(line.chargedAmount)??0))>0&&line.recordedMinutes<=0)){setMessage('Record the actual time worked before saving a billed labor charge.');return;}
     try{
       const savedLines=privatePricing?(()=>{
@@ -260,7 +259,7 @@ export default function InvoiceDraft({
           ? "Invoice charges"
           : "Work completed"}
       </header>
-      {mobile?(!streamlined&&<p>Review the actual work, minutes and charge. Materials are paid directly to suppliers.</p>):<p>Record the work, including anything you choose not to charge for. These lines replace the labor total. Materials and mixed taxable/exempt work require a separately reviewed invoice; do not include them here. Charges cannot exceed approved labor.</p>}
+      {mobile?(!streamlined&&<p>Review the actual work, minutes and charge. Materials are paid directly to suppliers.</p>):<p>Record the work, including anything you choose not to charge for. These lines replace the labor total. Materials and mixed taxable/exempt work require a separately reviewed invoice; do not include them here. You can set any final amount; the agreed estimate stays on file as the suggested value.</p>}
       {entryDirty&&<p className="note" role="status">Unsaved entries · save this work before leaving.</p>}
       {entryConflict&&<div className="note" role="alert"><p>The job changed elsewhere. Saving and issuing are paused to protect both versions.</p><button type="button" className="secondary" onClick={()=>{if(window.confirm('Reloading discards these unsaved entries. Have you copied anything you need?')){dirtyRef.current=false;manualWorkTouched.current=false;setTaxRule(entryBaseline.taxRule);setTaxEvidence(entryBaseline.taxEvidence);setLoaded(false);setLoadRetry(n=>n+1);}}}>Reload saved work</button></div>}
       {(!fieldMode||fieldCanIssue)&&readiness?.ready===false&&<div className="note" role="status"><strong>Before this invoice can be issued</strong><ul>{readiness.reasons.map(reason=><li key={reason}>{reason}</li>)}</ul><p>Your work and draft can still be saved.</p>{!fieldMode&&<><a href={'/owner/taxes?'+new URLSearchParams({organization})}>Review separate invoice transaction-tax rules</a><br/><a href={'/owner?'+new URLSearchParams({organization,section:'Settings'})}>Open business settings</a></>}</div>}
@@ -287,7 +286,7 @@ export default function InvoiceDraft({
                 : "Loading saved work…"}
             </p>
           )}
-          {!streamlined&&crew&&<p className="note">Record each person's actual worked minutes. Only the first person has the two-hour minimum. Additional people have no separate minimum. Rates come from the saved agreement; final labor must stay within its approved amount. Do not multiply the visit timer by crew size.</p>}
+          {!streamlined&&crew&&<p className="note">Record each person's actual worked minutes. Only the first person has the two-hour minimum. Additional people have no separate minimum. Rates come from the saved agreement; as the owner you can override the final amount. Do not multiply the visit timer by crew size.</p>}
           {priceMode&&ownerPriceDraft&&<><OwnerServicePricing value={ownerPriceDraft} approvedTotalCents={approvedTotalCents} disabled={busy||blocked} onChange={next=>{manualWorkTouched.current=true;manualWorkTouchVersion.current++;setOwnerPriceDraft(next);setSavedDraft(false);setReviewed(false);}}/><details className="invoice-tracked-work"><summary>Recorded job time · {lines[0]?.recordedMinutes?workedTimeLabel(lines[0].recordedMinutes):'not entered'}</summary><label>Actual time on this job (hours:minutes)<input type="text" inputMode="text" placeholder="2:00" value={lines[0]?.timeInput??workedTimeLabel(lines[0]?.recordedMinutes??0)} onChange={e=>change(0,{timeInput:e.target.value,recordedMinutes:workedTimeMinutes(e.target.value)??-1})}/></label></details></>}
           {!priceMode&&lines.map((l, i) => (
             <fieldset key={i}>

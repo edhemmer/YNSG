@@ -63,11 +63,11 @@ export default function OwnerServicePricing({value,onChange,approvedTotalCents,d
   <div className="owner-price-summary">
    <p>Normal service value: <strong>{standardTotal===null?'Enter the standard charges':money(standardTotal)}</strong></p>
    <label>Final invoice total ($)<input inputMode="decimal" value={value.finalTotal} onChange={e=>update({finalTotal:e.target.value})}/></label>
-   <button type="button" className="secondary" disabled={disabled||standardTotal===null||invoiceChargeCents(value.finalTotal)===null||(invoiceChargeCents(value.finalTotal)??Infinity)>standardTotal} onClick={distribute}>Apply total across services</button>
+   <button type="button" className="secondary" disabled={disabled||standardTotal===null||invoiceChargeCents(value.finalTotal)===null} onClick={distribute}>Apply total across services</button>
    <p>Actual billed from service rows: <strong>{actualTotal===null?'Complete each service':money(actualTotal)}</strong></p>
    {priced&&<p>Owner-only discretionary reduction: <strong>{money(pricingTotals(priced).reductionCents)}</strong></p>}
    <label>Private pricing note<input maxLength={500} value={value.reason} onChange={e=>update({reason:e.target.value})}/></label>
-   {!priced&&<p role="status">Complete normal and actual charges for each service. Actual charges cannot exceed their standard charge, and a reduced total needs a private reason.</p>}
+   {!priced&&<p role="status">Complete normal and actual charges for each service. You can charge more or less than the normal value; a short private note is optional.</p>}
   </div>
  </section>;
 }
