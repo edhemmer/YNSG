@@ -33,7 +33,7 @@ export function pricingTotals(value:OwnerPricing){
 export function allocateActualCents(standardCents:number[],totalCents:number){
  if(!standardCents.length||standardCents.some(n=>!Number.isSafeInteger(n)||n<0)||!Number.isSafeInteger(totalCents)||totalCents<0)return null;
  const total=standardCents.reduce((a,b)=>a+b,0);
- if(totalCents>total||total===0)return null;
+ if(total===0)return null;
  const denominator=BigInt(total);
  const pieces=standardCents.map((n,i)=>({i,base:Number(BigInt(n)*BigInt(totalCents)/denominator),remainder:BigInt(n)*BigInt(totalCents)%denominator}));
  let leftover=totalCents-pieces.reduce((sum,p)=>sum+p.base,0);
