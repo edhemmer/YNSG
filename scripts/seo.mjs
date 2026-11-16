@@ -51,6 +51,11 @@ export function seo(slug,title,description,media=null){
  const graph=[organization,{'@type':'WebSite','@id':origin+'#website',url:origin,name:brand,publisher:{'@id':organization['@id']},inLanguage:'en-US'},{'@type':slug==='careers'?'CollectionPage':'WebPage','@id':pageId,url,name:titles[slug]||title,description,isPartOf:{'@id':origin+'#website'},about:{'@id':organization['@id']},inLanguage:'en-US',...(slug?{breadcrumb:{'@id':breadcrumbId}}:{})}];
  if(media){const imageId=url+'#service-image';graph.push({'@type':'ImageObject','@id':imageId,url:WEBSITE_ORIGIN+media.src,contentUrl:WEBSITE_ORIGIN+media.src,width:media.width,height:media.height,caption:media.alt});graph.find(node=>node['@id']===pageId).primaryImageOfPage={'@id':imageId};}
 
+ if(slug==='business-community-partners'){
+  const partnerId=url+'#partner-services';
+  graph.find(node=>node['@id']===pageId).mainEntity={'@id':partnerId};
+  graph.push({'@type':'Service','@id':partnerId,url,name:'Business and community property support',serviceType:'Small property support and referral partnerships',description:'Locally offered small builder punch lists, approved rental maintenance, farmstead assistance and referrals for practical home and yard services.',provider:{'@id':organization['@id']},areaServed,mainEntityOfPage:{'@id':pageId}});
+ }
  if(slug==='realtors-property-managers'){
   const partnerId=url+'#service';
   graph.find(node=>node['@id']===pageId).mainEntity={'@id':partnerId};
