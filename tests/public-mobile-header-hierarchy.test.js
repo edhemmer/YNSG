@@ -12,3 +12,12 @@ test('phone header prioritizes the intact original logo with one calm navigation
  assert.match(css,/\.mobile-rail\{display:none!important\}/);
  assert.match(css,/\.site-header \.brand\{grid-column:1;grid-row:1;justify-self:center/);
 });
+
+test('mobile primary navigation remains four balanced links while account sign in stays available',()=>{
+ assert.match(source,/const primaryLinks = nav\.map/);
+ assert.match(source,/<nav class="nav-mobile" aria-label="Main mobile navigation">\$\{primaryLinks\}<\/nav>/);
+ assert.match(source,/<nav class="nav-desktop" aria-label="Main">\$\{links\}<\/nav>/);
+ assert.match(source,/<a href="https:\/\/yourneighborhoodserviceguy\.app\/account">Customer sign in<\/a>/);
+ assert.match(source,/<a href="https:\/\/yourneighborhoodserviceguy\.app\/account">Customer sign in<\/a>/);
+ assert.match(source,/<a href="\/business-community-partners\/">For business &amp; community partners<\/a>/);
+});
