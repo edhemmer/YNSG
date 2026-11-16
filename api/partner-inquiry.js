@@ -18,5 +18,5 @@ export default async function handler(req,res){
   const body=['New business / community partner inquiry','Organization: '+company,'Type: '+type,'Contact: '+name,'Email: '+email,'Phone: '+phone,'Area: '+(location||'Not provided'),'','Request:',message,'','Inquiry ID: '+key].join('\n');
   await providerEmail({action:'send',organization:process.env.CRM_ORGANIZATION_ID,id:key,to:businessIdentity.email,replyTo:email,subject:'YNSG partner inquiry: '+company,body,html:'<pre style="white-space:pre-wrap;font-family:Arial,sans-serif">'+body.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))+'</pre>'});
   return res.status(200).json({ok:true,id:key});
- }catch(error){console.warn('Partner inquiry could not be confirmed',{code:'DELIVERY_UNAVAILABLE'});return fail(res,503);}
+ }catch{console.warn('Partner inquiry could not be confirmed',{code:'DELIVERY_UNAVAILABLE'});return fail(res,503);}
 }
