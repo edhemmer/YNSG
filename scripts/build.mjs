@@ -78,7 +78,7 @@ const pages = {
   privacy: ['Privacy Notice', 'How Your Neighborhood Service Guy handles information submitted through the website.', 'privacy'],
   terms: ['Website Terms', 'Terms for using the Your Neighborhood Service Guy website and request form.', 'terms'],
   accessibility: ['Accessibility', 'Accessible ways to use and contact Your Neighborhood Service Guy.', 'accessibility'],
-  'business-community-partners': ['Business & Community Partners | DeKalb to St. Charles', 'Local builder punch-list support, rental upkeep, farm assistance and community partnerships from DeKalb through Sycamore, Elburn and St. Charles.', 'business-community-partners'],
+  'business-community-partners': ['Builder Punch Lists & Property Support | DeKalb IL', 'Small builder punch-list jobs, rental turnover help, farmstead support and community referrals in DeKalb, Sycamore, Cortland, Elburn and St. Charles.', 'business-community-partners'],
   'realtors-property-managers': ['For Realtors & Property Managers | DeKalb, IL', 'Punch lists, cleanouts, turnovers and yard upkeep for listings and rentals in DeKalb, Sycamore and St. Charles. Approved caps and photos.', 'realtors-property-managers'],
   // Built only when the owner sets PUBLISH_HOME_CARE_PLAN=true (pricing awaiting owner decision).
   ...(process.env.PUBLISH_HOME_CARE_PLAN==='true'?{'home-care-plan':['Home Care Plan | Year-Round Home & Yard Help','Four seasonal home and yard visits a year, priority booking and 10% off extra hours in DeKalb, Sycamore and St. Charles, IL.','home-care-plan']}:{}),
