@@ -47,7 +47,7 @@ test('service-area description matches the intake without duplicate ZIP lists',a
  const html=await readFile(new URL('../site/pages/service-area.html',import.meta.url),'utf8');
  for(const city of serviceCities)assert.ok(html.includes(city));
  assert.ok(html.includes('No customer account is required'));
- assert.ok(html.includes('All genuine service requests can be submitted'));
+ assert.ok(html.includes('requests from smaller neighboring towns are welcome too'));
  assert.ok(!html.includes('Do you serve every address in these ZIP codes?'));
  for(const slug of ['','services'])assert.match(seo(slug,'Page','Description').title,/Home|Yard/);
 });
@@ -102,7 +102,7 @@ test('homepage primary service cards link directly to indexable local service pa
 test('service-area page accepts inquiries outside the primary towns',async()=>{
  const page=await readFile(new URL('../site/pages/service-area.html',import.meta.url),'utf8');
  assert.match(page,/Our primary focus is nine communities/);
- assert.match(page,/All genuine service requests can be submitted/);
+ assert.match(page,/requests from smaller neighboring towns are welcome too/);
  assert.match(page,/No customer account is required/);
 });
 
