@@ -14,5 +14,5 @@ test('snow page invites seasonal sign-up and the partner page links to estimates
  const snow=await readFile('site/pages/snow-removal-dekalb-il.html','utf8');
  assert.match(snow,/Get on our winter list before the first storm/);
  const partner=new JSDOM(await readFile('site/pages/realtors-property-managers.html','utf8')).window.document;
- assert.ok(partner.querySelector('a[href="/pricing/"]'));assert.match(partner.body.textContent,/two-hour minimum/);
+ assert.ok(partner.querySelector('a[href="/pricing/"]'));assert.match(partner.body.textContent,/visit minimum/);
 });
