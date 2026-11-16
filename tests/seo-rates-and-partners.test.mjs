@@ -27,3 +27,14 @@ test('business links its Google profile and the partner page describes a busines
 test('updated titles stay within the search display limit',()=>{
  for(const slug of ['pricing','realtors-property-managers','snow-removal-dekalb-il'])assert.ok(seo(slug,'x','y').title.length<=60,slug);
 });
+
+test('public pages speak to customers and partners rather than expose internal form comparisons',async()=>{
+ for(const path of ['site/pages/home.html','site/pages/business-community-partners.html','site/pages/service-area.html','site/pages/privacy.html']){
+  const content=await readFile(path,'utf8');
+  assert.doesNotMatch(content,/separate from our homeowner appointment|not the homeowner appointment calendar|all genuine service requests|no fixed distance customers need to calculate|when delivery is available, the form sends|not enroll you in marketing emails/i,path);
+ }
+ const home=await readFile('site/pages/home.html','utf8');
+ assert.match(home,/href="\/business-community-partners\/"/);
+ const partner=await readFile('site/pages/business-community-partners.html','utf8');
+ assert.match(partner,/id="partner-form"/);
+});
