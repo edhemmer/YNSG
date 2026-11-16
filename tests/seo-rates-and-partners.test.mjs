@@ -24,8 +24,21 @@ test('business links its Google profile and the partner page describes a busines
  assert.equal(partner.audience['@type'],'BusinessAudience');
  assert.equal(partner.provider['@id'],business['@id']);
 });
+test('partner SEO covers specific services, geography and business audience without publishing prices',async()=>{
+ const nodes=graph('business-community-partners');
+ const service=nodes.find(node=>node['@type']==='Service');
+ assert.equal(service.audience['@type'],'BusinessAudience');
+ assert.match(service.name,/Builder punch-list/i);
+ assert.match(service.description,/Sycamore/);
+ assert.equal(service.provider['@id'],nodes[0]['@id']);
+ const page=await readFile('site/pages/business-community-partners.html','utf8');
+ assert.match(page,/rental turnovers/i);
+ assert.match(page,/href="\/farm-hand-dekalb-il\/"/);
+ assert.match(page,/href="\/service-area\/"/);
+ assert.doesNotMatch(page,/\$\s?\d/);
+});
 test('updated titles stay within the search display limit',()=>{
- for(const slug of ['pricing','realtors-property-managers','snow-removal-dekalb-il'])assert.ok(seo(slug,'x','y').title.length<=60,slug);
+ for(const slug of ['pricing','business-community-partners','realtors-property-managers','snow-removal-dekalb-il'])assert.ok(seo(slug,'x','y').title.length<=60,slug);
 });
 
 test('public pages speak to customers and partners rather than expose internal form comparisons',async()=>{
