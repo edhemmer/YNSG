@@ -1,6 +1,6 @@
 const origin='https://www.yourneighborhoodserviceguy.com/';
 const brand='Your Neighborhood Service Guy';
-const titles={'':'Home & Yard Services in DeKalb',services:'Home & Yard Services',pricing:'Pricing & Community Rate',about:'Meet Ed',request:'Request a Service Appointment'};
+const titles={'':'Home & Yard Services in DeKalb',services:'Home & Yard Services',pricing:'Estimates & Community Rate',about:'Meet Ed',request:'Request a Service Appointment'};
 export function seo(slug,title,description){
  const url=origin+(slug?slug+'/':'');
  const organization={'@type':'Organization','@id':origin+'#business',name:brand,url:origin,logo:origin+'assets/logo.jpg',telephone:'+1-770-630-2094',slogan:'We’re Here to Help.',areaServed:['DeKalb, Illinois','Sycamore, Illinois','Cortland, Illinois']};
