@@ -25,7 +25,7 @@
 <div class="form-field"><label for="ss-work-zip">ZIP code *</label><input id="ss-work-zip" name="workPostalCode" inputmode="numeric" pattern="[0-9]{5}" maxlength="5"></div></div></div>
 <datalist id="ss-cities">{{SS_CITY_OPTIONS}}</datalist>
 <h3>The work</h3>
-<div class="form-field"><label for="ss-help">If you win, which service would you like done? *</label><p class="field-note" id="ss-help-note">Pick one. It’s the main job we’ll plan the {{SS_HOURS}} hours around.</p><select id="ss-help" name="helpWith" required aria-describedby="ss-help-note"><option value="">Choose one service</option>{{SS_HELP_OPTIONS}}</select></div>
+<div class="form-field"><label for="ss-help">If you were the lucky winner, what is your top service we can assist you with? *</label><p class="field-note" id="ss-help-note">Just pick one so we know what interests you. You won’t be held to it.</p><select id="ss-help" name="helpWith" required aria-describedby="ss-help-note"><option value="">Choose one</option>{{SS_HELP_OPTIONS}}</select></div>
 <div class="form-field"><label for="ss-story">Tell us a little about the job *</label><textarea id="ss-story" name="story" required minlength="10" maxlength="1500" rows="4" placeholder="What's on the list, and why would it help? A few sentences is plenty."></textarea></div>
 <div class="honeypot" aria-hidden="true"><label for="ss-site">Leave this blank</label><input id="ss-site" name="website" tabindex="-1" autocomplete="off"></div>
 <div class="form-field"><label class="check-row"><input type="checkbox" name="rulesAccepted" required><span>I'm 18 or older and agree to the <a href="/service-saturday-rules/">Official Rules</a>. *</span></label></div>

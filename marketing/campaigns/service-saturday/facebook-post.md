@@ -56,3 +56,14 @@ No purchase necessary. No cash value; non-transferable. IL residents 18+ in our 
 - ✅ The only way to enter is the website form, which also captures the name, address and email for the marketing list.
 - ✅ Keep the "not sponsored by Facebook/Meta" line on every post.
 - ✅ Announce the winner only with their permission (first name and town only).
+
+---
+
+## Images to post (ready-made)
+
+In `marketing/ads/service-saturday/`:
+- **Facebook / Nextdoor feed:** `ynsg-service-saturday-en-square-1080x1080.jpg` (or the taller `-portrait-1080x1350.jpg`, which takes more room in the feed)
+- **Instagram / Facebook Story:** `ynsg-service-saturday-en-story-1080x1920.jpg`
+- **Link preview:** automatic. When you paste the Service Saturday link, Facebook, Nextdoor and texts show `ynsg-service-saturday-en-share-1200x630.jpg`.
+
+To change the wording or dates, edit `COPY` in `marketing/tools/ad-generator/make-service-saturday.cjs` and re-run it.
