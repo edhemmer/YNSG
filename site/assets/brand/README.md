@@ -9,4 +9,4 @@ Digital contact details remain separate in lib/business-identity.js. Previously 
 The cleanout service uses the v3 trailer illustration, whose sign contains the logo, tagline and website without a phone number. The towing assembly and setting were digitally edited; do not describe it as an unedited job photograph.
 
 ## Brand font
-Headings, buttons and navigation use Rubik (SIL Open Font License, self-hosted in `assets/fonts`). It is the closest free match to the heavy, rounded-corner lettering in the logo. Body copy stays on the system font for speed and readability. Do not add a third typeface.
+The website uses Outfit everywhere: headings, body, buttons and navigation (SIL Open Font License, self-hosted in `assets/fonts`). The ads and social graphics use the same face. The CRM uses Outfit for headings and Inter for dense data and forms. Emails use Arial and Georgia because email apps can't load web fonts. Don't add another typeface.

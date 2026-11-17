@@ -17,6 +17,13 @@ export default async function handler(req, res, deps = {}) {
   const guard = deps.guard || websiteGuard, mail = deps.mail || providerEmail, optOut = deps.optOut || unsubscribeMarketing;
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return fail(res, 405, 'Method not allowed.'); }
+  // One-click unsubscribe (RFC 8058): mail apps POST "List-Unsubscribe=One-Click" to the link in the
+  // email header, with the personal code in the address and no browser origin.
+  const oneClickToken = typeof req.query?.t === 'string' && TOKEN.test(req.query.t) ? req.query.t : null;
+  if (oneClickToken && req.body && typeof req.body === 'object' && req.body['List-Unsubscribe'] === 'One-Click') {
+    try { await optOut(req, {email: null, token: oneClickToken}, env, transport); return res.status(200).json(DONE); }
+    catch { return fail(res, 503, 'Please use the unsubscribe link in the email.'); }
+  }
   const origin = req.headers.origin;
   if (origin) { try { if (new URL(origin).host !== req.headers.host) return fail(res, 403, 'Request not accepted.'); } catch { return fail(res, 403, 'Request not accepted.'); } }
   if (req.headers['sec-fetch-site'] === 'cross-site') return fail(res, 403, 'Request not accepted.');

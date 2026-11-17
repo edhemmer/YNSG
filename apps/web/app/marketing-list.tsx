@@ -1,6 +1,7 @@
 'use client';
 import {useCallback, useEffect, useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
+import MarketingAutomation from './marketing-automation';
 import {marketingSummary, campaignEntries, campaignDraw, BASIS_LABEL, type MarketingSummary, type CampaignEntries} from '../lib/marketing-list';
 
 const when = (iso: string) => new Date(iso).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});
@@ -58,6 +59,7 @@ export default function MarketingList({organization, owner}: {organization: stri
         : <p>Not adding leads and clients yet.{owner && <> <button disabled={busy} onClick={() => feed(true)}>Start adding them</button></>}</p>}
       {notice && <p role="status">{notice}</p>}
     </section>
+    <MarketingAutomation organization={organization} owner={owner}/>
     {summary.campaigns.length > 0 && <CampaignPanel key={summary.campaigns[0].campaign} organization={organization} campaigns={summary.campaigns.map(c => c.campaign)} onChange={load}/>}
   </>;
 }

@@ -360,3 +360,27 @@
 .marketing-entries li{border-top:1px solid var(--os-border,#d6dfd7);padding:10px 0}
 .marketing-entries p{margin:2px 0;overflow-wrap:anywhere}
 .marketing-list .button{display:inline-flex;align-items:center;min-height:44px}
+
+/* Email automation panel */
+.marketing-auto-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px}
+.marketing-auto-head h2{margin:0}
+.marketing-detail{display:block;color:var(--os-muted,#526575);font-size:.875rem;overflow-wrap:anywhere}
+.marketing-meters{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px 24px;margin:4px 0 12px}
+.marketing-meters p{margin:0}
+.marketing-meters .meter{display:block;height:8px;margin-top:6px;border-radius:99px;background:var(--os-border,#dce3e9);overflow:hidden}
+.marketing-meters .meter span{display:block;height:100%;background:var(--os-accent,#315842);border-radius:inherit}
+.marketing-journeys,.marketing-recent{list-style:none;padding:0;margin:8px 0 14px}
+.marketing-journeys li,.marketing-recent li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;border-top:1px solid var(--os-border,#dce3e9);padding:12px 0}
+.marketing-journeys li>div:first-child,.marketing-recent li>span:first-child{flex:1 1 220px;min-width:0}
+.marketing-journey-actions{display:flex;align-items:center;gap:12px}
+.marketing-journey-actions .switch{display:inline-flex;align-items:center;gap:6px;min-height:44px;font-weight:600}
+.marketing-journey-actions .switch input{width:20px;height:20px;min-height:0;accent-color:var(--os-accent,#315842)}
+.marketing-preview-controls{display:flex;flex-wrap:wrap;gap:10px 16px}
+.marketing-preview-controls label{display:grid;gap:4px;min-width:150px;flex:1 1 150px}
+.marketing-subject{margin:12px 0 8px;overflow-wrap:anywhere}
+.marketing-preview{display:block;width:100%;max-width:640px;height:760px;border:1px solid var(--os-border,#dce3e9);border-radius:12px;background:#f2efe4}
+.marketing-tag{font-size:.8125rem;font-weight:600;padding:3px 9px;border-radius:6px;border:1px solid var(--os-border,#dce3e9)}
+.marketing-tag.good{background:#eef5f0;color:#24452f;border-color:#b9d3c1}
+.marketing-tag.bad{background:#fbeeec;color:#8c311e;border-color:#e7c3bc}
+.marketing-auto details{margin:8px 0}
+.marketing-auto details label{display:inline-grid;gap:4px;margin:8px 16px 0 0;min-width:140px}

@@ -556,5 +556,7 @@
    "historyVersion": "20261005123109"
   }
  ],
- "pendingUnappliedMigrations": []
+ "pendingUnappliedMigrations": [
+  {"file":"20261117190000_marketing_automation.sql","name":"marketing_automation","status":"not_applied_to_connected_supabase"}
+ ]
 }
