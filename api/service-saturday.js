@@ -2,7 +2,7 @@ import {websiteGuard} from '../lib/website-guard.js';
 import {providerEmail} from '../lib/transactional-email.js';
 import {businessIdentity} from '../lib/business-identity.js';
 import {serviceSaturday} from '../site/data/service-saturday.js';
-import {acceptingEntries, validateEntry, entrySummary} from '../lib/service-saturday.js';
+import {acceptingEntries, validateEntry, entrySummary, confirmationEmail, confirmationId} from '../lib/service-saturday.js';
 import {marketingListEnabled, saveCampaignEntry, MarketingFailure} from '../lib/marketing-db.js';
 
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
@@ -29,9 +29,9 @@ export default async function handler(req, res, deps = {}) {
   try { await guard(req, 'request', {key, email: data.entrantEmail}); }
   catch (error) { if (error?.status === 429) { res.setHeader('Retry-After', '3600'); return fail(res, 429, 'Please wait a little while before trying again, or call 815-680-1775.'); } return fail(res, 503, 'We couldn’t send your entry right now. Please try again, or call 815-680-1775.'); }
 
-  let saved = false, duplicate = false;
+  let saved = false, duplicate = false, token = null;
   if (marketingListEnabled(env)) {
-    try { const result = await save(req, campaign, key, data, env, transport); saved = true; duplicate = result.duplicate; }
+    try { const result = await save(req, campaign, key, data, env, transport); saved = true; duplicate = result.duplicate; token = result.unsubscribeToken || null; }
     catch (error) {
       if (error instanceof MarketingFailure && error.status === 429) { res.setHeader('Retry-After', '3600'); return fail(res, 429, 'Please wait a little while before trying again, or call 815-680-1775.'); }
       if (error instanceof MarketingFailure && error.status === 400) return fail(res, 400, 'Please check the required fields and try again.');
@@ -46,5 +46,10 @@ export default async function handler(req, res, deps = {}) {
   } catch {
     if (!saved) { console.warn('Service Saturday entry could not be confirmed', {code: 'DELIVERY_UNAVAILABLE'}); return fail(res, 503, 'We couldn’t send your entry right now. Please try again, or call 815-680-1775.'); }
   }
+  // Confirmation to the entrant. It never blocks the entry; a retried entry reuses the same email id.
+  try {
+    const email = confirmationEmail(data, deps.config || serviceSaturday, token);
+    await mail({action: 'send', organization: env.CRM_ORGANIZATION_ID, id: confirmationId(key), to: data.entrantEmail, replyTo: businessIdentity.email, subject: email.subject, body: email.text, html: email.html}, env, transport);
+  } catch { console.warn('Service Saturday confirmation not sent', {code: 'CONFIRMATION_UNAVAILABLE'}); }
   return send(res, 200, {ok: true, duplicate: false});
 }

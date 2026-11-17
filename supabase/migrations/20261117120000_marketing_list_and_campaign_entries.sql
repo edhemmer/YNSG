@@ -137,7 +137,9 @@ begin
    select id into v_id from public.campaign_entries where organization_id=p_org and campaign=p_campaign and (entry_key=p_key or lower(entrant_email)=lower(trim(p_data->>'entrantEmail')));
    return jsonb_build_object('ok',true,'id',v_id,'duplicate',true);
  end;
- return jsonb_build_object('ok',true,'id',v_id,'duplicate',false);
+ -- The entrant's personal one-click unsubscribe code, for the confirmation email.
+ return jsonb_build_object('ok',true,'id',v_id,'duplicate',false,'unsubscribeToken',
+  (select unsubscribe_token from public.marketing_contacts where organization_id=p_org and email=lower(trim(p_data->>'entrantEmail'))));
 end $$;
 revoke all on function public.submit_campaign_entry(uuid,text,text,text,jsonb) from public,anon,authenticated;
 grant execute on function public.submit_campaign_entry(uuid,text,text,text,jsonb) to service_role;
@@ -197,3 +199,85 @@ revoke all on function private.marketing_sync_trigger() from public,anon,authent
 create trigger marketing_sync_contacts after insert or update of email,name,phone on public.contacts for each row execute function private.marketing_sync_trigger();
 create trigger marketing_sync_properties after insert or update of street,city,postal_code on public.properties for each row execute function private.marketing_sync_trigger();
 create trigger marketing_sync_invoices after insert on public.invoices for each row execute function private.marketing_sync_trigger();
+
+-- Owner tools for the CRM Marketing screen. Each checks current owner/admin access first.
+create table public.campaign_draws (
+ id uuid primary key default gen_random_uuid(),
+ organization_id uuid not null references public.organizations(id),
+ campaign text not null check(campaign ~ '^[a-z0-9][a-z0-9-]{2,59}$'),
+ round integer not null check(round>0),
+ entry_id uuid not null references public.campaign_entries(id),
+ drawn_by uuid not null references auth.users(id),
+ drawn_at timestamptz not null default now(),
+ eligible_count integer not null check(eligible_count>0),
+ unique(organization_id,campaign,round),
+ unique(organization_id,campaign,entry_id)
+);
+alter table public.campaign_draws enable row level security;
+revoke all on public.campaign_draws from public,anon,authenticated;
+
+create or replace function public.marketing_owner_summary(p_org uuid) returns jsonb
+language plpgsql stable security definer set search_path='' as $$
+begin
+ if not private.staff(p_org,array['owner','admin']) then raise exception 'FORBIDDEN' using errcode='42501'; end if;
+ return jsonb_build_object(
+  'organization',p_org,
+  'total',(select count(*) from public.marketing_contacts where organization_id=p_org),
+  'subscribed',(select count(*) from public.marketing_contacts where organization_id=p_org and subscribed),
+  'optedOut',(select count(*) from public.marketing_contacts where organization_id=p_org and not subscribed),
+  'byBasis',(select coalesce(jsonb_object_agg(basis,n),'{}') from (select basis,count(*) n from public.marketing_contacts where organization_id=p_org and subscribed group by basis) b),
+  'campaigns',(select coalesce(jsonb_agg(jsonb_build_object('campaign',campaign,'entries',n,'latest',latest) order by latest desc),'[]') from (select campaign,count(*) n,max(created_at) latest from public.campaign_entries where organization_id=p_org group by campaign) c),
+  'crmFeedStartsAt',(select crm_feed_starts_at from private.marketing_settings where organization_id=p_org));
+end $$;
+
+create or replace function public.marketing_owner_export(p_org uuid) returns jsonb
+language plpgsql stable security definer set search_path='' as $$
+begin
+ if not private.staff(p_org,array['owner','admin']) then raise exception 'FORBIDDEN' using errcode='42501'; end if;
+ return (select coalesce(jsonb_agg(jsonb_build_object('email',email,'name',full_name,'phone',phone,'street',street,'city',city,'postalCode',postal_code,'basis',basis,'source',first_source,'since',coalesce(consent_at,created_at),'token',unsubscribe_token) order by created_at),'[]')
+  from (select * from public.marketing_contacts where organization_id=p_org and subscribed order by created_at limit 20000) m);
+end $$;
+
+create or replace function public.campaign_owner_entries(p_org uuid,p_campaign text) returns jsonb
+language plpgsql stable security definer set search_path='' as $$
+begin
+ if not private.staff(p_org,array['owner','admin']) then raise exception 'FORBIDDEN' using errcode='42501'; end if;
+ if p_campaign is null or p_campaign !~ '^[a-z0-9][a-z0-9-]{2,59}$' then raise exception 'VALIDATION'; end if;
+ return jsonb_build_object('campaign',p_campaign,
+  'entries',(select coalesce(jsonb_agg(jsonb_build_object('id',id,'type',entry_type,'name',entrant_name,'email',entrant_email,'phone',entrant_phone,'nominee',nominee_name,'relationship',nominee_relationship,'workAddress',work_street||', '||work_city||' '||work_postal_code,'helpWith',help_with,'story',story,'createdAt',created_at) order by created_at desc),'[]') from (select * from public.campaign_entries where organization_id=p_org and campaign=p_campaign order by created_at desc limit 2000) e),
+  'draws',(select coalesce(jsonb_agg(jsonb_build_object('round',d.round,'entryId',d.entry_id,'name',e.entrant_name,'nominee',e.nominee_name,'drawnAt',d.drawn_at,'eligible',d.eligible_count) order by d.round),'[]') from public.campaign_draws d join public.campaign_entries e on e.id=d.entry_id where d.organization_id=p_org and d.campaign=p_campaign));
+end $$;
+
+-- Fair random drawing. Each draw is recorded; drawing again picks an alternate from entries not yet drawn.
+create or replace function public.campaign_owner_draw(p_org uuid,p_campaign text) returns jsonb
+language plpgsql security definer set search_path='' as $$
+declare v_entry uuid; v_round integer; v_eligible integer;
+begin
+ if not private.staff(p_org,array['owner','admin']) then raise exception 'FORBIDDEN' using errcode='42501'; end if;
+ if p_campaign is null or p_campaign !~ '^[a-z0-9][a-z0-9-]{2,59}$' then raise exception 'VALIDATION'; end if;
+ perform pg_advisory_xact_lock(hashtextextended('campaign-draw:'||p_org::text||':'||p_campaign,0));
+ select count(*) into v_eligible from public.campaign_entries e where e.organization_id=p_org and e.campaign=p_campaign
+  and not exists(select 1 from public.campaign_draws d where d.entry_id=e.id);
+ if v_eligible=0 then raise exception 'NO_ELIGIBLE_ENTRIES'; end if;
+ select e.id into v_entry from public.campaign_entries e where e.organization_id=p_org and e.campaign=p_campaign
+  and not exists(select 1 from public.campaign_draws d where d.entry_id=e.id) order by gen_random_uuid() limit 1;
+ select coalesce(max(round),0)+1 into v_round from public.campaign_draws where organization_id=p_org and campaign=p_campaign;
+ insert into public.campaign_draws(organization_id,campaign,round,entry_id,drawn_by,eligible_count) values(p_org,p_campaign,v_round,v_entry,auth.uid(),v_eligible);
+ return jsonb_build_object('campaign',p_campaign,'round',v_round,'entryId',v_entry,'eligible',v_eligible);
+end $$;
+
+-- Owner switch for the automatic CRM feed (leads and clients). On = starts now; off = stops adding.
+create or replace function public.marketing_owner_crm_feed(p_org uuid,p_enabled boolean) returns jsonb
+language plpgsql security definer set search_path='' as $$
+declare v_start timestamptz;
+begin
+ if not private.staff(p_org,array['owner']) then raise exception 'FORBIDDEN' using errcode='42501'; end if;
+ if p_enabled is null then raise exception 'VALIDATION'; end if;
+ insert into private.marketing_settings(organization_id,crm_feed_starts_at,updated_at) values(p_org,case when p_enabled then now() end,now())
+ on conflict(organization_id) do update set crm_feed_starts_at=case when p_enabled then coalesce(private.marketing_settings.crm_feed_starts_at,now()) end,updated_at=now()
+ returning crm_feed_starts_at into v_start;
+ return jsonb_build_object('organization',p_org,'crmFeedStartsAt',v_start);
+end $$;
+
+revoke all on function public.marketing_owner_summary(uuid),public.marketing_owner_export(uuid),public.campaign_owner_entries(uuid,text),public.campaign_owner_draw(uuid,text),public.marketing_owner_crm_feed(uuid,boolean) from public,anon;
+grant execute on function public.marketing_owner_summary(uuid),public.marketing_owner_export(uuid),public.campaign_owner_entries(uuid,text),public.campaign_owner_draw(uuid,text),public.marketing_owner_crm_feed(uuid,boolean) to authenticated,service_role;

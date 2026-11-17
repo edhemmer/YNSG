@@ -11,6 +11,7 @@ export declare const businessIdentity: Readonly<{
   social: Readonly<{ facebook: string; instagram: string }>;
   email: string;
   googleReviewUrl: string;
+  mailingAddress: string;
 }>;
 export declare const printIdentity: Readonly<{
   logo: string;

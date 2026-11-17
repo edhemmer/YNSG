@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {checkConfig, acceptingEntries, validateEntry, longDate} from '../lib/service-saturday.js';
+import {checkConfig, acceptingEntries, validateEntry, longDate, confirmationId} from '../lib/service-saturday.js';
 import {serviceSaturday} from '../site/data/service-saturday.js';
 import {MarketingFailure} from '../lib/marketing-db.js';
 import entryHandler from '../api/service-saturday.js';
@@ -13,8 +13,8 @@ const beforeDeadline = new Date('2026-12-06T23:30:00-06:00'), afterDeadline = ne
 const entry = (patch = {}) => ({entryType: 'self', entrantName: 'Pat Synthetic', entrantEmail: 'Pat@Example.invalid', entrantPhone: '', entrantStreet: '1 Test Lane', entrantCity: 'DeKalb', entrantPostalCode: '60115', helpWith: 'Leaf and yard cleanup', story: 'Synthetic story for a test entry.', rulesAccepted: true, marketingConsent: true, requestKey: KEY, ...patch});
 const req = (body, headers = {}) => ({method: 'POST', headers: {host: 'www.example.invalid', ...headers}, body, socket: {remoteAddress: '127.0.0.1'}});
 function res() { const r = {headers: {}, statusCode: 0, body: null}; r.setHeader = (k, v) => { r.headers[k] = v; }; r.status = code => { r.statusCode = code; return r; }; r.json = body => { r.body = body; return r; }; return r; }
-const env = enabled => ({CRM_ORGANIZATION_ID: '20000000-0000-4000-8000-000000000001', ...(enabled ? {MARKETING_LIST_ENABLED: 'true'} : {})});
-const deps = (extra = {}) => { const sent = [], saved = []; return {sent, saved, d: {config, now: beforeDeadline, env: env(false), guard: async () => {}, mail: async m => { sent.push(m); return {accepted: true}; }, save: async (...a) => { saved.push(a); return {id: 'x', duplicate: false}; }, ...extra}}; };
+const env = enabled => ({CRM_ORGANIZATION_ID: '20000000-0000-4000-8000-000000000001', ...(enabled ? {} : {MARKETING_LIST_ENABLED: 'false'})});
+const deps = (extra = {}) => { const sent = [], saved = []; return {sent, saved, d: {config, now: beforeDeadline, env: env(false), guard: async () => {}, mail: async m => { sent.push(m); return {accepted: true}; }, save: async (...a) => { saved.push(a); return {id: 'x', duplicate: false, unsubscribeToken: 'f'.repeat(64)}; }, ...extra}}; };
 
 test('the committed settings are valid and the service day is a Saturday', () => {
   checkConfig(serviceSaturday);
@@ -60,17 +60,17 @@ test('honeypot, cross-site posts and bad input never reach email or the database
   assert.equal(sent.length + saved.length, 0);
 });
 
-test('before the marketing list is switched on, every entry is emailed to the owner', async () => {
-  const {sent, saved, d} = deps(), r = res();
+test('while the marketing list is paused, every entry is emailed to the owner', async () => {
+  const {sent, saved, d} = deps({env: env(false)}), r = res();
   await entryHandler(req(entry()), r, d);
-  assert.equal(r.statusCode, 200); assert.equal(saved.length, 0); assert.equal(sent.length, 1);
+  assert.equal(r.statusCode, 200); assert.equal(saved.length, 0); assert.equal(sent.length, 2);
   assert.match(sent[0].body, /Not yet saved to the marketing list/);
   assert.match(sent[0].body, /pat@example\.invalid/);
   assert.equal(sent[0].replyTo, 'pat@example.invalid');
 });
 
 test('without a saved copy, a failed email is reported so the entrant can retry', async () => {
-  const {d} = deps({mail: async () => { throw Error('down'); }}), r = res();
+  const {d} = deps({env: env(false), mail: async () => { throw Error('down'); }}), r = res();
   await entryHandler(req(entry()), r, d);
   assert.equal(r.statusCode, 503);
 });
@@ -110,4 +110,21 @@ test('published pages promise opt-out, honor the earlier notice and disclose the
   assert.match(terms, /href="\/unsubscribe\/"/); assert.doesNotMatch(terms, /ask separately before sending any marketing/);
   assert.match(form, /href="\/unsubscribe\/"/);
   for (const phrase of [/No purchase or payment of any kind/, /random drawing/, /Labor only/, /Approximate retail value/, /not sponsored, endorsed or administered by[^.]*Meta/, /Legal residents of Illinois who are 18 or older/]) assert.match(rules, phrase);
+});
+
+test('entrants get a branded confirmation with one-click opt-out and the mailing address; it never blocks the entry', async () => {
+  let {sent, d} = deps({env: env(true)}), r = res();
+  await entryHandler(req(entry()), r, d);
+  assert.equal(r.statusCode, 200); assert.equal(sent.length, 2);
+  const confirm = sent[1];
+  assert.equal(confirm.to, 'pat@example.invalid');
+  assert.equal(confirm.id, confirmationId(KEY), 'retries reuse one email id, so no double confirmations');
+  assert.notEqual(confirm.id, sent[0].id);
+  assert.match(confirm.html, /unsubscribe\/\?t=f{64}/);
+  assert.match(confirm.body, /298 Quinlan Ave, DeKalb, IL 60115/);
+  assert.match(confirm.html, /298 Quinlan Ave, DeKalb, IL 60115/);
+  assert.match(confirm.body, /Saturday, December 12, 2026/);
+  ({d} = deps({env: env(true), mail: async m => { if (m.to !== 'info@yourneighborhoodserviceguy.com') throw Error('down'); }})); r = res();
+  await entryHandler(req(entry()), r, d); assert.equal(r.statusCode, 200, 'a failed confirmation still keeps the saved entry');
+  assert.match(confirmationId(KEY), /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-8[a-f0-9]{3}-[a-f0-9]{12}$/);
 });
