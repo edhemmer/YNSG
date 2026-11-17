@@ -111,10 +111,3 @@ test('mail apps can unsubscribe in one click with the personal code',async()=>{
  assert.equal(r.statusCode,200);assert.deepEqual(done,[{email:null,token}]);
 });
 
-test('test send only accepts a known email and never a recipient address',async()=>{
- const {automationTest}=await import('../apps/web/lib/marketing-automation.ts');
- const ok={organization:'20000000-0000-4000-8000-000000000001',action:'test',journey:'monthly',audience:'customer',month:12};
- assert.ok(automationTest.safeParse(ok).success);
- assert.ok(!automationTest.safeParse({...ok,to:'someone@example.invalid'}).success,'recipient cannot be chosen');
- assert.ok(!automationTest.safeParse({...ok,journey:'spam'}).success);
-});

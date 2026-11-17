@@ -1,10 +1,7 @@
 import {NextResponse} from 'next/server';
 import {authenticated, sameOrigin} from '../../../lib/session';
 import {boundedText} from '../../../lib/bounded-request';
-import {randomUUID} from 'node:crypto';
-import {automationQuery, automationCommand, automationSummary, automationTest, customerMarketingStatus} from '../../../lib/marketing-automation';
-import {sendBusinessEmail} from '../../../lib/transactional-mail';
-import {businessIdentity} from '../../../../../lib/business-identity.js';
+import {automationQuery, automationCommand, automationSummary, customerMarketingStatus} from '../../../lib/marketing-automation';
 import {marketingEmail} from '../../../lib/marketing-emails';
 export const dynamic = 'force-dynamic';
 const headers = {'Cache-Control': 'private, no-store'};
@@ -43,17 +40,6 @@ export async function POST(request: Request) {
   if (!sameOrigin(request)) return fail('FORBIDDEN');
   try {
     const raw = JSON.parse(await boundedText(request, 1000));
-    const test = automationTest.safeParse(raw);
-    if (test.success) {
-      const t = test.data, {db, user} = await authenticated();
-      // Same owner/admin check as the Marketing screen before anything is sent.
-      const access = await db.rpc('marketing_automation_owner', {p_org: t.organization});
-      if (access.error) return fail(code(access.error));
-      if (!user.email) return fail('VALIDATION');
-      const m = marketingEmail({journey: t.journey, audience: t.audience, month: t.month, name: (user.user_metadata?.full_name as string | undefined) || 'Ed', sendId: '00000000-0000-4000-8000-000000000000', token: '0'.repeat(64)});
-      await sendBusinessEmail(t.organization, randomUUID(), {to: user.email, subject: '[Test] ' + m.subject, body: m.body, html: m.html, replyTo: businessIdentity.email});
-      return NextResponse.json({sent: true, to: user.email}, {headers});
-    }
     const parsed = automationCommand.safeParse(raw);
     if (!parsed.success) return fail('VALIDATION');
     const c = parsed.data, {db} = await authenticated();
