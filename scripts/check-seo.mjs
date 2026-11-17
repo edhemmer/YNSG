@@ -12,6 +12,8 @@ async function collect(directory,slug=''){
   if(entry.isDirectory())await collect(join(directory,entry.name),[slug,entry.name].filter(Boolean).join('/'));
   else if(entry.name==='index.html'){
    const document=new JSDOM(await readFile(join(directory,entry.name),'utf8'),{url:canonicalUrl(slug)}).window.document;
+   // Switched-off feature pages (e.g. Service Saturday) are noindex placeholders, not part of the sitemap.
+   if(document.querySelector('meta[name="robots"][content*="noindex"]'))continue;
    pages.set(slug,document);
   }
  }
