@@ -546,5 +546,11 @@
       "historyVersion": "20261005123109"
     }
   ],
-  "pendingUnappliedMigrations": []
+  "pendingUnappliedMigrations": [
+    {
+      "file": "20261117120000_marketing_list_and_campaign_entries.sql",
+      "name": "marketing_list_and_campaign_entries",
+      "status": "not_applied_to_connected_supabase"
+    }
+  ]
 }
