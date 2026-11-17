@@ -39,7 +39,8 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return fail('FORBIDDEN');
   try {
-    const parsed = automationCommand.safeParse(JSON.parse(await boundedText(request, 1000)));
+    const raw = JSON.parse(await boundedText(request, 1000));
+    const parsed = automationCommand.safeParse(raw);
     if (!parsed.success) return fail('VALIDATION');
     const c = parsed.data, {db} = await authenticated();
     const r = await db.rpc('marketing_automation_update', {p_org: c.organization, p_enabled: c.enabled, p_journeys_off: c.journeysOff, p_monthly_cap: c.monthlyCap, p_daily_cap: c.dailyCap});

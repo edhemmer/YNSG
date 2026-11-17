@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {JOURNEYS} from './marketing-emails';
+import {JOURNEYS} from './marketing-emails.ts';
 
 // Owner controls for automated marketing email. Read model from marketing_automation_owner and the
 // bounded update command for marketing_automation_update (caps: 1,500 a month, 60 a day at most).

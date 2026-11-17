@@ -110,3 +110,4 @@ test('mail apps can unsubscribe in one click with the personal code',async()=>{
  const r=res();await unsubscribeHandler({method:'POST',query:{t:token},headers:{host:'www.yourneighborhoodserviceguy.com'},body:{'List-Unsubscribe':'One-Click'}},r,{optOut:async(_r:unknown,v:unknown)=>{done.push(v);},env:{}});
  assert.equal(r.statusCode,200);assert.deepEqual(done,[{email:null,token}]);
 });
+
