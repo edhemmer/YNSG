@@ -7,31 +7,29 @@ Post from the Your Neighborhood Service Guy page. Pair it with a real job photo 
 
 ## Main post (Facebook)
 
-🏡 **Service Saturday is here!**
+🏡 **ENTER TO WIN! 4 hours of service, worth up to $280.**
 
-Know a neighbor who could use a hand around the house or yard? This December, Your Neighborhood Service Guy is giving away **4 free hours of help** to one lucky home.
+Know a neighbor who could use a hand around the house or yard? Nominate them: a parent, a veteran down the street, a busy single mom. Or enter for your own home. It's free.
 
-Nominate someone you know, like a parent, a veteran down the street or a busy single mom, or enter for your own home. It's free.
-
-✅ Up to 4 hours of labor on Saturday, December 12
+✅ Up to 4 hours of help on Saturday, December 12
 ✅ Leaf & yard cleanup, furniture assembly, shelves, a garage tidy-up and more
-✅ Enter by December 6. Winner drawn December 8.
+⏰ The drawing is December 8. Enter by December 6, before it's too late!
 
-👉 Enter or nominate at **YourNeighborhoodServiceGuy.com/service-saturday**
+👉 Enter now at **YourNeighborhoodServiceGuy.com/service-saturday**
 
 Feel free to pass this along to someone who'd love the help. 💛
 
 We're Here to Help.
 
-*No purchase necessary. Labor only; materials and disposal not included. Illinois residents 18+, in our DeKalb–St. Charles service area. Official Rules at YourNeighborhoodServiceGuy.com/service-saturday-rules. This promotion is not sponsored, endorsed or administered by, or associated with, Facebook, Instagram or Meta.*
+*No purchase necessary. Labor only; materials and disposal not included. Illinois residents 18+, in our DeKalb–St. Charles service area. Approximate value $280. Official Rules at YourNeighborhoodServiceGuy.com/service-saturday-rules. This promotion is not sponsored, endorsed or administered by, or associated with, Facebook, Instagram or Meta.*
 
 ---
 
 ## Short version (Instagram caption)
 
-🏡 Service Saturday: win 4 free hours of home & yard help!
+🏡 ENTER TO WIN! 4 hours of service, worth up to $280!
 
-Nominate a neighbor (or yourself) by Dec 6. One winner, drawn Dec 8. Work happens Saturday, Dec 12.
+Nominate a neighbor (or yourself). Drawing Dec 8, so enter by Dec 6 before it's too late! Work happens Saturday, Dec 12.
 
 Enter at the link in our bio 👉 YourNeighborhoodServiceGuy.com/service-saturday
 
