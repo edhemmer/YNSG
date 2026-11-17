@@ -14,7 +14,7 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 export default function MarketingAutomation({organization, owner}: {organization: string; owner: boolean}) {
   const [data, setData] = useState<AutomationSummary | null>(null), [error, setError] = useState(''), [busy, setBusy] = useState(false), [notice, setNotice] = useState('');
   const [preview, setPreview] = useState<{journey: Journey; audience: 'customer' | 'prospect'; month: number}>({journey: 'monthly', audience: 'customer', month: new Date().getMonth() + 1});
-  const [html, setHtml] = useState(''), [subject, setSubject] = useState('');
+  const [html, setHtml] = useState(''), [subject, setSubject] = useState(''), [testNote, setTestNote] = useState('');
   const load = useCallback(async () => {
     setError('');
     try {
@@ -42,6 +42,16 @@ export default function MarketingAutomation({organization, owner}: {organization
       const d = await r.json(); if (!r.ok) throw Error(d.error);
       setData(automationSummary.parse(d)); setNotice(message);
     } catch (e) { setNotice(friendly(e, 'That change could not be confirmed. Reload before trying again.')); }
+    finally { setBusy(false); }
+  }
+
+  async function sendTest() {
+    setBusy(true); setTestNote('');
+    try {
+      const r = await sessionFetch('/api/marketing-automation', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({organization, action: 'test', ...preview})});
+      const d = await r.json(); if (!r.ok) throw Error(d.error);
+      setTestNote('Test sent to ' + d.to + '. Check your inbox in a minute.');
+    } catch (e) { setTestNote(friendly(e, 'The test email could not be sent. Try again.')); }
     finally { setBusy(false); }
   }
 
@@ -89,6 +99,8 @@ export default function MarketingAutomation({organization, owner}: {organization
       <label>Month <select value={preview.month} onChange={e => setPreview(p => ({...p, month: Number(e.target.value)}))}>{MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}</select></label>
     </div>
     {subject && <p className="marketing-subject">Subject: <strong>{subject}</strong></p>}
+    {owner && <p><button className="secondary" disabled={busy} onClick={sendTest}>Send me a test</button> <span className="marketing-detail">Sends this exact email to your own sign-in address only.</span></p>}
+    {testNote && <p role="status">{testNote}</p>}
     {html ? <iframe className="marketing-preview" title="Email preview" sandbox="" srcDoc={html}/> : <p aria-busy="true">Loading preview…</p>}
     {data.recent.length > 0 && <details><summary>Recent sends</summary><ul className="marketing-recent">{data.recent.map((r, i) => <li key={i}>
       <span>{r.name || r.email}</span><span className="marketing-detail">{JOURNEY_LABELS[r.journey].title} · {r.audience === 'customer' ? 'Customer' : 'Prospect'}{r.sentAt ? ' · ' + dateTime(r.sentAt) : ''}</span>

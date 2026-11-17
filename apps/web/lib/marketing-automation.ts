@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {JOURNEYS} from './marketing-emails';
+import {JOURNEYS} from './marketing-emails.ts';
 
 // Owner controls for automated marketing email. Read model from marketing_automation_owner and the
 // bounded update command for marketing_automation_update (caps: 1,500 a month, 60 a day at most).
@@ -22,6 +22,10 @@ export const automationQuery = z.object({
 export const automationCommand = z.object({
   organization: z.uuid(), enabled: z.boolean(), journeysOff: z.array(journey).max(6),
   monthlyCap: z.number().int().min(0).max(1500), dailyCap: z.number().int().min(0).max(60),
+}).strict();
+// Owner test send: the previewed email goes only to the signed-in owner's own address.
+export const automationTest = z.object({
+  organization: z.uuid(), action: z.literal('test'), journey, audience: z.enum(['customer', 'prospect']), month: z.number().int().min(1).max(12),
 }).strict();
 export const customerMarketingStatus = z.array(z.object({
   email: z.string().max(254), subscribed: z.boolean(), stage: z.enum(['subscriber', 'lead', 'quoted', 'declined', 'customer']),
