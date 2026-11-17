@@ -524,6 +524,11 @@
    "file": "20261117170000_outbox_recent_index.sql",
    "name": "outbox_recent_index",
    "historyVersion": "20261117170118"
+  },
+  {
+   "file": "20261117190000_marketing_automation.sql",
+   "name": "marketing_automation",
+   "historyVersion": "20261117183848"
   }
  ],
  "supabaseOnlyHistoricalMigrations": [
@@ -556,7 +561,5 @@
    "historyVersion": "20261005123109"
   }
  ],
- "pendingUnappliedMigrations": [
-  {"file":"20261117190000_marketing_automation.sql","name":"marketing_automation","status":"not_applied_to_connected_supabase"}
- ]
+ "pendingUnappliedMigrations": []
 }
