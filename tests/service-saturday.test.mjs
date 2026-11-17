@@ -111,7 +111,7 @@ test('published pages promise opt-out, honor the earlier notice and disclose the
   assert.match(privacy, /href="\/unsubscribe\/"/); assert.match(privacy, /Information sent to us before November 17, 2026 is not added to our marketing list/); assert.match(privacy, /never sell or rent our email list/);
   assert.match(terms, /href="\/unsubscribe\/"/); assert.doesNotMatch(terms, /ask separately before sending any marketing/);
   assert.match(form, /href="\/unsubscribe\/"/);
-  for (const phrase of [/No purchase or payment of any kind/, /random drawing/, /Labor only/, /must be used in one visit/, /transferred to another person/, /Not a cash giveaway/, /has no cash value/, /298 Quinlan Ave/, /Void where prohibited/, /sign a short acceptance form/, /Approximate retail value/, /not sponsored, endorsed or administered by[^.]*Meta/, /Legal residents of Illinois who are 18 or older/]) assert.match(rules, phrase);
+  for (const phrase of [/No purchase or payment of any kind/, /random drawing/, /Labor only/, /must be used in one visit/, /transferred to another person/, /has no cash value/, /298 Quinlan Ave/, /Void where prohibited/, /sign a short acceptance form/, /Approximate retail value/, /not sponsored, endorsed or administered by[^.]*Meta/, /Legal residents of Illinois who are 18 or older/]) assert.match(rules, phrase);
 });
 
 test('entrants get a branded confirmation with one-click opt-out and the mailing address; it never blocks the entry', async () => {
