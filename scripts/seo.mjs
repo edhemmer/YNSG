@@ -24,7 +24,7 @@ const titles={
  'leaf-cleanup-dekalb-il':'Leaf Management in DeKalb, IL',
  'snow-removal-dekalb-il':'Residential Snow Removal in DeKalb, IL',
  'realtors-property-managers':'Listing Prep & Rental Turnovers | DeKalb, IL',
- 'business-community-partners':'Builder Punch Lists & Property Help | DeKalb IL',
+ 'business-community-partners':'Builder Punch Lists, Rentals & Farm Help | DeKalb IL',
  'mulch-delivery-spreading-dekalb-il':'Mulch Pickup, Delivery & Spreading in DeKalb, IL',
  'mulch-yard-cleanup-dekalb-il':'Mulch & Yard Cleanup in DeKalb, IL',
  'concrete-pressure-washing-dekalb-il':'Concrete Pressure Washing in DeKalb, IL',

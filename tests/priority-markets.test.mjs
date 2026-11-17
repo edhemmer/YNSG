@@ -21,7 +21,8 @@ test('geography stays advisory; no three-town restriction is allowed in public i
  const checker=read('api/address-check.js');
  assert.doesNotMatch(checker,/\['dekalb','sycamore','cortland'\]/);
  const area=read('site/pages/service-area.html');
- assert.match(area,/All genuine service requests can be submitted/);
+ assert.match(area,/requests from smaller neighboring towns are welcome too/);
+ assert.match(area,/Not sure whether we can come to you\? Send us your project details/);
  assert.doesNotMatch(area,/Our primary service area is Sycamore, DeKalb and Cortland/);
  assert.match(read('site/pages/form.html'),/name="city"/);
 });

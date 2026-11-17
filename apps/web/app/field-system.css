@@ -345,3 +345,7 @@
 
 .company-workspace:not(.signed-out) .register-owed{padding:14px 20px;margin:0!important;font-size:1rem;border-bottom:1px solid var(--os-border)}.company-workspace:not(.signed-out) .register-owed strong{font-size:1.25rem}
 .company-workspace:not(.signed-out) .register-owed,.company-workspace:not(.signed-out) .register-count{max-width:none}
+
+/* Field shortcuts wrap onto new lines on small phones or large text instead of running off the screen. */
+.company-workspace:not(.signed-out) .field-desk-links{flex-wrap:wrap;column-gap:16px;row-gap:4px}
+.company-workspace:not(.signed-out) .field-desk-links button{margin-right:0;max-width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere;text-align:left}

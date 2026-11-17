@@ -13,7 +13,7 @@ export async function checkTargetMarkets(){
  const areaText=area.body.textContent;
  for(const city of priorityServiceCities)assert.ok(areaText.includes(city),'Missing public target town: '+city);
  assert.doesNotMatch(areaText,/Our primary service area is Sycamore, DeKalb and Cortland/);
- assert.match(areaText,/All genuine service requests can be submitted/);
+ assert.match(areaText,/requests from smaller neighboring towns are welcome too/);
  const options=[...request.querySelectorAll('datalist#nearby-cities option')].map(o=>o.value);
  assert.deepEqual(options,[...priorityServiceCities],'Rendered city hints drifted from shared policy');
  assert.equal(request.querySelector('input#city')?.getAttribute('required'),'','Customer city must be entered');
