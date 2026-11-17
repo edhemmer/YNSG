@@ -220,3 +220,14 @@ body .welcome-voice .welcome-play,body button.submit,body .site-header .button{f
 body .welcome-voice .welcome-play span:last-child{font-size:inherit;font-weight:inherit}
 /* Keep the legal name on one line in the footer on wider screens. */
 @media(min-width:700px){.footer-top p.footer-name{max-width:none}}
+/* About: real job photo beside Ed's story; keep the page title from leaving one word on its own line. */
+.about-side{display:grid;align-content:start;gap:24px}
+.about-photo{margin:0}
+.about-photo img{display:block;width:100%;max-width:320px;height:auto;aspect-ratio:4/5;object-fit:cover;border-radius:16px;box-shadow:0 18px 40px rgba(16,40,60,.16);outline:1px solid rgba(237,189,107,.5);outline-offset:6px}
+.about-photo figcaption{margin-top:14px;font-size:.95rem;font-weight:600;color:#315842}
+.page-hero h1{text-wrap:balance}
+@media(max-width:700px){.about-photo img{max-width:none;aspect-ratio:4/3}}
+.area-map{margin-block:28px 40px}.area-map figcaption{margin-top:12px;font-size:.95rem;color:#48616b}
+/* Service Saturday shows four job photos: one even row on desktop instead of a lone fourth card. */
+@media(min-width:901px){body .work-grid:has(>figure:nth-child(4):last-child){grid-template-columns:repeat(4,1fr)}}
+@media(min-width:701px) and (max-width:900px){body .work-grid:has(>figure:nth-child(4):last-child){grid-template-columns:repeat(2,1fr)}}
