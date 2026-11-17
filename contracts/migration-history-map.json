@@ -1,556 +1,555 @@
 {
-  "observedOn": "2026-11-12",
-  "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
-  "sourceBranch": "codex/google-one-click-reconnect-20261102",
-  "sourceCommit": "e389f72ab634f9421d23e67e497799e90361ec58",
-  "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
-  "repositoryMigrations": [
-    {
-      "file": "20261001011334_crm_foundation.sql",
-      "historyVersion": "20261001012200",
-      "name": "crm_foundation"
-    },
-    {
-      "file": "20261001012228_workflow_commercial.sql",
-      "historyVersion": "20261001012746",
-      "name": "workflow_commercial"
-    },
-    {
-      "file": "20261001012755_scheduling_and_outbox.sql",
-      "historyVersion": "20261001112610",
-      "name": "scheduling_and_outbox"
-    },
-    {
-      "file": "20261001112622_harden_rls.sql",
-      "historyVersion": "20261001112638",
-      "name": "harden_rls"
-    },
-    {
-      "file": "20261001122819_scheduler_upgrade_integrity.sql",
-      "historyVersion": "20261001124448",
-      "name": "scheduler_upgrade_integrity"
-    },
-    {
-      "file": "20261001125158_scheduling_hour_window.sql",
-      "historyVersion": "20261001125415",
-      "name": "scheduling_hour_window"
-    },
-    {
-      "file": "20261001125650_google_connections.sql",
-      "historyVersion": "20261001170847",
-      "name": "google_connections"
-    },
-    {
-      "file": "20261001171218_google_projection_query_fix.sql",
-      "historyVersion": "20261001171349",
-      "name": "google_projection_query_fix"
-    },
-    {
-      "file": "20261002062000_multi_service_intake.sql",
-      "historyVersion": "20261002175854",
-      "name": "multi_service_intake"
-    },
-    {
-      "file": "20261002121518_protected_owner_setup.sql",
-      "historyVersion": "20261002121823",
-      "name": "protected_owner_setup"
-    },
-    {
-      "file": "20261002174208_production_workflows.sql",
-      "historyVersion": "20261002212232",
-      "name": "production_workflows"
-    },
-    {
-      "file": "20261002213102_scheduling_reviews.sql",
-      "historyVersion": "20261002213831",
-      "name": "scheduling_reviews"
-    },
-    {
-      "file": "20261002215643_trusted_scheduling_reviews.sql",
-      "historyVersion": "20261002222016",
-      "name": "trusted_scheduling_reviews"
-    },
-    {
-      "file": "20261002222902_customer_request_actions.sql",
-      "historyVersion": "20261002225910",
-      "name": "customer_request_actions"
-    },
-    {
-      "file": "20261002224310_verified_mail_dispatch.sql",
-      "historyVersion": "20261002225924",
-      "name": "verified_mail_dispatch"
-    },
-    {
-      "file": "20261002230110_crm_foreign_key_indexes.sql",
-      "historyVersion": "20261002230416",
-      "name": "crm_foreign_key_indexes"
-    },
-    {
-      "file": "20261002232043_owner_private_blocks.sql",
-      "historyVersion": "20261002233252",
-      "name": "owner_private_blocks"
-    },
-    {
-      "file": "20261002232632_customer_account_invitations.sql",
-      "historyVersion": "20261002233300",
-      "name": "customer_account_invitations"
-    },
-    {
-      "file": "20261002233019_platform_subscription_administration.sql",
-      "historyVersion": "20261002233308",
-      "name": "platform_subscription_administration"
-    },
-    {
-      "file": "20261002233339_account_private_commands.sql",
-      "historyVersion": "20261002233428",
-      "name": "account_private_commands"
-    },
-    {
-      "file": "20261002233547_invoice_labor_waivers.sql",
-      "historyVersion": "20261002233859",
-      "name": "invoice_labor_waivers"
-    },
-    {
-      "file": "20261002234656_appointment_reminders_24_hours.sql",
-      "historyVersion": "20261002235029",
-      "name": "appointment_reminders_24_hours"
-    },
-    {
-      "file": "20261003082907_passwordless_staff_access.sql",
-      "historyVersion": "20261003083024",
-      "name": "passwordless_staff_access"
-    },
-    {
-      "file": "20261003083906_customer_appointment_history.sql",
-      "historyVersion": "20261003084151",
-      "name": "customer_appointment_history"
-    },
-    {
-      "file": "20261003084508_owner_relationship_notes.sql",
-      "historyVersion": "20261003085049",
-      "name": "owner_relationship_notes"
-    },
-    {
-      "file": "20261003103018_request_decisions_and_owner_reminders.sql",
-      "historyVersion": "20261003104057",
-      "name": "request_decisions_and_owner_reminders"
-    },
-    {
-      "file": "20261003124258_approved_task_packing_rules.sql",
-      "historyVersion": "20261003130355",
-      "name": "approved_task_packing_rules"
-    },
-    {
-      "file": "20261003141345_separate_job_completion_invoice_approval.sql",
-      "historyVersion": "20261003141955",
-      "name": "separate_job_completion_invoice_approval"
-    },
-    {
-      "file": "20261003173752_invoice_recipient_snapshot.sql",
-      "historyVersion": "20261003173909",
-      "name": "invoice_recipient_snapshot"
-    },
-    {
-      "file": "20261003174207_invoice_delivery_request.sql",
-      "historyVersion": "20261003174743",
-      "name": "invoice_delivery_request"
-    },
-    {
-      "file": "20261003185010_paid_invoice_followup.sql",
-      "historyVersion": "20261003185601",
-      "name": "paid_invoice_followup"
-    },
-    {
-      "file": "20261003190232_customer_repeat_requests.sql",
-      "historyVersion": "20261003190827",
-      "name": "customer_repeat_requests"
-    },
-    {
-      "file": "20261003233813_cash_activity_expenses.sql",
-      "historyVersion": "20261003234516",
-      "name": "cash_activity_expenses"
-    },
-    {
-      "file": "20261003235921_owner_signin_security.sql",
-      "historyVersion": "20261004000322",
-      "name": "owner_signin_security"
-    },
-    {
-      "file": "20261004000619_verified_owner_ip_history.sql",
-      "historyVersion": "20261004000854",
-      "name": "verified_owner_ip_history"
-    },
-    {
-      "file": "20261004005942_google_business_calendar_creation.sql",
-      "historyVersion": "20261004010320",
-      "name": "google_business_calendar_creation"
-    },
-    {
-      "file": "20261004010441_google_calendar_creation_deny_policy.sql",
-      "historyVersion": "20261004010449",
-      "name": "google_calendar_creation_deny_policy"
-    },
-    {
-      "file": "20261005205656_website_slot_holds.sql",
-      "historyVersion": "20261005205656",
-      "name": "website_slot_holds"
-    },
-    {
-      "file": "20261009141000_appointment_delay_notice.sql",
-      "historyVersion": "20261009133838",
-      "name": "appointment_delay_notice"
-    },
-    {
-      "file": "20261009142000_delay_revision_validation.sql",
-      "historyVersion": "20261009134150",
-      "name": "delay_revision_validation"
-    },
-    {
-      "file": "20261009172639_live_calendar_and_routes_health.sql",
-      "historyVersion": "20261009173554",
-      "name": "live_calendar_and_routes_health"
-    },
-    {
-      "file": "20261009182343_owner_confirmed_scheduling.sql",
-      "historyVersion": "20261009183432",
-      "name": "owner_confirmed_scheduling"
-    },
-    {
-      "file": "20261009185355_preserve_approved_mail_identity.sql",
-      "historyVersion": "20261009185552",
-      "name": "preserve_approved_mail_identity"
-    },
-    {
-      "file": "20261010010000_sample_mail_worker.sql",
-      "historyVersion": "20261010005656",
-      "name": "sample_mail_worker"
-    },
-    {
-      "file": "20261010011809_tax_workspace.sql",
-      "historyVersion": "20261010020123",
-      "name": "tax_workspace"
-    },
-    {
-      "file": "20261010033818_licensed_brand_controls.sql",
-      "historyVersion": "20261010034603",
-      "name": "licensed_brand_controls"
-    },
-    {
-      "file": "20261010141035_monthly_invoice_numbers.sql",
-      "historyVersion": "20261010141545",
-      "name": "monthly_invoice_numbers"
-    },
-    {
-      "file": "20261012105004_independent_crm_scheduling.sql",
-      "historyVersion": "20261012111155",
-      "name": "independent_crm_scheduling"
-    },
-    {
-      "file": "20261012121112_central_franchise_mail.sql",
-      "historyVersion": "20261012121949",
-      "name": "central_franchise_mail"
-    },
-    {
-      "file": "20261013102957_reduce_repetitive_owner_email.sql",
-      "historyVersion": "20261013103426",
-      "name": "reduce_repetitive_owner_email"
-    },
-    {
-      "file": "20261013105305_full_booking_window_snapshot.sql",
-      "historyVersion": "20261013105824",
-      "name": "full_booking_window_snapshot"
-    },
-    {
-      "file": "20261013161421_owner_visit_cancellation.sql",
-      "historyVersion": "20261013163552",
-      "name": "owner_visit_cancellation"
-    },
-    {
-      "file": "20261013213152_private_owner_api_hardening.sql",
-      "historyVersion": "20261013221127",
-      "name": "private_owner_api_hardening"
-    },
-    {
-      "file": "20261013213822_operations_health_probe.sql",
-      "historyVersion": "20261013221137",
-      "name": "operations_health_probe"
-    },
-    {
-      "file": "20261013215351_approved_work_window_guard.sql",
-      "historyVersion": "20261013221142",
-      "name": "approved_work_window_guard"
-    },
-    {
-      "file": "20261013221421_job_schedule_readiness.sql",
-      "historyVersion": "20261013221722",
-      "name": "job_schedule_readiness"
-    },
-    {
-      "file": "20261014000604_recurring_owner_series.sql",
-      "historyVersion": "20261014101842",
-      "name": "recurring_owner_series"
-    },
-    {
-      "file": "20261014111811_atomic_owner_visit_completion.sql",
-      "historyVersion": "20261014113006",
-      "name": "atomic_owner_visit_completion"
-    },
-    {
-      "file": "20261014162649_owner_mobile_notifications.sql",
-      "historyVersion": "20261014172450",
-      "name": "owner_mobile_notifications"
-    },
-    {
-      "file": "20261014214241_owner_customer_management.sql",
-      "historyVersion": "20261015115508",
-      "name": "owner_customer_management"
-    },
-    {
-      "file": "20261015120508_customer_record_author_index.sql",
-      "historyVersion": "20261015121246",
-      "name": "customer_record_author_index"
-    },
-    {
-      "file": "20261016180500_customer_delegation_revocation.sql",
-      "name": "customer_delegation_revocation",
-      "historyVersion": "20261016173740"
-    },
-    {
-      "file": "20261016201500_private_customer_supporting_files.sql",
-      "name": "private_customer_supporting_files",
-      "historyVersion": "20261016184532"
-    },
-    {
-      "file": "20261016212500_owner_mileage_lifecycle.sql",
-      "name": "owner_mileage_lifecycle",
-      "historyVersion": "20261016190147"
-    },
-    {
-      "file": "20261016222500_private_file_byte_verification.sql",
-      "name": "private_file_byte_verification",
-      "historyVersion": "20261016190751"
-    },
-    {
-      "file": "20261016233000_customer_export_audit.sql",
-      "name": "customer_export_audit",
-      "historyVersion": "20261016200839"
-    },
-    {
-      "file": "20261016235500_atomic_customer_import.sql",
-      "name": "atomic_customer_import",
-      "historyVersion": "20261016202341"
-    },
-    {
-      "file": "20261018183156_production_file_verification_receipt_corrections.sql",
-      "historyVersion": "20261018185446",
-      "name": "production_file_verification_receipt_corrections"
-    },
-    {
-      "file": "20261018190517_private_file_associations.sql",
-      "historyVersion": "20261018191836",
-      "name": "private_file_associations"
-    },
-    {
-      "file": "20261018215902_private_file_pagination.sql",
-      "historyVersion": "20261018220657",
-      "name": "private_file_pagination"
-    },
-    {
-      "file": "20261018220830_private_file_multi_target_pages.sql",
-      "historyVersion": "20261018221301",
-      "name": "private_file_multi_target_pages"
-    },
-    {
-      "file": "20261019000310_financial_reconciliation.sql",
-      "historyVersion": "20261019005351",
-      "name": "financial_reconciliation"
-    },
-    {
-      "file": "20261019015607_city_postal_code_intake.sql",
-      "historyVersion": "20261019020939",
-      "name": "city_postal_code_intake"
-    },
-    {
-      "file": "20261019112727_invoice_billing_read_permission.sql",
-      "name": "invoice_billing_read_permission",
-      "historyVersion": "20261019113348"
-    },
-    {
-      "file": "20261019115646_invoice_credits.sql",
-      "historyVersion": "20261019122223",
-      "name": "invoice_credits"
-    },
-    {
-      "file": "20261019123841_export_reauthentication.sql",
-      "historyVersion": "20261019124521",
-      "name": "export_reauthentication"
-    },
-    {
-      "file": "20261019130546_account_deletion_retention.sql",
-      "name": "account_deletion_retention",
-      "historyVersion": "20261019132909"
-    },
-    {
-      "file": "20261019215904_decline_message_selection.sql",
-      "name": "decline_message_selection",
-      "historyVersion": "20261019220412"
-    },
-    {
-      "file": "20261020124641_decline_unconfirmed_quote.sql",
-      "name": "decline_unconfirmed_quote",
-      "historyVersion": "20261020131947"
-    },
-    {
-      "file": "20261020124942_submitted_scheduling_review.sql",
-      "name": "submitted_scheduling_review",
-      "historyVersion": "20261020131958"
-    },
-    {
-      "file": "20261026131540_customer_self_service_profile.sql",
-      "historyVersion": "20261026142455",
-      "name": "customer_self_service_profile"
-    },
-    {
-      "file": "20261026170000_field_agent_tasks.sql",
-      "historyVersion": "20261026154110",
-      "name": "field_agent_tasks"
-    },
-    {
-      "file": "20261026180000_field_agent_resolution.sql",
-      "historyVersion": "20261026155050",
-      "name": "field_agent_resolution"
-    },
-    {
-      "file": "20261027190000_accept_all_customer_cities.sql",
-      "historyVersion": "20261027135639",
-      "name": "accept_all_customer_cities"
-    },
-    {
-      "file": "20261030090000_customer_service_history.sql",
-      "name": "customer_service_history",
-      "historyVersion": "20261030134345"
-    },
-    {
-      "file": "20261030180000_task_time_learning.sql",
-      "name": "task_time_learning",
-      "historyVersion": "20261030191815"
-    },
-    {
-      "file": "20261030210629_owner_network.sql",
-      "name": "owner_network",
-      "historyVersion": "20261031020533"
-    },
-    {
-      "file": "20261101160000_private_careers.sql",
-      "historyVersion": "20261102124426",
-      "name": "private_careers"
-    },
-    {
-      "file": "20261101170000_per_person_labor.sql",
-      "historyVersion": "20261102124439",
-      "name": "per_person_labor"
-    },
-    {
-      "file": "20261101190000_team_and_lead_assignments.sql",
-      "historyVersion": "20261102124451",
-      "name": "team_and_lead_assignments"
-    },
-    {
-      "file": "20261101200000_assigned_field_closeout.sql",
-      "historyVersion": "20261102124506",
-      "name": "assigned_field_closeout"
-    },
-    {
-      "file": "20261102130040_google_one_click_reconnect.sql",
-      "name": "google_one_click_reconnect",
-      "historyVersion": "20261102131651"
-    },
-    {
-      "file": "20261103001828_field_job_clock.sql",
-      "name": "field_job_clock",
-      "historyVersion": "20261103001828"
-    },
-    {
-      "file": "20261103234046_owner_operational_flexibility.sql",
-      "name": "owner_operational_flexibility",
-      "historyVersion": "20261104000658"
-    },
-    {
-      "file": "20261104013000_one_step_agreed_quote_job.sql",
-      "name": "one_step_agreed_quote_job",
-      "historyVersion": "20261104114532"
-    },
-    {
-      "file": "20261106120000_erase_unbilled_records.sql",
-      "name": "erase_unbilled_records",
-      "historyVersion": "20261106125853"
-    },
-    {
-      "file": "20261106150000_request_lead_source.sql",
-      "name": "request_lead_source",
-      "historyVersion": "20261112125724"
-    },
-    {
-      "file": "20261106170000_customer_home_profiles.sql",
-      "name": "customer_home_profiles",
-      "historyVersion": "20261112125742"
-    },
-    {
-      "file": "20261109154000_owner_invoice_pricing.sql",
-      "name": "owner_invoice_pricing",
-      "historyVersion": "20261109142557"
-    },
-    {
-      "file": "20261110140000_owner_free_amount.sql",
-      "name": "owner_free_amount",
-      "historyVersion": "20261110211334"
-    },
-    {
-      "file": "20261111130000_invoice_current_contact.sql",
-      "name": "invoice_current_contact",
-      "historyVersion": "20261111190535"
-    },
-    {
-      "file": "20261111150000_erase_with_delivery_history.sql",
-      "name": "erase_with_delivery_history",
-      "historyVersion": "20261111190543"
-    }
-  ],
-  "supabaseOnlyHistoricalMigrations": [
-    {
-      "name": "background_scheduler_extensions",
-      "historyVersion": "20261004213225"
-    },
-    {
-      "name": "customer_request_receipt_outbox",
-      "historyVersion": "20261005124247"
-    },
-    {
-      "name": "install_paused_background_workers",
-      "historyVersion": "20261004213254"
-    },
-    {
-      "name": "owner_background_health",
-      "historyVersion": "20261005201020"
-    },
-    {
-      "name": "owner_background_vault_preparation",
-      "historyVersion": "20261004222043"
-    },
-    {
-      "name": "restrict_background_network_credentials",
-      "historyVersion": "20261004222213"
-    },
-    {
-      "name": "silent_website_quotas",
-      "historyVersion": "20261005123109"
-    }
-  ],
-  "pendingUnappliedMigrations": [
-    {
-      "file": "20261117120000_marketing_list_and_campaign_entries.sql",
-      "name": "marketing_list_and_campaign_entries",
-      "status": "not_applied_to_connected_supabase"
-    }
-  ]
+ "observedOn": "2026-11-17",
+ "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
+ "sourceBranch": "codex/google-one-click-reconnect-20261102",
+ "sourceCommit": "e389f72ab634f9421d23e67e497799e90361ec58",
+ "verificationScope": "Migration names and history identifiers only. Does not establish equal SQL content, migration replay safety, row-level access acceptance, or full schema parity.",
+ "repositoryMigrations": [
+  {
+   "file": "20261001011334_crm_foundation.sql",
+   "historyVersion": "20261001012200",
+   "name": "crm_foundation"
+  },
+  {
+   "file": "20261001012228_workflow_commercial.sql",
+   "historyVersion": "20261001012746",
+   "name": "workflow_commercial"
+  },
+  {
+   "file": "20261001012755_scheduling_and_outbox.sql",
+   "historyVersion": "20261001112610",
+   "name": "scheduling_and_outbox"
+  },
+  {
+   "file": "20261001112622_harden_rls.sql",
+   "historyVersion": "20261001112638",
+   "name": "harden_rls"
+  },
+  {
+   "file": "20261001122819_scheduler_upgrade_integrity.sql",
+   "historyVersion": "20261001124448",
+   "name": "scheduler_upgrade_integrity"
+  },
+  {
+   "file": "20261001125158_scheduling_hour_window.sql",
+   "historyVersion": "20261001125415",
+   "name": "scheduling_hour_window"
+  },
+  {
+   "file": "20261001125650_google_connections.sql",
+   "historyVersion": "20261001170847",
+   "name": "google_connections"
+  },
+  {
+   "file": "20261001171218_google_projection_query_fix.sql",
+   "historyVersion": "20261001171349",
+   "name": "google_projection_query_fix"
+  },
+  {
+   "file": "20261002062000_multi_service_intake.sql",
+   "historyVersion": "20261002175854",
+   "name": "multi_service_intake"
+  },
+  {
+   "file": "20261002121518_protected_owner_setup.sql",
+   "historyVersion": "20261002121823",
+   "name": "protected_owner_setup"
+  },
+  {
+   "file": "20261002174208_production_workflows.sql",
+   "historyVersion": "20261002212232",
+   "name": "production_workflows"
+  },
+  {
+   "file": "20261002213102_scheduling_reviews.sql",
+   "historyVersion": "20261002213831",
+   "name": "scheduling_reviews"
+  },
+  {
+   "file": "20261002215643_trusted_scheduling_reviews.sql",
+   "historyVersion": "20261002222016",
+   "name": "trusted_scheduling_reviews"
+  },
+  {
+   "file": "20261002222902_customer_request_actions.sql",
+   "historyVersion": "20261002225910",
+   "name": "customer_request_actions"
+  },
+  {
+   "file": "20261002224310_verified_mail_dispatch.sql",
+   "historyVersion": "20261002225924",
+   "name": "verified_mail_dispatch"
+  },
+  {
+   "file": "20261002230110_crm_foreign_key_indexes.sql",
+   "historyVersion": "20261002230416",
+   "name": "crm_foreign_key_indexes"
+  },
+  {
+   "file": "20261002232043_owner_private_blocks.sql",
+   "historyVersion": "20261002233252",
+   "name": "owner_private_blocks"
+  },
+  {
+   "file": "20261002232632_customer_account_invitations.sql",
+   "historyVersion": "20261002233300",
+   "name": "customer_account_invitations"
+  },
+  {
+   "file": "20261002233019_platform_subscription_administration.sql",
+   "historyVersion": "20261002233308",
+   "name": "platform_subscription_administration"
+  },
+  {
+   "file": "20261002233339_account_private_commands.sql",
+   "historyVersion": "20261002233428",
+   "name": "account_private_commands"
+  },
+  {
+   "file": "20261002233547_invoice_labor_waivers.sql",
+   "historyVersion": "20261002233859",
+   "name": "invoice_labor_waivers"
+  },
+  {
+   "file": "20261002234656_appointment_reminders_24_hours.sql",
+   "historyVersion": "20261002235029",
+   "name": "appointment_reminders_24_hours"
+  },
+  {
+   "file": "20261003082907_passwordless_staff_access.sql",
+   "historyVersion": "20261003083024",
+   "name": "passwordless_staff_access"
+  },
+  {
+   "file": "20261003083906_customer_appointment_history.sql",
+   "historyVersion": "20261003084151",
+   "name": "customer_appointment_history"
+  },
+  {
+   "file": "20261003084508_owner_relationship_notes.sql",
+   "historyVersion": "20261003085049",
+   "name": "owner_relationship_notes"
+  },
+  {
+   "file": "20261003103018_request_decisions_and_owner_reminders.sql",
+   "historyVersion": "20261003104057",
+   "name": "request_decisions_and_owner_reminders"
+  },
+  {
+   "file": "20261003124258_approved_task_packing_rules.sql",
+   "historyVersion": "20261003130355",
+   "name": "approved_task_packing_rules"
+  },
+  {
+   "file": "20261003141345_separate_job_completion_invoice_approval.sql",
+   "historyVersion": "20261003141955",
+   "name": "separate_job_completion_invoice_approval"
+  },
+  {
+   "file": "20261003173752_invoice_recipient_snapshot.sql",
+   "historyVersion": "20261003173909",
+   "name": "invoice_recipient_snapshot"
+  },
+  {
+   "file": "20261003174207_invoice_delivery_request.sql",
+   "historyVersion": "20261003174743",
+   "name": "invoice_delivery_request"
+  },
+  {
+   "file": "20261003185010_paid_invoice_followup.sql",
+   "historyVersion": "20261003185601",
+   "name": "paid_invoice_followup"
+  },
+  {
+   "file": "20261003190232_customer_repeat_requests.sql",
+   "historyVersion": "20261003190827",
+   "name": "customer_repeat_requests"
+  },
+  {
+   "file": "20261003233813_cash_activity_expenses.sql",
+   "historyVersion": "20261003234516",
+   "name": "cash_activity_expenses"
+  },
+  {
+   "file": "20261003235921_owner_signin_security.sql",
+   "historyVersion": "20261004000322",
+   "name": "owner_signin_security"
+  },
+  {
+   "file": "20261004000619_verified_owner_ip_history.sql",
+   "historyVersion": "20261004000854",
+   "name": "verified_owner_ip_history"
+  },
+  {
+   "file": "20261004005942_google_business_calendar_creation.sql",
+   "historyVersion": "20261004010320",
+   "name": "google_business_calendar_creation"
+  },
+  {
+   "file": "20261004010441_google_calendar_creation_deny_policy.sql",
+   "historyVersion": "20261004010449",
+   "name": "google_calendar_creation_deny_policy"
+  },
+  {
+   "file": "20261005205656_website_slot_holds.sql",
+   "historyVersion": "20261005205656",
+   "name": "website_slot_holds"
+  },
+  {
+   "file": "20261009141000_appointment_delay_notice.sql",
+   "historyVersion": "20261009133838",
+   "name": "appointment_delay_notice"
+  },
+  {
+   "file": "20261009142000_delay_revision_validation.sql",
+   "historyVersion": "20261009134150",
+   "name": "delay_revision_validation"
+  },
+  {
+   "file": "20261009172639_live_calendar_and_routes_health.sql",
+   "historyVersion": "20261009173554",
+   "name": "live_calendar_and_routes_health"
+  },
+  {
+   "file": "20261009182343_owner_confirmed_scheduling.sql",
+   "historyVersion": "20261009183432",
+   "name": "owner_confirmed_scheduling"
+  },
+  {
+   "file": "20261009185355_preserve_approved_mail_identity.sql",
+   "historyVersion": "20261009185552",
+   "name": "preserve_approved_mail_identity"
+  },
+  {
+   "file": "20261010010000_sample_mail_worker.sql",
+   "historyVersion": "20261010005656",
+   "name": "sample_mail_worker"
+  },
+  {
+   "file": "20261010011809_tax_workspace.sql",
+   "historyVersion": "20261010020123",
+   "name": "tax_workspace"
+  },
+  {
+   "file": "20261010033818_licensed_brand_controls.sql",
+   "historyVersion": "20261010034603",
+   "name": "licensed_brand_controls"
+  },
+  {
+   "file": "20261010141035_monthly_invoice_numbers.sql",
+   "historyVersion": "20261010141545",
+   "name": "monthly_invoice_numbers"
+  },
+  {
+   "file": "20261012105004_independent_crm_scheduling.sql",
+   "historyVersion": "20261012111155",
+   "name": "independent_crm_scheduling"
+  },
+  {
+   "file": "20261012121112_central_franchise_mail.sql",
+   "historyVersion": "20261012121949",
+   "name": "central_franchise_mail"
+  },
+  {
+   "file": "20261013102957_reduce_repetitive_owner_email.sql",
+   "historyVersion": "20261013103426",
+   "name": "reduce_repetitive_owner_email"
+  },
+  {
+   "file": "20261013105305_full_booking_window_snapshot.sql",
+   "historyVersion": "20261013105824",
+   "name": "full_booking_window_snapshot"
+  },
+  {
+   "file": "20261013161421_owner_visit_cancellation.sql",
+   "historyVersion": "20261013163552",
+   "name": "owner_visit_cancellation"
+  },
+  {
+   "file": "20261013213152_private_owner_api_hardening.sql",
+   "historyVersion": "20261013221127",
+   "name": "private_owner_api_hardening"
+  },
+  {
+   "file": "20261013213822_operations_health_probe.sql",
+   "historyVersion": "20261013221137",
+   "name": "operations_health_probe"
+  },
+  {
+   "file": "20261013215351_approved_work_window_guard.sql",
+   "historyVersion": "20261013221142",
+   "name": "approved_work_window_guard"
+  },
+  {
+   "file": "20261013221421_job_schedule_readiness.sql",
+   "historyVersion": "20261013221722",
+   "name": "job_schedule_readiness"
+  },
+  {
+   "file": "20261014000604_recurring_owner_series.sql",
+   "historyVersion": "20261014101842",
+   "name": "recurring_owner_series"
+  },
+  {
+   "file": "20261014111811_atomic_owner_visit_completion.sql",
+   "historyVersion": "20261014113006",
+   "name": "atomic_owner_visit_completion"
+  },
+  {
+   "file": "20261014162649_owner_mobile_notifications.sql",
+   "historyVersion": "20261014172450",
+   "name": "owner_mobile_notifications"
+  },
+  {
+   "file": "20261014214241_owner_customer_management.sql",
+   "historyVersion": "20261015115508",
+   "name": "owner_customer_management"
+  },
+  {
+   "file": "20261015120508_customer_record_author_index.sql",
+   "historyVersion": "20261015121246",
+   "name": "customer_record_author_index"
+  },
+  {
+   "file": "20261016180500_customer_delegation_revocation.sql",
+   "name": "customer_delegation_revocation",
+   "historyVersion": "20261016173740"
+  },
+  {
+   "file": "20261016201500_private_customer_supporting_files.sql",
+   "name": "private_customer_supporting_files",
+   "historyVersion": "20261016184532"
+  },
+  {
+   "file": "20261016212500_owner_mileage_lifecycle.sql",
+   "name": "owner_mileage_lifecycle",
+   "historyVersion": "20261016190147"
+  },
+  {
+   "file": "20261016222500_private_file_byte_verification.sql",
+   "name": "private_file_byte_verification",
+   "historyVersion": "20261016190751"
+  },
+  {
+   "file": "20261016233000_customer_export_audit.sql",
+   "name": "customer_export_audit",
+   "historyVersion": "20261016200839"
+  },
+  {
+   "file": "20261016235500_atomic_customer_import.sql",
+   "name": "atomic_customer_import",
+   "historyVersion": "20261016202341"
+  },
+  {
+   "file": "20261018183156_production_file_verification_receipt_corrections.sql",
+   "historyVersion": "20261018185446",
+   "name": "production_file_verification_receipt_corrections"
+  },
+  {
+   "file": "20261018190517_private_file_associations.sql",
+   "historyVersion": "20261018191836",
+   "name": "private_file_associations"
+  },
+  {
+   "file": "20261018215902_private_file_pagination.sql",
+   "historyVersion": "20261018220657",
+   "name": "private_file_pagination"
+  },
+  {
+   "file": "20261018220830_private_file_multi_target_pages.sql",
+   "historyVersion": "20261018221301",
+   "name": "private_file_multi_target_pages"
+  },
+  {
+   "file": "20261019000310_financial_reconciliation.sql",
+   "historyVersion": "20261019005351",
+   "name": "financial_reconciliation"
+  },
+  {
+   "file": "20261019015607_city_postal_code_intake.sql",
+   "historyVersion": "20261019020939",
+   "name": "city_postal_code_intake"
+  },
+  {
+   "file": "20261019112727_invoice_billing_read_permission.sql",
+   "name": "invoice_billing_read_permission",
+   "historyVersion": "20261019113348"
+  },
+  {
+   "file": "20261019115646_invoice_credits.sql",
+   "historyVersion": "20261019122223",
+   "name": "invoice_credits"
+  },
+  {
+   "file": "20261019123841_export_reauthentication.sql",
+   "historyVersion": "20261019124521",
+   "name": "export_reauthentication"
+  },
+  {
+   "file": "20261019130546_account_deletion_retention.sql",
+   "name": "account_deletion_retention",
+   "historyVersion": "20261019132909"
+  },
+  {
+   "file": "20261019215904_decline_message_selection.sql",
+   "name": "decline_message_selection",
+   "historyVersion": "20261019220412"
+  },
+  {
+   "file": "20261020124641_decline_unconfirmed_quote.sql",
+   "name": "decline_unconfirmed_quote",
+   "historyVersion": "20261020131947"
+  },
+  {
+   "file": "20261020124942_submitted_scheduling_review.sql",
+   "name": "submitted_scheduling_review",
+   "historyVersion": "20261020131958"
+  },
+  {
+   "file": "20261026131540_customer_self_service_profile.sql",
+   "historyVersion": "20261026142455",
+   "name": "customer_self_service_profile"
+  },
+  {
+   "file": "20261026170000_field_agent_tasks.sql",
+   "historyVersion": "20261026154110",
+   "name": "field_agent_tasks"
+  },
+  {
+   "file": "20261026180000_field_agent_resolution.sql",
+   "historyVersion": "20261026155050",
+   "name": "field_agent_resolution"
+  },
+  {
+   "file": "20261027190000_accept_all_customer_cities.sql",
+   "historyVersion": "20261027135639",
+   "name": "accept_all_customer_cities"
+  },
+  {
+   "file": "20261030090000_customer_service_history.sql",
+   "name": "customer_service_history",
+   "historyVersion": "20261030134345"
+  },
+  {
+   "file": "20261030180000_task_time_learning.sql",
+   "name": "task_time_learning",
+   "historyVersion": "20261030191815"
+  },
+  {
+   "file": "20261030210629_owner_network.sql",
+   "name": "owner_network",
+   "historyVersion": "20261031020533"
+  },
+  {
+   "file": "20261101160000_private_careers.sql",
+   "historyVersion": "20261102124426",
+   "name": "private_careers"
+  },
+  {
+   "file": "20261101170000_per_person_labor.sql",
+   "historyVersion": "20261102124439",
+   "name": "per_person_labor"
+  },
+  {
+   "file": "20261101190000_team_and_lead_assignments.sql",
+   "historyVersion": "20261102124451",
+   "name": "team_and_lead_assignments"
+  },
+  {
+   "file": "20261101200000_assigned_field_closeout.sql",
+   "historyVersion": "20261102124506",
+   "name": "assigned_field_closeout"
+  },
+  {
+   "file": "20261102130040_google_one_click_reconnect.sql",
+   "name": "google_one_click_reconnect",
+   "historyVersion": "20261102131651"
+  },
+  {
+   "file": "20261103001828_field_job_clock.sql",
+   "name": "field_job_clock",
+   "historyVersion": "20261103001828"
+  },
+  {
+   "file": "20261103234046_owner_operational_flexibility.sql",
+   "name": "owner_operational_flexibility",
+   "historyVersion": "20261104000658"
+  },
+  {
+   "file": "20261104013000_one_step_agreed_quote_job.sql",
+   "name": "one_step_agreed_quote_job",
+   "historyVersion": "20261104114532"
+  },
+  {
+   "file": "20261106120000_erase_unbilled_records.sql",
+   "name": "erase_unbilled_records",
+   "historyVersion": "20261106125853"
+  },
+  {
+   "file": "20261106150000_request_lead_source.sql",
+   "name": "request_lead_source",
+   "historyVersion": "20261112125724"
+  },
+  {
+   "file": "20261106170000_customer_home_profiles.sql",
+   "name": "customer_home_profiles",
+   "historyVersion": "20261112125742"
+  },
+  {
+   "file": "20261109154000_owner_invoice_pricing.sql",
+   "name": "owner_invoice_pricing",
+   "historyVersion": "20261109142557"
+  },
+  {
+   "file": "20261110140000_owner_free_amount.sql",
+   "name": "owner_free_amount",
+   "historyVersion": "20261110211334"
+  },
+  {
+   "file": "20261111130000_invoice_current_contact.sql",
+   "name": "invoice_current_contact",
+   "historyVersion": "20261111190535"
+  },
+  {
+   "file": "20261111150000_erase_with_delivery_history.sql",
+   "name": "erase_with_delivery_history",
+   "historyVersion": "20261111190543"
+  },
+  {
+   "file": "20261117120000_marketing_list_and_campaign_entries.sql",
+   "name": "marketing_list_and_campaign_entries",
+   "historyVersion": "20261117132723"
+  }
+ ],
+ "supabaseOnlyHistoricalMigrations": [
+  {
+   "name": "background_scheduler_extensions",
+   "historyVersion": "20261004213225"
+  },
+  {
+   "name": "customer_request_receipt_outbox",
+   "historyVersion": "20261005124247"
+  },
+  {
+   "name": "install_paused_background_workers",
+   "historyVersion": "20261004213254"
+  },
+  {
+   "name": "owner_background_health",
+   "historyVersion": "20261005201020"
+  },
+  {
+   "name": "owner_background_vault_preparation",
+   "historyVersion": "20261004222043"
+  },
+  {
+   "name": "restrict_background_network_credentials",
+   "historyVersion": "20261004222213"
+  },
+  {
+   "name": "silent_website_quotas",
+   "historyVersion": "20261005123109"
+  }
+ ],
+ "pendingUnappliedMigrations": []
 }

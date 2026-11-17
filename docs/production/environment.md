@@ -42,7 +42,7 @@ Names only. Never commit values. This inventory is generated from a scan of the 
 | `CRM_INTAKE_ENABLED` | feature flag | `api/requests.js` |
 | `REQUEST_LEAD_SOURCE_ENABLED` | feature flag; set `true` only after migration `20261106150000_request_lead_source` is applied, otherwise the optional "How did you hear about us?" answer is validated and dropped | `api/requests.js` |
 | `PUBLISH_HOME_CARE_PLAN` | build-time feature flag; `true` publishes /home-care-plan/ and its footer link once the owner confirms plan pricing | `scripts/build.mjs` |
-| `MARKETING_LIST_ENABLED` | feature flag; set `true` only after migration `20261117120000_marketing_list_and_campaign_entries` is applied. Until then Service Saturday entries and unsubscribe requests are emailed to the owner instead of saved | `lib/marketing-db.js` |
+| `MARKETING_LIST_ENABLED` | optional pause switch; on by default (migration `20261117120000_marketing_list_and_campaign_entries` applied 2026-11-17). Set `false` to stop saving Service Saturday entries and unsubscribes; they are then emailed to the owner instead | `lib/marketing-db.js` |
 | `GOOGLE_CALENDAR_WORKER_ENABLED` | feature flag | `apps/web` |
 | `GOOGLE_GMAIL_DELIVERY_ENABLED` | feature flag | `apps/web` |
 | `OWNER_PUSH_ENABLED` | feature flag | `apps/web` |

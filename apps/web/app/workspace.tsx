@@ -42,6 +42,7 @@ const MileageActivity=dynamic(()=>import('./mileage-activity'),{loading:PanelLoa
 const CustomerServiceInsights=dynamic(()=>import('./customer-service-insights'),{loading:PanelLoading});
 const EmailTemplateLibrary=dynamic(()=>import('./request-reply-draft'),{loading:PanelLoading});
 const MarketingDrafts=dynamic(()=>import('./marketing-drafts'),{loading:PanelLoading});
+const MarketingList=dynamic(()=>import('./marketing-list'),{loading:PanelLoading});
 const OwnerLearningToolkit=dynamic(()=>import('./owner-learning-toolkit'),{loading:PanelLoading});
 const TeamDirectory=dynamic(()=>import('./team-directory'),{loading:PanelLoading});
 const FieldWork=dynamic(()=>import('./field-work'),{loading:PanelLoading});
@@ -515,7 +516,7 @@ function WorkspaceContent({ configured, initialEmail = "" }: WorkspaceProps) {
                     {section === "Calendar" && ['owner','admin'].includes(role||'') && <>
                       <div className="calendar-inbox-link"><div><strong>New requests start in your inbox.</strong><span>Review proposed times here; schedule requests without a time from Requests.</span></div><button className="secondary" onClick={()=>navigate('Requests')}><Icon name="inbox"/>Open requests</button></div><MonthCalendar key={org} organization={org} timezone={data.company.timezone} revision={reloadSequence.current} onOpen={['owner','admin'].includes(role||'')?openWork:setActiveRequest}/>
                     </>}
-                    {section === 'Marketing'&&['owner','admin'].includes(role||'')&&<><CustomerServiceInsights key={'insights:'+org} organization={org} timezone={data.company.timezone} onCustomer={openCustomer}/><EmailTemplateLibrary key={'email-library:'+org} organization={org} name="" email="" marketing/><MarketingDrafts key={org} organization={org}/></>}
+                    {section === 'Marketing'&&['owner','admin'].includes(role||'')&&<><MarketingList key={'marketing-list:'+org} organization={org} owner={role==='owner'}/><CustomerServiceInsights key={'insights:'+org} organization={org} timezone={data.company.timezone} onCustomer={openCustomer}/><EmailTemplateLibrary key={'email-library:'+org} organization={org} name="" email="" marketing/><MarketingDrafts key={org} organization={org}/></>}
                     {section === 'Team'&&['owner','admin'].includes(role||'')&&<TeamDirectory key={org} organization={org} onRequests={()=>navigate('Requests')}/>}
                     {section === "Careers" && role==='owner' && <OwnerCareers key={org} organization={org} timezone={data.company.timezone}/>}
                     {section === "Learning" && ['owner','admin'].includes(role||'') && <OwnerLearningToolkit organization={org} onNetwork={openSupport}/>}

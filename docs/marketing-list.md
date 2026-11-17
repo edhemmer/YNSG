@@ -13,7 +13,7 @@ Everything lives in one table, `marketing_contacts` (one row per email):
 
 The **ready-to-email list** is the view `marketing_mailing_list`. It only ever shows people who are currently subscribed.
 
-**To export for an email campaign:** Supabase → Table Editor → `marketing_mailing_list` → Export → CSV.
+**To export for an email campaign:** CRM → Marketing → **Download email list (CSV)**.
 
 Service Saturday entries (stories, nominee details) are in `campaign_entries`.
 
@@ -22,7 +22,7 @@ Service Saturday entries (stories, nominee details) are in `campaign_entries`.
 1. **Always export a fresh list right before each send.** The export only contains people who haven't opted out.
 2. **Every marketing email needs:**
    - an unsubscribe link, either `https://www.yourneighborhoodserviceguy.com/unsubscribe/` or the personal one-click link `https://www.yourneighborhoodserviceguy.com/unsubscribe/?t=` followed by that person's `unsubscribe_token` from the export
-   - **a physical mailing address** for the business (a street address, a USPS PO box, or a private mailbox; required by law)
+   - **the business mailing address: 298 Quinlan Ave, DeKalb, IL 60115** (required by law; stored as `businessIdentity.mailingAddress`)
    - an honest "From" name and subject line, and clear identification that the email is an ad or offer
 3. **Honor opt-outs right away** (the law allows up to 10 business days). If someone replies "unsubscribe" or asks by phone, enter their email on the Unsubscribe page yourself.
 4. Never sell or share the list, and never re-add someone who opted out. The database blocks this: only a brand-new, explicit sign-up re-subscribes an address.
@@ -30,7 +30,7 @@ Service Saturday entries (stories, nominee details) are in `campaign_entries`.
 
 **Suggested email footer**
 
-> Your Neighborhood Service Guy LLC · [mailing address] · DeKalb, IL
+> Your Neighborhood Service Guy LLC · 298 Quinlan Ave, DeKalb, IL 60115
 > You're receiving this because you requested service from us or signed up on our website.
 > [Unsubscribe](https://www.yourneighborhoodserviceguy.com/unsubscribe/)
 
@@ -42,19 +42,17 @@ Edit `site/data/service-saturday.js` (works from the GitHub app):
 - **On / next one:** set new dates, a new `campaign` name (for example `service-saturday-2027-03`), and `open: true`.
 - Entries close automatically at 11:59 PM Central on `entryDeadline`, even if you forget to switch it off. The home banner hides itself the next morning.
 
-## One-time setup (database)
+## Status and setup
 
-1. **Apply the database change:** in Supabase → SQL Editor, paste and run `supabase/migrations/20261117120000_marketing_list_and_campaign_entries.sql`. (Or ask Claude to apply it.)
-2. **Switch the website to save entries:** in Vercel → the website project → Settings → Environment Variables, add `MARKETING_LIST_ENABLED` = `true`, then redeploy. Until this is on, every entry and unsubscribe request is emailed to info@ instead, so nothing is lost.
-3. **Turn on the automatic CRM feed** (leads and clients) once the new Privacy Notice is live on the website:
+- **Database:** applied to production on November 17, 2026 (`marketing_list_and_campaign_entries`).
+- **Website saving:** on by default once this code is live. To pause it, set `MARKETING_LIST_ENABLED=false` on the website Vercel project; entries and opt-outs are then emailed to info@ instead.
+- **Automatic leads and clients:** switch this on from **CRM → Marketing → Email list → Start adding them** once the new Privacy Notice is live on the website. Only people who contact you after that moment are added.
 
-   ```sql
-   insert into private.marketing_settings(organization_id, crm_feed_starts_at)
-   select id, now() from public.organizations
-   on conflict (organization_id) do update set crm_feed_starts_at = excluded.crm_feed_starts_at;
-   ```
+## Using it day to day (CRM → Marketing)
 
-   Only customers created **after** this moment are added, because people who wrote in earlier were told they wouldn't be added without permission. (All current CRM records are test data anyway.)
+- **Email list:** see how many people you can email, by source, and how many opted out.
+- **Download email list (CSV):** import into your email tool (MailerLite, Mailchimp, Brevo and others accept this format). It contains only subscribed people, split into first and last name, with each person's one-click unsubscribe link. Download a fresh copy before every send.
+- **Giveaways:** every entry with the story and work address. **Draw winner** picks one entry at random and records it (date, who drew, how many were eligible). If the winner can't be reached or declines, **Draw an alternate**; earlier winners are never picked again.
 
 ## Before purging test data
 

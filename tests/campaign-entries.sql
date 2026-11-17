@@ -7,7 +7,7 @@ create function pg_temp.fails(p_sql text,p_code text) returns boolean language p
 create function pg_temp.check_fails(p_sql text) returns boolean language plpgsql as $$begin execute p_sql;return false;exception when check_violation then return true;end$$;
 do $t$ declare a jsonb; b jsonb; c jsonb; h text:=repeat('a',64); begin
  a:=pg_temp.entry('key-0000000000000001',h);
- perform pg_temp.assert_true(a->>'ok'='true' and a->>'duplicate'='false','valid self entry is saved');
+ perform pg_temp.assert_true(a->>'ok'='true' and a->>'duplicate'='false' and length(a->>'unsubscribeToken')=64,'valid self entry is saved and returns the personal unsubscribe code');
  perform pg_temp.assert_true((select entrant_email from public.campaign_entries where id=(a->>'id')::uuid)='pat@example.invalid','email stored lowercase');
  perform pg_temp.assert_true((select entrant_phone is null from public.campaign_entries where id=(a->>'id')::uuid),'blank phone stored as null');
  b:=pg_temp.entry('key-0000000000000001',h);
@@ -69,6 +69,33 @@ do $c$ declare org uuid:='20000000-0000-4000-8000-000000000001'; cust uuid:='310
  insert into public.contacts(organization_id,customer_id,name,email,relationship) values(org,cust,'Bad Email','not-an-email','other');
  perform pg_temp.assert_true(not exists(select 1 from public.marketing_contacts where email='not-an-email'),'invalid CRM emails are skipped without blocking the save');
 end $c$;
+-- Owner tools: run as the synthetic owner of company one, then as the other company's owner.
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001","session_id":"10000000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+set local role authenticated;
+do $o$ declare org uuid:='20000000-0000-4000-8000-000000000001'; s jsonb; x jsonb; d1 jsonb; d2 jsonb; n integer; begin
+ s:=public.marketing_owner_summary(org);
+ perform pg_temp.assert_true((s->>'subscribed')::int>=1 and (s->>'optedOut')::int>=1 and s->'byBasis' ? 'opt_in','owner sees list counts by source');
+ perform pg_temp.assert_true(jsonb_array_length(s->'campaigns')=1 and s->'campaigns'->0->>'campaign'='service-saturday-2026-12','owner sees campaign entry counts');
+ x:=public.marketing_owner_export(org);
+ perform pg_temp.assert_true(jsonb_array_length(x)=(s->>'subscribed')::int,'export contains exactly the subscribed contacts');
+ perform pg_temp.assert_true(not exists(select 1 from jsonb_array_elements(x) e where e->>'email' in ('pat@example.invalid','feed@example.invalid','n2@example.invalid')),'opted-out people are never exported');
+ perform pg_temp.assert_true(exists(select 1 from jsonb_array_elements(x) e where length(e->>'token')=64),'export carries personal unsubscribe codes');
+ d1:=public.campaign_owner_draw(org,'service-saturday-2026-12');
+ d2:=public.campaign_owner_draw(org,'service-saturday-2026-12');
+ perform pg_temp.assert_true((d1->>'round')::int=1 and (d2->>'round')::int=2 and d1->>'entryId'<>d2->>'entryId','alternate draw never repeats a winner');
+ perform pg_temp.assert_true((d1->>'eligible')::int>=2 and (d2->>'eligible')::int=(d1->>'eligible')::int-1,'draw records how many entries were eligible');
+ perform pg_temp.assert_true(pg_temp.fails($$select count(*) from public.campaign_entries$$,'permission denied for table campaign_entries'),'signed-in users cannot read entries directly, only through owner tools');
+ perform pg_temp.assert_true(jsonb_array_length(public.campaign_owner_entries(org,'service-saturday-2026-12')->'draws')=2,'draw history is kept');
+ perform pg_temp.assert_true(public.marketing_owner_crm_feed(org,false)->>'crmFeedStartsAt' is null,'owner can switch the CRM feed off');
+ perform pg_temp.assert_true(public.marketing_owner_crm_feed(org,true)->>'crmFeedStartsAt' is not null,'owner can switch the CRM feed on');
+ perform pg_temp.assert_true(pg_temp.fails($$select public.marketing_owner_summary('20000000-0000-4000-8000-000000000002')$$,'FORBIDDEN'),'another company''s list is off limits');
+end $o$;
+reset role;
+select set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002","session_id":"10000000-0000-4000-8000-000000000002","aal":"aal1"}',true);
+set local role authenticated;
+select pg_temp.assert_true(pg_temp.fails($$select public.marketing_owner_export('20000000-0000-4000-8000-000000000001')$$,'FORBIDDEN'),'other owners cannot export this list');
+select pg_temp.assert_true(pg_temp.fails($$select public.campaign_owner_draw('20000000-0000-4000-8000-000000000001','service-saturday-2026-12')$$,'FORBIDDEN'),'other owners cannot draw winners');
+reset role;
 select pg_temp.assert_true(not has_table_privilege('anon','public.marketing_contacts','select') and not has_table_privilege('authenticated','public.marketing_contacts','select') and not has_table_privilege('anon','public.marketing_mailing_list','select') and not has_table_privilege('authenticated','public.marketing_mailing_list','select'),'browser roles cannot read the marketing list');
 select pg_temp.assert_true(not has_function_privilege('anon','public.unsubscribe_marketing(uuid,text,text,text)','execute'),'only the server runs opt-outs');
 rollback;
