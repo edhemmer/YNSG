@@ -519,6 +519,11 @@
    "file": "20261117120000_marketing_list_and_campaign_entries.sql",
    "name": "marketing_list_and_campaign_entries",
    "historyVersion": "20261117132723"
+  },
+  {
+   "file": "20261117170000_outbox_recent_index.sql",
+   "name": "outbox_recent_index",
+   "historyVersion": "20261117170118"
   }
  ],
  "supabaseOnlyHistoricalMigrations": [
@@ -551,5 +556,7 @@
    "historyVersion": "20261005123109"
   }
  ],
- "pendingUnappliedMigrations": []
+ "pendingUnappliedMigrations": [
+  {"file":"20261117190000_marketing_automation.sql","name":"marketing_automation","status":"not_applied_to_connected_supabase"}
+ ]
 }
