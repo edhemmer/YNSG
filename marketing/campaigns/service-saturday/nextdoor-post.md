@@ -15,7 +15,7 @@ real local faces, not graphics.
 
 Hi neighbors! I'm Ed, owner of Your Neighborhood Service Guy here in DeKalb.
 
-This December I'm giving away **4 hours of home and yard help, worth up to $280**, to one local home. It's called Service Saturday.
+This December I'm giving away **4 hours of home and yard help, worth up to $280**, to one local home. It's called Service Saturday. To be clear, it's a free service visit, not a cash prize.
 
 Know someone who could use a hand? Maybe a parent who still rakes every leaf, a veteran down the street, or a family with a new baby and a garage full of boxes. Nominate them, or enter for your own home. It's free.
 
@@ -27,7 +27,7 @@ Enter here: YourNeighborhoodServiceGuy.com/service-saturday
 
 Thanks for supporting a local, owner-operated business. We're Here to Help.
 
-*No purchase necessary. Labor only; materials and disposal not included. Illinois residents 18+ in our DeKalb–St. Charles service area. Official Rules on our website.*
+*No purchase necessary. Prize is one service visit of up to 4 hours of labor: not cash, no cash value, non-transferable. Materials and disposal not included. Approximate value $280. Illinois residents 18+ in our DeKalb–St. Charles service area. Enter Nov 17–Dec 6, 2026; drawing Dec 8. Official Rules at YourNeighborhoodServiceGuy.com/service-saturday-rules. Not sponsored or administered by Nextdoor.*
 
 ---
 
@@ -37,13 +37,13 @@ Thanks for supporting a local, owner-operated business. We're Here to Help.
 
 Quick reminder, neighbors: Service Saturday entries close this **Sunday, December 6**, and the drawing is December 8.
 
-One local home wins up to 4 hours of free home and yard help on Saturday, December 12. Nominate someone who could use a hand, or enter for your own place. It takes about two minutes.
+One local home wins up to 4 hours of free home and yard help (a service visit, not cash) on Saturday, December 12. Nominate someone who could use a hand, or enter for your own place. It takes about two minutes.
 
 Enter now: YourNeighborhoodServiceGuy.com/service-saturday
 
 We're Here to Help.
 
-*No purchase necessary. Labor only. Official Rules on our website.*
+*No purchase necessary. Prize is one service visit of up to 4 hours of labor: not cash, no cash value, non-transferable. Materials and disposal not included. Approximate value $280. Illinois residents 18+ in our DeKalb–St. Charles service area. Enter Nov 17–Dec 6, 2026; drawing Dec 8. Official Rules at YourNeighborhoodServiceGuy.com/service-saturday-rules. Not sponsored or administered by Nextdoor.*
 
 ---
 

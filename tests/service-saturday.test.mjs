@@ -8,7 +8,7 @@ import entryHandler from '../api/service-saturday.js';
 import unsubscribeHandler from '../api/unsubscribe.js';
 
 const KEY = '11111111-2222-4333-8444-555555555555';
-const config = {...serviceSaturday, open: true, entryDeadline: '2026-12-06', drawingDate: '2026-12-08', serviceDate: '2026-12-12'};
+const config = {...serviceSaturday, open: true, startDate: '2026-11-17', entryDeadline: '2026-12-06', drawingDate: '2026-12-08', serviceDate: '2026-12-12'};
 const beforeDeadline = new Date('2026-12-06T23:30:00-06:00'), afterDeadline = new Date('2026-12-07T00:05:00-06:00');
 const entry = (patch = {}) => ({entryType: 'self', entrantName: 'Pat Synthetic', entrantEmail: 'Pat@Example.invalid', entrantPhone: '', entrantStreet: '1 Test Lane', entrantCity: 'DeKalb', entrantPostalCode: '60115', helpWith: 'Leaf and yard cleanup', story: 'Synthetic story for a test entry.', rulesAccepted: true, marketingConsent: true, requestKey: KEY, ...patch});
 const req = (body, headers = {}) => ({method: 'POST', headers: {host: 'www.example.invalid', ...headers}, body, socket: {remoteAddress: '127.0.0.1'}});
@@ -22,12 +22,14 @@ test('the committed settings are valid and the service day is a Saturday', () =>
   assert.throws(() => checkConfig({...config, serviceDate: '2026-12-11'}), /Saturday/);
   assert.throws(() => checkConfig({...config, approximateValue: 600}), /under 600/);
   assert.throws(() => checkConfig({...config, drawingDate: '2026-12-05'}), /deadline, then drawing/);
+  assert.throws(() => checkConfig({...config, startDate: '2026-12-07'}), /start, deadline/);
 });
 
 test('entries close at midnight Central after the deadline, or whenever switched off', () => {
   assert.equal(acceptingEntries(config, beforeDeadline), true);
   assert.equal(acceptingEntries(config, afterDeadline), false);
   assert.equal(acceptingEntries({...config, open: false}, beforeDeadline), false);
+  assert.equal(acceptingEntries(config, new Date('2026-11-16T12:00:00-06:00')), false, 'not before the published start date');
 });
 
 test('validation requires address, consent to rules and emails, and a nominee when nominating', () => {
@@ -109,7 +111,7 @@ test('published pages promise opt-out, honor the earlier notice and disclose the
   assert.match(privacy, /href="\/unsubscribe\/"/); assert.match(privacy, /Information sent to us before November 17, 2026 is not added to our marketing list/); assert.match(privacy, /never sell or rent our email list/);
   assert.match(terms, /href="\/unsubscribe\/"/); assert.doesNotMatch(terms, /ask separately before sending any marketing/);
   assert.match(form, /href="\/unsubscribe\/"/);
-  for (const phrase of [/No purchase or payment of any kind/, /random drawing/, /Labor only/, /Approximate retail value/, /not sponsored, endorsed or administered by[^.]*Meta/, /Legal residents of Illinois who are 18 or older/]) assert.match(rules, phrase);
+  for (const phrase of [/No purchase or payment of any kind/, /random drawing/, /Labor only/, /must be used in one visit/, /transferred to another person/, /Not a cash giveaway/, /has no cash value/, /298 Quinlan Ave/, /Void where prohibited/, /sign a short acceptance form/, /Approximate retail value/, /not sponsored, endorsed or administered by[^.]*Meta/, /Legal residents of Illinois who are 18 or older/]) assert.match(rules, phrase);
 });
 
 test('entrants get a branded confirmation with one-click opt-out and the mailing address; it never blocks the entry', async () => {
