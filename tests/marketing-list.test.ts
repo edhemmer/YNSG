@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {marketingCsv, csvCell, splitName, marketingExport, marketingCommand, marketingQuery} from '../apps/web/lib/marketing-list.ts';
+import {marketingCsv, csvCell, splitName, marketingExport, marketingCommand, marketingQuery, marketingSummary} from '../apps/web/lib/marketing-list.ts';
 
 const contact = (patch = {}) => ({email: 'pat@example.invalid', name: 'Pat Q Synthetic', phone: '815-555-0100', street: '1 Test Lane', city: 'DeKalb', postalCode: '60115', basis: 'opt_in' as const, source: 'service-saturday-2026-12', since: '2026-11-20T15:00:00Z', token: 'a'.repeat(64), ...patch});
 
@@ -37,4 +37,11 @@ test('the Marketing screen shows the list only to owners and admins, and only ow
   assert.match(workspace, /section === 'Marketing'&&\['owner','admin'\]\.includes\(role\|\|''\)&&<><MarketingList key=\{'marketing-list:'\+org\} organization=\{org\} owner=\{role==='owner'\}\/>/);
   assert.match(route, /if \(!sameOrigin\(request\)\) return fail\('FORBIDDEN'\);/);
   assert.match(route, /'Cache-Control': 'private, no-store'/);
+});
+
+test('summary accepts a list where some sources are still empty (a brand-new list)', () => {
+  const base = {organization: '20000000-0000-4000-8000-000000000001', total: 0, subscribed: 0, optedOut: 0, campaigns: [], crmFeedStartsAt: null};
+  assert.equal(marketingSummary.safeParse({...base, byBasis: {}}).success, true);
+  assert.equal(marketingSummary.safeParse({...base, byBasis: {opt_in: 3}}).success, true);
+  assert.equal(marketingSummary.safeParse({...base, byBasis: {nonsense: 3}}).success, false);
 });

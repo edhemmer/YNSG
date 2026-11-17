@@ -4,7 +4,15 @@ import {sessionFetch} from '../lib/session-fetch';
 import {marketingSummary, campaignEntries, campaignDraw, BASIS_LABEL, type MarketingSummary, type CampaignEntries} from '../lib/marketing-list';
 
 const when = (iso: string) => new Date(iso).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});
-const label = (campaign: string) => campaign.replace(/-/g, ' ').replace(/\b(\w)/g, c => c.toUpperCase()).replace(/(\d{4}) (\d{2})$/, '$1-$2');
+// Show the server's plain-language message; anything technical becomes a simple retry message.
+const friendly = (e: unknown, fallback: string) => e instanceof Error && e.message && !/^[\[{]/.test(e.message.trim()) && e.message.length < 200 ? e.message : fallback;
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+/** service-saturday-2026-12 → "Service Saturday · December 2026" */
+const label = (campaign: string) => {
+  const m = /^(.*)-(\d{4})-(\d{2})$/.exec(campaign), words = (m ? m[1] : campaign).replace(/-/g, ' ').replace(/\b(\w)/g, c => c.toUpperCase());
+  const month = m ? MONTHS[Number(m[3]) - 1] : undefined;
+  return m && month ? words + ' · ' + month + ' ' + m[2] : words;
+};
 
 // Owner marketing list: who is on it, a CSV for email tools, the CRM feed switch and giveaway drawings.
 export default function MarketingList({organization, owner}: {organization: string; owner: boolean}) {
@@ -15,7 +23,7 @@ export default function MarketingList({organization, owner}: {organization: stri
       const r = await sessionFetch('/api/marketing-list?' + new URLSearchParams({organization, view: 'summary'}), {cache: 'no-store'});
       const d = await r.json(); if (!r.ok) throw Error(d.error);
       setSummary(marketingSummary.parse(d));
-    } catch (e) { setError(e instanceof Error && e.message ? e.message : 'The marketing list could not be loaded.'); }
+    } catch (e) { setError(friendly(e, 'The marketing list could not be loaded.')); }
   }, [organization]);
   useEffect(() => { setSummary(null); load(); }, [load]);
 
@@ -27,7 +35,7 @@ export default function MarketingList({organization, owner}: {organization: stri
       const d = await r.json(); if (!r.ok) throw Error(d.error);
       setNotice(enabled ? 'New leads and clients will now be added automatically.' : 'Automatic adding is off. Existing contacts stay on the list.');
       await load();
-    } catch (e) { setNotice(e instanceof Error && e.message ? e.message : 'That change could not be confirmed. Reload before trying again.'); }
+    } catch (e) { setNotice(friendly(e, 'That change could not be confirmed. Reload before trying again.')); }
     finally { setBusy(false); }
   }
 
@@ -62,7 +70,7 @@ function CampaignPanel({organization, campaigns, onChange}: {organization: strin
       const r = await sessionFetch('/api/marketing-list?' + new URLSearchParams({organization, view: 'entries', campaign}), {cache: 'no-store'});
       const d = await r.json(); if (!r.ok) throw Error(d.error);
       setData(campaignEntries.parse(d));
-    } catch (e) { setError(e instanceof Error && e.message ? e.message : 'Entries could not be loaded.'); }
+    } catch (e) { setError(friendly(e, 'Entries could not be loaded.')); }
   }, [organization, campaign]);
   useEffect(() => { setData(null); setResult(''); load(); }, [load]);
 
@@ -76,7 +84,7 @@ function CampaignPanel({organization, campaigns, onChange}: {organization: strin
       const drawn = campaignDraw.parse(d);
       await load(); onChange();
       setResult('Drawn at random from ' + drawn.eligible + ' eligible ' + (drawn.eligible === 1 ? 'entry' : 'entries') + '. Contact the winner below.');
-    } catch (e) { setResult(e instanceof Error && e.message ? e.message : 'The drawing could not be confirmed. Reload before drawing again.'); }
+    } catch (e) { setResult(friendly(e, 'The drawing could not be confirmed. Reload before drawing again.')); }
     finally { setBusy(false); }
   }
 
@@ -89,7 +97,7 @@ function CampaignPanel({organization, campaigns, onChange}: {organization: strin
     {!data && !error && <p aria-busy="true">Loading entries…</p>}
     {data && <>
       <p><strong>{data.entries.length}</strong> {data.entries.length === 1 ? 'entry' : 'entries'}</p>
-      {data.draws.map(d => { const e = byId.get(d.entryId); return <div key={d.round} className="marketing-winner"><p className="eyebrow">{d.round === 1 ? 'Winner' : 'Alternate ' + (d.round - 1)} · drawn {when(d.drawnAt)} from {d.eligible}</p>
+      {data.draws.map(d => { const e = byId.get(d.entryId); return <div key={d.round} className="marketing-winner"><p className="eyebrow">{d.round === 1 ? 'Winner' : 'Alternate ' + (d.round - 1)} · drawn {when(d.drawnAt)} from {d.eligible} {d.eligible === 1 ? 'entry' : 'entries'}</p>
         <p><strong>{d.name}</strong>{d.nominee && <> nominated <strong>{d.nominee}</strong></>}</p>
         {e && <p>{e.workAddress}<br/><a href={'mailto:' + e.email}>{e.email}</a>{e.phone && <> · <a href={'tel:' + e.phone.replace(/[^+0-9]/g, '')}>{e.phone}</a></>}</p>}</div>; })}
       <p><button disabled={busy || data.entries.length === data.draws.length} onClick={draw}>{data.draws.length ? 'Draw an alternate' : 'Draw winner'}</button></p>

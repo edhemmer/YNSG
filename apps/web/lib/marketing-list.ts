@@ -7,7 +7,7 @@ export const marketingSummary = z.object({
   total: z.number().int().nonnegative(),
   subscribed: z.number().int().nonnegative(),
   optedOut: z.number().int().nonnegative(),
-  byBasis: z.record(z.enum(['opt_in', 'customer', 'lead', 'suppressed']), z.number().int().nonnegative()),
+  byBasis: z.partialRecord(z.enum(['opt_in', 'customer', 'lead', 'suppressed']), z.number().int().nonnegative()),
   campaigns: z.array(z.object({campaign: z.string().regex(/^[a-z0-9][a-z0-9-]{2,59}$/), entries: z.number().int().nonnegative(), latest: z.string()})).max(500),
   crmFeedStartsAt: z.string().nullable(),
 });
