@@ -29,8 +29,7 @@ const S:Record<string,Service>={
  lawn:{label:'Lawn mowing',path:'/lawn-mowing-dekalb-il'},
  wash:{label:'Concrete pressure washing',path:'/concrete-pressure-washing-dekalb-il'},
  leaf:{label:'Leaf cleanup',path:'/leaf-cleanup-dekalb-il'},
- farm:{label:'Farm hand help',path:'/farm-hand-dekalb-il'},
- plan:{label:'Home care plan',path:'/home-care-plan'}
+ farm:{label:'Farm hand help',path:'/farm-hand-dekalb-il'}
 };
 type Month={subject:string;preview:string;headline:string;intro:string;checklist:[string,string,string];services:[string,string];customer:string;prospect:string};
 // Index 0 = January.
