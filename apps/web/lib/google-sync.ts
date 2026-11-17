@@ -1,5 +1,6 @@
 import { accessToken, store,serverDatabase } from "./google-server";
 import { projectEvent } from "./google-calendar";
+import { reconcileDue } from "./reconcile-cadence";
 type Claim = {
   suppressed?: boolean;
   item: { id: string; lease_token: string };
@@ -17,9 +18,13 @@ type Claim = {
   calendar: string;
   connectionRevision: number;
 };
-export async function syncGoogleCalendar(org: string) {
+// Drift check against Google (someone edited or deleted the event there) runs once an hour.
+// Every minute queued a check per upcoming appointment every 5 minutes: about 12 rows an hour
+// each, which grew the outbox by thousands of rows a week. Changes made in the CRM still sync
+// immediately; only the background re-check is hourly.
+export async function syncGoogleCalendar(org: string, at = Date.now()) {
   const { token } = await accessToken(org);
-  await store(org, "reconcile_queue");
+  if (reconcileDue(at)) await store(org, "reconcile_queue");
   const results: string[] = [];
   const deadline = Date.now() + 20000;
   for (let i = 0; i < 10 && Date.now() < deadline; i++) {
