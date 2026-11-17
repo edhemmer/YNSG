@@ -194,3 +194,6 @@ body :is(.premium-hero h1,.service-detail-hero h1){font-weight:600;line-height:1
  body .site-header .nav-mobile>a:focus-visible{outline:3px solid #a75b16;outline-offset:-3px}
 }
 @media(max-width:360px){body .site-header .nav-mobile>a{font-size:14px;padding-inline:2px}}
+
+/* Long email addresses wrap on narrow phones instead of pushing the page sideways. */
+main a[href^="mailto:"]{overflow-wrap:anywhere;word-break:break-word}
