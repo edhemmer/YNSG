@@ -1,0 +1,42 @@
+/* Home repair field guide. Category color arrives as --cat; works in light and dark themes. */
+.repair-library,.repair-guide{--cat:#315842;display:grid;gap:16px;margin:4px 0 20px}
+.repair-hero{padding:18px 20px;border-radius:14px;background:linear-gradient(135deg,#1d4a3a,#10283c);color:#fff}
+.repair-hero h3{margin:0 0 4px;color:#fff;font-size:1.25rem}.repair-hero p{margin:0;color:#dfe9e4;font-size:.95rem}
+.repair-search{display:grid;gap:6px;font-weight:600}.repair-search input{font-size:1.05rem}
+.repair-suggest,.repair-cats{display:flex;flex-wrap:wrap;gap:8px}
+.repair-chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--cat,#315842) 45%,var(--os-border,#dce3e9));background:color-mix(in srgb,var(--cat,#315842) 8%,var(--os-surface,#fff));color:inherit;font:600 .875rem/1.2 inherit;cursor:pointer}
+.repair-chip.plain{--cat:#526575;font-weight:500}
+.repair-chip.on{background:var(--cat,#315842);border-color:var(--cat,#315842);color:#fff}.repair-chip.on svg{stroke:#fff}
+.repair-results{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.repair-card{width:100%;display:grid;grid-template-columns:44px 1fr 16px;gap:12px;align-items:center;text-align:left;padding:14px;border-radius:12px;border:1px solid var(--os-border,#dce3e9);border-left:5px solid var(--cat);background:var(--os-surface,#fff);color:inherit;cursor:pointer;font:inherit}
+.repair-card:hover,.repair-card:focus-visible{border-color:var(--cat);box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.repair-card-icon,.repair-head-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:color-mix(in srgb,var(--cat) 14%,var(--os-surface,#fff))}
+.repair-card-body{display:grid;gap:4px;min-width:0}.repair-card-body>span:first-of-type{color:var(--os-muted,#526575);font-size:.9rem}
+.repair-card-go{font-size:1.6rem;color:var(--cat)}
+.repair-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.repair-badges span{font-size:.78rem;font-weight:600;padding:2px 8px;border-radius:6px;background:color-mix(in srgb,var(--cat) 10%,var(--os-surface,#fff));border:1px solid var(--os-border,#dce3e9)}
+.repair-badges.small{margin-top:2px}
+.repair-scope.good{background:#e6f2ea!important;color:#1f5634;border-color:#b9d3c1!important}.repair-scope.warn{background:#fff4dc!important;color:#7a5200;border-color:#e8cf8e!important}.repair-scope.bad{background:#fbeeec!important;color:#8c311e;border-color:#e7c3bc!important}
+.repair-back{justify-self:start}
+.repair-head{display:grid;grid-template-columns:56px 1fr;gap:14px;align-items:center;padding:16px;border-radius:14px;background:color-mix(in srgb,var(--cat) 12%,var(--os-surface,#fff));border-top:5px solid var(--cat)}
+.repair-head .repair-head-icon{width:56px;height:56px;background:var(--cat)}
+.repair-head h3{margin:0;font-size:1.3rem}.repair-eyebrow{margin:0;font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--cat)}
+.repair-symptom{margin:0;padding:12px 14px;border-radius:10px;background:var(--os-surface,#fff);border:1px dashed color-mix(in srgb,var(--cat) 50%,var(--os-border,#dce3e9))}
+.repair-block h4,.repair-callout h4,.repair-kit h4{margin:0 0 8px;font-size:1rem}
+.repair-checks{margin:0;padding-left:0;list-style:none;display:grid;gap:8px}.repair-checks li{padding:10px 12px 10px 36px;border-radius:10px;background:var(--os-surface,#fff);border:1px solid var(--os-border,#dce3e9);position:relative}
+.repair-checks li::before{content:"?";position:absolute;left:10px;top:9px;width:18px;height:18px;border-radius:50%;background:var(--cat);color:#fff;font-size:.75rem;font-weight:700;display:grid;place-items:center}
+.repair-steps{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.repair-steps li{display:grid;grid-template-columns:40px 1fr;gap:12px;padding:12px;border-radius:12px;background:var(--os-surface,#fff);border:1px solid var(--os-border,#dce3e9)}
+.repair-steps li p{margin:4px 0 0;line-height:1.55}.repair-steps li.done{opacity:.7}.repair-steps li.done strong{text-decoration:line-through}
+.repair-step-num{width:40px;height:40px;border-radius:50%;border:2px solid var(--cat);background:transparent;color:var(--cat);font-weight:800;font-size:1rem;cursor:pointer;padding:0;min-height:0}
+.repair-steps li.done .repair-step-num{background:var(--cat);color:#fff}
+.repair-progress{font-size:.8rem;font-weight:600;color:var(--os-muted,#526575);margin-left:6px}
+.repair-callout{padding:14px 16px;border-radius:12px;border:1px solid;border-left-width:5px}.repair-callout p{margin:0 0 6px}.repair-callout ul{margin:0;padding-left:18px;display:grid;gap:6px}
+.repair-callout.tip{background:#fff8e6;border-color:#e8cf8e;color:#3e2f05}.repair-callout.tip h4{color:#8a6100}
+.repair-callout.stop{background:#fbeeec;border-color:#e7c3bc;color:#4a1a10}.repair-callout.stop h4{color:#8c311e}
+.repair-callout.warn{background:#fff4dc;border-color:#e8cf8e;color:#3e2f05}.repair-callout.warn a{color:#7a5200;font-weight:600}
+.repair-kit{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.repair-kit section{padding:12px 14px;border-radius:12px;background:var(--os-surface,#fff);border:1px solid var(--os-border,#dce3e9)}.repair-kit ul{margin:0;padding-left:18px}
+.repair-source{margin:0;font-size:.85rem;color:var(--os-muted,#526575)}.repair-source a{font-weight:600}
+.repair-diagram{margin:0;padding:12px;border-radius:14px;border:2px solid;background:#fbfaf7}.repair-diagram svg{display:block;width:100%;max-width:420px;height:auto;margin:0 auto}
+.repair-diagram figcaption{text-align:center;font-weight:700;font-size:.95rem;margin-top:6px}
+.repair-empty{padding:14px;border-radius:10px;border:1px dashed var(--os-border,#dce3e9)}
+@media(max-width:560px){.repair-card{grid-template-columns:36px 1fr 12px;padding:12px}.repair-card-icon{width:36px;height:36px}.repair-head{grid-template-columns:44px 1fr}.repair-head .repair-head-icon{width:44px;height:44px}}

@@ -22,7 +22,7 @@ type Service={label:string;path:string};
 const S:Record<string,Service>={
  snow:{label:'Snow clearing',path:'/snow-removal-dekalb-il'},
  handyman:{label:'Help around the home',path:'/handyman-dekalb-il'},
- access:{label:'Accessibility and home safety',path:'/accessibility-home-safety-dekalb-il'},
+ access:{label:'Accessibility help',path:'/accessibility-home-safety-dekalb-il'},
  cleanout:{label:'Cleanouts and hauling',path:'/cleanout-dekalb-il'},
  yard:{label:'Yard cleanup and mulch',path:'/mulch-yard-cleanup-dekalb-il'},
  mulch:{label:'Mulch delivery and spreading',path:'/mulch-delivery-spreading-dekalb-il'},

@@ -2,6 +2,7 @@
 import {useId,useMemo,useState} from 'react';
 import {servicePreparations} from '../lib/service-preparation';
 import {taskGuidance} from '../lib/job-companion';
+import RepairGuideLibrary from './repair-guide-library';
 import {estimateVisit,examplePlanningStandards,allTrainingTopics,reviewTaskTime,flatTrimMiterSetting,drywallRepairGuide,type TaskStandard} from '../lib/owner-job-standards';
 
 const lessonDetails:Record<string,{steps:string[];tools:string[];stop:string}>={
@@ -69,7 +70,7 @@ export default function OwnerLearningToolkit({onNetwork,organization,tasks=[],in
  const heading=useId(),guidance=taskGuidance(tasks);
  const [focus,setFocus]=useState(()=>guidance.some(g=>g.task===initialTask)?guidance.findIndex(g=>g.task===initialTask):guidance.findIndex(g=>g.topic)!==-1?guidance.findIndex(g=>g.topic):0),[topicQuery,setTopicQuery]=useState('');
  const focused=guidance[focus];
- const [libraryOpen,setLibraryOpen]=useState(()=>!tasks.length||!focused?.topic);
+ const [libraryOpen,setLibraryOpen]=useState(()=>tasks.length>0&&!focused?.topic);
  const [service,setService]=useState(examplePlanningStandards[0]!.service+'::'+examplePlanningStandards[0]!.task);
  const [minutes,setMinutes]=useState(60);
  const [factor,setFactor]=useState(1);
@@ -86,10 +87,11 @@ export default function OwnerLearningToolkit({onNetwork,organization,tasks=[],in
  const lesson=selected?lessonDetails[selected.id]!:null;
  return <section className="card owner-learning" aria-labelledby={heading}>
   <h2 id={heading}>{tasks.length?'Prepare this task':'Field guide & job planner'}</h2>
-  <p>{tasks.length?'Start with these checks. Use the steps and source below when you need more detail.':'Find practical task guides and plan your work. Follow current manufacturer instructions.'}</p>
+  <p>{tasks.length?'Start with these checks. Use the steps and source below when you need more detail.':'Step-by-step repair guides with drawings and trade tricks, plus job planning tools. Follow current manufacturer instructions.'}</p>
   {guidance.length>0&&<section className="companion-task-guide" aria-label="Guidance for this job"><label>Task on this request<select aria-label="Task on this request" value={focus} onChange={e=>{const i=Number(e.target.value);setFocus(i);onTaskChange?.(guidance[i]?.task||'');setTopic(guidance[i]?.topic?.id||'');setLibraryOpen(!guidance[i]?.topic);setTopicQuery('');}}>{guidance.map((g,i)=><option key={g.task} value={i}>{g.task}</option>)}</select></label>{focused?.preflight?<><h3>{focused.preflight.title}</h3><h4>Check before you begin</h4><ul>{focused.preflight.questions.map(q=><li key={q}>{q}</li>)}</ul><p><strong>Have ready:</strong> {focused.preflight.tools.join(' · ')}</p><p className="note"><strong>Pause or refer:</strong> {focused.preflight.stop}</p></>:<p>No matching task guide yet. Search the library below or find a specialist in Service Rolodex. A general guide does not approve this work.</p>}</section>}
   {onNetwork&&!tasks.length&&<aside className="note"><strong>Need a specialist?</strong><p>Find a contact in your Service Rolodex for work outside your scope.</p><button type="button" className="secondary" onClick={()=>onNetwork(focused?[focused.task]:[rule.task,...(selected?[selected.title]:[])])}>Find a referral for this task</button>{organization&&<p><a target="_blank" rel="noopener noreferrer" href={"/task-time?"+new URLSearchParams({organization})}>Review actual job time &amp; improve your next estimate ↗</a></p>}</aside>}
-  <details open={libraryOpen} onToggle={e=>setLibraryOpen(e.currentTarget.open)}><summary>{tasks.length?selected?'Steps & source for this task':'Find a task guide':'Trade learning library'}</summary>
+  {tasks.length?<details><summary>Home repair field guide</summary><RepairGuideLibrary onRefer={onNetwork?task=>onNetwork([task]):undefined}/></details>:<RepairGuideLibrary onRefer={onNetwork?task=>onNetwork([task]):undefined}/>}
+  <details open={libraryOpen} onToggle={e=>setLibraryOpen(e.currentTarget.open)}><summary>{tasks.length?selected?'Steps & source for this task':'Find a task guide':'Trade learning library: tools, caulk & service prep'}</summary>
    <label>Find a guide<input type="search" aria-label="Find a guide" value={topicQuery} maxLength={100} placeholder="Try locks, shelves or drywall" onChange={e=>{setTopicQuery(e.target.value);setTopic('');setLibraryOpen(true);}}/></label>
    <label>Topic<select aria-label="Guide topic" value={topic} onChange={e=>{setTopic(e.target.value);setLibraryOpen(true);}}><option value="">Choose a guide</option>{topics.map(t=><option key={t.id} value={t.id}>{t.title}</option>)}</select></label>
    {!topics.length&&<p role="status">No guides match that search. Try another word or use Service Rolodex.</p>}

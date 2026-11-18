@@ -5,6 +5,7 @@ import '../../../site/request-button.css';
 import type {Metadata} from 'next';import Script from 'next/script';import './style.css';import './owner-day.css';import './customer-records.css';import './invoice-closeout.css';
 import './owner-network.css';
 import './field-system.css';
+import './repair-guide.css';
 import './premium.css';
 import {Inter} from 'next/font/google';
 const inter=Inter({subsets:['latin'],variable:'--font-inter',display:'swap'});
