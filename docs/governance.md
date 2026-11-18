@@ -58,3 +58,13 @@ The job presents its current customer, service, appointment and actual next task
 ## November 1, 2026 — legal business identity and contact update
 
 The owner confirmed the business now operates as **Your Neighborhood Service Guy LLC**. This is the legal entity name for new agreements, privacy and website terms, invoices and business records. The familiar **Your Neighborhood Service Guy** consumer-facing brand and approved logo remain unchanged. The approved public phone number is **815-680-1775** (`+18156801775`); retire **770-630-2094** across active public and private content. Existing email addresses and their delivery routing remain unchanged. The legal entity's effective formation date, registration details, and any tax or insurance updates must be verified separately; do not invent them. Historical signed documents, issued invoices, and records remain unchanged; new documents use the updated identity after verified company configuration is published. Do not change franchise tenants' legal names, email sender, or contact details.
+
+## November 18, 2026 — owner decisions: website, giveaway and field guide
+
+Recorded from the owner's November 17–18 instructions; details and evidence in [production/website-field-guide-lead-focus-2026-11-18.md](production/website-field-guide-lead-focus-2026-11-18.md).
+
+- **Field guide:** the CRM Learning field guide is a full education and advice center for the jobs a handyman, landscaper or service person handles: drawings, colors, step-by-step instructions, trade tricks, expert advice and best practices. It must stay accurate and sourced. It is owner training material; it never expands approved services, and gas, wiring, garage springs, plumbing beyond inside-the-fixture parts, roofs and gutters stay refer-out.
+- **Website reply promise:** the home page states "We reply within one business day" (business hours Monday–Friday, 8 AM–5 PM).
+- **Service Saturday:** drawing moved to January 2027 (entries close January 17, drawing January 19, service Saturday January 23). The drawing requires at least 35 eligible entries; if entries close short, the entry period extends in two-week steps until March 28, 2027, after which the promotion ends without a drawing and entrants are emailed. Prize and "No cash value" fine-print rules from November 17 are unchanged.
+- **Realtors and property managers:** the page offers help with inspection report fixes ("Do your clients need help with their inspection report fixes? Let us take a look and see how we can help."), limited to everyday non-licensed items; licensed-trade items are flagged to the agent.
+- **Seasonal offer:** "Get the house ready for the new year" replaces the holiday-guests offer and runs through January 31, 2027.

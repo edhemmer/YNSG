@@ -41,6 +41,9 @@ Edit `site/data/service-saturday.js` (works from the GitHub app):
 - **Off:** `open: false`, then commit. The page, home banner and footer link disappear, the page leaves Google's sitemap, and old links show a friendly "not running right now" page.
 - **On / next one:** set new dates, a new `campaign` name (for example `service-saturday-2027-03`), and `open: true`.
 - Entries close automatically at 11:59 PM Central on `entryDeadline`, even if you forget to switch it off. The home banner hides itself the next morning.
+- **Minimum entries:** `minimumEntries` (35 for January 2027). The drawing happens only once that many eligible entries are in; the Official Rules say so, and the CRM keeps **Draw winner** locked (the API also refuses) until the minimum is reached.
+- **If entries close short:** move `entryDeadline`, `drawingDate` and `serviceDate` forward two weeks (the service date must stay a Saturday) and commit; keep the same `campaign` so entries stay in. Do this until the minimum is reached or `finalEntryDate` (March 28, 2027) passes. After that, switch it off and email entrants that it ended without a drawing.
+- **Current event:** `service-saturday-2027-01`: entries close Sunday, January 17, drawing Tuesday, January 19, service Saturday, January 23, 2027.
 
 ## Status and setup
 
@@ -52,7 +55,7 @@ Edit `site/data/service-saturday.js` (works from the GitHub app):
 
 - **Email list:** see how many people you can email, by source, and how many opted out.
 - **Download email list (CSV):** import into your email tool (MailerLite, Mailchimp, Brevo and others accept this format). It contains only subscribed people, split into first and last name, with each person's one-click unsubscribe link. Download a fresh copy before every send.
-- **Giveaways:** every entry with the story and work address. **Draw winner** picks one entry at random and records it (date, who drew, how many were eligible). If the winner can't be reached or declines, **Draw an alternate**; earlier winners are never picked again.
+- **Giveaways:** every entry with the story and work address, and how many of the required entries are in. **Draw winner** (unlocked at the minimum) picks one entry at random and records it (date, who drew, how many were eligible). If the winner can't be reached or declines, **Draw an alternate**; earlier winners are never picked again.
 
 ## Before purging test data
 

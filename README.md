@@ -15,6 +15,8 @@ Source for the public website, the owner and customer web app, and the iOS app. 
 | Checks and tooling | `scripts/`, `tests/` | Release gates, SEO and readability checks, recovery tooling. |
 | Operations and history | `docs/` | Governance, production register, acceptance runbooks and dated evidence. |
 
+Owner tools worth knowing: the home repair field guide (CRM → Learning) lives in `apps/web/lib/home-repair-guides*.ts` with drawings in `apps/web/app/repair-diagrams.tsx`; Service Saturday dates, the minimum entry count and the on/off switch are in `site/data/service-saturday.js` (see `docs/marketing-list.md`); real review quotes go in `site/data/reviews.json` and appear on the home page once there are three.
+
 `lib/business-identity.js` holds the business name, public phone number and site addresses used by the page build. The phone number is also written directly into many pages and some customer-facing error messages, so search the whole repo for it before changing it.
 
 ## How a website request is handled
