@@ -268,3 +268,13 @@ body .meet-ed-card .welcome-voice-note{display:none}
  body .home-service-card .home-service-book{padding:2px 14px 12px!important;font-size:.95rem}
 }
 @media(max-width:700px){body .home-work .work-grid figure:nth-child(n+7){display:none}}
+.before-after{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 10px}
+.before-after figure{position:relative;margin:0;border-radius:10px;overflow:hidden;background:#e6ece4}
+.before-after img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover}
+.before-after figcaption{position:absolute;left:10px;top:10px}
+.ba-tag{display:inline-block;padding:4px 10px;border-radius:999px;font-size:.85rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 2px 8px #10283c33}
+.ba-before{background:#fff;color:#10283c}
+.ba-after{background:#315842;color:#fff}
+.ba-caption{margin:0 0 24px;color:#405868;font-size:.95rem}
+.ba-section.section{padding-block:24px 8px}
+@media(max-width:600px){.ba-section .before-after{grid-template-columns:1fr}.ba-tag{font-size:.78rem;padding:3px 9px}.before-after figcaption{left:8px;top:8px}}
