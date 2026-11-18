@@ -9,7 +9,7 @@ test('Service Saturday draws in January 2027 and needs 35 entries first', () => 
   assert.equal(serviceSaturday.minimumEntries, 35);
   assert.equal(serviceSaturday.drawingDate, '2027-01-19');
   assert.equal(serviceSaturday.serviceDate, '2027-01-23');
-  assert.equal(serviceSaturday.campaign, 'service-saturday-2026-12', 'campaign kept so existing entries stay in');
+  assert.equal(serviceSaturday.campaign, 'service-saturday-2027-01', 'campaign named for the January 2027 drawing');
   assert.throws(() => checkConfig({...serviceSaturday, minimumEntries: 0}));
   assert.throws(() => checkConfig({...serviceSaturday, finalEntryDate: '2026-12-01'}));
   const rules = readFileSync('site/pages/service-saturday-rules.html', 'utf8');

@@ -5,8 +5,7 @@
 export const serviceSaturday = {
   open: true,
   // A new name for each event keeps entries separate (one entry per email per event).
-  // Kept as -2026-12 after the drawing moved to January 2027 so entries already received stay in.
-  campaign: 'service-saturday-2026-12',
+  campaign: 'service-saturday-2027-01',
   // First day entries are accepted (shown in the Official Rules).
   startDate: '2026-11-17',
   // Last day to enter (entries close at 11:59 PM Central that night).
