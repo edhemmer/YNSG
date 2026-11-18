@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {JSDOM} from 'jsdom';
 import {hideExpiredOffers} from '../site/seasonal-services.js';
-test('holiday offer shows through Dec 24 Central time and removes itself after',async()=>{
+test('new-year offer shows through Jan 31 Central time and removes itself after',async()=>{
  const html=await readFile('site/pages/home.html','utf8');
  const at=iso=>{const doc=new JSDOM(html).window.document;hideExpiredOffers(doc,new Date(iso));return doc.querySelector('[data-show-until]');};
  assert.ok(at('2026-11-06T17:00:00Z'));
- assert.ok(at('2026-12-25T05:30:00Z'),'11:30pm Dec 24 in Chicago still shows');
- assert.equal(at('2026-12-25T06:30:00Z'),null);
+ assert.ok(at('2027-02-01T05:30:00Z'),'11:30pm Jan 31 in Chicago still shows');
+ assert.equal(at('2027-02-01T06:30:00Z'),null);
 });
 test('snow page invites seasonal sign-up and the partner page links to estimates',async()=>{
  const snow=await readFile('site/pages/snow-removal-dekalb-il.html','utf8');

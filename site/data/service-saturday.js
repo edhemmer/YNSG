@@ -5,15 +5,21 @@
 export const serviceSaturday = {
   open: true,
   // A new name for each event keeps entries separate (one entry per email per event).
+  // Kept as -2026-12 after the drawing moved to January 2027 so entries already received stay in.
   campaign: 'service-saturday-2026-12',
   // First day entries are accepted (shown in the Official Rules).
   startDate: '2026-11-17',
   // Last day to enter (entries close at 11:59 PM Central that night).
-  entryDeadline: '2026-12-06',
+  entryDeadline: '2027-01-17',
   // Day the winner is drawn.
-  drawingDate: '2026-12-08',
+  drawingDate: '2027-01-19',
   // The Saturday the work happens.
-  serviceDate: '2026-12-12',
+  serviceDate: '2027-01-23',
+  // The drawing happens only once this many eligible entries are in. If entries close short of it,
+  // the entry period extends in 2-week steps (update the three dates above and redeploy) until the
+  // minimum is reached or the final entry date passes, when the promotion ends without a drawing.
+  minimumEntries: 35,
+  finalEntryDate: '2027-03-28',
   // Prize details used on the page and in the Official Rules.
   hours: 4,
   approximateValue: 280,

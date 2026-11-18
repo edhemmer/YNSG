@@ -2,11 +2,14 @@
 import {useCallback, useEffect, useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 import MarketingAutomation from './marketing-automation';
+import {serviceSaturday} from '../../../site/data/service-saturday.js';
 import {marketingSummary, campaignEntries, campaignDraw, BASIS_LABEL, type MarketingSummary, type CampaignEntries} from '../lib/marketing-list';
 
 const when = (iso: string) => new Date(iso).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});
 // Show the server's plain-language message; anything technical becomes a simple retry message.
 const friendly = (e: unknown, fallback: string) => e instanceof Error && e.message && !/^[\[{]/.test(e.message.trim()) && e.message.length < 200 ? e.message : fallback;
+/** Entries needed before the first drawing (Service Saturday rules); other giveaways have no minimum. */
+const minimumEntries = (campaign: string) => campaign === serviceSaturday.campaign ? serviceSaturday.minimumEntries : 0;
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 /** service-saturday-2026-12 → "Service Saturday · December 2026" */
 const label = (campaign: string) => {
@@ -98,11 +101,12 @@ function CampaignPanel({organization, campaigns, onChange}: {organization: strin
     {error && <p role="alert">{error} <button className="secondary" onClick={load}>Try again</button></p>}
     {!data && !error && <p aria-busy="true">Loading entries…</p>}
     {data && <>
-      <p><strong>{data.entries.length}</strong> {data.entries.length === 1 ? 'entry' : 'entries'}</p>
+      <p><strong>{data.entries.length}</strong> {data.entries.length === 1 ? 'entry' : 'entries'}{minimumEntries(campaign) > 0 && <> of the {minimumEntries(campaign)} needed before the drawing</>}</p>
+      {!data.draws.length && data.entries.length < minimumEntries(campaign) && <p className="marketing-note">The rules say the drawing happens only once there are {minimumEntries(campaign)} eligible entries. {minimumEntries(campaign) - data.entries.length} more to go. If entries close short, extend the dates in 2-week steps.</p>}
       {data.draws.map(d => { const e = byId.get(d.entryId); return <div key={d.round} className="marketing-winner"><p className="eyebrow">{d.round === 1 ? 'Winner' : 'Alternate ' + (d.round - 1)} · drawn {when(d.drawnAt)} from {d.eligible} {d.eligible === 1 ? 'entry' : 'entries'}</p>
         <p><strong>{d.name}</strong>{d.nominee && <> nominated <strong>{d.nominee}</strong></>}</p>
         {e && <p>{e.workAddress}<br/><a href={'mailto:' + e.email}>{e.email}</a>{e.phone && <> · <a href={'tel:' + e.phone.replace(/[^+0-9]/g, '')}>{e.phone}</a></>}</p>}</div>; })}
-      <p><button disabled={busy || data.entries.length === data.draws.length} onClick={draw}>{data.draws.length ? 'Draw an alternate' : 'Draw winner'}</button></p>
+      <p><button disabled={busy || data.entries.length === data.draws.length || (!data.draws.length && data.entries.length < minimumEntries(campaign))} onClick={draw}>{data.draws.length ? 'Draw an alternate' : 'Draw winner'}</button></p>
       {result && <p role="status">{result}</p>}
       {data.entries.length > 0 && <details><summary>See all entries</summary><ul className="marketing-entries">{data.entries.map(e => <li key={e.id}>
         <p><strong>{e.name}</strong>{e.type === 'nominate' && e.nominee ? <> nominated <strong>{e.nominee}</strong>{e.relationship ? ' (' + e.relationship + ')' : ''}</> : ' (own home)'} · {when(e.createdAt)}</p>
