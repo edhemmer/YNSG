@@ -1,4 +1,4 @@
-import type {Guide} from './home-repair-guides';
+import type {Guide} from './home-repair-guides.ts';
 
 // Second set of field guides: appliances, mounting, painting, lawn & landscape, outdoor, seasonal,
 // electrical awareness and accessibility. Same rules: the product's own instructions win, and every

@@ -17,3 +17,8 @@ Owner-supplied real photographs of a fall mowing and cleanup job (home shown bel
 
 ## Recent work gallery v2 — 13 November 2026
 Nine owner-supplied real photographs (not AI-generated) replace the six lawn-only photos on the home page so the gallery shows variety: yard, around the house, hauling and the truck. Edits: cropped to 4:5, resized to 640 and 1000 pixel WebP with all EXIF/GPS removed, the house number on the brick home blurred, and the phone number on the older yard sign corrected to the current 815-680-1775 (same treatment as the November 6 gallery). Held back on purpose: a toilet-tank repair photo and a washer/dryer photo (plumbing and appliance hookup are not services we offer or advertise), The wheelchair-adjustment photo (inside a resident's room) was added at the owner's direction, brightened and cropped to remove wall photos. The six earlier lawn photos remain in /assets/work but are no longer used.
+
+## Home and leaf page additions — 18 November 2026
+Owner-supplied real photographs (not AI-generated), all EXIF/GPS removed:
+- `work/ynsg-ed-front-porch-640|1000.webp`: square crop of job photo 44 (Ed shaking hands with his dad at the front door; Ed OK'd his dad's photo for marketing). Used in the home page "Hi, I'm Ed" card.
+- `work/ynsg-leaf-walk-before-640.webp` / `work/ynsg-leaf-walk-after-640.webp`: 4:3 crops of job photos 18 and 11 (front lawn and walk before and after a leaf cleanup), cropped below the house so no house number or facade shows. Used as the before/after pair on the home page and the leaf management page.
