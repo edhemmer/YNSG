@@ -1,6 +1,6 @@
 # November 18, 2026 — field guide, website lead focus and Service Saturday
 
-Dated record of the November 17–18, 2026 working session (PRs #333–#336). Current completion authority stays with [the production charter](README.md) and `contracts/production-completion.json`; this file records what shipped, the owner decisions behind it and how to maintain it. No completion gate is closed by this work.
+Dated record of the November 17–18, 2026 working session (PRs #333–#337). Current completion authority stays with [the production charter](README.md) and `contracts/production-completion.json`; this file records what shipped, the owner decisions behind it and how to maintain it. No completion gate is closed by this work.
 
 ## Shipped
 
@@ -9,7 +9,8 @@ Dated record of the November 17–18, 2026 working session (PRs #333–#336). Cu
 | #333 (merged) | Missing service icons (leaf, cleanout, farm hand); services polish and accuracy pass. |
 | #334 (merged) | Footer tightened: social chips, grouped links, small legal line. |
 | #335 (merged) | Customer service insights moved from Marketing to Customers; per-customer email history (`customer_email_history`, applied to Supabase as history version `20261118132316`); first home repair field guide. |
-| #336 (open for owner review) | Field guide expanded to an education and advice center; website lead focus; Service Saturday moved to January 2027 with a 35-entry minimum; realtor inspection fixes; before/after photos. No database or migration changes. |
+| #336 (merged) | Field guide expanded to 62 guides with appliances, yard, outdoor, seasonal and accessibility, best practices and JULIE callouts. |
+| #337 (open for owner review) | Field guide depth pass to 76 guides with job sheets; website lead focus; Service Saturday moved to January 2027 with a 35-entry minimum; realtor inspection fixes; before/after photos; these docs. No database or migration changes. |
 
 ### Field guide (CRM → Learning)
 
@@ -32,7 +33,7 @@ Files:
 
 **Adding or changing a guide:** add it to the right file, keep every fact traceable to the linked source, give it a stop-and-refer line, and run `tests/home-repair-guides*.test.ts`. Plumbing guides must be `minor-plumbing` and say "licensed-plumber work in Illinois" in the stop line. Never write "home safety" (use "Accessibility help") or list gutter work. A new drawing needs its id added to `DiagramId` and a quoted key in `repair-diagrams.tsx`. This is owner training material, not public lessons; [verified-howto-education.md](verified-howto-education.md) still governs any public education feature.
 
-### Website lead focus (#336)
+### Website lead focus (#337)
 
 - Home hero: shorter lead; trust checks (locally owned in DeKalb, **we reply within one business day**, fair hourly rate with the estimate confirmed before work); "No account needed… Nothing is booked until you approve."
 - "Hi, I'm Ed" card with Ed's real front-porch photo wraps the existing welcome audio. Audio file, controls, transcript and autoplay behavior are unchanged.
@@ -44,7 +45,7 @@ Files:
 - Footer labels raised from 13.5px to 14.4px for the readability audit.
 - Image sources and edits are logged in `site/assets/services/IMAGE-USAGE.md`.
 
-### Service Saturday (#336)
+### Service Saturday (#337)
 
 `site/data/service-saturday.js`: campaign `service-saturday-2027-01` (renamed because there were no entries yet), entries open Nov 17, 2026 and close **Sun Jan 17, 2027**, drawing **Tue Jan 19**, service **Sat Jan 23, 2027**, `minimumEntries: 35`, `finalEntryDate: 2027-03-28`. Official Rules add a "Minimum number of entries" section; the entry page and banner fine print mention the minimum. The owner app shows "X of 35" and disables the first **Draw winner** until 35 entries; `POST /api/marketing-list` returns `BELOW_MINIMUM` (409) for a first draw below the minimum. Procedure: [marketing-list.md](../marketing-list.md#turning-service-saturday-on-and-off).
 
@@ -58,7 +59,7 @@ Also added to [governance](../governance.md#november-18-2026--owner-decisions-we
 4. Realtor page offers help with inspection report fixes ("let us take a look, see how we can help"), limited to non-licensed everyday items.
 5. Leads by source are reviewed in CRM → Snapshot ("Where requests came from", last 90 days). Phone calls count only when logged as a request.
 
-## Evidence (PR #336 head)
+## Evidence (PR #337 head)
 
 - `npm test`: 1,252 pass, 0 fail. Lint (oxlint), web TypeScript, `npm run verify:seo` (28 pages, 981 links) pass.
 - `scripts/verify-public-layout.mjs --chromium-only`: 234 checks pass. `scripts/verify-readability.mjs`: 236 cases, no findings.
@@ -67,7 +68,7 @@ Also added to [governance](../governance.md#november-18-2026--owner-decisions-we
 
 ## Remaining
 
-- Owner review and merge of #336; then verify the deployed SHA on both domains and do a read-only live check (new home page, January Service Saturday dates, realtor section, one controlled test request only with the owner's OK).
+- Owner review and merge of #337; then verify the deployed SHA on both domains and do a read-only live check (new home page, January Service Saturday dates, realtor section, one controlled test request only with the owner's OK).
 - Reviews: the home page shows quotes automatically once `site/data/reviews.json` holds 3 real Google reviews (copied word for word, with permission).
 - Update any Service Saturday posts that said December 8.
 - Field guide follow-ups suggested, not started: link request tasks to guides; "Reviewed by Ed" mark per guide.
