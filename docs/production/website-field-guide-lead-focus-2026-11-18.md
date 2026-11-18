@@ -49,6 +49,15 @@ Files:
 
 `site/data/service-saturday.js`: campaign `service-saturday-2027-01` (renamed because there were no entries yet), entries open Nov 17, 2026 and close **Sun Jan 17, 2027**, drawing **Tue Jan 19**, service **Sat Jan 23, 2027**, `minimumEntries: 35`, `finalEntryDate: 2027-03-28`. Official Rules add a "Minimum number of entries" section; the entry page and banner fine print mention the minimum. The owner app shows "X of 35" and disables the first **Draw winner** until 35 entries; `POST /api/marketing-list` returns `BELOW_MINIMUM` (409) for a first draw below the minimum. Procedure: [marketing-list.md](../marketing-list.md#turning-service-saturday-on-and-off).
 
+### Final copy polish and build fix (#337)
+
+- #336 merged but its Vercel build failed on the root typecheck (TS2835, extensionless imports), so production stayed on #335. Fixed with explicit `.ts` import paths; `npm run verify:release` now passes locally end to end. Run the full `verify:release` (not only the web typecheck) before every push.
+- Home: removed the duplicate "Tell us about the work" request band; shorter services intro; clearer leaf and cleanout card text; FAQ and service-area wording tightened.
+- Service Saturday: "The drawing is soon … before it's too late" replaced with the actual entry and drawing dates; entry question reworded to "If you win, what would you most like help with?"
+- Request page: request category shows "Accessibility help" (was "Accessibility & safety"); the side note now points to the call line at the top of the form.
+- Small home jobs page: holiday offer replaced with the new-year visit through January 31.
+- "folks with disabilities" → "neighbors with disabilities" on About, Estimates and Home Care Plan; services page wording on farm work and the Community Rate corrected.
+
 ## Owner decisions recorded
 
 Also added to [governance](../governance.md#november-18-2026--owner-decisions-website-giveaway-and-field-guide).
