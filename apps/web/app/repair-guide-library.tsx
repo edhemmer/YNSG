@@ -1,6 +1,6 @@
 'use client';
 import {useMemo, useState, type CSSProperties} from 'react';
-import {CATEGORIES, GUIDES, PLUMBING_LAW_URL, PLUMBING_SCOPE_NOTE, searchGuides, type CategoryId, type Guide} from '../lib/home-repair-guides';
+import {CATEGORIES, GUIDES, JULIE_NOTE, JULIE_URL, PLUMBING_LAW_URL, PLUMBING_SCOPE_NOTE, searchGuides, type CategoryId, type Guide} from '../lib/home-repair-guides';
 import RepairDiagram from './repair-diagrams';
 
 const SCOPE: Record<Guide['scope'], {label: string; tone: string}> = {
@@ -10,7 +10,7 @@ const SCOPE: Record<Guide['scope'], {label: string; tone: string}> = {
 };
 const Icon = ({d, color, size = 20}: {d: string; color: string; size?: number}) =>
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d}/></svg>;
-const SUGGESTIONS = ['door sticking', 'door won\'t latch', 'running toilet', 'dripping faucet', 'drawer slide', 'cabinet door', 'grout', 'threshold', 'outdoor faucet', 'grab bar'];
+const SUGGESTIONS = ['door sticking', 'running toilet', 'install washer', 'dryer vent', 'drawer slide', 'cabinet door', 'mount tv', 'mulch', 'prune shrubs', 'grab bar', 'wheelchair', 'ice melt'];
 
 // The home repair field guide: search in plain words, browse by color-coded area, then follow a
 // guide with a quick check, a drawing, numbered steps, trade tricks and a clear stop-and-refer line.
@@ -35,12 +35,14 @@ export default function RepairGuideLibrary({onRefer}: {onRefer?: (task: string) 
       </header>
       <p className="repair-symptom"><strong>Sounds like this?</strong> {guide.symptoms}</p>
       {guide.scope === 'minor-plumbing' && <div className="repair-callout warn" role="note"><strong>Know the line</strong><p>{PLUMBING_SCOPE_NOTE}</p><a href={PLUMBING_LAW_URL} target="_blank" rel="noopener noreferrer">Illinois Plumbing License Law ↗</a></div>}
+      {guide.dig && <div className="repair-callout warn" role="note"><strong>Before you dig</strong><p>{JULIE_NOTE}</p><a href={JULIE_URL} target="_blank" rel="noopener noreferrer">JULIE (Illinois 811) ↗</a></div>}
       <section className="repair-block"><h4>1 · Quick check first</h4><ul className="repair-checks">{guide.quickCheck.map(c => <li key={c}>{c}</li>)}</ul></section>
       {guide.diagram && <RepairDiagram id={guide.diagram} color={cat.color}/>}
       <section className="repair-block"><h4>2 · Step by step <span className="repair-progress">{stepsDone}/{guide.steps.length} done</span></h4>
         <ol className="repair-steps">{guide.steps.map((s, i) => {const key = guide.id + i; return <li key={s.title} className={done[key] ? 'done' : ''}>
           <button type="button" className="repair-step-num" aria-pressed={!!done[key]} aria-label={'Mark step ' + (i + 1) + ' done'} onClick={() => setDone(d => ({...d, [key]: !d[key]}))}>{done[key] ? '✓' : i + 1}</button>
           <div><strong>{s.title}</strong><p>{s.detail}</p></div></li>;})}</ol></section>
+      {guide.bestPractices?.length ? <section className="repair-callout best"><h4>✔ Best practices</h4><ul>{guide.bestPractices.map(t => <li key={t}>{t}</li>)}</ul></section> : null}
       <section className="repair-callout tip"><h4>★ Trade tricks</h4><ul>{guide.tricks.map(t => <li key={t}>{t}</li>)}</ul></section>
       <div className="repair-kit"><section><h4>Tools</h4><ul>{guide.tools.map(t => <li key={t}>{t}</li>)}</ul></section><section><h4>Parts & materials</h4><ul>{guide.parts.map(t => <li key={t}>{t}</li>)}</ul></section></div>
       <section className="repair-callout stop" role="note"><h4>Stop and refer when</h4><p>{guide.stop}</p>{onRefer && <button type="button" className="secondary" onClick={() => onRefer(guide.title)}>Find a referral</button>}</section>
@@ -49,7 +51,7 @@ export default function RepairGuideLibrary({onRefer}: {onRefer?: (task: string) 
   }
 
   return <section className="repair-library" aria-label="Home repair field guide">
-    <div className="repair-hero"><h3>Home repair field guide</h3><p>The little things people live with — doors, locks, cabinets, drawers, faucets, toilets, trim, thresholds, grout. Find the fix, the drawing, the steps and the trade tricks.</p></div>
+    <div className="repair-hero"><h3>Home repair field guide</h3><p>Home, yard and appliance jobs, from sticking doors and running toilets to washers, TV mounts, mulch and snow. Each guide has a quick check, a drawing, numbered steps, best practices, trade tricks and when to refer.</p></div>
     <label className="repair-search">What needs fixing?<input type="search" value={query} maxLength={80} placeholder="Try: door sticking, running toilet, drawer slide" onChange={e => setQuery(e.target.value)}/></label>
     {!query && <div className="repair-suggest" aria-label="Common searches">{SUGGESTIONS.map(s => <button type="button" key={s} className="repair-chip plain" onClick={() => setQuery(s)}>{s}</button>)}</div>}
     <div className="repair-cats" role="group" aria-label="Browse by area">

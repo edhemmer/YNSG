@@ -40,3 +40,4 @@
 .repair-diagram figcaption{text-align:center;font-weight:700;font-size:.95rem;margin-top:6px}
 .repair-empty{padding:14px;border-radius:10px;border:1px dashed var(--os-border,#dce3e9)}
 @media(max-width:560px){.repair-card{grid-template-columns:36px 1fr 12px;padding:12px}.repair-card-icon{width:36px;height:36px}.repair-head{grid-template-columns:44px 1fr}.repair-head .repair-head-icon{width:44px;height:44px}}
+.repair-callout.best{background:#e9f5ec;border-color:#b9d9c2;color:#123a20}.repair-callout.best h4{color:#1f6b3a}

@@ -145,6 +145,67 @@ const drawings: Record<DiagramId, {title: string; body: ReactNode}> = {
     <T x={176} y={70} color={GOOD}>Top pivot: slide bracket</T><T x={176} y={84} color={GOOD}>to square the door</T>
     <T x={176} y={214} color={GOOD}>Bottom pivot: height</T><T x={176} y={126} color="#466a8c">Guide wheel rides</T><T x={176} y={140} color="#466a8c">in the track</T>
   </>},
+  'dryer-vent': {title: 'Short, straight, metal — to the outside', body: <>
+    <rect x={20} y={120} width={90} height={110} rx={6} fill="#e6e8f2" stroke={INK}/><circle cx={65} cy={170} r={28} fill="#fff" stroke={INK}/><T x={34} y={112} size={10}>Dryer</T>
+    <path d="M110 150 H200 V70 H262" fill="none" stroke={METAL} strokeWidth={16}/><path d="M110 150 H200 V70 H262" fill="none" stroke={INK} strokeWidth={1} strokeDasharray="4 4"/>
+    <rect x={262} y={20} width={22} height={210} fill="#d8c4ae" stroke={WOOD_DARK}/><path d="M284 58 h24 v26 h-24" fill="#d9dee2" stroke={INK}/><T x={186} y={14} size={10} color={MUTED}>Wall + flap hood →</T>
+    <T x={116} y={176} size={10} color={GOOD}>4" rigid/semi-rigid metal</T><T x={116} y={190} size={10} color={GOOD}>foil tape joints, no screws</T>
+    <T x={20} y={250} size={10} color={BAD}>No plastic, no foil accordion, no screen on the hood</T>
+  </>},
+  'dryer-cord': {title: 'Match the strap to the cord', body: <>
+    <rect x={20} y={40} width={130} height={150} rx={8} fill="#f4f5f9" stroke={INK}/><T x={30} y={32}>4-prong (14-30)</T>
+    {[45, 80, 115].map(x => <circle key={x} cx={x + 6} cy={90} r={9} fill={METAL} stroke={INK}/>)}
+    <T x={36} y={120} size={9}>Hot</T><T x={74} y={120} size={9}>N</T><T x={108} y={120} size={9}>Hot</T>
+    <circle cx={85} cy={160} r={7} fill={GOOD}/><T x={30} y={182} size={10} color={GOOD}>Green → frame screw</T>
+    <T x={30} y={206} size={10} color={BAD} weight={700}>Remove N-to-frame strap</T>
+    <rect x={170} y={40} width={130} height={150} rx={8} fill="#f4f5f9" stroke={INK}/><T x={180} y={32}>3-prong (10-30)</T>
+    {[195, 230, 265].map(x => <circle key={x} cx={x + 6} cy={90} r={9} fill={METAL} stroke={INK}/>)}
+    <path d="M236 99 V160" stroke={GOOD} strokeWidth={5}/><circle cx={236} cy={160} r={6} fill={INK}/>
+    <T x={180} y={206} size={10} color={GOOD} weight={700}>Strap stays in</T>
+    <T x={20} y={236} size={10} color={MUTED}>Always follow the diagram on the dryer's back panel.</T>
+  </>},
+  'washer-hookup': {title: 'Valves, hoses, drain, level', body: <>
+    <rect x={30} y={20} width={260} height={60} rx={6} fill="#f2f2ee" stroke={INK}/><circle cx={80} cy={50} r={10} fill="#d24b4b"/><circle cx={120} cy={50} r={10} fill="#2f6fa3"/><T x={70} y={34} size={9}>Hot</T><T x={108} y={34} size={9}>Cold</T>
+    <rect x={220} y={26} width={18} height={70} fill="#d9dee2" stroke={INK}/><T x={236} y={110} size={10}>Standpipe</T><T x={236} y={123} size={9} color={MUTED}>e.g. ≥39" tall</T>
+    <rect x={60} y={130} width={120} height={110} rx={8} fill="#e6e8f2" stroke={INK}/><circle cx={120} cy={185} r={30} fill="#fff" stroke={INK}/>
+    <path d="M80 60 C80 100 90 120 100 130" fill="none" stroke="#d24b4b" strokeWidth={3}/><path d="M120 60 C120 100 125 120 130 130" fill="none" stroke="#2f6fa3" strokeWidth={3}/>
+    <path d="M170 135 C200 120 220 90 229 40" fill="none" stroke={INK} strokeWidth={3}/><T x={248} y={60} size={9} color={GOOD}>Hook in, strap it,</T><T x={248} y={72} size={9} color={GOOD}>not airtight</T>
+    <T x={190} y={176} size={10} color={BAD}>Shipping bolts out</T><T x={190} y={232} size={10} color={GOOD}>Level + lock legs</T>
+  </>},
+  'mow-height': {title: 'Mow tall: never cut more than a third', body: <>
+    <line x1={20} y1={220} x2={300} y2={220} stroke={WOOD_DARK} strokeWidth={6}/>
+    {Array.from({length: 13}, (_, i) => <path key={i} d={`M${40 + i * 14} 220 q -4 -60 2 -130`} stroke="#3f7d2a" strokeWidth={3} fill="none"/>)}
+    <line x1={20} y1={135} x2={300} y2={135} stroke={BAD} strokeDasharray="5 4" strokeWidth={2}/><T x={22} y={78} size={10} color={BAD}>Cut line: remove ≤ 1/3 of the blade</T>
+    <Arrow x1={300} y1={218} x2={300} y2={140} color={GOOD}/><T x={232} y={180} size={11} color={GOOD}>2½–3"</T><T x={226} y={194} size={9} color={MUTED}>taller: fescue</T>
+    <T x={22} y={244} size={10} color={MUTED}>Sharp blades · leave clippings · alternate direction</T>
+  </>},
+  'mulch-ring': {title: 'A donut, not a volcano', body: <>
+    <line x1={10} y1={200} x2={150} y2={200} stroke={WOOD_DARK} strokeWidth={4}/><rect x={70} y={60} width={20} height={140} fill={WOOD_DARK}/>
+    <path d="M30 200 Q80 120 130 200 Z" fill="#8a5a2b" opacity={0.75}/><T x={20} y={50} color={BAD}>✗ Volcano</T><T x={14} y={226} size={9} color={BAD}>piled on trunk = rot</T>
+    <line x1={170} y1={200} x2={310} y2={200} stroke={WOOD_DARK} strokeWidth={4}/><rect x={230} y={60} width={20} height={140} fill={WOOD_DARK}/>
+    <path d="M180 200 Q182 182 200 182 H222 V200 Z M258 200 V182 H282 Q300 182 302 200 Z" fill="#8a5a2b" opacity={0.75}/><T x={184} y={50} color={GOOD}>✓ Donut</T>
+    <T x={176} y={226} size={9} color={GOOD}>2–3" deep, trunk flare clear</T>
+  </>},
+  'tv-mount': {title: 'Mount into two studs', body: <>
+    {[90, 230].map(x => <rect key={x} x={x} y={10} width={14} height={230} fill={WOOD} opacity={0.6}/>)}<T x={108} y={250} size={9} color={MUTED}>Studs (verify, don't guess)</T>
+    <rect x={70} y={90} width={180} height={50} rx={4} fill={METAL} stroke={INK}/>
+    {[97, 237].flatMap(x => [104, 126].map(y => <circle key={x + '-' + y} cx={x} cy={y} r={5} fill={GOOD}/>))}
+    <T x={74} y={84} size={10} color={GOOD}>Lag bolts into stud centers</T>
+    <rect x={40} y={60} width={240} height={140} rx={6} fill="none" stroke={INK} strokeDasharray="6 4"/><T x={108} y={214} size={10} color={MUTED}>TV: VESA + weight-rated mount</T>
+    <T x={108} y={228} size={10} color={BAD}>Never drywall anchors alone</T>
+  </>},
+  'anchor-chart': {title: 'Pick the fastener by load and wall', body: <>
+    {[['Light', 'Picture hook / small anchor', 30, GOOD], ['Medium', 'Stud, or rated metal anchor', 82, '#9a6b12'], ['Heavy / pulled on', 'Into studs (or rated toggle)', 134, BAD], ['Grab bars', 'Studs or grab-bar anchors only', 186, '#9b3b4a']].map(([a, b, y, c]) =>
+      <g key={a as string}><rect x={20} y={y as number} width={280} height={44} rx={8} fill="#fff" stroke={c as string} strokeWidth={2}/><T x={32} y={(y as number) + 19} color={c as string} size={12} weight={700}>{a as string}</T><T x={32} y={(y as number) + 35} size={10} color={MUTED}>{b as string}</T></g>)}
+    <T x={20} y={248} size={10} color={MUTED}>Use the package rating — and stay well under it.</T>
+  </>},
+  'gate-brace': {title: 'Brace pushes up, cable pulls up', body: <>
+    <rect x={20} y={20} width={14} height={196} fill={WOOD_DARK}/><T x={4} y={14} size={9} color={MUTED}>Hinge post</T>
+    <rect x={40} y={40} width={120} height={170} fill={WOOD} opacity={0.5} stroke={WOOD_DARK}/>
+    <line x1={42} y1={206} x2={158} y2={44} stroke={GOOD} strokeWidth={8}/><T x={20} y={232} size={10} color={GOOD}>Left: wood brace, low hinge → high latch</T>
+    <rect x={180} y={40} width={120} height={170} fill={WOOD} opacity={0.5} stroke={WOOD_DARK}/><rect x={166} y={20} width={14} height={196} fill={WOOD_DARK}/>
+    <line x1={182} y1={44} x2={298} y2={206} stroke={INK} strokeWidth={2.5}/><rect x={232} y={116} width={16} height={10} fill={METAL} stroke={INK}/><T x={20} y={248} size={10}>Right: cable, high hinge → low latch</T>
+  </>},
 };
 
 export default function RepairDiagram({id, color}: {id: DiagramId; color: string}) {

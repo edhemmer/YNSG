@@ -1,16 +1,18 @@
+import {MORE_GUIDES} from './home-repair-guides-more';
+
 // Home repair field guide: the small fixes neighbors live with until someone helps.
 // Written from the trade references linked on each guide (checked 2026-11-18). These are owner
 // training notes, not certified procedures: the product's own instructions always win, and a
 // guide never expands YNSG's approved services. Every guide says when to stop and refer.
 
-export type CategoryId = 'doors' | 'locks' | 'cabinets' | 'walls' | 'floors' | 'tile' | 'plumbing' | 'bath' | 'windows' | 'access' | 'safety';
-export type DiagramId = 'door-reveal' | 'strike-plate' | 'hinge-pin' | 'euro-hinge' | 'drawer-slide' | 'toilet-tank' | 'faucet-cartridge' | 'hose-bib' | 'grout-caulk' | 'transition' | 'nail-pop' | 'grab-bar' | 'screen-spline' | 'stripped-hole' | 'shoe-molding' | 'bifold';
+export type CategoryId = 'doors' | 'locks' | 'cabinets' | 'walls' | 'floors' | 'tile' | 'plumbing' | 'bath' | 'windows' | 'appliances' | 'electrical' | 'mounting' | 'painting' | 'yard' | 'outdoor' | 'seasonal' | 'access' | 'safety';
+export type DiagramId = 'door-reveal' | 'strike-plate' | 'hinge-pin' | 'euro-hinge' | 'drawer-slide' | 'toilet-tank' | 'faucet-cartridge' | 'hose-bib' | 'grout-caulk' | 'transition' | 'nail-pop' | 'grab-bar' | 'screen-spline' | 'stripped-hole' | 'shoe-molding' | 'bifold' | 'dryer-vent' | 'washer-hookup' | 'mow-height' | 'mulch-ring' | 'tv-mount' | 'anchor-chart' | 'gate-brace' | 'dryer-cord';
 export type Scope = 'ok' | 'minor-plumbing' | 'refer';
 export type Guide = {
   id: string; title: string; category: CategoryId; keywords: string[]; symptoms: string;
   level: 'Easy' | 'Moderate' | 'Skilled'; time: string; scope: Scope; diagram?: DiagramId;
   quickCheck: string[]; steps: {title: string; detail: string}[]; tricks: string[];
-  tools: string[]; parts: string[]; stop: string; source?: {name: string; url: string};
+  tools: string[]; parts: string[]; stop: string; source?: {name: string; url: string}; dig?: boolean; bestPractices?: string[];
 };
 
 export const CATEGORIES: Record<CategoryId, {label: string; color: string; tint: string; icon: string}> = {
@@ -23,6 +25,13 @@ export const CATEGORIES: Record<CategoryId, {label: string; color: string; tint:
   plumbing: {label: 'Faucets & toilets', color: '#1f6f9c', tint: '#e5f2fa', icon: 'M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11Z'},
   bath: {label: 'Bath & kitchen hardware', color: '#4b6a2e', tint: '#eef4e6', icon: 'M4 12h16v3a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM6 12V5a2 2 0 0 1 4 0'},
   windows: {label: 'Windows & screens', color: '#466a8c', tint: '#ebf1f7', icon: 'M4 3h16v18H4zM4 12h16M12 3v18'},
+  appliances: {label: 'Appliances', color: '#5b5f97', tint: '#ecedf7', icon: 'M5 3h14v18H5zM5 8h14M9 5.5h1M12 14.5a3 3 0 1 0 0 .1'},
+  electrical: {label: 'Electrical basics', color: '#c28a00', tint: '#fdf3d8', icon: 'M13 2 5 14h6l-1 8 8-12h-6z'},
+  mounting: {label: 'Mounting & assembly', color: '#5d4037', tint: '#f1ebe8', icon: 'M3 21h18M6 21V9l6-5 6 5v12M10 13h4v4h-4z'},
+  painting: {label: 'Painting', color: '#b03a6b', tint: '#f9e8ef', icon: 'M4 4h12v5H4zM16 6h3v6h-8v3M11 15v6'},
+  yard: {label: 'Lawn & landscape', color: '#3f7d2a', tint: '#e9f4e3', icon: 'M12 21V11M12 11c0-4 3-7 7-7 0 4-3 7-7 7ZM12 14c0-3-2.5-5.5-6-5.5 0 3 2.5 5.5 6 5.5Z'},
+  outdoor: {label: 'Fences, decks & concrete', color: '#6d5a3a', tint: '#f3eee4', icon: 'M4 21V7l2-3 2 3v14M16 21V7l2-3 2 3v14M4 11h16M4 17h16'},
+  seasonal: {label: 'Snow & seasonal', color: '#2f6fa3', tint: '#e6f0f8', icon: 'M12 2v20M4.9 6l14.2 12M19.1 6 4.9 18M9 3.5l3 2 3-2M9 20.5l3-2 3 2'},
   access: {label: 'Accessibility help', color: '#9b3b4a', tint: '#f8e9ec', icon: 'M12 4a1.5 1.5 0 1 0 0 .1M9 8h6M12 8v6l-3 6M12 14l3 6'},
   safety: {label: 'Safety basics', color: '#b5481d', tint: '#fbece4', icon: 'M12 3l9 16H3zM12 10v4M12 17v.5'},
 };
@@ -31,13 +40,15 @@ export const CATEGORIES: Record<CategoryId, {label: string; color: string; tint:
 // no change to the piping to or from fixtures and no removal, replacement, installation or
 // re-installation of any pipe or plumbing fixture. Replacing a toilet, faucet or sillcock is plumbing.
 export const PLUMBING_SCOPE_NOTE = 'Illinois law: minor repairs that do not change piping and do not remove, replace or reinstall a pipe or plumbing fixture are not "plumbing." Inside-the-fixture parts (flapper, fill valve, cartridge, washer, packing) fit that. Replacing a whole toilet, faucet, outdoor spigot or any pipe is licensed-plumber work. Towns can be stricter, and this is not legal advice — when unsure, refer it.';
+export const JULIE_NOTE = 'Illinois law: contact JULIE (call 811 or submit online) at least two working days before any digging — even a fence post, mailbox post or shrub. It is free. Respect the flags, and hand-dig near marks. Private lines (lamp posts, sprinklers, gas to a grill) are not marked by JULIE.';
+export const JULIE_URL = 'https://www.illinois1call.com/';
 export const PLUMBING_LAW_URL = 'https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=1343&ChapterID=24';
 
 const TOH = 'This Old House', FH = 'Family Handyman';
 
-export const GUIDES: Guide[] = [
+const BASE_GUIDES: Guide[] = [
   // ───────── Doors ─────────
-  {id: 'door-sticking', title: 'Door sticks or rubs the frame', category: 'doors', diagram: 'door-reveal', level: 'Easy', time: '30–60 min', scope: 'ok',
+  {bestPractices: ['Diagnose before you cut: hinges, then strike, then plane.', 'Always seal any edge you trim, including the top and bottom.'], id: 'door-sticking', title: 'Door sticks or rubs the frame', category: 'doors', diagram: 'door-reveal', level: 'Easy', time: '30–60 min', scope: 'ok',
     keywords: ['sticking', 'stuck', 'rubbing', 'rubs', 'binding', 'hard to close', 'swollen', 'scraping', 'drags', 'catches', 'sagging door'],
     symptoms: 'Door scrapes the top corner, the latch side, or drags at the bottom; worse in humid summer weather.',
     quickCheck: ['Close the door slowly and watch the gap (the "reveal") around it. Even gap all around = good; a gap that pinches to nothing shows where it rubs.', 'Rubbing at the top latch-side corner almost always means the door has sagged on loose top hinge screws.', 'Rub chalk or a pencil on the door edge, close it a few times, and look for the transfer mark on the frame.'],
@@ -167,7 +178,7 @@ export const GUIDES: Guide[] = [
     source: {name: FH + ': How to stop door drafts around entry doors', url: 'https://www.familyhandyman.com/doors/repair/how-to-stop-door-drafts-around-entry-doors'}},
 
   // ───────── Locks & knobs ─────────
-  {id: 'deadbolt-sticks', title: 'Deadbolt sticks or key is hard to turn', category: 'locks', diagram: 'strike-plate', level: 'Easy', time: '20–45 min', scope: 'ok',
+  {bestPractices: ['Dry lubricant only (graphite or PTFE) — oils attract grit.', 'Test lock function with the door both open and closed before leaving.'], id: 'deadbolt-sticks', title: 'Deadbolt sticks or key is hard to turn', category: 'locks', diagram: 'strike-plate', level: 'Easy', time: '20–45 min', scope: 'ok',
     keywords: ['deadbolt', 'lock', 'key hard to turn', 'lock sticks', 'won\'t lock', 'lock not working', 'locks that aren\'t working', 'bolt binds', 'stiff lock'],
     symptoms: 'Key or thumb-turn is stiff, the bolt won\'t fully extend, or it only works if you push or pull on the door.',
     quickCheck: ['Open the door and work the deadbolt. Smooth when open but stiff when closed = alignment problem. Stiff even when open = the lock itself needs lube or replacement.', 'Mark the bolt tip with a marker and throw it against the strike to see where it hits.'],
@@ -215,7 +226,7 @@ export const GUIDES: Guide[] = [
     parts: ['Replacement hinge matching overlay/cup size if broken'],
     stop: 'Swollen or delaminated particleboard around the cup hole needs a repair kit or door replacement.',
     source: {name: 'Blum: Straight arm hinge adjustments (PDF)', url: 'https://cdn.shopify.com/s/files/1/0709/8495/8225/files/Blum_Straight_Arm_Hinge_Adjustments.pdf'}},
-  {id: 'drawer-slides', title: 'Drawer slide broken, sticking or falling out', category: 'cabinets', diagram: 'drawer-slide', level: 'Moderate', time: '30–60 min per drawer', scope: 'ok',
+  {bestPractices: ['Replace slides in pairs, same brand and length.', 'Respect the slide\'s load rating — deep pot drawers need heavier slides.'], id: 'drawer-slides', title: 'Drawer slide broken, sticking or falling out', category: 'cabinets', diagram: 'drawer-slide', level: 'Moderate', time: '30–60 min per drawer', scope: 'ok',
     keywords: ['drawer', 'drawer slide', 'drawer slider', 'drawer glide', 'drawer runner', 'drawer stuck', 'drawer falls', 'drawer won\'t close', 'ball bearing slide', 'undermount', 'drawer repair'],
     symptoms: 'Drawer grinds, drops, comes off the track, or won\'t close all the way.',
     quickCheck: ['Pull the drawer out and look: metal tracks on the sides (side-mount ball-bearing), white/cream tracks with nylon wheels (epoxy roller), or nothing visible (undermount, under the drawer).', 'Loose screws are common — check them before buying parts.'],
@@ -294,7 +305,7 @@ export const GUIDES: Guide[] = [
     source: {name: TOH + ': How to install shoe molding', url: 'https://www.thisoldhouse.com/molding/how-to-install-shoe-molding'}},
 
   // ───────── Floors & thresholds ─────────
-  {id: 'floor-transition', title: 'Floor transition strip or threshold damaged or loose', category: 'floors', diagram: 'transition', level: 'Moderate', time: '45–90 min', scope: 'ok',
+  {bestPractices: ['Never pin a floating floor — leave its expansion gap under the trim.'], id: 'floor-transition', title: 'Floor transition strip or threshold damaged or loose', category: 'floors', diagram: 'transition', level: 'Moderate', time: '45–90 min', scope: 'ok',
     keywords: ['threshold', 'transition', 'transition strip', 't-molding', 't molding', 'reducer', 'floor trim', 'flooring threshold', 'doorway strip', 'tile to wood', 'tile to carpet', 'trip hazard', 'chipped trim', 'split trim'],
     symptoms: 'The strip between two floors is cracked, split, loose, chipped, or catches toes.',
     quickCheck: ['Same height on both sides? It should be a T-molding. Different heights (e.g., wood higher than tile, or tile higher than vinyl)? It should be a reducer.', 'Floating floors (click laminate/vinyl) need the strip to cover the expansion gap without pinning the floor down.', 'See whether it\'s glued, nailed, screwed, or snapped into a metal track.'],
@@ -313,7 +324,7 @@ export const GUIDES: Guide[] = [
     source: {name: 'Angi: Floor transition strips guide', url: 'https://www.angi.com/articles/floor-transition-strips-guide.htm'}},
 
   // ───────── Tile & grout ─────────
-  {id: 'grout-repair', title: 'Cracked, missing or crumbling grout', category: 'tile', diagram: 'grout-caulk', level: 'Moderate', time: '1–2 hrs + cure', scope: 'ok',
+  {bestPractices: ['Grout between tiles; flexible caulk at every change of plane or material.', 'Follow the grout\'s cure time before foot traffic or water.'], id: 'grout-repair', title: 'Cracked, missing or crumbling grout', category: 'tile', diagram: 'grout-caulk', level: 'Moderate', time: '1–2 hrs + cure', scope: 'ok',
     keywords: ['grout', 'tile grout', 'cracked grout', 'missing grout', 'regrout', 're-grout', 'grout repair', 'grout falling out', 'tile joint'],
     symptoms: 'Grout lines are cracked, crumbling, missing, or stained beyond cleaning.',
     quickCheck: ['Press on the tiles next to the bad grout — if a tile moves or sounds hollow, the tile is loose; regrouting won\'t hold until it\'s re-set.', 'Grout cracking where tile meets a tub, wall, cabinet or another floor type is a movement joint — it needs flexible caulk, not grout.'],
@@ -332,7 +343,7 @@ export const GUIDES: Guide[] = [
     source: {name: 'Bob Vila: Grout repair step by step', url: 'https://www.bobvila.com/articles/grout-repair/'}},
 
   // ───────── Faucets & toilets (minor repairs only) ─────────
-  {id: 'running-toilet', title: 'Running toilet', category: 'plumbing', diagram: 'toilet-tank', level: 'Easy', time: '20–45 min', scope: 'minor-plumbing',
+  {bestPractices: ['Turn the supply valve off before working in the tank, and back on slowly.', 'Leave the customer\'s bathroom cleaner than you found it — towels down, wipe up.'], id: 'running-toilet', title: 'Running toilet', category: 'plumbing', diagram: 'toilet-tank', level: 'Easy', time: '20–45 min', scope: 'minor-plumbing',
     keywords: ['toilet', 'running toilet', 'toilet running', 'toilet keeps running', 'phantom flush', 'flapper', 'fill valve', 'toilet won\'t stop', 'how to fix a toilet', 'toilet repair'],
     symptoms: 'Toilet runs constantly, hisses, or refills on its own every so often.',
     quickCheck: ['Lift the lid. Water flowing into the overflow tube = fill valve/float set too high or failing.', 'Refills by itself with no overflow = the flapper is leaking. Test: add a few drops of food coloring to the tank, wait about 20 minutes without flushing; color in the bowl means the flapper leaks.', 'Lift the float by hand — if the water stops, the fill valve works and only needs adjusting.'],
@@ -397,7 +408,7 @@ export const GUIDES: Guide[] = [
     parts: ['Toggle bolts or rated anchors'],
     stop: 'Tile walls: drilling tile needs the right bit and care; cracked tile repair is a separate job.',
     source: {name: 'Hunker: How to install and repair a towel bar', url: 'https://www.hunker.com/13727106/how-to-install-and-repair-a-towel-bar'}},
-  {id: 'caulk-tub', title: 'Re-caulk a tub, shower or sink', category: 'bath', diagram: 'grout-caulk', level: 'Easy', time: '1–2 hrs + cure', scope: 'ok',
+  {bestPractices: ['Remove 100% of old silicone — new caulk won\'t stick to old silicone.', 'Full cure before showers (often 24 hours; check the tube).'], id: 'caulk-tub', title: 'Re-caulk a tub, shower or sink', category: 'bath', diagram: 'grout-caulk', level: 'Easy', time: '1–2 hrs + cure', scope: 'ok',
     keywords: ['caulk', 'recaulk', 're-caulk', 'tub caulk', 'shower caulk', 'moldy caulk', 'sink caulk', 'silicone'],
     symptoms: 'Caulk is moldy, peeling, cracked, or pulling away.',
     quickCheck: ['Push on the wall tiles near the joint — soft or hollow areas mean water damage; caulk won\'t fix that.'],
@@ -433,7 +444,7 @@ export const GUIDES: Guide[] = [
     source: {name: 'Hunker: Window screen repair', url: 'https://www.hunker.com/13712110/repairing-window-screens'}},
 
   // ───────── Accessibility ─────────
-  {id: 'grab-bar', title: 'Install a grab bar', category: 'access', diagram: 'grab-bar', level: 'Moderate', time: '45–90 min', scope: 'ok',
+  {bestPractices: ['Mount for the actual user and how they move — ask, then test with them.', 'Never use a towel bar as a grab bar, and never mount on drywall anchors alone.'], id: 'grab-bar', title: 'Install a grab bar', category: 'access', diagram: 'grab-bar', level: 'Moderate', time: '45–90 min', scope: 'ok',
     keywords: ['grab bar', 'grab bars', 'safety bar', 'bathroom bar', 'shower bar', 'toilet bar', 'handrail', 'accessibility'],
     symptoms: 'Customer needs secure support at the toilet, tub or shower.',
     quickCheck: ['Ask who will use it, how (standing, sitting, transferring) and which hand. Mount where they naturally reach.', 'Find studs or confirmed blocking. Never rely on towel-bar anchors.'],
@@ -467,6 +478,8 @@ export const GUIDES: Guide[] = [
     stop: 'Replacing hardwired alarms involves electrical connections — refer to a licensed electrician.',
     source: {name: 'InspectAndTest: NFPA and U.S. Fire Administration replacement guidance', url: 'https://inspectandtest.net/guides/how-often-to-replace-smoke-detectors/'}},
 ];
+
+export const GUIDES: Guide[] = [...BASE_GUIDES, ...MORE_GUIDES];
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
 // Plain-language search: every word must appear somewhere in the guide's title, symptoms, keywords or category.
