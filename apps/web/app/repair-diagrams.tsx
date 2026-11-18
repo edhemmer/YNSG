@@ -206,6 +206,77 @@ const drawings: Record<DiagramId, {title: string; body: ReactNode}> = {
     <rect x={180} y={40} width={120} height={170} fill={WOOD} opacity={0.5} stroke={WOOD_DARK}/><rect x={166} y={20} width={14} height={196} fill={WOOD_DARK}/>
     <line x1={182} y1={44} x2={298} y2={206} stroke={INK} strokeWidth={2.5}/><rect x={232} y={116} width={16} height={10} fill={METAL} stroke={INK}/><T x={20} y={248} size={10}>Right: cable, high hinge → low latch</T>
   </>},
+
+  'drywall-patch': {title: 'Pick the patch by hole size', body: <>
+    {[[20, 'Nail hole', 'Spackle, 2 skims', 6], [120, 'Up to ~6"', 'Mesh patch + mud', 22], [220, 'Bigger', 'Backer + drywall', 34]].map(([x, a, b, r]) =>
+      <g key={a as string}><rect x={x as number} y={30} width={84} height={110} rx={6} fill="#f7f5f1" stroke={INK}/>
+        {(r as number) < 30 ? <circle cx={(x as number) + 42} cy={85} r={r as number} fill="#cfc8bd" stroke={MUTED}/> : <><rect x={(x as number) + 12} y={52} width={60} height={66} fill={WOOD} opacity={0.35} stroke={WOOD_DARK} strokeDasharray="4 3"/><rect x={(x as number) + 22} y={62} width={40} height={46} fill="#fff" stroke={INK}/></>}
+        {(r as number) === 22 && <rect x={(x as number) + 12} y={55} width={60} height={60} fill="none" stroke={GOOD} strokeWidth={2} strokeDasharray="3 3"/>}
+        <T x={(x as number) + 42} y={160} anchor="middle" size={11}>{a as string}</T><T x={(x as number) + 42} y={176} anchor="middle" size={9} color={MUTED}>{b as string}</T></g>)}
+    <rect x={30} y={196} width={260} height={22} rx={11} fill="none" stroke={GOOD}/><rect x={110} y={200} width={100} height={14} rx={7} fill={GOOD} opacity={0.35}/>
+    <T x={160} y={236} anchor="middle" size={10} color={GOOD}>3 thin coats, each wider · final ~12" square</T>
+    <T x={160} y={251} anchor="middle" size={10} color={MUTED}>Sand · prime the patch · paint</T>
+  </>},
+  'picture-hang': {title: 'Measure the hook point, hang on two', body: <>
+    <rect x={40} y={40} width={150} height={110} fill="#f4efe6" stroke={WOOD_DARK} strokeWidth={6}/>
+    <path d="M60 70 L115 52 L170 70" fill="none" stroke={INK} strokeWidth={1.5}/><circle cx={115} cy={52} r={3} fill={BAD}/>
+    <line x1={200} y1={37} x2={200} y2={52} stroke={BAD} strokeWidth={2}/><T x={206} y={48} size={10} color={BAD}>wire peak to top</T>
+    <line x1={20} y1={190} x2={300} y2={190} stroke={INK} strokeDasharray="4 4"/><T x={210} y={184} size={10} color={MUTED}>level line</T>
+    {[88, 142].map(x => <g key={x}><circle cx={x} cy={190} r={5} fill={GOOD}/></g>)}<T x={70} y={210} size={10} color={GOOD}>Two hooks, ~⅓ in from each side</T>
+    <Arrow x1={20} y1={250} x2={20} y2={100} color={MUTED}/><T x={28} y={240} size={10} color={MUTED}>Center ≈ 57–60" from floor</T>
+  </>},
+  'plunger': {title: 'Use the right plunger', body: <>
+    <rect x={50} y={20} width={8} height={110} fill={WOOD}/><path d="M24 130 Q54 96 84 130 Z" fill="#d24b4b" stroke={INK}/><T x={20} y={160} size={11}>Cup plunger</T><T x={20} y={176} size={10} color={MUTED}>sinks · tubs</T><T x={20} y={192} size={10} color={MUTED}>block the overflow</T>
+    <rect x={212} y={20} width={8} height={100} fill={WOOD}/><path d="M186 120 Q216 86 246 120 Z" fill="#2b2b2b" stroke={INK}/><rect x={206} y={120} width={20} height={16} rx={4} fill="#2b2b2b"/><T x={176} y={160} size={11}>Flange plunger</T><T x={176} y={176} size={10} color={MUTED}>toilets: flange seals</T><T x={176} y={192} size={10} color={MUTED}>the bowl opening</T>
+    <T x={20} y={226} size={10} color={GOOD}>Gentle first push · keep the seal · 10–15 strokes</T>
+    <T x={20} y={244} size={10} color={BAD}>No chemical cleaners in toilets</T>
+  </>},
+  'thread-tape': {title: 'Wrap tape the way it tightens', body: <>
+    <rect x={20} y={100} width={180} height={34} fill={METAL} stroke={INK}/><T x={24} y={92} size={10} color={MUTED}>Shower arm (stays in the wall)</T>
+    {Array.from({length: 7}, (_, i) => <line key={i} x1={150 + i * 7} y1={100} x2={146 + i * 7} y2={134} stroke={INK}/>)}
+    <rect x={150} y={102} width={50} height={30} fill="#fff" opacity={0.55}/>
+    <path d="M176 82 A26 26 0 1 1 150 150" fill="none" stroke={GOOD} strokeWidth={2.5}/><Arrow x1={152} y1={150} x2={146} y2={146} color={GOOD}/>
+    <T x={212} y={110} size={11} color={GOOD}>Clockwise,</T><T x={212} y={125} size={11} color={GOOD}>2–3 wraps</T><T x={212} y={140} size={9} color={MUTED}>(looking at the end)</T>
+    <T x={20} y={186} size={10}>Hold the arm with one hand while turning</T><T x={20} y={202} size={10}>Hand-tight + ¼ turn with a rag-wrapped wrench</T>
+    <T x={20} y={230} size={10} color={MUTED}>WaterSense heads: ≤ 2.0 gpm (federal max 2.5)</T>
+  </>},
+  'caulk-bead': {title: 'Backer rod for deep gaps, one smooth bead', body: <>
+    <rect x={20} y={40} width={120} height={150} fill={WOOD} stroke={WOOD_DARK}/><rect x={160} y={40} width={140} height={150} fill="#e9e4dc" stroke={INK}/><T x={30} y={30} size={10} color={MUTED}>Trim</T><T x={170} y={30} size={10} color={MUTED}>Siding / wall</T>
+    <rect x={140} y={40} width={20} height={150} fill="#fff" stroke={MUTED} strokeDasharray="3 3"/>
+    <circle cx={150} cy={130} r={9} fill="#9cc2e6" stroke={INK}/><path d="M140 112 Q150 96 160 112 L160 120 L140 120 Z" fill="#f2f2f2" stroke={INK}/>
+    <T x={40} y={214} size={10} color={GOOD}>Backer rod first when deeper than ~¼"</T>
+    <T x={40} y={230} size={10} color={GOOD}>Clean + dry · continuous bead · tool it</T>
+    <T x={40} y={248} size={10} color={BAD}>Never caulk window weep holes</T>
+    <T x={170} y={110} size={9}>← caulk bead</T><T x={170} y={134} size={9}>← backer rod</T>
+  </>},
+  'pruning-cut': {title: 'Cut just outside the branch collar', body: <>
+    <rect x={20} y={10} width={40} height={236} fill={WOOD_DARK}/>
+    <path d="M60 110 Q70 100 80 104 L290 74 L292 98 L80 128 Q70 132 60 128 Z" fill={WOOD} stroke={WOOD_DARK}/>
+    <path d="M60 104 Q74 100 82 104 L82 128 Q74 132 60 128" fill="none" stroke={GOOD} strokeWidth={3}/><T x={68} y={150} size={10} color={GOOD}>Branch collar: keep it</T>
+    <line x1={86} y1={92} x2={88} y2={138} stroke={GOOD} strokeWidth={2.5}/><T x={92} y={168} size={11} color={GOOD}>✓ Final cut here</T>
+    <line x1={60} y1={96} x2={60} y2={138} stroke={BAD} strokeWidth={2.5} strokeDasharray="4 3"/><T x={66} y={88} size={10} color={BAD}>✗ Flush cut (into collar)</T>
+    <line x1={170} y1={80} x2={170} y2={118} stroke={MUTED} strokeWidth={2}/><line x1={200} y1={84} x2={200} y2={96} stroke={MUTED} strokeWidth={2}/><line x1={230} y1={78} x2={230} y2={110} stroke={MUTED} strokeWidth={2}/>
+    <T x={78} y={196} size={10} color={MUTED}>Heavy limb: undercut ①, top cut ②,</T><T x={78} y={210} size={10} color={MUTED}>then final cut ③ at the collar</T>
+    <T x={78} y={238} size={10} color={MUTED}>No stubs · no wound paint</T>
+  </>},
+  'deck-screws': {title: 'Two screws per joist, ends on joist centers', body: <>
+    {[60, 160, 260].map(x => <rect key={x} x={x - 8} y={20} width={16} height={160} fill={WOOD_DARK} opacity={0.35}/>)}<T x={300} y={14} anchor="end" size={9} color={MUTED}>Joists (check for soft spots)</T>
+    {[40, 84, 128].map(y => <rect key={y} x={20} y={y} width={280} height={38} fill={WOOD} stroke={WOOD_DARK}/>)}
+    {[40, 84, 128].flatMap(y => [60, 160, 260].flatMap(x => [y + 9, y + 29].map(yy => <circle key={x + '-' + yy} cx={x} cy={yy} r={3} fill={INK}/>)))}
+    <line x1={160} y1={84} x2={160} y2={122} stroke={BAD} strokeWidth={2}/><T x={20} y={202} size={10} color={GOOD}>Screws ~¾" from edges · pre-drill near ends</T>
+    <T x={20} y={218} size={10} color={GOOD}>Board ends meet on joist center (red line)</T>
+    <T x={20} y={246} size={10} color={MUTED}>Keep the same gap as neighbors so water drains</T>
+  </>},
+  'paver-base': {title: 'Fix the base, not just the paver', body: <>
+    {[60, 120, 180, 240].map(x => <rect key={x} x={x - 26} y={46} width={52} height={28} fill="#b9a596" stroke={INK}/>)}
+    <rect x={20} y={74} width={280} height={18} fill="#e8d9a8"/><rect x={20} y={92} width={280} height={60} fill="#a8a8a0"/>
+    {Array.from({length: 24}, (_, i) => <circle key={i} cx={30 + (i % 12) * 23} cy={106 + Math.floor(i / 12) * 26} r={3} fill="#7d7d76"/>)}
+    <rect x={20} y={152} width={280} height={56} fill="#9b7c5c"/>
+    <T x={24} y={40} size={10}>Pavers · sand-filled joints</T><T x={196} y={87} size={10}>Bedding sand ~1"</T>
+    <T x={160} y={128} anchor="middle" size={10} color="#fff">Compacted base ≥ 4" (walks, patios)</T><T x={160} y={186} anchor="middle" size={10} color="#fff">Compacted soil</T>
+    <T x={20} y={232} size={10} color={MUTED}>ICPI: sand bed doesn't fill dips — rebuild and tamp the base</T>
+    <T x={20} y={248} size={10} color={GOOD}>Edge restraint keeps it all from creeping</T>
+  </>},
 };
 
 export default function RepairDiagram({id, color}: {id: DiagramId; color: string}) {

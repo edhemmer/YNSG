@@ -1,4 +1,5 @@
 import {MORE_GUIDES} from './home-repair-guides-more';
+import {EXTRA_GUIDES, deepen} from './home-repair-guides-extra';
 
 // Home repair field guide: the small fixes neighbors live with until someone helps.
 // Written from the trade references linked on each guide (checked 2026-11-18). These are owner
@@ -6,7 +7,7 @@ import {MORE_GUIDES} from './home-repair-guides-more';
 // guide never expands YNSG's approved services. Every guide says when to stop and refer.
 
 export type CategoryId = 'doors' | 'locks' | 'cabinets' | 'walls' | 'floors' | 'tile' | 'plumbing' | 'bath' | 'windows' | 'appliances' | 'electrical' | 'mounting' | 'painting' | 'yard' | 'outdoor' | 'seasonal' | 'access' | 'safety';
-export type DiagramId = 'door-reveal' | 'strike-plate' | 'hinge-pin' | 'euro-hinge' | 'drawer-slide' | 'toilet-tank' | 'faucet-cartridge' | 'hose-bib' | 'grout-caulk' | 'transition' | 'nail-pop' | 'grab-bar' | 'screen-spline' | 'stripped-hole' | 'shoe-molding' | 'bifold' | 'dryer-vent' | 'washer-hookup' | 'mow-height' | 'mulch-ring' | 'tv-mount' | 'anchor-chart' | 'gate-brace' | 'dryer-cord';
+export type DiagramId = 'door-reveal' | 'strike-plate' | 'hinge-pin' | 'euro-hinge' | 'drawer-slide' | 'toilet-tank' | 'faucet-cartridge' | 'hose-bib' | 'grout-caulk' | 'transition' | 'nail-pop' | 'grab-bar' | 'screen-spline' | 'stripped-hole' | 'shoe-molding' | 'bifold' | 'dryer-vent' | 'washer-hookup' | 'mow-height' | 'mulch-ring' | 'tv-mount' | 'anchor-chart' | 'gate-brace' | 'dryer-cord' | 'drywall-patch' | 'picture-hang' | 'plunger' | 'thread-tape' | 'caulk-bead' | 'pruning-cut' | 'deck-screws' | 'paver-base';
 export type Scope = 'ok' | 'minor-plumbing' | 'refer';
 export type Guide = {
   id: string; title: string; category: CategoryId; keywords: string[]; symptoms: string;
@@ -479,7 +480,7 @@ const BASE_GUIDES: Guide[] = [
     source: {name: 'InspectAndTest: NFPA and U.S. Fire Administration replacement guidance', url: 'https://inspectandtest.net/guides/how-often-to-replace-smoke-detectors/'}},
 ];
 
-export const GUIDES: Guide[] = [...BASE_GUIDES, ...MORE_GUIDES];
+export const GUIDES: Guide[] = deepen([...BASE_GUIDES, ...MORE_GUIDES, ...EXTRA_GUIDES]);
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
 // Plain-language search: every word must appear somewhere in the guide's title, symptoms, keywords or category.
