@@ -23,7 +23,7 @@ test('new everyday jobs are found first by plain words', () => {
 });
 
 test('steps inserted by DEPTH land in a sensible order', () => {
-  const step = (id: string, i: number) => GUIDES.find(g => g.id === id)!.steps[i].title;
+  const step = (id: string, i: number) => GUIDES.find(g => g.id === id)!.steps[i]?.title;
   assert.equal(step('dryer-install', 0), 'Check the outlet first');
   assert.equal(step('furniture-anchor', 0), 'Empty top drawers first');
   assert.equal(step('closet-rod-shelf', 0), 'Level first');

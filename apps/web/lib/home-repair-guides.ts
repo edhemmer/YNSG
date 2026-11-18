@@ -1,5 +1,5 @@
-import {MORE_GUIDES} from './home-repair-guides-more';
-import {EXTRA_GUIDES, deepen} from './home-repair-guides-extra';
+import {MORE_GUIDES} from './home-repair-guides-more.ts';
+import {EXTRA_GUIDES, deepen} from './home-repair-guides-extra.ts';
 
 // Home repair field guide: the small fixes neighbors live with until someone helps.
 // Written from the trade references linked on each guide (checked 2026-11-18). These are owner

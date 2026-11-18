@@ -1,4 +1,4 @@
-import type {DiagramId, Guide} from './home-repair-guides';
+import type {DiagramId, Guide} from './home-repair-guides.ts';
 
 // Third pass on the field guide (checked 2026-11-18):
 //  1. DEPTH brings every guide up to the same standard: a real quick check, five-plus steps where the
@@ -411,15 +411,17 @@ export function deepen(guides: Guide[]): Guide[] {
   return guides.map(g => {
     const d = DEPTH[g.id];
     if (!d) return g;
+    const steps: Guide['steps'] = (d.steps || []).reduce((list: Guide['steps'], {at, ...step}) => {
+      const next = [...list];
+      next.splice(at ?? next.length, 0, step);
+      return next;
+    }, g.steps);
     const uniq = (a: string[]) => [...new Set(a)];
+    const diagram = g.diagram || d.diagram;
     return {...g,
-      diagram: g.diagram || d.diagram,
+      ...(diagram ? {diagram} : {}),
       quickCheck: uniq([...g.quickCheck, ...(d.quickCheck || [])]),
-      steps: (d.steps || []).reduce((list, {at, ...step}) => {
-        const next = [...list];
-        next.splice(at ?? next.length, 0, step);
-        return next;
-      }, g.steps),
+      steps,
       tricks: uniq([...g.tricks, ...(d.tricks || [])]),
       bestPractices: uniq([...(g.bestPractices || []), ...(d.bestPractices || [])]),
       tools: uniq([...g.tools, ...(d.tools || [])]),
