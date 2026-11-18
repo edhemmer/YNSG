@@ -561,5 +561,7 @@
    "historyVersion": "20261005123109"
   }
  ],
- "pendingUnappliedMigrations": []
+ "pendingUnappliedMigrations": [
+   {"file": "20261118120000_customer_email_history.sql", "name": "customer_email_history", "status": "not_applied_to_connected_supabase"}
+ ]
 }

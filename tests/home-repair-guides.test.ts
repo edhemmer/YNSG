@@ -1,0 +1,29 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {GUIDES, CATEGORIES, searchGuides} from '../apps/web/lib/home-repair-guides.ts';
+
+test('the owner\'s own words find the right repair guide first',()=>{
+ const expect:[string,string][]=[['door sticking','door-sticking'],['doors that aren\'t closing correctly','door-wont-latch'],['locks that aren\'t working','deadbolt-sticks'],['kitchen cabinet door repair','cabinet-door-hinge'],['drawer slider repair','drawer-slides'],['how to fix a toilet','running-toilet'],['dripping faucet','dripping-faucet'],['outdoor faucet','outdoor-faucet'],['floor trim installation','trim-shoe-molding'],['flooring threshold repair','floor-transition'],['tile grout repair','grout-repair']];
+ for(const [q,id] of expect)assert.equal(searchGuides(q)[0]?.id,id,q);
+ assert.equal(searchGuides('zzzz').length,0);
+});
+test('every guide is complete: quick check, steps, trade tricks, tools, a stop-and-refer line',()=>{
+ const ids=new Set<string>();
+ for(const g of GUIDES){
+  assert.ok(!ids.has(g.id),g.id);ids.add(g.id);assert.ok(CATEGORIES[g.category],g.id);
+  assert.ok(g.quickCheck.length>=1&&g.steps.length>=3&&g.tricks.length>=1&&g.tools.length>=1,g.id);
+  assert.ok(g.stop.length>20,g.id);
+  if(g.source)assert.match(g.source.url,/^https:\/\//,g.id);
+ }
+});
+test('plumbing guides stay inside Illinois minor-repair limits and say where the line is',()=>{
+ for(const g of GUIDES.filter(g=>g.category==='plumbing')){assert.equal(g.scope,'minor-plumbing',g.id);assert.match(g.stop,/licensed-plumber work in Illinois/,g.id);}
+ const ui=readFileSync('apps/web/app/repair-guide-library.tsx','utf8');assert.match(ui,/PLUMBING_SCOPE_NOTE/);assert.match(ui,/PLUMBING_LAW_URL/);
+});
+test('every referenced drawing exists and the guide never uses "home safety" wording',()=>{
+ const drawings=readFileSync('apps/web/app/repair-diagrams.tsx','utf8');
+ for(const g of GUIDES)if(g.diagram)assert.ok(drawings.includes("'"+g.diagram+"': {"),g.diagram);
+ assert.doesNotMatch(JSON.stringify(GUIDES),/home safety/i);
+ assert.doesNotMatch(JSON.stringify(GUIDES),/gutter/i);
+});
