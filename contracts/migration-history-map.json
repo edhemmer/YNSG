@@ -529,6 +529,11 @@
    "file": "20261117190000_marketing_automation.sql",
    "name": "marketing_automation",
    "historyVersion": "20261117183848"
+  },
+  {
+   "file": "20261118120000_customer_email_history.sql",
+   "name": "customer_email_history",
+   "historyVersion": "20261118132316"
   }
  ],
  "supabaseOnlyHistoricalMigrations": [
@@ -561,7 +566,5 @@
    "historyVersion": "20261005123109"
   }
  ],
- "pendingUnappliedMigrations": [
-   {"file": "20261118120000_customer_email_history.sql", "name": "customer_email_history", "status": "not_applied_to_connected_supabase"}
- ]
+ "pendingUnappliedMigrations": []
 }
