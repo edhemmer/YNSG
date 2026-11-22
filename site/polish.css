@@ -267,7 +267,7 @@ body .meet-ed-card .welcome-voice-note{display:none}
  body .home-service-card .service-copy small,body .home-service-card .service-copy .service-note{display:none}
  body .home-service-card .home-service-book{padding:2px 14px 12px!important;font-size:.95rem}
 }
-@media(max-width:700px){body .home-work .work-grid figure:nth-child(n+7){display:none}}
+@media(max-width:700px){body .home-work .work-grid figure:nth-child(n+5){display:none}}
 .before-after{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 10px}
 .before-after figure{position:relative;margin:0;border-radius:10px;overflow:hidden;background:#e6ece4}
 .before-after img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover}
