@@ -534,6 +534,11 @@
    "file": "20261118120000_customer_email_history.sql",
    "name": "customer_email_history",
    "historyVersion": "20261118132316"
+  },
+  {
+   "file": "20261123120000_business_accounts.sql",
+   "historyVersion": "20261123153000",
+   "name": "business_accounts"
   }
  ],
  "supabaseOnlyHistoricalMigrations": [
@@ -566,11 +571,5 @@
    "historyVersion": "20261005123109"
   }
  ],
- "pendingUnappliedMigrations": [
-  {
-   "file": "20261123120000_business_accounts.sql",
-   "name": "business_accounts",
-   "status": "not_applied_to_connected_supabase"
-  }
- ]
+ "pendingUnappliedMigrations": []
 }
