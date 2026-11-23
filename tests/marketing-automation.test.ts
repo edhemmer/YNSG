@@ -133,7 +133,7 @@ test('business contacts get the business series; a failed lookup falls back to t
 test('business emails stay inside what YNSG can promise',()=>{
  for(let month=1;month<=12;month++)for(const journey of JOURNEYS)for(const audience of ['customer','prospect'] as const){
   const m=marketingEmail({journey,audience,month,name:'Pat',sendId,token,segment:'business'});
-  assert.doesNotMatch(m.body,/insured|background[- ]checked|licensed|guarantee|gutter|holiday lights|\$\d/i,journey+' '+month);
+  assert.doesNotMatch(m.body,/insured|background[- ]checked|licensed|guarantee|gutter|holiday lights|fixed price|not-to-exceed|\$\d/i,journey+' '+month);
   assert.match(m.body,/Unsubscribe: /);
  }
 });
