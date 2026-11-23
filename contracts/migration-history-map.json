@@ -1,5 +1,5 @@
 {
- "observedOn": "2026-11-17",
+ "observedOn": "2026-11-23",
  "supabaseProjectRef": "jvigtwjlkmeyavzbxjzl",
  "sourceBranch": "codex/google-one-click-reconnect-20261102",
  "sourceCommit": "e389f72ab634f9421d23e67e497799e90361ec58",
@@ -534,6 +534,11 @@
    "file": "20261118120000_customer_email_history.sql",
    "name": "customer_email_history",
    "historyVersion": "20261118132316"
+  },
+  {
+   "file": "20261123120000_business_accounts.sql",
+   "historyVersion": "20261123153000",
+   "name": "business_accounts"
   }
  ],
  "supabaseOnlyHistoricalMigrations": [

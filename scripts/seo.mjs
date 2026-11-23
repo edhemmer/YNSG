@@ -24,7 +24,7 @@ const titles={
  'leaf-cleanup-dekalb-il':'Leaf Management in DeKalb, IL',
  'snow-removal-dekalb-il':'Residential Snow Removal in DeKalb, IL',
  'realtors-property-managers':'Listing Prep & Rental Turnovers | DeKalb, IL',
- 'business-community-partners':'Builder Punch Lists, Rentals & Farm Help | DeKalb IL',
+ 'business-community-partners':'Commercial Handyman for Landlords & Churches | DeKalb IL',
  'mulch-delivery-spreading-dekalb-il':'Mulch Pickup, Delivery & Spreading in DeKalb, IL',
  'mulch-yard-cleanup-dekalb-il':'Mulch & Yard Cleanup in DeKalb, IL',
  'concrete-pressure-washing-dekalb-il':'Concrete Pressure Washing in DeKalb, IL',
@@ -55,7 +55,7 @@ export function seo(slug,title,description,media=null,howTo=null){
  if(slug==='business-community-partners'){
   const partnerId=url+'#partner-services';
   graph.find(node=>node['@id']===pageId).mainEntity={'@id':partnerId};
-  graph.push({'@type':'Service','@id':partnerId,url,name:'Builder punch-list and property support',serviceType:'Small construction punch lists, rental turnover support and farmstead upkeep',description:'Owner-operated help for agreed small builder punch lists, move-in readiness, rental turnovers, cleanup, farmstead and yard projects in DeKalb, Sycamore, Cortland, Elburn and St. Charles, Illinois.',audience:{'@type':'BusinessAudience',audienceType:'Homebuilders, property managers, landlords, farm operators and community organizations'},provider:{'@id':organization['@id']},areaServed,mainEntityOfPage:{'@id':pageId}});
+  graph.push({'@type':'Service','@id':partnerId,url,name:'Commercial handyman and property help',serviceType:'Commercial handyman, rental turnover and property punch-list services',description:'Owner-operated punch lists, rental turnovers, vacant-space cleanouts, small repairs, accessibility help and ground-level grounds upkeep for landlords, property managers, commercial building owners, offices, churches, builders and community organizations in DeKalb, Sycamore, Cortland, Elburn and St. Charles, Illinois. Free walkthrough, written scope and fixed price before work starts.',audience:{'@type':'BusinessAudience',audienceType:'Landlords, property managers, commercial building owners, offices, churches, homebuilders, farm operators and community organizations'},provider:{'@id':organization['@id']},areaServed,mainEntityOfPage:{'@id':pageId}});
  }
  if(slug==='realtors-property-managers'){
   const partnerId=url+'#service';

@@ -32,6 +32,7 @@ try {
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/task-time.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/customer-service-history.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/customer-email-history.sql','utf8'));
+ await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/business-accounts.sql','utf8'));
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/account-deletion.sql','utf8'));
  await db.exec(foundation);
  await db.exec(foundation.split('set local role service_role;')[0]+await readFile('tests/customer-profile.sql','utf8'));

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {marketingEmail,MONTHS,JOURNEYS,trackedLink,unsubscribeLink} from '../apps/web/lib/marketing-emails.ts';
-import {runMarketing} from '../apps/web/lib/marketing-worker.ts';
+import {marketingEmail,MONTHS,BUSINESS_MONTHS,JOURNEYS,trackedLink,unsubscribeLink} from '../apps/web/lib/marketing-emails.ts';
+import {runMarketing,centralMonth} from '../apps/web/lib/marketing-worker.ts';
 import {providerEmail} from '../lib/transactional-email.js';
 // Website endpoints are plain JavaScript without type declarations.
 type Handler=(req:unknown,res:unknown,deps:Record<string,unknown>)=>Promise<unknown>;
@@ -111,3 +111,29 @@ test('mail apps can unsubscribe in one click with the personal code',async()=>{
  assert.equal(r.statusCode,200);assert.deepEqual(done,[{email:null,token}]);
 });
 
+
+test('business contacts get the business series; a failed lookup falls back to the home series',async()=>{
+ const claimed=[row(1),row(2)];const calls:Call[]=[];const subjects:Record<string,string>={};
+ const db={rpc:async(name:string,args:Record<string,unknown>)=>{calls.push({name,args});
+  if(name==='marketing_automation_plan')return {data:{enabled:true,queued:2},error:null};
+  if(name==='marketing_automation_claim')return {data:claimed,error:null};
+  if(name==='marketing_business_sends')return {data:[claimed[0]!.id],error:null};
+  return {data:{ok:true},error:null};}};
+ await runMarketing(sendId,db as never,(async(_o:string,id:string,m:{subject:string})=>{subjects[id]=m.subject;return 're_'+id;}) as never,resend as never);
+ const month=centralMonth();
+ assert.equal(subjects[claimed[0]!.id],BUSINESS_MONTHS[Math.floor((month-1)/2)]!.subject);
+ assert.equal(subjects[claimed[1]!.id],MONTHS[month-1]!.subject);
+ assert.deepEqual(calls.find(c=>c.name==='marketing_business_sends')?.args.p_ids,claimed.map(r=>r.id));
+ const failing={rpc:async(name:string)=>name==='marketing_automation_plan'?{data:{enabled:true,queued:1},error:null}:name==='marketing_automation_claim'?{data:[row(3)],error:null}:name==='marketing_business_sends'?{data:null,error:{message:'down'}}:{data:{ok:true},error:null}};
+ const seen:string[]=[];
+ await runMarketing(sendId,failing as never,(async(_o:string,_id:string,m:{subject:string})=>{seen.push(m.subject);return 'x';}) as never,resend as never);
+ assert.deepEqual(seen,[MONTHS[month-1]!.subject]);
+});
+
+test('business emails stay inside what YNSG can promise',()=>{
+ for(let month=1;month<=12;month++)for(const journey of JOURNEYS)for(const audience of ['customer','prospect'] as const){
+  const m=marketingEmail({journey,audience,month,name:'Pat',sendId,token,segment:'business'});
+  assert.doesNotMatch(m.body,/insured|background[- ]checked|licensed|guarantee|gutter|holiday lights|\$\d/i,journey+' '+month);
+  assert.match(m.body,/Unsubscribe: /);
+ }
+});

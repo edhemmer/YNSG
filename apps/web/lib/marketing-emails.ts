@@ -14,7 +14,7 @@ export const JOURNEY_LABELS:Record<Journey,{title:string;detail:string}>={
  customer_checkin:{title:'Customer check-in',detail:'About 3 weeks after a customer’s invoice.'},
  customer_anniversary:{title:'One-year thank-you',detail:'A year after a customer’s first job.'},
  winback:{title:'Second chance',detail:'60–120 days after a request or estimate that didn’t go ahead.'},
- monthly:{title:'Monthly email',detail:'One per month: a customer version and a prospect version, sent Tue–Thu mornings.'}
+ monthly:{title:'Monthly email',detail:'One per month: customer, prospect and business versions, sent Tue–Thu mornings.'}
 };
 
 const SITE=businessIdentity.website;
@@ -72,7 +72,25 @@ export const MONTHS:Month[]=[
   customer:'Thank you for trusting us with your home this year. Reply anytime. We’re here.',prospect:'If winter brings something you need help with, we’re a short message away.'}
 ];
 
-export type MarketingInput={journey:Journey;audience:Audience;month:number;name?:string|null;sendId:string;token:string;stage?:string};
+export type Segment='home'|'business';
+export type MarketingInput={journey:Journey;audience:Audience;month:number;name?:string|null;sendId:string;token:string;stage?:string;segment?:Segment};
+// Business series: landlords, property managers, offices, churches and other organizations. Two months
+// share each entry (index 0 = January–February). Same rules: no price, availability or credentials promised.
+type BusinessMonth={subject:string;preview:string;headline:string;intro:string;checklist:[string,string,string]};
+export const BUSINESS_MONTHS:BusinessMonth[]=[
+ {subject:'A winter punch list for your building',preview:'Slow weeks are the best time to clear the small repairs.',headline:'Clear the building’s small-repair list',intro:'Winter is when the little things in a building get noticed: doors that don’t latch, loose hardware, worn caulk. It’s also when we have room on the schedule to take care of them.',
+  checklist:['Doors, closers, locks and hardware that need adjusting','Wall patches and touch-ups in hallways and common rooms','Shelving, storage and furniture assembly']},
+ {subject:'Spring grounds and turnover prep',preview:'Get the grounds cleaned up and turnovers lined up before May.',headline:'Get ahead of spring and move-out season',intro:'Spring cleanup and May move-outs arrive at the same time. A little planning now keeps both from landing on the same week.',
+  checklist:['Clear winter debris from beds and common grounds','Refresh mulch at entrances and walkways','Hold turnover dates before the May move-outs']},
+ {subject:'Turnovers without the scramble',preview:'Cleanouts, patching and a yard reset between tenants.',headline:'Get units ready to show, on schedule',intro:'Between tenants, every day a unit sits costs rent. We take care of the small jobs that hold up a turnover so it’s ready to show.',
+  checklist:['Cleanouts of items left behind','Patching, touch-ups and hardware between tenants','A yard reset so the property shows well']},
+ {subject:'August move-outs are coming',preview:'Book turnover help early and finish exterior touch-ups.',headline:'August fills up fast around NIU',intro:'Late summer brings the second wave of move-outs. Getting dates on the calendar now beats searching for help the week keys come back.',
+  checklist:['Book August turnover dates now','Exterior touch-ups while the weather holds','Storage rooms and shelving before fall']},
+ {subject:'Get the building ready before the cold',preview:'Weatherstripping, leaves and outdoor fixes before it freezes.',headline:'Fix it now, not in the cold',intro:'Outdoor items and drafty doors are a lot easier to deal with in the fall. Let’s get the building ready before the weather turns.',
+  checklist:['Weatherstripping and door sweeps','Leaf cleanup on common grounds','Ground-level outdoor repairs before the freeze']},
+ {subject:'Ready for holiday guests and services',preview:'A punch list before the busiest weeks of the year.',headline:'Get the building ready for the holidays',intro:'Holiday events, services and visitors put every building on display. A short punch list now means fewer surprises when people arrive.',
+  checklist:['A punch list before holiday events and services','Grab bars and accessibility help for visitors','Clear storage rooms and haul away clutter']}
+];
 const firstName=(name?:string|null)=>{const f=(name||'').trim().split(/\s+/)[0]||'';return /^[\p{L}'’-]{2,30}$/u.test(f)?f:'';};
 export const trackedLink=(sendId:string,path:string)=>{
  if(!/^[0-9a-f-]{36}$/i.test(sendId)||!/^\/[a-z0-9-/]*$/.test(path))throw Error('INVALID_LINK');
@@ -85,6 +103,20 @@ function compose(input:MarketingInput):Body{
  const hi=firstName(input.name),greet=hi?`Hi ${hi},`:'Hi neighbor,';
  const m=MONTHS[(input.month-1+12)%12]!;
  const customer=input.audience==='customer';
+ if(input.segment==='business'){
+  const b=BUSINESS_MONTHS[Math.floor(((input.month-1+12)%12)/2)]!;
+  const how={tone:'navy' as const,title:'How we work with businesses',items:['A free walkthrough and a written, itemized scope','A fixed price for that scope, or a not-to-exceed cap when we can’t see it all','Before-and-after photos with every invoice']};
+  if(input.journey==='welcome')return {subject:'Thanks for reaching out about your property',preview:'Who we are and how we work with businesses.',headline:'Glad to be on your list',
+   paragraphs:[greet,'Thanks for getting in touch. I’m Ed, and Your Neighborhood Service Guy helps landlords, property managers, offices and churches from DeKalb to St. Charles with the small repairs and grounds work that pile up.','About once a month I’ll send a short note with what’s worth doing that season. You can unsubscribe in one click.'],
+   extra:how,cta:{label:'Request a free walkthrough',path:'/business-community-partners'},secondary:{label:'See all services',path:'/services'}};
+  if(input.journey==='winback')return {subject:'Still have a list for your property?',preview:'If the timing wasn’t right before, it might be now.',headline:'Still have something on the list?',
+   paragraphs:[greet,'A while back you asked about help with a property. The timing or scope might not have lined up then.','If that list is still waiting, or a new one has come up, send it over and I’ll take a fresh look.'],
+   callout:{title:'What we’re doing this season',items:b.checklist},cta:{label:'Request a free walkthrough',path:'/business-community-partners'}};
+  if(input.journey==='monthly')return {subject:b.subject,preview:b.preview,headline:b.headline,
+   paragraphs:[greet,b.intro,customer?'You already know how we work. Reply with the list and I’ll set a date.':'Send me the list, or ask for a free walkthrough, and I’ll put it all in writing.'],
+   callout:{title:'This season’s checklist',items:b.checklist},extra:how,
+   cta:customer?{label:'Book the next visit',path:'/request'}:{label:'Request a free walkthrough',path:'/business-community-partners'},secondary:{label:'See all services',path:'/services'}};
+ }
  switch(input.journey){
   case 'welcome':return {subject:'Welcome to the neighborhood list',preview:'Who we are, what we do, and how to reach me.',headline:'Glad you’re here',
    paragraphs:[greet,'Thanks for signing up. I’m Ed, and Your Neighborhood Service Guy is how I help folks from DeKalb to St. Charles with the jobs that pile up: yard work, snow, hauling, small repairs and making homes safer to get around.','About once a month I’ll send a short note with what’s worth doing that season, and the occasional giveaway like Service Saturday. No spam, and you can unsubscribe in one click.'],
