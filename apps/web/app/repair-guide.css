@@ -50,3 +50,22 @@
   .repair-back,.repair-actions,.repair-related,.repair-step-num,.repair-callout.stop button{display:none!important}
   .repair-steps li{break-inside:avoid}
 }
+
+/* Coaching blocks: color-coded so each kind of help is recognizable at a glance. */
+.repair-meter{display:inline-flex;align-items:center;gap:3px}.repair-meter i{width:9px;height:9px;border-radius:50%;background:color-mix(in srgb,var(--cat) 22%,#fff);border:1px solid color-mix(in srgb,var(--cat) 55%,#fff)}.repair-meter i.on{background:var(--cat)}.repair-meter b{margin-left:4px;font-weight:600}
+/*removed*/.repair-bar-unused{height:8px;border-radius:999px;background:color-mix(in srgb,var(--cat) 15%,var(--os-surface,#fff));overflow:hidden;margin:0 0 12px}.repair-bar span{display:block;height:100%;background:var(--cat);transition:width .25s}
+.repair-callout.before{background:#e8f1fa;border-color:#b6cfe6;color:#12304d}.repair-callout.before h4{color:#1d5a92}
+.repair-packhead{display:flex;justify-content:space-between;margin:10px 0 4px;font-weight:700}.repair-packhead span{font-weight:500;font-size:.85rem}
+.repair-pack{list-style:none;padding:0!important;margin:0;display:grid;gap:4px}.repair-pack label{display:flex;gap:8px;align-items:flex-start;cursor:pointer;line-height:1.4}.repair-pack input{margin-top:3px;flex:none}
+.repair-slow{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;background:#fff0cc;border:1px solid #e8cf8e;color:#7a5200;font-size:.72rem;font-weight:700;vertical-align:middle}
+.repair-note{margin:8px 0 0!important;padding:8px 10px;border-radius:8px;border-left:4px solid;font-size:.93rem}.repair-note b{display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.repair-note.see{background:#e9f5ec;border-color:#2f8a4f;color:#123a20}.repair-note.see b{color:#1f6b3a}
+.repair-note.help{background:#e8f1fa;border-color:#2f78b5;color:#12304d}.repair-note.help b{color:#1d5a92}
+.repair-note.avoid{background:#fbeeec;border-color:#c0452f;color:#4a1a10}.repair-note.avoid b{color:#8c311e}
+.repair-callout.mistakes{background:#fff4dc;border-color:#e8cf8e;color:#3e2f05}.repair-callout.mistakes h4{color:#8a6100}
+.repair-callout.finished{background:#e9f5ec;border-color:#b9d9c2;color:#123a20}.repair-callout.finished h4{color:#1f6b3a}
+.repair-glossary{padding:12px 14px;border-radius:12px;border:1px solid var(--os-border,#dce3e9);background:var(--os-surface,#fff)}.repair-glossary summary{cursor:pointer;font-weight:700}.repair-glossary dl{margin:10px 0 0;display:grid;gap:8px}.repair-glossary dt{font-weight:700;color:var(--cat)}.repair-glossary dd{margin:0}
+@media print{.repair-pack input{display:none}}
+
+.repair-bring{margin:6px 0 0;padding-left:18px;display:grid;gap:3px;columns:2 220px}
+.repair-step-num{display:grid;place-items:center;cursor:default}
