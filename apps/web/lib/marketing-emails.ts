@@ -105,7 +105,7 @@ function compose(input:MarketingInput):Body{
  const customer=input.audience==='customer';
  if(input.segment==='business'){
   const b=BUSINESS_MONTHS[Math.floor(((input.month-1+12)%12)/2)]!;
-  const how={tone:'navy' as const,title:'How we work with businesses',items:['A free walkthrough and a written, itemized scope','A fixed price for that scope, or a not-to-exceed cap when we can’t see it all','Before-and-after photos with every invoice']};
+  const how={tone:'navy' as const,title:'How we work with businesses',items:['A free walkthrough and a clear written estimate','Nothing extra without your OK','Local and owner-operated: you talk to Ed']};
   if(input.journey==='welcome')return {subject:'Thanks for reaching out about your property',preview:'Who we are and how we work with businesses.',headline:'Glad to be on your list',
    paragraphs:[greet,'Thanks for getting in touch. I’m Ed, and Your Neighborhood Service Guy helps landlords, property managers, offices and churches from DeKalb to St. Charles with the small repairs and grounds work that pile up.','About once a month I’ll send a short note with what’s worth doing that season. You can unsubscribe in one click.'],
    extra:how,cta:{label:'Request a free walkthrough',path:'/business-community-partners'},secondary:{label:'See all services',path:'/services'}};
