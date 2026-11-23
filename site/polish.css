@@ -278,12 +278,5 @@ body .meet-ed-card .welcome-voice-note{display:none}
 .ba-caption{margin:0 0 24px;color:#405868;font-size:.95rem}
 .ba-section.section{padding-block:24px 8px}
 @media(max-width:600px){.ba-section .before-after{grid-template-columns:1fr}.ba-tag{font-size:.78rem;padding:3px 9px}.before-after figcaption{left:8px;top:8px}}
-/* Fix-it guides */
-.fix-it-list{list-style:none;padding:0;margin:8px 0 28px;display:grid;gap:18px}
-.fix-it-list li{line-height:1.5}
-.fix-it-list a strong{font-size:1.15rem}
-.fix-it-meta{margin-top:10px}
-.fix-it-cta{margin:32px 0}
-.fix-it-cta h2{margin-top:0}
-.fix-it-note{font-size:.95rem;color:#4a5a52}
 .proof-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;max-width:460px;margin:28px 0 8px}.proof-pair figure{margin:0;position:relative}.proof-pair img{display:block;width:100%;height:auto;border-radius:14px;box-shadow:0 14px 34px #10283c1f}.proof-pair figcaption{position:absolute;left:12px;top:12px;padding:4px 12px;border-radius:999px;background:var(--navy,#10283c);color:#fff;font-size:.85rem;font-weight:700;letter-spacing:.04em}
+.pricing-layout>.pricing-card.wide{grid-column:1/-1}

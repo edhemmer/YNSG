@@ -62,6 +62,16 @@
       "source": "/franchise",
       "destination": "/",
       "permanent": false
+    },
+    {
+      "source": "/fix-it-guides",
+      "destination": "/home-help/",
+      "permanent": true
+    },
+    {
+      "source": "/fix-it-guides/:path*",
+      "destination": "/home-help/",
+      "permanent": true
     }
   ]
 }
