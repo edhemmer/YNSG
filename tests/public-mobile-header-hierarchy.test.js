@@ -19,5 +19,5 @@ test('mobile primary navigation remains four balanced links while account sign i
  assert.match(source,/<nav class="nav-desktop" aria-label="Main">\$\{links\}<\/nav>/);
  assert.match(source,/<a href="https:\/\/yourneighborhoodserviceguy\.app\/account">Customer sign in<\/a>/);
  assert.match(source,/<a href="https:\/\/yourneighborhoodserviceguy\.app\/account">Customer sign in<\/a>/);
- assert.match(source,/<a href="\/business-community-partners\/">Businesses, churches &amp; landlords<\/a>/);
+ assert.match(source,/<a href="\/business-community-partners\/">Businesses, churches, landlords &amp; realtors<\/a>/);
 });
