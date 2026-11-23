@@ -19,11 +19,14 @@ export async function runMarketing(org:string,db:Db,send:Send,transport:Transpor
  const claim=await db.rpc('marketing_automation_claim',{p_org:org,p_limit:MARKETING_BATCH});
  if(claim.error||!Array.isArray(claim.data))throw Error('CLAIM_FAILED');
  let sent=0,failed=0,stop=false;const month=centralMonth();
+ // Business contacts (inquiry form or a business account) get the business series. A failed lookup falls back to the home series.
+ let business=new Set<string>();
+ if((claim.data as Claimed[]).length){try{const seg=await db.rpc('marketing_business_sends',{p_org:org,p_ids:(claim.data as Claimed[]).map(r=>r.id)});if(!seg.error&&Array.isArray(seg.data))business=new Set(seg.data as string[]);}catch{/* home series */}}
  for(const row of claim.data as Claimed[]){
   if(stop){await db.rpc('marketing_automation_finish',{p_org:org,p_id:row.id,p_status:'queued',p_provider:null,p_error:'batch_paused'});continue;}
   if(!JOURNEYS.includes(row.journey as Journey)||!['customer','prospect'].includes(row.audience)){await db.rpc('marketing_automation_finish',{p_org:org,p_id:row.id,p_status:'skipped',p_provider:null,p_error:'unknown_journey'});continue;}
   try{
-   const m=marketingEmail({journey:row.journey as Journey,audience:row.audience as 'customer'|'prospect',month,name:row.name,sendId:row.id,token:row.token,stage:row.stage});
+   const m=marketingEmail({journey:row.journey as Journey,audience:row.audience as 'customer'|'prospect',month,name:row.name,sendId:row.id,token:row.token,stage:row.stage,segment:business.has(row.id)?'business':'home'});
    const id=await send(org,row.id,{to:row.email,subject:m.subject,body:m.body,html:m.html,replyTo:businessIdentity.email,headers:m.headers});
    await db.rpc('marketing_automation_finish',{p_org:org,p_id:row.id,p_status:'sent',p_provider:id,p_error:null});sent++;
   }catch(error){

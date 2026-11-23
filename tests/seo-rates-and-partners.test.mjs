@@ -28,7 +28,8 @@ test('partner SEO covers specific services, geography and business audience with
  const nodes=graph('business-community-partners');
  const service=nodes.find(node=>node['@type']==='Service');
  assert.equal(service.audience['@type'],'BusinessAudience');
- assert.match(service.name,/Builder punch-list/i);
+ assert.match(service.name,/Commercial handyman/i);
+ assert.match(service.description,/churches/i);
  assert.match(service.description,/Sycamore/);
  assert.equal(service.provider['@id'],nodes[0]['@id']);
  const page=await readFile('site/pages/business-community-partners.html','utf8');
