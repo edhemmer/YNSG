@@ -29,7 +29,7 @@ test('a coached guide shows before-you-start, color-coded step help, mistakes an
   assert.ok(node.querySelector('.repair-meter'));assert.equal(node.querySelectorAll('input[type=checkbox]').length,0,'reference guide has no checklists');assert.doesNotMatch(t,/Confirm before you leave/);
   // an uncoached guide still gets the new structure without empty coaching blocks
   await act(async()=>{[...node.querySelectorAll('button')].find(b=>/All repair guides/.test(b.textContent)).click();});
-  const plain=[...node.querySelectorAll('button.repair-card')].find(b=>/nail pops/i.test(b.textContent));
+  const plain=[...node.querySelectorAll('button.repair-card')].find(b=>/squeaky/i.test(b.textContent));
   await act(async()=>{plain.click();});assert.match(node.textContent,/Before you start/);assert.doesNotMatch(node.textContent,/Common mistakes/);
  }finally{await act(async()=>root.unmount());}
 });
