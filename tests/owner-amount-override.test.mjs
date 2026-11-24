@@ -17,3 +17,11 @@ test('issued invoices offer a one-field way to lower the amount through the audi
   assert.ok(credits.includes('Quick: lower the charge to'));
   assert.ok(credits.includes('Save reviewed adjustment'));
 });
+test('owner app runs next to the database region and loads independent reads together',()=>{
+  const vercel=JSON.parse(readFileSync(new URL('../apps/web/vercel.json',import.meta.url),'utf8'));
+  assert.deepEqual(vercel.regions,['pdx1']);
+  const route=readFileSync(new URL('../apps/web/app/api/workspace/route.ts',import.meta.url),'utf8');
+  assert.ok(/Promise\.all\(\[\s*db\.rpc\('production_workflows_ready'/.test(route));
+  const workspace=read('workspace.tsx');
+  assert.ok(workspace.includes("const MonthCalendar=dynamic("));
+});
