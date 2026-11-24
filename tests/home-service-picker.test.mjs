@@ -30,3 +30,16 @@ test('all ten service cards have consistent action text while preserving specifi
  assert.ok(doc.querySelector('.hero-buttons a[href="/request/"]').textContent.includes('Request service appointment'));
  dom.window.close();
 });
+
+test('request panel stays out of the mobile flow until a service card is used',()=>{
+ const {dom,doc}=setup();const panel=doc.querySelector('.service-request-panel');assert.equal(panel.dataset.engaged,'false');
+ doc.querySelectorAll('.home-service-book')[0].click();assert.equal(panel.dataset.engaged,'true');
+ const css=readFileSync(new URL('../site/premium.css',import.meta.url),'utf8');assert.match(css,/\[data-engaged=false\]\{display:none\}/);dom.window.close();
+});
+
+test('phone rail carries chosen jobs forward instead of restarting the request',()=>{
+ const dom=new JSDOM(html+'<nav class="mobile-rail" data-sticky-cta><a class="rail-call" href="tel:+18156801775">Call</a><a class="rail-request" href="/request/">Request service <span aria-hidden="true">→</span></a></nav>',{url:'https://example.invalid/'});dom.window.HTMLElement.prototype.scrollIntoView=()=>{};const doc=dom.window.document;homeServicePicker(doc);
+ const rail=doc.querySelector('.rail-request'),card=doc.querySelector('.home-service-book');
+ card.click();assert.equal(rail.textContent,'Continue with 1 job →');
+ card.click();assert.equal(rail.textContent.trim(),'Request service →');assert.ok(rail.querySelector('span'));dom.window.close();
+});
