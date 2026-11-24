@@ -4,6 +4,7 @@ import {serviceCatalog} from './service-catalog.js';
 /** Progressive enhancement: original links and category form work without this module. */
 export function homeServicePicker(doc){
  const panel=doc.querySelector('.service-request-panel'),form=panel?.querySelector('form');if(!form)return;
+ panel.dataset.engaged='false';
  let storage;try{storage=doc.defaultView?.sessionStorage;}catch{}
  let canPersist=false;
  const selected=new Map(),checks=new Map(),groups=new Map(),buttons=[];
@@ -16,6 +17,9 @@ export function homeServicePicker(doc){
  const review=doc.createElement('ul');review.className='service-picker-selection';review.setAttribute('aria-label','Jobs in your request');
  fieldset.before(status,review);
  const submit=form.querySelector('button[type=submit]');
+ // Phone rail: once jobs are chosen, its Request button carries them forward instead of starting over.
+ const rail=doc.querySelector('[data-sticky-cta] .rail-request'),railHTML=rail?.innerHTML;
+ rail?.addEventListener('click',event=>{if(!selected.size)return;event.preventDefault();if(form.requestSubmit)form.requestSubmit(submit);else form.submit();});
  function refresh(){
   canPersist=saveServiceSelection(storage,[...selected.values()]);
   review.replaceChildren();
@@ -25,7 +29,8 @@ export function homeServicePicker(doc){
   submit.disabled=false;submit.textContent=selected.size?'Continue with '+selected.size+' '+(selected.size===1?'job':'jobs')+' →':'Choose your first job →';
   status.hidden=selected.size===0;
   status.textContent=selected.size?selected.size+' '+(selected.size===1?'job':'jobs')+' in one request. You can edit your choices next.':(panel.dataset.preferredService?'Pick one or more jobs.':'Choose a group or add from a card.');
-  panel.dataset.hasJobs=String(selected.size>0);doc.body.classList.toggle('has-service-selection',selected.size>0);
+  if(rail){if(selected.size){rail.textContent='Continue with '+selected.size+' '+(selected.size===1?'job':'jobs')+' →';rail.dataset.continueRequest='true';}else{rail.innerHTML=railHTML;delete rail.dataset.continueRequest;}}
+  panel.dataset.hasJobs=String(selected.size>0);if(selected.size)panel.dataset.engaged='true';doc.body.classList.toggle('has-service-selection',selected.size>0);
  }
  function toggle(service,task){const id=key(service,task);if(selected.has(id))selected.delete(id);else if(selected.size<15)selected.set(id,{service,task});else{status.textContent='Choose up to 15 jobs. You can describe more on the next screen.';refreshChecks();return;}refresh();}
  function refreshChecks(){for(const [id,input] of checks)input.checked=selected.has(id);}
@@ -45,7 +50,7 @@ export function homeServicePicker(doc){
  for(const link of doc.querySelectorAll('.home-service-book')){
   const params=new URL(link.href).searchParams,service=params.get('service'),task=params.get('task'),title=link.closest('article').querySelector('h3').textContent.trim();if(!Object.hasOwn(serviceCatalog,service))continue;
   const button=doc.createElement('button');button.type='button';button.className=link.className;button.dataset.bookingHref=link.getAttribute('href');const exact=serviceCatalog[service].includes(task);button.textContent='Choose service →';button.setAttribute('aria-label','Choose service: '+title);
-  button.addEventListener('click',()=>{if(exact)toggle(service,task);else{const group=groups.get(service);group.open=true;group.querySelector('summary').focus();group.scrollIntoView({block:'center',behavior:'instant'});}});
+  button.addEventListener('click',()=>{if(exact)toggle(service,task);else{const group=groups.get(service);panel.dataset.engaged='true';group.open=true;group.querySelector('summary').focus();group.scrollIntoView({block:'center',behavior:'instant'});}});
   buttons.push({button,id:exact?key(service,task):null});link.replaceWith(button);
  }
  form.addEventListener('submit',event=>{if(!selected.size){event.preventDefault();status.hidden=false;status.textContent='Choose a service group, then add the jobs you need.';const group=groups.get(panel.dataset.preferredService)||groups.values().next().value;group.open=true;group.querySelector('summary').focus();}});
