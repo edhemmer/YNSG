@@ -398,6 +398,305 @@ export const COACH: Record<string, Coach> = {
     },
     mistakes: ['Nailing into the floor.', 'Cutting a short piece.', 'Mitering inside corners that open up later.'],
   },
+  'squeaky-hinge': {
+    before: ['Work on one hinge at a time with the door closed so it stays supported.', 'Lay a rag under the hinge to catch drips and old grease.'],
+    steps: {
+      1: {help: 'Slide a nail or punch under the bottom of the pin and tap up. It often takes a few firm taps to break loose.', avoid: 'Pulling the pin out on all hinges at once.'},
+      3: {see: 'A thin, even film of grease on the pin, not a glob.', help: 'Petroleum jelly or white lithium grease lasts longer than spray oil, which drips and attracts dust.'},
+    },
+    mistakes: ['Spraying oil that drips onto the floor or paint.', 'Removing every pin at once so the door falls.', 'Leaving rust on the pin.'],
+  },
+  'stripped-screw-hole': {
+    before: ['Decide what the screw holds. A door hinge takes more force than a small cabinet pull.', 'Wood glue and toothpicks are enough for light loads.'],
+    steps: {
+      0: {help: 'A longer screw reaching the stud behind the door frame is the strongest fix for a hinge.'},
+      2: {careful: true, avoid: 'Driving the screw before the glue has dried. It will pull out again.'},
+      3: {see: 'The screw pulls snug and stops with firm resistance.', avoid: 'Cranking it until it spins again.'},
+    },
+    mistakes: ['Re-driving the screw before the glue dries.', 'Using a drill on high speed and stripping it again.', 'Using a screw that is too short.'],
+  },
+  'bifold-door': {
+    before: ['Vacuum the track first. Dirt is a common cause of binding.', 'Take a photo of the pivots and brackets before you move anything.'],
+    steps: {
+      0: {careful: true, help: 'Fold the door slightly, lift it and swing the bottom pivot out first. The top pivot then drops free.'},
+      2: {help: 'Move the top bracket until the door hangs with an even gap at the top and side.'},
+      3: {see: 'The door hangs level and clears the floor and track.'},
+    },
+    mistakes: ['Greasing the track instead of using dry silicone.', 'Forcing the door back on track.', 'Adjusting the bottom pivot without checking the top.'],
+  },
+  'storm-door-closer': {
+    before: ['Note whether the door slams or stops short. They need opposite fixes.', 'Take a photo of the closer and its mounting before adjusting.'],
+    steps: {
+      0: {careful: true, help: 'Quarter-turn the speed screw and test. Small changes make a big difference.', avoid: 'Backing the screw all the way out. It can leak or fail.'},
+      2: {help: 'If the door will not latch with the main door shut, trapped air may be cushioning it. Check for a vent or window that can release it.'},
+    },
+    mistakes: ['Turning the speed screw too far.', 'Replacing the closer when an adjustment would do.', 'Using the wrong replacement length.'],
+  },
+  'door-drafts': {
+    before: ['Take a photo of the old strip or sweep and note its type before you buy.', 'Find the draft first: close the door on a strip of paper and see where it pulls out freely.'],
+    steps: {
+      0: {help: 'Press along the old strip. If it is foam in a slot, pull it straight out. If it is nailed or screwed, remove the fasteners.'},
+      2: {see: 'The strip is compressed lightly and evenly, with no gaps at the corners.'},
+      4: {careful: true, help: 'Raise the threshold only until the sweep just touches. Too high and the door drags.'},
+    },
+    mistakes: ['Choosing a weatherstrip that is too thick to close the door.', 'Skipping the corners.', 'Adjusting the threshold without testing the door swing.'],
+  },
+  'deadbolt-sticks': {
+    before: ['Work with the door open when you test the bolt, so you know whether the lock or the door is the problem.', 'Do not use oil. It gums up locks over time.'],
+    steps: {
+      0: {help: 'Powdered graphite or a dry PTFE lubricant works best. Work the key in and out several times.', avoid: 'Spraying oil or WD-40 into the keyway.'},
+      2: {careful: true, help: 'If the bolt rubs the strike plate, the door has probably shifted. Check the hinges before filing.'},
+    },
+    mistakes: ['Oiling the lock.', 'Overtightening the through-bolts.', 'Filing the strike before checking the hinge screws.'],
+  },
+  'loose-knob': {
+    before: ['Check whether the screws are visible or hidden. Hidden ones need a small pin or Allen key.', 'Keep one hand on the outside knob while you tighten from inside.'],
+    steps: {
+      0: {help: 'Hold the outside knob straight and tighten both screws evenly.'},
+      2: {careful: true, help: 'Press the detent pin with a paper clip or awl, then pull the knob off to reach the screws.'},
+      3: {see: 'The latch snaps in and out smoothly when you turn the knob.'},
+    },
+    mistakes: ['Overtightening and binding the latch.', 'Losing the tiny set screw.', 'Tightening one screw fully before the other.'],
+  },
+  'drawer-front-loose': {
+    before: ['Empty the drawer and take it out. Work on a flat surface.', 'Dry-fit and clamp before gluing anything.'],
+    steps: {
+      1: {help: 'Wood glue works best on bare wood. Scrape off old glue or finish at the joint first.'},
+      3: {see: 'The two corner-to-corner measurements match.', help: 'Measure both diagonals while clamped. If they differ, tweak the clamps until they match.'},
+    },
+    mistakes: ['Gluing without clamping.', 'Gluing a box that is out of square.', 'Using screws that poke through the front.'],
+  },
+  'cabinet-pulls': {
+    before: ['Measure the distance between the screw holes center to center. New pulls must match.', 'Buy a few extra screws of the right length.'],
+    steps: {
+      1: {careful: true, help: 'A jig keeps every hole the same. Mark one door, test it, then copy it.'},
+      2: {help: 'Put a scrap block behind the door and drill from the front to prevent blowout.'},
+      3: {see: 'The screw engages fully without pressing against the pull or poking out the back.'},
+    },
+    mistakes: ['Not measuring the hole spacing.', 'Drilling without a backer.', 'Using screws that are too long.'],
+  },
+  'towel-bar': {
+    before: ['Check the wall: tile, drywall or studs. That decides the anchor.', 'Note whether the bar uses set screws or a hidden mount.'],
+    steps: {
+      0: {help: 'The tiny set screw under each post often just needs a snug turn.'},
+      2: {careful: true, help: 'Into a stud when possible. Otherwise use a toggle or a rated anchor. Plastic anchors alone often fail.'},
+      3: {see: 'The bar is level and does not wiggle when you pull it.'},
+    },
+    mistakes: ['Using the original plastic anchors again.', 'Overtightening and cracking tile.', 'Skipping the level.'],
+  },
+  'dryer-install': {
+    before: ['Turn off the dryer circuit breaker and confirm the outlet matches the cord. If it does not, stop and refer.', 'Read the cord instructions that came with the dryer. They win over this guide.'],
+    steps: {
+      0: {careful: true, avoid: 'Connecting anything to a cracked, loose or scorched outlet. Refer it to an electrician.'},
+      2: {careful: true, help: 'A 4-prong outlet uses the green ground wire and no bond strap. Follow the dryer\'s label exactly.'},
+      4: {see: 'No bare wire shows past the terminal and the strain relief holds the cord firmly.'},
+    },
+    mistakes: ['Mixing up 3-prong and 4-prong wiring.', 'Leaving the bond strap in place on a 4-prong.', 'Using a flexible plastic vent.'],
+  },
+  'gas-dryer': {
+    before: ['Gas connections belong to a licensed professional. This guide covers only the parts around the gas line.', 'If you smell gas, leave, call the gas utility and do not switch anything on.'],
+    steps: {
+      0: {careful: true, avoid: 'Connecting, disconnecting or moving a gas line or valve.'},
+      1: {help: 'You can level the dryer, clean the metal vent duct and check that the exhaust path is clear.'},
+    },
+    mistakes: ['Moving a gas dryer without a licensed professional.', 'Ignoring a gas smell.', 'Using plastic or foil vent duct.'],
+  },
+  'range-anti-tip': {
+    before: ['Use the bracket made for this range. The manual has the exact spot.', 'A tipping range can hurt a child or someone using the oven door.'],
+    steps: {
+      1: {careful: true, help: 'Fasten into the floor or a solid wall plate, not just drywall.'},
+      2: {see: 'The back leg sits fully inside the bracket.'},
+      3: {careful: true, help: 'Tip the range forward gently from the back to confirm the bracket stops it.'},
+    },
+    mistakes: ['Mounting into drywall alone.', 'Forgetting to re-engage after cleaning.', 'Using a bracket from a different model.'],
+  },
+  'fridge-care': {
+    before: ['Unplug the refrigerator before cleaning coils.', 'Check the manual for the leveling steps and the coil location.'],
+    steps: {
+      0: {help: 'The front should sit a little higher than the back so the doors swing closed on their own.'},
+      2: {see: 'A thick layer of dust comes off the coils.', help: 'A coil brush and a vacuum work well. Brush gently so you do not bend the fins.'},
+      4: {careful: true, avoid: 'Rolling it over the water line or power cord.'},
+    },
+    mistakes: ['Leaving the unit plugged in while cleaning coils.', 'Crushing the water line when rolling it back.', 'Skipping the door-height check.'],
+  },
+  'gfci-breaker': {
+    before: ['Do not stand in water or touch metal pipes when you reset anything.', 'Do not open the electrical panel cover or touch wires. This guide stops at the reset buttons.'],
+    steps: {
+      1: {help: 'Look on that wall and in nearby bathrooms, the garage and outside. One GFCI can protect several outlets.'},
+      2: {careful: true, help: 'Push the breaker fully OFF first, then firmly ON. A half-way push does not reset it.'},
+      4: {careful: true, avoid: 'Repeatedly resetting a breaker or GFCI that keeps tripping. That means a fault. Leave it off and refer it to an electrician.'},
+    },
+    mistakes: ['Resetting over and over when it keeps tripping.', 'Resetting with wet hands or standing in water.', 'Opening the panel.'],
+  },
+  'light-fixture-refer': {
+    before: ['Connecting wires is electrical work. This guide is mostly about what you can safely do around it.', 'Use a sturdy ladder and have someone steady it.'],
+    steps: {
+      0: {careful: true, avoid: 'Disconnecting or connecting wires, or changing a switch or fan.'},
+      1: {help: 'Swapping bulbs, wiping fixtures and blades, and tightening loose fan blade screws are fine.'},
+    },
+    mistakes: ['Opening a fixture box and touching the wiring.', 'Using a ladder that is too short.', 'Changing a bulb while the fixture is hot.'],
+  },
+  'furniture-anchor': {
+    before: ['Anchor anything top-heavy or tall: dressers, bookcases and TV stands.', 'Use the hardware in the anti-tip kit. Do not substitute short screws.'],
+    steps: {
+      1: {help: 'Find the stud with a stud finder. Wall anchors alone are a last resort.'},
+      3: {careful: true, help: 'Pull the strap taut with just a little slack so the piece cannot tip forward.'},
+      4: {see: 'The strap catches the piece almost immediately when you pull the top forward.'},
+    },
+    mistakes: ['Screwing into drywall with no anchor.', 'Leaving the strap loose.', 'Skipping the heavy dresser in a child\'s room.'],
+  },
+  'furniture-assembly': {
+    before: ['Read the whole booklet before you start. Check every part against the list.', 'Clear a flat area and protect the floor with the box or a blanket.'],
+    steps: {
+      0: {help: 'Sort screws and dowels into cups labeled by letter.'},
+      2: {careful: true, help: 'Keep cam locks and bolts loose until the frame is square. Then tighten everything.'},
+      4: {see: 'The two diagonals match and the piece does not rock.'},
+    },
+    mistakes: ['Overtightening before the frame is square.', 'Putting a panel on backwards.', 'Skipping the anti-tip anchor on tall pieces.'],
+  },
+  'paint-touch-up': {
+    before: ['Find the original paint if you can. Check the can for sheen and color name.', 'Test a hidden spot first. Paint changes color as it dries.'],
+    steps: {
+      2: {see: 'The test spot looks the same after it is fully dry.', help: 'Let it dry fully before you judge the color.'},
+      3: {help: 'Use a small roller that matches the wall texture. Thin coats feathered outward hide best.'},
+    },
+    mistakes: ['Judging color while the paint is wet.', 'Using a brush on a rolled wall.', 'Skipping primer on repaired spots.'],
+  },
+  'mowing': {
+    before: ['Walk the lawn first and pick up sticks, toys and hoses.', 'Check the mower for fuel, oil and a sharp blade.'],
+    steps: {
+      1: {help: 'If the grass is tall, take it down in two cuts a few days apart.', avoid: 'Cutting more than a third of the blade at once.'},
+      2: {careful: true, avoid: 'Discharging toward windows, cars, people or pets.'},
+      4: {see: 'Gates are closed and walks and beds are clear of clippings.'},
+    },
+    mistakes: ['Mowing too short.', 'Mowing wet grass that clumps.', 'Mowing the same direction every time.'],
+  },
+  'weed-pulling': {
+    before: ['Ask the customer what to keep. A flower and a weed can look alike.', 'Pull after rain when the soil is soft.'],
+    steps: {
+      1: {help: 'For taproots like dandelions, loosen the soil beside the root and pull slowly so it comes out whole.'},
+      2: {careful: true, help: 'Bag anything with flowers or seed heads so it does not spread.'},
+      4: {see: 'The customer confirms nothing they wanted was removed.'},
+    },
+    mistakes: ['Pulling a plant the customer wanted.', 'Breaking the root off.', 'Leaving seed heads in the bed.'],
+  },
+  'bed-edging': {
+    before: ['Lay a hose or rope to mark the curve and look at it from the street.', 'Use a sharp edger. A dull one tears the sod.'],
+    steps: {
+      0: {see: 'The curve looks smooth and flowing from the street and windows.'},
+      1: {help: 'Cut straight down 3 to 4 inches along the line.'},
+      2: {help: 'Slope the bed side so mulch sheds water and the lawn side stays a crisp vertical edge.'},
+    },
+    mistakes: ['Cutting a wobbly line.', 'Cutting too shallow.', 'Leaving sod pieces on the lawn.'],
+  },
+  'leaf-cleanup': {
+    before: ['Check which areas should get leaves and which should be cleared.', 'Ask where the town picks up yard waste and what bags it allows.'],
+    steps: {
+      0: {help: 'A thin layer chopped by the mower feeds the lawn. If you can still see grass through the leaves, it is thin enough.'},
+      1: {careful: true, help: 'Heavy wet mats smother grass. Remove them and do not leave them through winter.'},
+      2: {avoid: 'Raking perennials out of the ground or tearing up plants the customer wants.'},
+    },
+    mistakes: ['Mulching a heavy layer that smothers the grass.', 'Missing leaves under shrubs and along fences.', 'Blowing leaves into a neighbor\'s yard.'],
+  },
+  'fence-repair': {
+    before: ['Check the rails and posts first. A rotted rail or post is a bigger repair.', 'Wear gloves and eye protection when pulling old nails.'],
+    steps: {
+      1: {help: 'Use a neighboring picket as a pattern for the cut and the top shape.'},
+      2: {see: 'The new picket sits evenly with the others, with consistent gaps.'},
+      4: {careful: true, avoid: 'Leaving old nails in the grass. They puncture mower tires.'},
+    },
+    mistakes: ['Fastening to a rotten rail.', 'Not matching the height.', 'Leaving nails in the ground.'],
+  },
+  'mailbox-post': {
+    before: ['Call 811 before digging. It is free and required.', 'Check the USPS height and distance rules and any local rules before choosing the spot.'],
+    steps: {
+      0: {careful: true, help: 'Wait for the locate marks. Do not dig until the utilities are marked.'},
+      1: {help: 'Gravel in the bottom helps drainage. Set the post plumb and brace it while the backfill is tamped.'},
+      3: {see: 'The carrier can reach the box from the vehicle and the door opens fully.'},
+    },
+    mistakes: ['Digging before the 811 locate.', 'Setting the post out of plumb.', 'Putting the box where the carrier cannot reach it.'],
+  },
+  'snow-ice': {
+    before: ['Check the temperature first. Some melt products stop working in deep cold.', 'Ask whether the customer has pets, plants or concrete that is less than a year old.'],
+    steps: {
+      0: {help: 'Shovel down to the pavement first so the melt only handles the thin layer left.'},
+      1: {help: 'Rock salt works down to about 12°F. Calcium chloride works in colder weather.'},
+      2: {careful: true, avoid: 'Piling salt on steps and landings. A thin even layer is enough.'},
+    },
+    mistakes: ['Using too much melt.', 'Salting before shoveling.', 'Using the wrong product for the temperature.'],
+  },
+  'winterize-outside': {
+    before: ['Do this before the first hard freeze.', 'Know where each indoor shut-off valve is for the outdoor faucets.'],
+    steps: {
+      0: {careful: true, help: 'A hose left attached traps water and can split the faucet or the pipe inside the wall.'},
+      1: {help: 'Close the inside valve, then open the outside faucet to drain.'},
+      3: {see: 'The faucet cover fits snugly with no gaps.'},
+    },
+    mistakes: ['Leaving a hose connected.', 'Forgetting the inside valve.', 'Skipping sprinklers and rain barrels.'],
+  },
+  'wheelchair-adjust': {
+    before: ['Check the owner\'s manual or the maker\'s instructions first. Adjustments differ by model.', 'Ask the user what feels wrong before changing anything.'],
+    steps: {
+      0: {help: 'Use the tire pressure printed on the sidewall.'},
+      1: {careful: true, help: 'The wheel lock should grip firmly when engaged. If it does not, it needs adjusting or repair.'},
+      4: {see: 'The user can propel the chair easily and the locks hold.'},
+    },
+    mistakes: ['Changing settings without asking the user.', 'Leaving wheel locks too loose.', 'Overtightening quick-release axles.'],
+  },
+  'lever-handles': {
+    before: ['Take a photo of the old latch and measure the backset, usually 2-3/8 or 2-3/4 inches.', 'Buy the handing the door needs. Left and right levers are different.'],
+    steps: {
+      1: {careful: true, help: 'The angled face of the latch goes toward the closing direction of the door.'},
+      2: {help: 'Tighten the through-screws evenly so the levers sit square.'},
+      4: {see: 'The door closes and latches with a light push and the lever returns level.'},
+    },
+    mistakes: ['Wrong handing.', 'Wrong backset.', 'Overtightening and binding the latch.'],
+  },
+  'raised-toilet-seat': {
+    before: ['Measure the bowl and check whether it is round or elongated.', 'For a raised seat or frame, follow the product instructions exactly. Someone will lean on it.'],
+    steps: {
+      0: {help: 'Pop the bolt caps and hold the nut underneath while you unscrew. A little penetrating oil helps stuck bolts.'},
+      2: {careful: true, help: 'Center the seat and tighten evenly. Porcelain cracks if you overtighten.'},
+      4: {see: 'The seat does not shift when the customer sits and stands.'},
+    },
+    mistakes: ['Overtightening and cracking the bowl.', 'Buying the wrong bowl shape.', 'Not checking the seat with the customer.'],
+  },
+  'trim-caulk': {
+    before: ['Fix loose trim first so the caulk does not crack.', 'Use paintable caulk and check the paint-ready time on the tube.'],
+    steps: {
+      1: {help: 'Vacuum and wipe the gap so dust does not stop the caulk from sticking.'},
+      2: {careful: true, help: 'Cut the tip small. Trim gaps need a thin bead.'},
+      3: {see: 'A thin, smooth line with no smears.'},
+    },
+    mistakes: ['Cutting the tip too large.', 'Caulking over dust.', 'Painting before the caulk is ready.'],
+  },
+  'door-slab': {
+    before: ['This is a skilled job. Plan on a full session and have a second person help lift the door.', 'Measure everything twice. Cuts cannot be undone.'],
+    steps: {
+      0: {careful: true, help: 'Lay the old door on the new slab with the same face up and the hinge sides matching, then mark the hinge locations and the lock holes.'},
+      1: {help: 'Painter\'s tape along the cut line prevents splintering.'},
+      4: {see: 'An even gap all around and the door latches without lifting or pushing.'},
+    },
+    mistakes: ['Cutting before double-checking the measurements.', 'Marking from the wrong face.', 'Skipping the paint on the top and bottom edges.'],
+  },
+  'ceiling-fan-wobble': {
+    before: ['Turn off the fan at the wall and wait for the blades to stop completely.', 'Use a sturdy ladder and have someone steady it.'],
+    steps: {
+      1: {help: 'Tighten each screw that holds a blade, bracket and the mounting piece. Loose hardware is the most common cause.'},
+      2: {see: 'Each blade tip measures about the same distance from the ceiling.'},
+      4: {careful: true, help: 'Move the balance clip from blade to blade until the wobble is smallest.'},
+    },
+    mistakes: ['Skipping the ladder help.', 'Not turning the fan off first.', 'Bending a blade when trying to align it.'],
+  },
+  'spring-startup': {
+    before: ['Wait until the danger of a hard freeze has passed.', 'Make sure each outside faucet is closed before turning on the inside valve.'],
+    steps: {
+      1: {careful: true, help: 'Open the inside valve slowly and listen for hissing or dripping.'},
+      2: {see: 'No water drips from the pipe or joints inside when the outside faucet runs.'},
+      3: {help: 'Replace cracked hose washers before connecting.'},
+    },
+    mistakes: ['Opening the valve quickly.', 'Skipping the leak check inside.', 'Forgetting to remove the winter tags.'],
+  },
 };
 
 // Plain-words glossary: only terms that actually appear in the open guide are shown.
