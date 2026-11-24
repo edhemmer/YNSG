@@ -697,6 +697,59 @@ export const COACH: Record<string, Coach> = {
     },
     mistakes: ['Opening the valve quickly.', 'Skipping the leak check inside.', 'Forgetting to remove the winter tags.'],
   },
+  'thermostat-check': {
+    before: ['Photograph the thermostat screen and its model name before changing anything, so you can put settings back.', 'Have fresh alkaline batteries of the right size with you.', 'Know where the furnace power switch and HVAC breaker are before you start.'],
+    steps: {
+      0: {see: 'The screen shows "Heat On" or "Heating to" within a few minutes.', help: 'Raise the setpoint a few degrees above the room temperature shown, not just one degree.'},
+      1: {careful: true, help: 'Most faceplates pull straight off the wall. Match the + and – marks exactly.', avoid: 'Prying sideways and bending the pins on the back.'},
+      2: {careful: true, help: 'A hardwired thermostat goes dark when the furnace loses power, so check the furnace switch, breaker and blower door before blaming the thermostat.'},
+      4: {see: 'The blower starts within a minute or two.', help: 'If the fan runs, the thermostat and furnace have power. Put the fan back to Auto and move to the furnace guide.'},
+      5: {careful: true, help: 'Photograph the wires on their letters before you unhook anything. Wrap the bundle around a pencil so it cannot drop into the wall.', avoid: 'Working on the wires with the furnace on.'},
+    },
+    mistakes: ['Assuming the thermostat is bad when the furnace switch is just off.', 'Unhooking wires before photographing which letter each was on.', 'Going by wire color instead of the terminal letter.', 'Leaving the fan set to On when the visit is over.'],
+  },
+  'furnace-no-heat': {
+    before: ['Smell gas? Get everyone out and call the gas company from outside. Do not flip any switch.', 'Bring a flashlight and the right-size filter.', 'Have something ready to write down the blink code and what you checked.'],
+    steps: {
+      0: {see: 'A steady or blinking light through the small window on the furnace door.', help: 'Count the blinks a few times to be sure, then match the count to the chart on the door.'},
+      1: {careful: true, help: 'The furnace switch is usually on the wall or on the furnace itself, and often looks like a light switch.', avoid: 'Resetting a breaker that trips again. That is a fault, so leave it off and refer it.'},
+      3: {see: 'The door sits flat and fully seated on all sides.'},
+      4: {careful: true, help: 'Clear the snow by hand or with a brush around both pipes outside.', avoid: 'Chipping at ice with a shovel blade and cracking the plastic pipe.'},
+      6: {help: 'Give it several minutes. Many furnaces run the inducer fan first, then light the burners, then start the blower.', avoid: 'Cycling the power over and over.'},
+    },
+    mistakes: ['Turning the power off before writing down the blink code.', 'Skipping the filter check.', 'Leaving the blower door off or not fully seated.', 'Opening the burner compartment. That is HVAC technician work.'],
+  },
+  'dishwasher-no-drain': {
+    before: ['Turn off power to the dishwasher at the breaker or unplug it before reaching inside.', 'Lay towels on the floor in front and under the sink.', 'Have a cup, sponge and bucket ready for standing water.'],
+    steps: {
+      0: {careful: true, help: 'Pull the lower rack all the way out to reach the floor of the tub.'},
+      1: {see: 'Food bits and a slimy film come off the filter, and water runs through it freely.', help: 'Most filters twist a quarter turn and lift out. The manual shows the exact way.', avoid: 'Scrubbing the fine mesh with anything hard or wire.'},
+      3: {see: 'The air gap cap comes off and you can see the passage below it.', help: 'Pull the chrome cap straight up, remove the inner cover, then pick out the gunk.'},
+      5: {careful: true, help: 'Expect water to come out when the hose comes off. If the pencil stops right away, the plug is still there. Retrieve the plastic disc with tongs, never your hand.', avoid: 'Doing this with the disposal still powered.'},
+      6: {see: 'The tub is empty at the end of the cycle and nothing drips under the sink.'},
+    },
+    mistakes: ['Reaching into the disposal without cutting its power.', 'Forgetting to lock the filter back in place.', 'Leaving the knockout plug inside the disposal after knocking it out.', 'Overtightening the hose clamp and cutting the hose.'],
+  },
+  'fridge-gasket': {
+    before: ['Get the model number from the tag inside the fridge and order the gasket for that model and that door.', 'Move medicine and anything temperature-sensitive into a cooler.', 'Empty the door shelves so the door is light while you work.'],
+    steps: {
+      1: {see: 'The new gasket lies flat with no sharp folds.', help: 'Keep the hair dryer on low and moving. Hot spots can warp it.'},
+      3: {careful: true, help: 'Screw type: loosen the screws only a few turns, so the retainer and inner panel stay in place.', avoid: 'Taking every screw out at once. The inner door panel can shift.'},
+      5: {careful: true, help: 'Start at the top corners and work down each side, pressing it fully into the groove or under the retainer.'},
+      6: {see: 'The dollar bill drags when you pull it out at every spot around the door.', help: 'Warm any wavy spot, then close the door for a while so the magnet pulls it into shape.'},
+    },
+    mistakes: ['Ordering by fridge size instead of model number.', 'Removing all the retainer screws at once.', 'Skipping the dollar test at the end.', 'Overheating the new gasket with the hair dryer.'],
+  },
+  'washer-no-drain': {
+    before: ['Unplug the washer before opening any panel.', 'Put down more towels than you think you need. A full drum holds several gallons.', 'Have a shallow pan that fits under the filter, plus a bucket.'],
+    steps: {
+      1: {help: 'Pull the washer out just far enough to see the hose. Watch the hoses and cord as it moves.', avoid: 'Taping or sealing the hose into the standpipe.'},
+      2: {careful: true, see: 'Water trickles out slowly as you loosen the filter.', help: 'Turn the filter a little, let the pan fill, close it, empty the pan, and repeat.', avoid: 'Spinning the filter all the way out at once and flooding the floor.'},
+      3: {see: 'The filter screws in smoothly and sits snug and flat.'},
+      5: {see: 'Water pumps out within a minute and the drum spins up.'},
+    },
+    mistakes: ['Opening the pump filter all at once.', 'Not putting the filter back tight, which causes a leak on the next load.', 'Using regular detergent in an HE washer.', 'Forgetting to plug it back in before the test.'],
+  },
 };
 
 // Plain-words glossary: only terms that actually appear in the open guide are shown.
@@ -718,4 +771,12 @@ export const GLOSSARY: {term: string; means: string}[] = [
   {term: 'primer', means: 'A base coat that helps paint stick and look even.'},
   {term: 'o-ring', means: 'A small rubber ring that seals a joint against leaks.'},
   {term: 'standpipe', means: 'The vertical drain pipe a washing machine hose empties into.'},
+  {term: 'c wire', means: 'The thermostat wire that carries steady power from the furnace to run the screen.'},
+  {term: 'setpoint', means: 'The temperature you set the thermostat to.'},
+  {term: 'air gap', means: 'The small chrome cap on the sink that keeps dirty sink water from flowing back into the dishwasher.'},
+  {term: 'high loop', means: 'A dishwasher drain hose looped up and fastened under the counter so sink water cannot flow back.'},
+  {term: 'knockout plug', means: 'A plastic disc sealing a new disposal\'s dishwasher inlet. It must be knocked out before the dishwasher can drain into it.'},
+  {term: 'flame sensor', means: 'A thin metal rod in the furnace burner area that confirms there is a flame. A technician cleans it.'},
+  {term: 'condensate', means: 'Water a high-efficiency furnace or AC makes while running. It drains through a tube or small pump.'},
+  {term: 'gasket', means: 'The rubber seal around a door, like a refrigerator door, that keeps air in.'},
 ];
