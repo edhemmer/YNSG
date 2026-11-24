@@ -8,7 +8,7 @@ const {GUIDES}=await import('../apps/web/lib/home-repair-guides.ts');const {COAC
 const {default:Library}=await import('../apps/web/app/repair-guide-library.tsx');
 
 test('coaching targets real guides and real step numbers, with substance',()=>{
- assert.ok(Object.keys(COACH).length>=16);
+ assert.equal(Object.keys(COACH).length,GUIDES.length,'every guide is coached');
  for(const [id,c] of Object.entries(COACH)){
   const g=GUIDES.find(x=>x.id===id);assert.ok(g,'real guide '+id);
   for(const [i,s] of Object.entries(c.steps||{})){assert.ok(g.steps[Number(i)],id+' step '+i+' exists');assert.ok(s.see||s.help||s.avoid||s.careful,id+' step '+i+' has coaching');}
@@ -27,9 +27,5 @@ test('a coached guide shows before-you-start, color-coded step help, mistakes an
   const t=node.textContent;
   assert.match(t,/Before you start/);assert.match(t,/You should see/);assert.match(t,/Hand-holding/);assert.match(t,/Avoid/);assert.match(t,/Common mistakes/);assert.match(t,/Bring/);assert.match(t,/Plain words/);
   assert.ok(node.querySelector('.repair-meter'));assert.equal(node.querySelectorAll('input[type=checkbox]').length,0,'reference guide has no checklists');assert.doesNotMatch(t,/Confirm before you leave/);
-  // an uncoached guide still gets the new structure without empty coaching blocks
-  await act(async()=>{[...node.querySelectorAll('button')].find(b=>/All repair guides/.test(b.textContent)).click();});
-  const plain=[...node.querySelectorAll('button.repair-card')].find(b=>/nail pops/i.test(b.textContent));
-  await act(async()=>{plain.click();});assert.match(node.textContent,/Before you start/);assert.doesNotMatch(node.textContent,/Common mistakes/);
- }finally{await act(async()=>root.unmount());}
+  }finally{await act(async()=>root.unmount());}
 });
