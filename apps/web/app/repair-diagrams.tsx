@@ -277,6 +277,27 @@ const drawings: Record<DiagramId, {title: string; body: ReactNode}> = {
     <T x={20} y={232} size={10} color={MUTED}>ICPI: sand bed doesn't fill dips — rebuild and tamp the base</T>
     <T x={20} y={248} size={10} color={GOOD}>Edge restraint keeps it all from creeping</T>
   </>},
+  'dishwasher-drain': {title: 'Follow the drain: filter → hose → air gap or high loop → disposal', body: <>
+    <rect x={10} y={60} width={300} height={10} fill={WOOD_DARK}/><T x={14} y={54} size={10} color={MUTED}>Countertop</T>
+    <rect x={14} y={78} width={92} height={150} fill="#e9edf0" stroke={INK}/><T x={60} y={98} anchor="middle" size={10}>Dishwasher</T>
+    <rect x={30} y={196} width={60} height={14} rx={3} fill={METAL} stroke={INK}/><T x={60} y={224} anchor="middle" size={9} color={GOOD}>① Clean filter</T>
+    <rect x={150} y={44} width={12} height={18} rx={3} fill={METAL} stroke={INK}/><T x={168} y={40} size={10}>② Air gap cap</T>
+    <path d="M90 206 C130 206 120 84 150 84 C170 84 160 130 214 160" fill="none" stroke={WATER} strokeWidth={5}/>
+    <T x={118} y={120} size={9} color={MUTED}>③ No kinks · loop</T><T x={118} y={131} size={9} color={MUTED}>up under counter</T>
+    <rect x={214} y={140} width={56} height={62} rx={10} fill="#cfd6db" stroke={INK}/><T x={242} y={176} anchor="middle" size={10}>Disposal</T>
+    <circle cx={214} cy={160} r={7} fill="none" stroke={BAD} strokeWidth={2.5}/><T x={200} y={222} size={9} color={BAD}>④ New disposal? Knockout</T><T x={200} y={234} size={9} color={BAD}>plug inside this inlet</T>
+    <T x={10} y={250} size={9} color={GOOD}>Pencil goes in ~3" = plug is out · power off first</T>
+  </>},
+  'thermostat-wires': {title: 'Go by the letter, not the wire color', body: <>
+    <rect x={20} y={24} width={130} height={170} rx={10} fill="#f4f6f7" stroke={INK}/><T x={85} y={44} anchor="middle" size={10} color={MUTED}>Wall plate</T>
+    {([['R', '#b5481d', '24 V power'], ['C', '#24323c', 'Common (powers screen)'], ['W', '#9aa7b0', 'Heat'], ['Y', '#c28a00', 'Cooling'], ['G', '#2f7a4f', 'Fan']] as const).map(([l, c, m], i) => <g key={l}>
+      <rect x={40} y={58 + i * 26} width={22} height={18} rx={3} fill="#fff" stroke={INK}/><T x={51} y={71 + i * 26} anchor="middle" size={11}>{l}</T>
+      <line x1={62} y1={67 + i * 26} x2={130} y2={67 + i * 26} stroke={c} strokeWidth={4}/>
+      <T x={160} y={71 + i * 26} size={10}>{m}</T></g>)}
+    <T x={20} y={214} size={10} color={GOOD}>Power off at furnace · photo before unhooking</T>
+    <T x={20} y={230} size={10} color={BAD}>Thick wires or wire nuts = line voltage: refer</T>
+    <T x={20} y={246} size={9} color={MUTED}>Colors shown are common, not guaranteed</T>
+  </>},
 };
 
 export default function RepairDiagram({id, color}: {id: DiagramId; color: string}) {

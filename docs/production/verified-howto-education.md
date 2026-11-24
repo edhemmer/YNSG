@@ -1,7 +1,7 @@
 # YNSG Education — verified how-to product specification
 Updated: 2026-10-15. Status: **engineering foundation, not an activated public feature**.
 
-> November 18, 2026: the owner-only **home repair field guide** (CRM → Learning, 76 sourced guides) is live in the CRM as training material; see [website-field-guide-lead-focus-2026-11-18.md](website-field-guide-lead-focus-2026-11-18.md). It does not activate public lessons; this specification still governs any public or AI-assisted education feature.
+> November 18, 2026: the owner-only **home repair field guide** (CRM → Learning, 76 sourced guides) is live in the CRM as training material; see [website-field-guide-lead-focus-2026-11-18.md](website-field-guide-lead-focus-2026-11-18.md). November 24, 2026: five apartment-tech basics added (81 guides) — thermostat, furnace first checks, dishwasher and washer drain problems, and fridge door gaskets, each with coaching; gas, burners, refrigerant and line-voltage wiring stay referred. It does not activate public lessons; this specification still governs any public or AI-assisted education feature.
 
 ## Product intent
 Education answers **what, where, when, which tools, and how** for ordinary home maintenance and equipment. Prioritize problems with real devices: smart locks, wireless doorbells, smart plugs, thermostats, furniture, doors, hardware, caulking, drywall patches, hand tools and basic diagnostics. Show manufacturer/model selection before model-specific instructions. Distinguish **educational content** from services offered by YNSG: explaining a smart lock does not un-hold the company's smart-lock service; explaining light switches does not make YNSG an electrical contractor.
