@@ -72,6 +72,16 @@
       "source": "/fix-it-guides/:path*",
       "destination": "/home-help/",
       "permanent": true
+    },
+    {
+      "source": "/review",
+      "destination": "https://g.page/r/CWxW2KabD1UWECE/review",
+      "permanent": false
+    },
+    {
+      "source": "/review/",
+      "destination": "https://g.page/r/CWxW2KabD1UWECE/review",
+      "permanent": false
     }
   ]
 }
