@@ -1,6 +1,6 @@
 'use client';
 import {useMemo, useState, type CSSProperties} from 'react';
-import {CATEGORIES, GUIDES, JULIE_NOTE, JULIE_URL, PLUMBING_LAW_URL, PLUMBING_SCOPE_NOTE, searchGuides, type CategoryId, type Guide} from '../lib/home-repair-guides';
+import {CATEGORIES, GUIDES, JULIE_NOTE, JULIE_URL, PLUMBING_LAW_URL, PLUMBING_SCOPE_NOTE, guideForChip, searchGuides, type CategoryId, type Guide} from '../lib/home-repair-guides';
 import RepairDiagram from './repair-diagrams';
 import {COACH, GLOSSARY} from '../lib/home-repair-coach';
 
@@ -84,7 +84,7 @@ export default function RepairGuideLibrary({onRefer}: {onRefer?: (task: string) 
   return <section className="repair-library" aria-label="Home repair field guide">
     <div className="repair-hero"><h3>Home repair field guide</h3><p>Home, yard and appliance jobs, from drywall holes and running toilets to washers, TV mounts, mulch and snow. Every guide has a quick check, numbered steps, best practices, trade tricks, a pack list and when to refer. Copy the job sheet to take it with you.</p></div>
     <label className="repair-search">What needs fixing?<input type="search" value={query} maxLength={80} placeholder="Try: hole in wall, running toilet, install dryer" onChange={e => setQuery(e.target.value)}/></label>
-    {!query && <div className="repair-suggest" aria-label="Common searches">{SUGGESTIONS.map(s => <button type="button" key={s} className="repair-chip plain" onClick={() => setQuery(s)}>{s}</button>)}</div>}
+    {!query && <div className="repair-suggest" aria-label="Common searches">{SUGGESTIONS.map(s => <button type="button" key={s} className="repair-chip plain" onClick={() => {const g = guideForChip(s); if (g) open(g.id); else setQuery(s);}}>{s}</button>)}</div>}
     <div className="repair-cats" role="group" aria-label="Browse by area">
       <button type="button" className={'repair-chip' + (category === '' ? ' on' : '')} aria-pressed={category === ''} onClick={() => setCategory('')}>All · {GUIDES.length}</button>
       {(Object.keys(CATEGORIES) as CategoryId[]).filter(c => counts[c]).map(c => <button type="button" key={c} className={'repair-chip' + (category === c ? ' on' : '')} aria-pressed={category === c} style={{'--cat': CATEGORIES[c].color} as CSSProperties} onClick={() => setCategory(v => v === c ? '' : c)}><Icon d={CATEGORIES[c].icon} color={CATEGORIES[c].color} size={16}/>{CATEGORIES[c].label} · {counts[c]}</button>)}
