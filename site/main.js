@@ -138,8 +138,10 @@ if(form){
   // "Who sent you?" shows only for a friend or realtor referral; a hidden answer is never sent.
   const referralField=form.querySelector('#referral-field'),referral=form.querySelector('#referredBy'),source=form.querySelector('#leadSource');
   const showReferral=()=>{if(!referralField||!source)return;const on=['Friend, family or neighbor','Realtor or property manager'].includes(source.value);referralField.hidden=!on;referral.disabled=!on;if(!on)referral.value='';};
-  source?.addEventListener('change',showReferral);
-  form.addEventListener('reset',()=>setTimeout(showReferral));queueMicrotask(showReferral);
+  if(referralField&&referral&&typeof source?.addEventListener==='function'){
+   source.addEventListener('change',showReferral);
+   form.addEventListener('reset',()=>setTimeout(showReferral));queueMicrotask(showReferral);
+  }
   function saveDraft(){
     if(pendingSubmission||form.hidden)return;
     const data=Object.fromEntries(new FormData(form));
