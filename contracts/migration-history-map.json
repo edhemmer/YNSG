@@ -539,6 +539,11 @@
    "file": "20261123120000_business_accounts.sql",
    "historyVersion": "20261123153000",
    "name": "business_accounts"
+  },
+  {
+   "file": "20261125120000_call_leads_site_counts_referrals.sql",
+   "historyVersion": "20261125192242",
+   "name": "call_leads_site_counts_referrals"
   }
  ],
  "supabaseOnlyHistoricalMigrations": [
@@ -571,11 +576,5 @@
    "historyVersion": "20261005123109"
   }
  ],
- "pendingUnappliedMigrations": [
-  {
-   "file": "20261125120000_call_leads_site_counts_referrals.sql",
-   "name": "call_leads_site_counts_referrals",
-   "status": "not_applied_to_connected_supabase"
-  }
- ]
+ "pendingUnappliedMigrations": []
 }
