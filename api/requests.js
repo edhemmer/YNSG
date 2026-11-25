@@ -30,6 +30,10 @@ export default async function handler(req,res){
   // Forwarded only after the request_lead_source migration is applied (REQUEST_LEAD_SOURCE_ENABLED=true);
   // until then the answer is validated and dropped so intake can never fail on it.
   if(leadSource){if(!knownSources.has(leadSource))return fail(res,400,'Please check the required fields and try again.');if(process.env.REQUEST_LEAD_SOURCE_ENABLED==='true')data.leadSource=leadSource;}
+  // Optional referral name (only with a friend or realtor answer). Forwarded once the call_leads_site_counts_referrals
+  // migration is applied (REQUEST_REFERRAL_ENABLED=true); until then it is checked and dropped.
+  const referredBy=clean(raw.referredBy,120);
+  if(referredBy){if(referredBy.length<2||referredBy.length>120||/[\u0000-\u001f\u007f<>]/.test(referredBy))return fail(res,400,'Please check the required fields and try again.');if(process.env.REQUEST_REFERRAL_ENABLED==='true'&&['Friend, family or neighbor','Realtor or property manager'].includes(data.leadSource||''))data.referredBy=referredBy;}
   if(Object.hasOwn(raw,'postalCode')){data.postalCode=clean(raw.postalCode,5);if(!/^[0-9]{5}$/.test(data.postalCode))return fail(res,400,'Please check the required fields and try again.');}
   const hasServices=Object.hasOwn(raw,'services');
   // A page opened before the weed-management rename may still send the old task name; accept it as the new one.

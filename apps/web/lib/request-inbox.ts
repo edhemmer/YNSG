@@ -1,8 +1,8 @@
 import type {InvoiceCredit} from './invoice-credit-contract.ts';
-export type Submission={name:string;phone:string;email:string;street:string;city:string;postalCode?:string;state?:string;region?:string;description?:string;preferredTime?:string;communityRate?:string;leadSource?:string;service?:string;task?:string;services?:{service:string;task:string}[]};
+export type Submission={name:string;phone:string;email:string;street:string;city:string;postalCode?:string;state?:string;region?:string;description?:string;preferredTime?:string;communityRate?:string;leadSource?:string;referredBy?:string;service?:string;task?:string;services?:{service:string;task:string}[]};
 export type Visit={id:string;request_id:string;job_id?:string|null;status:string;revision:number;start_at:string;end_at:string;arrival_at:string;expires_at:string|null;replaces_id:string|null;customer_response:string};
 export type InboxRequest={id:string;customer_id?:string|null;status:string;revision:number;created_at:string;original_submission:Submission;appointments:Visit[]};
-export type LinkedQuote={id:string;request_id:string;status:string;current_version:number;quote_versions:{version:number;scope:string;labor_cents:number;duration_minutes:number;crew?:import('./crew-billing.ts').CrewTerms}[]};
+export type LinkedQuote={id:string;request_id:string;status:string;current_version:number;created_at?:string;quote_versions:{version:number;scope:string;labor_cents:number;duration_minutes:number;crew?:import('./crew-billing.ts').CrewTerms}[]};
 export type LinkedJob={id:string;quote_id:string;approved_version?:number;status:string;revision:number};
 export type LinkedInvoice={id:string;job_id:string;number:number;total_cents:number;credits?:InvoiceCredit[];payments:{cents:number}[]};
 export type InboxData={assignments?:{request:string;technician:string|null;name:string;archived:boolean}[];technicians?:{id:string;name:string}[];requests:InboxRequest[];total:number;needsReview:number;page:number;hasMore:boolean;checkedAt:string;quotes:LinkedQuote[];jobs:LinkedJob[];invoices:LinkedInvoice[];preferences:{id:string;request_id:string;preferred_local_start:string|null;note:string;timezone:string}[]};
@@ -33,6 +33,29 @@ export function requestStage(r:InboxRequest,now=Date.now()){
  if(r.status==='reviewing')return {label:'Under review',tone:'amber',next:'Choose next step'};
  if(r.status==='quoted')return {label:'Quoted',tone:'violet',next:'Review quote'};
  return {label:r.status.replaceAll('_',' '),tone:'neutral',next:'Open request'};
+}
+// Business hours (Mon-Fri, 8 AM-5 PM, Central) a new request has waited. Past 9 business hours (one full
+// business day) it is late: fast replies win most home-service jobs.
+export function businessHoursWaiting(createdAt:string,now=Date.now(),timezone='America/Chicago'){
+ const start=Date.parse(createdAt);if(!Number.isFinite(start)||start>=now)return 0;
+ const fmt=new Intl.DateTimeFormat('en-US',{timeZone:timezone,weekday:'short',hour:'numeric',hour12:false});
+ let minutes=0;
+ // Walk in 30-minute steps; capped at 14 days so an old record stays cheap.
+ for(let t=start,end=Math.min(now,start+14*86400000);t<end;t+=1800000){
+  const parts=fmt.formatToParts(new Date(t)),day=parts.find(p=>p.type==='weekday')?.value,hour=Number(parts.find(p=>p.type==='hour')?.value)%24;
+  if(day!=='Sat'&&day!=='Sun'&&hour>=8&&hour<17)minutes+=Math.min(30,(end-t)/60000);
+ }
+ return Math.round(minutes/60*10)/10;
+}
+export function waitBadge(r:InboxRequest,now=Date.now(),timezone='America/Chicago'):{text:string;late:boolean}|null{
+ if(r.status!=='submitted'||r.appointments.length)return null;
+ const hours=businessHoursWaiting(r.created_at,now,timezone);
+ return {text:hours<1?'New':hours<9?`Waiting ${Math.floor(hours)} business hr`:`Waiting ${Math.floor(hours/9)} business day${Math.floor(hours/9)===1?'':'s'}`,late:hours>=9};
+}
+// A sent estimate with no answer after 7 days is the moment to call, not to wait for the email reminder.
+export function quoteFollowUp(quotes:LinkedQuote[],now=Date.now()):{days:number}|null{
+ const open=quotes.filter(q=>q.status==='sent'&&q.created_at).map(q=>Math.floor((now-Date.parse(q.created_at!))/86400000)).filter(d=>Number.isFinite(d)&&d>=7);
+ return open.length?{days:Math.max(...open)}:null;
 }
 // PostgREST OR clauses use a small literal-only search alphabet. No filter syntax
 // or wildcard characters from the search input can become query operators.

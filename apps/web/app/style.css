@@ -405,3 +405,9 @@ html[data-theme=dark] .request-dialog .detail-tabs button{color:#b3c2cd}html[dat
 .list-pagination .actions{display:flex;gap:8px;flex-wrap:wrap}
 .list-pagination .actions button{white-space:nowrap;min-width:104px}
 .request-record-action>.request-quick-actions{flex:1 1 100%;min-width:0}
+.call-leads,.site-counts{display:grid;gap:12px;margin-bottom:16px}.call-leads h2,.site-counts h2{margin:0}.site-counts h3{margin:12px 0 0;font-size:1rem}
+.call-lead-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}.call-lead-list li{padding:12px;border:1px solid #d9dfd8;border-radius:8px;background:#fff}.call-lead-list li.is-waiting{border-color:#c0633a;background:#fff7f2}.call-lead-list p{margin:6px 0}
+.call-lead-meta{color:#53635f;font-size:.9rem}.call-lead-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.call-lead-form{display:grid;gap:10px;margin-top:10px}.call-lead-form label{display:grid;gap:4px;font-weight:600}
+.source-outcomes{width:100%;border-collapse:collapse;font-size:.95rem}.source-outcomes th,.source-outcomes td{padding:6px 8px;border-bottom:1px solid #e1e6df;text-align:right}.source-outcomes th:first-child,.source-outcomes thead th:first-child{text-align:left}
+.wait-badge{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;background:#eef2eb;color:#315842;font-size:.8rem;font-weight:700}.wait-badge.is-late{background:#fbe5dc;color:#8c311e}
+.review-ask{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}

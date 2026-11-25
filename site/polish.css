@@ -304,3 +304,5 @@ body .meet-ed-card .welcome-voice-note{display:none}
  .premium-hero .hero-local{display:none}
 }
 @media(max-width:850px){.premium-hero .hero-local,.hero-copy>.hero-local{display:none!important}.site-header .brand{width:auto;max-width:none;justify-content:flex-start}.site-header .brand img{margin:0}}
+/* Short call-back form */
+.callback-box{margin:24px 0;border:1px solid #c8d9c9;border-radius:10px;background:#f5f8f2}.callback-box summary{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;min-height:52px;padding:14px 18px;cursor:pointer;color:var(--navy);font-weight:700}.callback-box summary span{color:#21503a;text-decoration:underline;text-underline-offset:.18em}.callback-form{padding:0 18px 18px}.callback-form p{font-size:.95rem;color:var(--muted)}.callback-form .button{width:100%}.callback-form .button:disabled{opacity:.6;transform:none}.callback-status{margin:12px 0 0;font-weight:700;color:var(--navy)}.callback-status:empty{display:none}

@@ -17,6 +17,7 @@ import EraseRecord from './erase-record';
 import Icon from './crm-icons';
 import {navigationUrl} from '../lib/day-plan';
 import {invoiceNumber} from '../lib/invoice-number';
+import {ownerReviewText,ownerReviewEmail,ownerReviewUrl} from '../lib/owner-day';
 import {OfficeFieldNotes} from './field-work';
 import LeadAssignment from './lead-assignment';
 import InvoiceDraft from './invoice-draft';
@@ -86,7 +87,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
  
  return <JobWorkspace id={request.id} title={request.original_submission.name} address={submissionAddress(request.original_submission)} kind={jobs.length?'Service job':'Service request'} status={recordedWork&&!jobs.length?'Work recorded · billing pending':task.label} panel={panel} onPanel={setPanel} blocked={blocked} className="service-workflow field-job" label={'Service workflow for '+request.original_submission.name}
   actions={<><a className="button secondary" href={'tel:'+request.original_submission.phone} aria-label="Call customer"><Icon name="phone"/>Call</a>{navigationUrl(submissionAddress(request.original_submission))&&<a className="button secondary" href={navigationUrl(submissionAddress(request.original_submission))!} target="_blank" rel="noopener noreferrer" aria-label={'Directions to '+request.original_submission.name}><Icon name="pin"/>Directions</a>}</>}
-  context={<><section><h2>Appointment</h2><p>{timing.text}</p></section><section><h2>Requested work</h2><ul>{requestTasks(request.original_submission).map((item,index)=><li key={index}>{item.task||item.service}</li>)}</ul></section>{request.original_submission.description&&<section className="job-customer-message"><h2>From the customer</h2><p>{request.original_submission.description}</p></section>}{request.original_submission.leadSource&&<section><h2>Found you through</h2><p>{request.original_submission.leadSource}</p></section>}{v&&<section><h2>Agreed labor</h2><p className="job-context-amount">{money(v.labor_cents)}</p></section>}{totalOutstanding>0&&<section><h2>Outstanding</h2><p className="job-context-amount">{money(totalOutstanding)}</p></section>}</>}
+  context={<><section><h2>Appointment</h2><p>{timing.text}</p></section><section><h2>Requested work</h2><ul>{requestTasks(request.original_submission).map((item,index)=><li key={index}>{item.task||item.service}</li>)}</ul></section>{request.original_submission.description&&<section className="job-customer-message"><h2>From the customer</h2><p>{request.original_submission.description}</p></section>}{request.original_submission.leadSource&&<section><h2>Found you through</h2><p>{request.original_submission.leadSource}{request.original_submission.referredBy?` (referred by ${request.original_submission.referredBy})`:''}</p></section>}{v&&<section><h2>Agreed labor</h2><p className="job-context-amount">{money(v.labor_cents)}</p></section>}{totalOutstanding>0&&<section><h2>Outstanding</h2><p className="job-context-amount">{money(totalOutstanding)}</p></section>}</>}
   feedback={decision.unknown&&<div className="note" role="alert"><p>The last action needs confirmation. Check its saved result before making another change.</p><button type="button" disabled={decision.busy} onClick={()=>void decision.run()}>Check saved action</button></div>}>
   <section className="job-record-panel" id={'job-panel-'+request.id+'-plan'} role="tabpanel" aria-labelledby={'job-tab-'+request.id+'-plan'} hidden={panel!=='plan'}>
    <div className="job-panel-heading"><div><h3>Plan the visit</h3><p>{requestTasks(request.original_submission).map(t=>t.task||t.service).join(' · ')}</p></div>{canManage&&!confirmedVisit&&task.kind!=='closed'&&<button type="button" className="text-action" disabled={blocked} onClick={()=>{if(canLeave())setDeclineOpen(true);}}>Decline request</button>}</div>
@@ -109,7 +110,7 @@ export default function ServiceWorkflow({organization,request,quotes,jobs,invoic
    {working&&j&&<div className="field-command-actions"><button type="button" className="secondary" disabled={blocked||!canWork} onClick={()=>void fieldAction(j,task.kind==='working'?'pause':'resume')}>{task.kind==='working'?'Pause timer':'Resume timer'}</button>{canManage&&<button type="button" disabled={blocked} onClick={()=>void finishWork()}>Finish work<Icon name="arrow"/></button>}</div>}
    {(task.kind==='confirm'||task.kind==='agreement')&&<><p>{task.kind==='confirm'?'Schedule this visit first.':'Save the agreed work and price to prepare the job.'}</p><button type="button" className="secondary" disabled={blocked} onClick={()=>setPanel('plan')}>Go to plan</button></>}
    {task.kind==='invoice'&&<><p>The visit is complete and ready to invoice.</p><button type="button" disabled={blocked} onClick={()=>setPanel('invoice')}>Review invoice</button></>}
-   {(task.kind==='settled'||task.kind==='payment')&&<><p>{task.kind==='settled'?'Work is complete and the balance is settled.':'Work is complete. The invoice has an outstanding balance.'}</p><button type="button" className="secondary" onClick={()=>setPanel('invoice')}>View invoice</button></>}
+   {(task.kind==='settled'||task.kind==='payment')&&<><p>{task.kind==='settled'?'Work is complete and the balance is settled.':'Work is complete. The invoice has an outstanding balance.'}</p><button type="button" className="secondary" onClick={()=>setPanel('invoice')}>View invoice</button>{task.kind==='settled'&&<ReviewAsk organization={organization} name={request.original_submission.name} phone={request.original_submission.phone} email={request.original_submission.email}/>}</>}
    {task.kind==='review'&&<><p>The saved job needs attention before work can continue.</p><button type="button" className="secondary" disabled={blocked} onClick={onReview}>Review saved records</button></>}
    {task.kind==='closed'&&<p>This request is closed. Its records are retained in Details.</p>}
    </section>
@@ -161,4 +162,12 @@ function WorkflowQuoteForm({request,busy,submit,organization,canLink}:{request:I
   {request.original_submission.communityRate==='Yes'&&<p className="request-rate-note">The customer asked about the Community Rate.</p>}<label className="check"><input type="checkbox" name="community" checked={community} onChange={e=>setCommunity(e.target.checked)}/>Apply Community Rate · eligibility checked</label>{estimate!==null&&estimate<=999999999&&<div className="job-estimate-amount"><span>Estimated labor</span><strong>{money(estimate)}</strong><small>{minutes/60} hours · {people} {people===1?'person':'people'}</small></div>}
   {canLink&&<button type="submit" value="agreed" name="quoteAction">Save agreed quote &amp; prepare job</button>}<button type="submit" value="quote" name="quoteAction" className={canLink?'secondary':undefined}>Save quote only</button><p className="tiny">Choose “Save agreed quote” only after the customer has agreed to the work and price. A quote-only save does not create or approve a job.</p>
  </fieldset></form>;
+}
+
+/** Right after payment is the best moment to ask for a review. Opens the owner's own text or mail app with the
+ * review link filled in; nothing is sent until the owner taps send there. */
+function ReviewAsk({organization,name,phone,email}:{organization:string;name:string;phone:string;email:string}){
+ const url=ownerReviewUrl(organization),text=ownerReviewText(phone,name,url),mail=ownerReviewEmail(email,name,url);
+ if(!text&&!mail)return null;
+ return <div className="review-ask"><span>Paid and happy? Ask for a Google review now:</span>{text&&<a className="button secondary" href={text}>Text review link</a>}{mail&&<a className="button secondary" href={mail}>Email review link</a>}</div>;
 }

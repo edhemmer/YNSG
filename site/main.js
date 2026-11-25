@@ -134,7 +134,12 @@ if(form){
   const recovery=requestRecovery(tabStorage),recovered=recovery.read();
   const draftNote=form.querySelector('#draft-note'),clearDraft=form.querySelector('#clear-draft');
   cityPostalPicker(form);
-  const contactFields=['description','name','phone','email','street','city','postalCode','leadSource'];
+  const contactFields=['description','name','phone','email','street','city','postalCode','leadSource','referredBy'];
+  // "Who sent you?" shows only for a friend or realtor referral; a hidden answer is never sent.
+  const referralField=form.querySelector('#referral-field'),referral=form.querySelector('#referredBy'),source=form.querySelector('#leadSource');
+  const showReferral=()=>{if(!referralField||!source)return;const on=['Friend, family or neighbor','Realtor or property manager'].includes(source.value);referralField.hidden=!on;referral.disabled=!on;if(!on)referral.value='';};
+  source?.addEventListener('change',showReferral);
+  form.addEventListener('reset',()=>setTimeout(showReferral));queueMicrotask(showReferral);
   function saveDraft(){
     if(pendingSubmission||form.hidden)return;
     const data=Object.fromEntries(new FormData(form));
