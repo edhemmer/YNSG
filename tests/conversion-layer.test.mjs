@@ -12,7 +12,9 @@ test('home page explains the process right after the hero and keeps promos below
 test('phones get a Call and Request bar on every page except the request form',()=>{
  assert.match(build,/data-sticky-cta/);assert.match(build,/tel:\+18156801775/);assert.match(build,/slug==='request'\|\|slug==='form'/);
 });
-test('/review sends neighbors straight to the Google review form',()=>{
+test('/review sends neighbors straight to the Google review form',t=>{
+ // The CRM app build (root apps/web) runs this suite with Vercel's own generated vercel.json in place of the website's.
+ if(vercel.outputDirectory!=='dist'){t.skip('website vercel.json not present in this build');return;}
  const r=vercel.redirects.filter(x=>x.source==='/review'||x.source==='/review/');assert.equal(r.length,2);
  for(const x of r)assert.equal(x.destination,'https://g.page/r/CWxW2KabD1UWECE/review');
 });
