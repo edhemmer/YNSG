@@ -3,9 +3,9 @@ import {useEffect,useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 import {publicError} from '../lib/public-errors';
 import {chartPercent} from '../lib/business-snapshot';
-import {growthScorecard,scorecardTargets,type WeekHours,type SourceCount} from '../lib/growth-scorecard';
+import {growthScorecard,scorecardTargets,type WeekHours,type SourceCount,type SourceOutcome} from '../lib/growth-scorecard';
 
-type Payload={checkedAt:string;completedJobs:number;weeks:WeekHours[];sources:SourceCount[];sourceWindowDays:number;month:{collectedCents:number;bookedHours:number};truncated:boolean};
+type Payload={checkedAt:string;completedJobs:number;weeks:WeekHours[];sources:SourceCount[];outcomes?:SourceOutcome[];sourceWindowDays:number;month:{collectedCents:number;bookedHours:number};truncated:boolean};
 const usd=(c:number)=>(c/100).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
 const weekLabel=(iso:string)=>new Date(iso+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'});
 const reviewKey=(org:string)=>'ynsg:google-reviews:'+org;
@@ -38,6 +38,9 @@ export default function GrowthScorecard({organization,revision}:{organization:st
   <p className="scorecard-note">Your real hourly is lower once drive time is counted. Aim to keep this well above $55.</p>
   <h3>Where requests came from <span className="scorecard-note">(last {data.sourceWindowDays} days)</span></h3>
   {data.sources.length?<dl className="snapshot-bars" aria-label="Requests by how the customer found us">{data.sources.map((s,i)=><div key={s.source}><dt>{s.source}</dt><dd>{s.count.toLocaleString()}<span aria-hidden="true" className="snapshot-bar-track"><i className={'snapshot-bar tone-'+(i%3)} style={{width:chartPercent(s.count,maxSource)+'%'}}/></span></dd></div>)}</dl>:<p>No requests yet. Answers to “How did you hear about us?” will show here.</p>}
+  {data.outcomes&&data.outcomes.some(o=>o.booked>0)&&<><h3>Which sources turn into paid work <span className="scorecard-note">(last {data.sourceWindowDays} days)</span></h3>
+  <table className="source-outcomes"><thead><tr><th scope="col">Source</th><th scope="col">Requests</th><th scope="col">Booked jobs</th><th scope="col">Invoiced</th></tr></thead><tbody>{data.outcomes.map(o=><tr key={o.source}><th scope="row">{o.source}</th><td>{o.requests.toLocaleString()}</td><td>{o.booked.toLocaleString()}</td><td>{usd(o.invoicedCents)}</td></tr>)}</tbody></table>
+  <p className="scorecard-note">Spend your marketing time where booked jobs and dollars come from, not just where requests come from.</p></>}
   {data.truncated&&<p className="scorecard-note">Showing the most recent records only.</p>}
  </section>;
 }

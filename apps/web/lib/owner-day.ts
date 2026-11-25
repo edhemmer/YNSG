@@ -32,6 +32,14 @@ export function ownerReviewText(phone:string,name:string,url:string|null):string
  const body='Hi '+first+', thanks again for having Your Neighborhood Service Guy out. If you were happy with the work, a quick Google review helps our small local business a lot: '+url+' Thank you!';
  return 'sms:'+call.slice(4)+'?&body='+encodeURIComponent(body);
 }
+/** Same review ask as an email from the owner's own mail app; nothing is sent until the owner taps send. */
+export function ownerReviewEmail(email:string,name:string,url:string|null):string|null{
+ const to=email.trim();
+ if(!url||!url.startsWith('https://')||!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(to))return null;
+ const first=name.trim().split(/\s+/)[0]||'there';
+ const body='Hi '+first+',\n\nThanks again for having Your Neighborhood Service Guy out. If you were happy with the work, a quick Google review helps our small local business a lot:\n'+url+'\n\nThank you!';
+ return 'mailto:'+encodeURIComponent(to).replace(/%40/g,'@')+'?subject='+encodeURIComponent('Thank you from Your Neighborhood Service Guy')+'&body='+encodeURIComponent(body);
+}
 /** Opens the owner's own messaging app with a pre-filled note; nothing is sent until the owner taps send. */
 export function ownerStopText(phone:string,name:string):string|null{
  const call=ownerStopCall(phone);

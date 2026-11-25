@@ -21,7 +21,7 @@ export async function GET(request:Request){
   const rows={data:office.requests,count:office.total};
   const ids=rows.data.map(r=>r.id);
   const [quotes,preferences]=ids.length?await Promise.all([
-   db.from('quotes').select('id,request_id,status,current_version,quote_versions(version,scope,labor_cents,duration_minutes)').eq('organization_id',org).in('request_id',ids).order('id').limit(1001),
+   db.from('quotes').select('id,request_id,status,current_version,created_at,quote_versions(version,scope,labor_cents,duration_minutes)').eq('organization_id',org).in('request_id',ids).order('id').limit(1001),
    db.from('customer_schedule_preferences').select('id,request_id,preferred_local_start,note,timezone').eq('organization_id',org).in('request_id',ids).eq('status','pending').limit(1001)
   ]):[{data:[],error:null},{data:[],error:null}];
   if(quotes.error||preferences.error||quotes.data!.length>1000||preferences.data!.length>1000)throw Error('FAILED');

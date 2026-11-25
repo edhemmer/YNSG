@@ -41,6 +41,9 @@ Names only. Never commit values. This inventory is generated from a scan of the 
 | `YNSG_AI_MODEL` | configuration (not secret by name) | `apps/web` |
 | `CRM_INTAKE_ENABLED` | feature flag | `api/requests.js` |
 | `REQUEST_LEAD_SOURCE_ENABLED` | feature flag; set `true` only after migration `20261106150000_request_lead_source` is applied, otherwise the optional "How did you hear about us?" answer is validated and dropped | `api/requests.js` |
+| `REQUEST_REFERRAL_ENABLED` | feature flag; set `true` only after migration `20261125120000_call_leads_site_counts_referrals` is applied, otherwise the optional "Who sent you our way?" answer is validated and dropped | `api/requests.js` |
+| `CALLBACK_LEADS_ENABLED` | feature flag; set `true` only after migration `20261125120000_call_leads_site_counts_referrals` is applied. Until then "Call me back" requests are emailed to the owner only | `lib/marketing-db.js` |
+| `SITE_COUNTS_ENABLED` | feature flag; set `true` only after migration `20261125120000_call_leads_site_counts_referrals` is applied. Turns on anonymous daily page and call-tap counts | `lib/marketing-db.js` |
 | `PUBLISH_HOME_CARE_PLAN` | build-time feature flag; `true` publishes /home-care-plan/ and its footer link once the owner confirms plan pricing | `scripts/build.mjs` |
 | `MARKETING_LIST_ENABLED` | optional pause switch; on by default (migration `20261117120000_marketing_list_and_campaign_entries` applied 2026-11-17). Set `false` to stop saving Service Saturday entries and unsubscribes; they are then emailed to the owner instead | `lib/marketing-db.js` |
 | `GOOGLE_CALENDAR_WORKER_ENABLED` | feature flag | `apps/web` |

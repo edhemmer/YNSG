@@ -14,6 +14,7 @@ export const requestInput = z.object({
   preferredTime: z.string().trim().max(180).default(''), communityRate: z.enum(['Yes','No']),
   website: z.string().max(200).default(''),
   leadSource: z.enum(leadSourceOptions).optional(),
+  referredBy: z.string().trim().min(2).max(120).regex(/^[^\u0000-\u001f\u007f<>]+$/).optional(),
 }).strict().superRefine((v,ctx)=>{
   if(!v.services?.length && !v.service)ctx.addIssue({code:'custom',message:'Choose at least one service',path:['services']});
   if(v.services && new Set(v.services.map(x=>`${x.service}:${x.task}`)).size!==v.services.length)ctx.addIssue({code:'custom',message:'Remove duplicate selections',path:['services']});

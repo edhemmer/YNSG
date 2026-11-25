@@ -571,5 +571,11 @@
    "historyVersion": "20261005123109"
   }
  ],
- "pendingUnappliedMigrations": []
+ "pendingUnappliedMigrations": [
+  {
+   "file": "20261125120000_call_leads_site_counts_referrals.sql",
+   "name": "call_leads_site_counts_referrals",
+   "status": "not_applied_to_connected_supabase"
+  }
+ ]
 }

@@ -3,7 +3,7 @@ import {submissionAddress} from '../lib/request-inbox';
 import {useEffect,useState} from 'react';
 import {sessionFetch} from '../lib/session-fetch';
 import {publicError} from '../lib/public-errors';
-import {requestStage,requestTasks,requestTiming,type InboxData} from '../lib/request-inbox';
+import {requestStage,requestTasks,requestTiming,waitBadge,quoteFollowUp,type InboxData} from '../lib/request-inbox';
 import {ownerRequestNextStep} from '../lib/service-workflow';
 import Icon from './crm-icons';
 import RequestQuickActions from './request-quick-actions';
@@ -26,7 +26,7 @@ export default function RequestInbox({organization,timezone,onOpen,revision,fiel
    <div className="request-list" aria-busy={busy}>{(compact?data.requests.slice(0,5):data.requests.slice(0,shown)).map(r=>{const stage=requestStage(r),submission=r.original_submission,tasks=requestTasks(submission),timing=requestTiming(r,timezone);const linkedQuotes=data.quotes.filter(q=>q.request_id===r.id),linkedJobs=data.jobs.filter(j=>linkedQuotes.some(q=>q.id===j.quote_id));const next=ownerRequestNextStep(r,linkedQuotes,linkedJobs,data.invoices.filter(i=>linkedJobs.some(j=>j.id===i.job_id)));const assigned=data.assignments?.find(a=>a.request===r.id);return <article className="request-summary-card request-record-row" key={r.id} data-selected={selectedRequest===r.id||undefined} onClick={e=>{if((e.target as HTMLElement).closest('a,button,input,select,textarea,summary'))return;onOpen(r.id)}}>
     <div className="request-record-person"><button type="button" className="request-name" onClick={()=>onOpen(r.id)} aria-label={'Open request for '+(submission.name||'customer')}><span className="request-avatar" aria-hidden="true">{submission.name?.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase()||'?'}</span><strong>{submission.name||'Service request'}</strong></button><p className="request-record-work">{tasks.map(item=>item.task||item.service).join(' · ')}</p><small>{submissionAddress(submission)}</small>{assigned&&assigned.name!=='Owner'&&<small>{assigned.name}{assigned.archived?' · needs reassignment':''}</small>}</div>
     <div className="request-record-schedule"><span>{timing.label}</span><strong>{timing.text}</strong><small>Received {date(r.created_at)}</small></div>
-    <div className="request-record-state"><span className="status-pill">{stage.label}</span><p>{next.title}</p></div>
+    <div className="request-record-state"><span className="status-pill">{stage.label}</span>{(()=>{const w=waitBadge(r,Date.now(),timezone);return w&&<span className={'wait-badge'+(w.late?' is-late':'')}>{w.text}</span>;})()}<p>{next.title}</p>{(()=>{const f=quoteFollowUp(linkedQuotes);return f&&<p className="wait-badge is-late">Estimate sent {f.days} days ago with no answer. Call {submission.name?.split(' ')[0]||'them'} to follow up.</p>;})()}</div>
     <div className="request-record-action">{fieldMode||compact||rail?<button type="button" className="secondary" aria-label={'Open '+submission.name+' request'} onClick={()=>onOpen(r.id)}>Open<Icon name="arrow"/></button>:<RequestQuickActions request={r} timezone={timezone} organization={organization} canManage={canManage} onReview={()=>onOpen(r.id)} onChanged={()=>setReload(n=>n+1)} reviewLabel={reviewLabel}/>}</div>
    </article>;})}</div>
    {!compact&&data.requests.length>shown&&<button type="button" className="secondary request-show-more" onClick={()=>setShown(n=>n+8)}>Show {Math.min(8,data.requests.length-shown)} more</button>}

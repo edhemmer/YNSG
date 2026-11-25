@@ -51,3 +51,23 @@ export function growthScorecard({completedJobs,reviews,weeks}:{completedJobs:num
  const nextStep=phase==='Launch'?'Land paying jobs and ask every happy customer for a Google review.':phase==='Build'?'Fill your calendar and write a checklist for each job type before hiring.':'Start a part-time helper with payroll and workers’ comp in place.';
  return {phase,gates:[launch,build,hire],nextStep};
 }
+
+// Which sources turn into booked jobs and invoiced dollars. Requests, quotes, jobs and invoices are joined in
+// memory from the same window; a canceled job does not count as booked and only issued invoices count as dollars.
+export type SourceOutcome={source:string;requests:number;booked:number;invoicedCents:number};
+export function sourceOutcomes(
+ requests:{id:string;lead:string|null}[],
+ quotes:{id:string;request_id:string}[],
+ jobs:{id:string;quote_id:string;status:string}[],
+ invoices:{job_id:string;total_cents:number}[],
+):SourceOutcome[]{
+ const known=new Set<string>(leadSourceOptions),label=(v:string|null)=>typeof v==='string'&&known.has(v)?v:'Not given';
+ const requestSource=new Map(requests.map(r=>[r.id,label(r.lead)])),quoteSource=new Map<string,string>();
+ for(const q of quotes){const s=requestSource.get(q.request_id);if(s)quoteSource.set(q.id,s);}
+ const jobSource=new Map<string,string>(),out=new Map<string,SourceOutcome>();
+ const row=(s:string)=>{let r=out.get(s);if(!r){r={source:s,requests:0,booked:0,invoicedCents:0};out.set(s,r);}return r;};
+ for(const s of requestSource.values())row(s).requests++;
+ for(const j of jobs){const s=quoteSource.get(j.quote_id);if(!s||j.status==='canceled')continue;jobSource.set(j.id,s);row(s).booked++;}
+ for(const i of invoices){const s=jobSource.get(i.job_id);if(s)row(s).invoicedCents+=i.total_cents;}
+ return [...out.values()].sort((a,b)=>b.invoicedCents-a.invoicedCents||b.booked-a.booked||b.requests-a.requests||a.source.localeCompare(b.source));
+}
