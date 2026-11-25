@@ -140,7 +140,9 @@ if(form){
   const showReferral=()=>{if(!referralField||!source)return;const on=['Friend, family or neighbor','Realtor or property manager'].includes(source.value);referralField.hidden=!on;referral.disabled=!on;if(!on)referral.value='';};
   if(referralField&&referral&&typeof source?.addEventListener==='function'){
    source.addEventListener('change',showReferral);
-   form.addEventListener('reset',()=>setTimeout(showReferral));queueMicrotask(showReferral);
+   // Reset puts the source back to its blank default, so the referral box hides with it.
+   form.addEventListener('reset',()=>{referralField.hidden=true;referral.disabled=true;referral.value='';});
+   showReferral();
   }
   function saveDraft(){
     if(pendingSubmission||form.hidden)return;
@@ -155,6 +157,7 @@ if(form){
   if(recovered){
     const data=recovered.data;
     for(const name of contactFields){if(typeof data[name]==='string'&&form.elements.namedItem(name)){form.elements.namedItem(name).value=data[name];if(name==='city')form.elements.namedItem(name).dispatchEvent(new Event('change',{bubbles:true}));}}
+    if(referralField&&referral&&source)showReferral();
     const community=form.querySelector(`input[name=communityRate][value="${data.communityRate==='Yes'?'Yes':'No'}"]`);community.checked=true;
     selected.clear();
     for(const item of data.services){if(item&&Object.hasOwn(tasks,item.service)&&tasks[item.service].includes(item.task)&&selected.size<15){selected.set(key(item.service,item.task),{service:item.service,task:item.task});categoryGroups.get(item.service).open=true;}}
