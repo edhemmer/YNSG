@@ -485,6 +485,12 @@ export const GUIDES: Guide[] = deepen([...BASE_GUIDES, ...MORE_GUIDES, ...EXTRA_
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
 // Plain-language search: every word must appear somewhere in the guide's title, symptoms, keywords or category.
+// A quick-pick chip opens one lesson: the guide whose title holds the whole phrase, else the best search match.
+export function guideForChip(phrase: string): Guide | null {
+  const results = searchGuides(phrase), want = phrase.toLowerCase();
+  return results.find(g => g.title.toLowerCase().includes(want)) || results[0] || null;
+}
+
 export function searchGuides(query: string, category?: CategoryId | ''): Guide[] {
   const words = norm(query).split(' ').filter(w => w.length > 1 && !['a', 'an', 'the', 'to', 'my', 'how', 'fix', 'repair', 'is', 'of', 'and', 'or', 'that', 'it', 'not', 'in'].includes(w));
   const pool = category ? GUIDES.filter(g => g.category === category) : GUIDES;

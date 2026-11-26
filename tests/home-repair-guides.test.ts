@@ -36,3 +36,12 @@ test('every referenced drawing exists and the guide never uses "home safety" wor
  assert.doesNotMatch(JSON.stringify(GUIDES),/home safety/i);
  assert.doesNotMatch(JSON.stringify(GUIDES),/gutter/i);
 });
+test('every quick-pick chip opens a real lesson, the one it names',async()=>{
+ const {guideForChip}=await import('../apps/web/lib/home-repair-guides.ts');
+ const src=readFileSync(new URL('../apps/web/app/repair-guide-library.tsx',import.meta.url),'utf8');
+ const chips=JSON.parse(src.match(/const SUGGESTIONS = (\[[^\]]+\])/)![1].replace(/'/g,'"')) as string[];
+ for(const c of chips)assert.ok(guideForChip(c),c);
+ assert.equal(guideForChip('dryer vent')?.id,GUIDES.find(g=>/^Dryer vent/.test(g.title))?.id);
+ assert.equal(guideForChip('running toilet')?.id,'running-toilet');
+ assert.match(src,/guideForChip\(s\); if \(g\) open\(g\.id\)/);
+});
