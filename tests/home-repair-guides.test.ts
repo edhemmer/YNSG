@@ -39,7 +39,8 @@ test('every referenced drawing exists and the guide never uses "home safety" wor
 test('every quick-pick chip opens a real lesson, the one it names',async()=>{
  const {guideForChip}=await import('../apps/web/lib/home-repair-guides.ts');
  const src=readFileSync(new URL('../apps/web/app/repair-guide-library.tsx',import.meta.url),'utf8');
- const chips=JSON.parse(src.match(/const SUGGESTIONS = (\[[^\]]+\])/)![1].replace(/'/g,'"')) as string[];
+ const chips=JSON.parse((src.match(/const SUGGESTIONS = (\[[^\]]+\])/)?.[1] ?? "[]").replace(/'/g,'"')) as string[];
+ assert.ok(chips.length>=10,"found the chip list");
  for(const c of chips)assert.ok(guideForChip(c),c);
  assert.equal(guideForChip('dryer vent')?.id,GUIDES.find(g=>/^Dryer vent/.test(g.title))?.id);
  assert.equal(guideForChip('running toilet')?.id,'running-toilet');
